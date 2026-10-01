@@ -21,6 +21,179 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
 .footer{margin-top:18px;color:#7890a2;font-size:.78rem;text-align:center}
 :root{--wave-1:rgba(92,194,213,.38);--wave-2:rgba(29,151,182,.28);--wave-3:rgba(11,107,149,.18);--foam-shadow:rgba(255,255,255,.16)}
     .wave-field{position:fixed;left:0;right:0;bottom:0;height:245px;z-index:1;pointer-events:none;overflow:hidden}.wave{position:absolute;left:-5%;width:110%;border-radius:50% 50% 0 0 / 28% 28% 0 0;transition:background .55s ease}.wave-1{height:160px;bottom:-84px;background:var(--wave-1);transform:rotate(-1.4deg)}.wave-2{height:150px;bottom:-90px;background:var(--wave-2);transform:rotate(2deg);left:-4%}.wave-3{height:132px;bottom:-100px;background:var(--wave-3);transform:rotate(-2.3deg)}.foam{position:absolute;left:-4%;width:108%;height:70px;bottom:72px;border-top:6px solid rgba(255,255,255,.84);border-radius:50%;filter:drop-shadow(0 -8px 14px var(--foam-shadow));transform:rotate(-1.7deg);transition:filter .55s ease}
+
+/* =========================================================
+   SECCIONES Y SUBSECCIONES
+   ---------------------------------------------------------
+   - Cada .subject puede abrirse/cerrarse desde su cabecera.
+   - Dentro de .subject-content se pueden añadir tantos
+     .topic como se necesiten.
+   - Los botones .hub-card NO se modifican.
+   ========================================================= */
+
+.subject{
+  margin-bottom:28px;
+  border:1px solid rgba(27,76,108,.10);
+  border-radius:24px;
+  background:rgba(255,255,255,.22);
+  box-shadow:0 10px 30px rgba(22,61,90,.045);
+  overflow:hidden;
+}
+
+.subject-toggle{
+  width:100%;
+  border:0;
+  padding:14px 16px;
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  text-align:left;
+  color:inherit;
+  background:transparent;
+  cursor:pointer;
+  font:inherit;
+}
+
+.subject-toggle:hover{
+  background:rgba(255,255,255,.30);
+}
+
+.subject-toggle:focus-visible,
+.topic-toggle:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:-2px;
+}
+
+.subject-chevron,
+.topic-chevron{
+  margin-left:auto;
+  width:31px;
+  height:31px;
+  min-width:31px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:var(--blue-dark);
+  background:rgba(255,255,255,.62);
+  border:1px solid rgba(19,119,168,.10);
+  transition:transform .25s ease,background .2s ease;
+}
+
+.subject-chevron::before,
+.topic-chevron::before{
+  content:"⌄";
+  font-size:1.05rem;
+  line-height:1;
+  transform:translateY(-2px);
+}
+
+.subject.is-collapsed .subject-chevron,
+.topic.is-collapsed .topic-chevron{
+  transform:rotate(-90deg);
+}
+
+.subject-content{
+  display:grid;
+  grid-template-rows:1fr;
+  transition:grid-template-rows .28s ease, opacity .22s ease;
+  opacity:1;
+}
+
+.subject-content-inner{
+  min-height:0;
+  overflow:hidden;
+  padding:0 14px 14px;
+}
+
+.subject.is-collapsed .subject-content{
+  grid-template-rows:0fr;
+  opacity:0;
+}
+
+.subject.is-collapsed .subject-content-inner{
+  padding-bottom:0;
+}
+
+.topic{
+  margin-top:12px;
+  border-radius:19px;
+  border:1px solid rgba(27,76,108,.09);
+  background:rgba(255,255,255,.48);
+  overflow:hidden;
+}
+
+.topic:first-child{
+  margin-top:0;
+}
+
+.topic-toggle{
+  width:100%;
+  border:0;
+  padding:13px 15px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-align:left;
+  color:var(--ink);
+  background:rgba(255,255,255,.38);
+  cursor:pointer;
+  font:inherit;
+}
+
+.topic-toggle:hover{
+  background:rgba(255,255,255,.65);
+}
+
+.topic-title{
+  font-family:"Space Grotesk","DM Sans",sans-serif;
+  font-size:.94rem;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+
+.topic-content{
+  display:grid;
+  grid-template-rows:1fr;
+  transition:grid-template-rows .25s ease, opacity .2s ease;
+  opacity:1;
+}
+
+.topic-content-inner{
+  min-height:0;
+  overflow:hidden;
+  padding:0 13px 13px;
+}
+
+.topic.is-collapsed .topic-content{
+  grid-template-rows:0fr;
+  opacity:0;
+}
+
+.topic.is-collapsed .topic-content-inner{
+  padding-bottom:0;
+}
+
+.topic .hub-grid{
+  padding-top:2px;
+}
+
+/* Mantiene el diseño original de las cabeceras dentro del nuevo contenedor. */
+.subject-head{
+  margin-bottom:0;
+}
+
+.subject-number{
+  flex:0 0 auto;
+}
+
+@media(max-width:600px){
+  .subject-toggle{padding:12px 12px}
+  .subject-content-inner{padding-left:10px;padding-right:10px}
+  .topic-toggle{padding:12px}
+  .topic-content-inner{padding-left:9px;padding-right:9px}
+}
+
 @media(max-width:900px){.hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{align-items:flex-start}.subject-head p{margin-left:auto}.hero-mark{display:none}}
 @media(max-width:600px){.page{width:min(100% - 20px,1120px);padding-top:18px}.hero{padding-top:14px}h1{font-size:clamp(2.65rem,15vw,4rem)}.hub-grid{grid-template-columns:1fr}.subject-head{align-items:flex-start}.subject-head h2{font-size:1.15rem}.subject-head p{font-size:.78rem}.hub-card{min-height:124px}.wave-field{height:190px}}
 </style>
@@ -38,12 +211,37 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
 
   <section class="board" aria-label="Asignaturas">
     <section class="subject" data-subject="base-datos">
-      <div class="subject-head">
-        <div class="subject-number">01</div>
-        <h2>Base de Datos</h2>
-        <p>GBD · SQL · Modelado</p>
-      </div>
-      <div class="hub-grid">
+      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
+      <button class="subject-toggle" type="button" aria-expanded="true">
+        <div class="subject-head">
+          <div class="subject-number">01</div>
+          <h2>Base de Datos</h2>
+          <p>GBD · SQL · Modelado</p>
+        </div>
+        <span class="subject-chevron" aria-hidden="true"></span>
+      </button>
+
+      <div class="subject-content">
+        <div class="subject-content-inner">
+
+          <!--
+            SUBSECCIONES / TEMAS
+            -------------------
+            Para añadir otro tema, copia TODO este bloque y cambia:
+              1. "Tema 1" por "Tema 2", "Tema 3", etc.
+              2. El contenido que haya dentro de .hub-grid.
+
+            Los <a class="hub-card"> de abajo son los botones originales:
+            no hace falta modificar su estructura para añadir temas.
+          -->
+          <section class="topic" data-topic="base-datos-tema-1">
+            <button class="topic-toggle" type="button" aria-expanded="true">
+              <span class="topic-title">Tema 1 · Introducción a las BD y los SGBD</span>
+              <span class="topic-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="topic-content">
+              <div class="topic-content-inner">
+                <div class="hub-grid">
         <!-- BOTONES: modifica href, h3 y p para crear tus propios accesos -->
         <a class="hub-card" data-subject="base-datos" href="cuestionario_gbd_1asIR.html">
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="2.8"></ellipse><path d="M5 5v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5"></path><path d="M5 12v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-7"></path></svg></div>
@@ -57,16 +255,81 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14v12H5z"></path><path d="m8 10 3 2-3 2M13 15h3"></path></svg></div>
           <div class="card-copy"><h3>Resumen</h3><p>Diapositiva de SQL (sacada de clase)</p></div><div class="arrow">→</div>
         </a>
+                </div>
+              </div>
+            </div>
+          </section>
+		  
+		  <section class="topic" data-topic="base-datos-tema-1">
+            <button class="topic-toggle" type="button" aria-expanded="true">
+              <span class="topic-title">Tema 2 · Introducción a las Bases de Datos Relacionales</span>
+              <span class="topic-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="topic-content">
+              <div class="topic-content-inner">
+                <div class="hub-grid">
+        <!-- BOTONES: modifica href, h3 y p para crear tus propios accesos -->
+        <a class="hub-card" data-subject="base-datos" href="consultas-tipos.html">
+          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="2.8"></ellipse><path d="M5 5v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5"></path><path d="M5 12v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-7"></path></svg></div>
+          <div class="card-copy"><h3>Consultas tipos</h3><p>Resumen de tipos de consultas breves.</p></div><div class="arrow">→</div>
+        </a>
+        <a class="hub-card" data-subject="base-datos" href="chuleta-sql.html">
+          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.5h10v15H7z"></path><path d="m9.5 9.2 1.4 1.4 3.5-3.5M9.5 14.8 11 16.3l3.5-3.5"></path></svg></div>
+          <div class="card-copy"><h3>(PDF) Introducción a BD Relacionales</h3><p>Resumen del Tema 2.</p></div><div class="arrow">→</div>
+        </a>
+        <!--
+		<a class="hub-card" data-subject="base-datos" href="pdfs/UD1_BD.pdf">
+          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14v12H5z"></path><path d="m8 10 3 2-3 2M13 15h3"></path></svg></div>
+          <div class="card-copy"><h3>Resumen</h3><p>Diapositiva de SQL (sacada de clase)</p></div><div class="arrow">→</div>
+        </a>
+		--!>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--
+            AÑADIR OTRO TEMA:
+            copia el <section class="topic"> completo de arriba,
+            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
+          -->
+
+        </div>
       </div>
     </section>
 
     <section class="subject" data-subject="hardware">
-      <div class="subject-head">
-        <div class="subject-number">02</div>
-        <h2>Fundamentos de Hardware</h2>
-        <p>Componentes · Montaje · Diagnóstico</p>
-      </div>
-      <div class="hub-grid">
+      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
+      <button class="subject-toggle" type="button" aria-expanded="true">
+        <div class="subject-head">
+          <div class="subject-number">02</div>
+          <h2>Fundamentos de Hardware</h2>
+          <p>Componentes · Montaje · Diagnóstico</p>
+        </div>
+        <span class="subject-chevron" aria-hidden="true"></span>
+      </button>
+
+      <div class="subject-content">
+        <div class="subject-content-inner">
+
+          <!--
+            SUBSECCIONES / TEMAS
+            -------------------
+            Para añadir otro tema, copia TODO este bloque y cambia:
+              1. "Tema 1" por "Tema 2", "Tema 3", etc.
+              2. El contenido que haya dentro de .hub-grid.
+
+            Los <a class="hub-card"> de abajo son los botones originales:
+            no hace falta modificar su estructura para añadir temas.
+          -->
+          <section class="topic" data-topic="hardware-tema-1">
+            <button class="topic-toggle" type="button" aria-expanded="true">
+              <span class="topic-title">Tema 1 · Apuntes y prácticas</span>
+              <span class="topic-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="topic-content">
+              <div class="topic-content-inner">
+                <div class="hub-grid">
         <a class="hub-card" data-subject="hardware" href="hardware_apuntes.html">
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2"></rect><path d="M9 7h6M9 17h6M9 10h.01M12 10h.01M15 10h.01M9 13h.01M12 13h.01M15 13h.01"></path></svg></div>
           <div class="card-copy"><h3>Apuntes</h3><p>Componentes, arquitectura y fundamentos.</p></div><div class="arrow">→</div>
@@ -79,16 +342,53 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15.5 6.5 2-2 2 2-2 2"></path><path d="m13 9 4 4"></path><path d="M10 5 5 10l4 4 5-5"></path><path d="m5 16 3 3h9"></path></svg></div>
           <div class="card-copy"><h3>Prácticas</h3><p>Montaje, identificación y diagnóstico de equipos.</p></div><div class="arrow">→</div>
         </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--
+            AÑADIR OTRO TEMA:
+            copia el <section class="topic"> completo de arriba,
+            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
+          -->
+
+        </div>
       </div>
     </section>
 
     <section class="subject" data-subject="implantacion">
-      <div class="subject-head">
-        <div class="subject-number">03</div>
-        <h2>Implantación de Sistemas</h2>
-        <p>SO · Instalación · Administración</p>
-      </div>
-      <div class="hub-grid">
+      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
+      <button class="subject-toggle" type="button" aria-expanded="true">
+        <div class="subject-head">
+          <div class="subject-number">03</div>
+          <h2>Implantación de Sistemas</h2>
+          <p>SO · Instalación · Administración</p>
+        </div>
+        <span class="subject-chevron" aria-hidden="true"></span>
+      </button>
+
+      <div class="subject-content">
+        <div class="subject-content-inner">
+
+          <!--
+            SUBSECCIONES / TEMAS
+            -------------------
+            Para añadir otro tema, copia TODO este bloque y cambia:
+              1. "Tema 1" por "Tema 2", "Tema 3", etc.
+              2. El contenido que haya dentro de .hub-grid.
+
+            Los <a class="hub-card"> de abajo son los botones originales:
+            no hace falta modificar su estructura para añadir temas.
+          -->
+          <section class="topic" data-topic="implantacion-tema-1">
+            <button class="topic-toggle" type="button" aria-expanded="true">
+              <span class="topic-title">Tema 1 · Apuntes y prácticas</span>
+              <span class="topic-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="topic-content">
+              <div class="topic-content-inner">
+                <div class="hub-grid">
         <a class="hub-card" data-subject="implantacion" href="implantacion_apuntes.html">
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
           <div class="card-copy"><h3>Apuntes</h3><p>Sistemas operativos, particiones y conceptos clave.</p></div><div class="arrow">→</div>
@@ -101,16 +401,53 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path><path d="M9 9h6v6H9zM12 3v3M12 18v3M3 12h3M18 12h3"></path></svg></div>
           <div class="card-copy"><h3>Prácticas</h3><p>Instalación, configuración y administración.</p></div><div class="arrow">→</div>
         </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--
+            AÑADIR OTRO TEMA:
+            copia el <section class="topic"> completo de arriba,
+            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
+          -->
+
+        </div>
       </div>
     </section>
 
     <section class="subject" data-subject="redes">
-      <div class="subject-head">
-        <div class="subject-number">04</div>
-        <h2>Redes</h2>
-        <p>TCP/IP · Servicios · Conectividad</p>
-      </div>
-      <div class="hub-grid">
+      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
+      <button class="subject-toggle" type="button" aria-expanded="true">
+        <div class="subject-head">
+          <div class="subject-number">04</div>
+          <h2>Redes</h2>
+          <p>TCP/IP · Servicios · Conectividad</p>
+        </div>
+        <span class="subject-chevron" aria-hidden="true"></span>
+      </button>
+
+      <div class="subject-content">
+        <div class="subject-content-inner">
+
+          <!--
+            SUBSECCIONES / TEMAS
+            -------------------
+            Para añadir otro tema, copia TODO este bloque y cambia:
+              1. "Tema 1" por "Tema 2", "Tema 3", etc.
+              2. El contenido que haya dentro de .hub-grid.
+
+            Los <a class="hub-card"> de abajo son los botones originales:
+            no hace falta modificar su estructura para añadir temas.
+          -->
+          <section class="topic" data-topic="redes-tema-1">
+            <button class="topic-toggle" type="button" aria-expanded="true">
+              <span class="topic-title">Tema 1 · Apuntes y prácticas</span>
+              <span class="topic-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="topic-content">
+              <div class="topic-content-inner">
+                <div class="hub-grid">
         <a class="hub-card" data-subject="redes" href="redes_apuntes.html">
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="7" r="2.5"></circle><circle cx="18" cy="17" r="2.5"></circle><path d="m8.3 11 7.3-3M8.3 13l7.3 3"></path></svg></div>
           <div class="card-copy"><h3>Apuntes</h3><p>Redes, protocolos, direccionamiento y servicios.</p></div><div class="arrow">→</div>
@@ -123,16 +460,53 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14v10H5z"></path><path d="m9 10 3 2-3 2M13 14h3"></path></svg></div>
           <div class="card-copy"><h3>Prácticas</h3><p>Configuración, comandos y escenarios de red.</p></div><div class="arrow">→</div>
         </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--
+            AÑADIR OTRO TEMA:
+            copia el <section class="topic"> completo de arriba,
+            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
+          -->
+
+        </div>
       </div>
     </section>
 
     <section class="subject" data-subject="lenguaje">
-      <div class="subject-head">
-        <div class="subject-number">05</div>
-        <h2>Lenguaje de Marcas</h2>
-        <p>HTML · CSS · XML</p>
-      </div>
-      <div class="hub-grid">
+      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
+      <button class="subject-toggle" type="button" aria-expanded="true">
+        <div class="subject-head">
+          <div class="subject-number">05</div>
+          <h2>Lenguaje de Marcas</h2>
+          <p>HTML · CSS · XML</p>
+        </div>
+        <span class="subject-chevron" aria-hidden="true"></span>
+      </button>
+
+      <div class="subject-content">
+        <div class="subject-content-inner">
+
+          <!--
+            SUBSECCIONES / TEMAS
+            -------------------
+            Para añadir otro tema, copia TODO este bloque y cambia:
+              1. "Tema 1" por "Tema 2", "Tema 3", etc.
+              2. El contenido que haya dentro de .hub-grid.
+
+            Los <a class="hub-card"> de abajo son los botones originales:
+            no hace falta modificar su estructura para añadir temas.
+          -->
+          <section class="topic" data-topic="lenguaje-tema-1">
+            <button class="topic-toggle" type="button" aria-expanded="true">
+              <span class="topic-title">Tema 1 · Recursos y prácticas</span>
+              <span class="topic-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="topic-content">
+              <div class="topic-content-inner">
+                <div class="hub-grid">
         <a class="hub-card" data-subject="lenguaje" href="python_lab_estudio.html">
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 7-4 5 4 5M16 7l4 5-4 5M14 5l-4 14"></path></svg></div>
           <div class="card-copy"><h3>Miniretos Online</h3><p>Miniretos que se pueden realizar a traves de la web</p></div><div class="arrow">→</div>
@@ -145,6 +519,18 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
           <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"></path><path d="M8 9h8M8 12h6M8 15h4"></path></svg></div>
           <div class="card-copy"><h3>Prácticas web</h3><p>Crea y modifica páginas con HTML y CSS.</p></div><div class="arrow">→</div>
         </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--
+            AÑADIR OTRO TEMA:
+            copia el <section class="topic"> completo de arriba,
+            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
+          -->
+
+        </div>
       </div>
     </section>
     <div class="footer">HUB del estudio · 1º ASIR</div>
@@ -159,6 +545,28 @@ h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size
 </div>
 
 <script>
+  /* =========================================================
+     PLEGADO DE ASIGNATURAS Y TEMAS
+     ---------------------------------------------------------
+     El estado se controla con una clase CSS; los botones
+     .hub-card siguen siendo enlaces normales y no se tocan.
+     ========================================================= */
+  document.querySelectorAll(".subject-toggle").forEach(toggle => {
+    toggle.addEventListener("click", () => {
+      const subject = toggle.closest(".subject");
+      const collapsed = subject.classList.toggle("is-collapsed");
+      toggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+  });
+
+  document.querySelectorAll(".topic-toggle").forEach(toggle => {
+    toggle.addEventListener("click", () => {
+      const topic = toggle.closest(".topic");
+      const collapsed = topic.classList.toggle("is-collapsed");
+      toggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+  });
+
   /*
     COLORES DE LAS OLAS POR ASIGNATURA
     ----------------------------------
