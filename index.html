@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUB del estudio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--ink:#17324d;--muted:#62788c;--line:rgba(72,126,164,.13);--blue:#1377a8;--blue-dark:#0e638e;--aqua:#38a8be;--shadow:0 18px 45px rgba(22,61,90,.12);--radius:24px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;overflow-x:hidden;color:var(--ink);font-family:"DM Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),linear-gradient(180deg,#f9fcff 0%,#eef8fb 58%,#dff1f6 100%);background-size:27px 27px,27px 27px,auto;position:relative;isolation:isolate}
+body::before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:radial-gradient(circle at 16% 10%,rgba(255,255,255,.95),transparent 29%),radial-gradient(circle at 88% 18%,rgba(106,200,218,.15),transparent 24%),linear-gradient(180deg,transparent 0 63%,rgba(255,255,255,.16) 100%)}
+body::after{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.33;background:repeating-linear-gradient(0deg,transparent 0 6px,rgba(255,255,255,.06) 6px 7px);mix-blend-mode:soft-light}
+.page{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:30px 0 260px;position:relative;z-index:2}
+.hero{padding:26px 0 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid rgba(19,119,168,.16);background:rgba(255,255,255,.64);backdrop-filter:blur(8px);border-radius:999px;color:var(--blue-dark);font-size:.73rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 6px 18px rgba(25,78,105,.05)}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--aqua);box-shadow:0 0 0 4px rgba(56,168,190,.12)}
+h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size:clamp(3rem,7vw,5.8rem);line-height:.94;letter-spacing:-.055em;font-weight:700;max-width:760px}.hero p{margin:0;max-width:650px;font-size:clamp(1rem,1.7vw,1.14rem);line-height:1.65;color:var(--muted)}
+.hero-mark{min-width:130px;height:130px;border-radius:35% 65% 58% 42% / 40% 41% 59% 60%;background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(222,245,248,.35)),radial-gradient(circle at 30% 25%,rgba(255,255,255,.95),transparent 28%),#cbeaf0;box-shadow:inset 0 0 0 1px rgba(19,119,168,.10),0 22px 45px rgba(31,104,131,.10);transform:rotate(-7deg);position:relative;overflow:hidden}.hero-mark::before,.hero-mark::after{content:"";position:absolute;width:130%;left:-14%;height:40px;border-radius:50%;border:7px solid rgba(255,255,255,.72);border-left-color:transparent;border-right-color:transparent;transform:rotate(-9deg)}.hero-mark::before{top:26px}.hero-mark::after{top:58px;opacity:.58}
+.board{margin-top:28px}.board-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.board-head h2{margin:0;font-size:1rem;font-weight:800;letter-spacing:.02em}.board-head span{font-size:.84rem;color:var(--muted)}
+.hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.hub-card{display:flex;align-items:center;gap:16px;min-height:150px;padding:20px;border-radius:var(--radius);text-decoration:none;color:inherit;background:linear-gradient(145deg,rgba(255,255,255,.93),rgba(247,252,255,.76));border:1px solid rgba(27,76,108,.12);box-shadow:var(--shadow);backdrop-filter:blur(8px);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;position:relative;overflow:hidden}.hub-card::after{content:"";position:absolute;width:120px;height:120px;right:-52px;bottom:-52px;border-radius:50%;background:rgba(56,168,190,.09);transition:transform .25s ease}.hub-card:hover{transform:translateY(-5px);box-shadow:0 25px 50px rgba(22,61,90,.16);border-color:rgba(19,119,168,.28)}.hub-card:hover::after{transform:scale(1.25)}
+.icon{width:56px;height:56px;min-width:56px;border-radius:18px;display:grid;place-items:center;color:var(--blue-dark);background:linear-gradient(145deg,#ecfbfd,#d8f1f5);border:1px solid rgba(19,119,168,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.85)}.icon svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.card-copy{flex:1;min-width:0;position:relative;z-index:1}.card-copy h3{margin:0 0 5px;font-size:1.08rem;font-weight:800}.card-copy p{margin:0;color:var(--muted);font-size:.91rem;line-height:1.5}.arrow{font-size:1.2rem;color:var(--blue);transition:transform .2s ease}.hub-card:hover .arrow{transform:translateX(4px)}
+.note{margin-top:18px;padding:16px 18px;background:rgba(255,253,224,.78);border:1px dashed rgba(161,137,29,.32);border-radius:18px;color:#6e641d;line-height:1.55;font-size:.87rem}.note strong{color:#5a5114}.footer{margin-top:18px;color:#7890a2;font-size:.78rem}
+.wave-field{position:fixed;left:0;right:0;bottom:0;height:245px;z-index:1;pointer-events:none;overflow:hidden}.wave{position:absolute;left:-5%;width:110%;border-radius:50% 50% 0 0 / 28% 28% 0 0}.wave-1{height:160px;bottom:-84px;background:rgba(92,194,213,.38);transform:rotate(-1.4deg)}.wave-2{height:150px;bottom:-90px;background:rgba(29,151,182,.28);transform:rotate(2deg);left:-4%}.wave-3{height:132px;bottom:-100px;background:rgba(11,107,149,.18);transform:rotate(-2.3deg)}.foam{position:absolute;left:-4%;width:108%;height:70px;bottom:72px;border-top:6px solid rgba(255,255,255,.84);border-radius:50%;filter:drop-shadow(0 -8px 14px rgba(255,255,255,.16));transform:rotate(-1.7deg)}
+@media(max-width:820px){.hero{align-items:flex-start}.hero-mark{display:none}.hub-grid{grid-template-columns:1fr}}@media(max-width:560px){.page{width:min(100% - 20px,1120px);padding-top:18px}h1{font-size:clamp(2.65rem,15vw,4rem)}.hero{padding-top:14px}.hub-card{min-height:132px;padding:16px}.icon{width:50px;height:50px;min-width:50px;border-radius:16px}.wave-field{height:190px}.board-head{align-items:flex-start;flex-direction:column;gap:5px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Espacio personal de aprendizaje (ASIR)</span>
+      <h1>HUB del estudio</h1>
+      <p>Un punto de entrada sencillo para tener apuntes, cuestionarios, ejercicios y recursos organizados en una sola página.</p>
+    </div>
+    <div class="hero-mark" aria-hidden="true"></div>
+  </section>
+  <section class="board" aria-label="Módulos de estudio">
+    <div class="board-head"><h2>Contenido</h2><span>Selecciona una sección para continuar</span></div>
+    <div class="hub-grid">
+      <!-- Cambia los href por los nombres de tus HTML -->
+      <a class="hub-card" href="cuestionario_gbd_1asIR.html"><div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3.8h12v16.4H6z"></path><path d="M9 8h6M9 12h6M9 16h4"></path></svg></div><div class="card-copy"><h3>Conceptos SQL Cuestionario</h3><p>Cuestionario sobre Conceptos</p></div><div class="arrow" aria-hidden="true">→</div></a>
+      <a class="hub-card" href="cuestionarios.html"><div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.5h10v15H7z"></path><path d="m9.5 9.2 1.4 1.4 3.5-3.5M9.5 14.8 11 16.3l3.5-3.5"></path></svg></div><div class="card-copy"><h3>Cuestionarios</h3><p>Practica con tests y comprueba tus conocimientos.</p></div><div class="arrow" aria-hidden="true">→</div></a>
+      <a class="hub-card" href="ejercicios.html"><div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v13H5z"></path><path d="M9 9h6M9 12h6M9 15h3"></path></svg></div><div class="card-copy"><h3>Ejercicios</h3><p>Abre prácticas, actividades y problemas pendientes.</p></div><div class="arrow" aria-hidden="true">→</div></a>
+      <a class="hub-card" href="recursos.html"><div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 6.5h6l1.5 2h7.5v10H4.5z"></path><path d="M4.5 6.5V5h6l1.5 1.5"></path></svg></div><div class="card-copy"><h3>Recursos</h3><p>Enlaces, herramientas y material complementario.</p></div><div class="arrow" aria-hidden="true">→</div></a>
+    </div>
+    <div class="note"><strong>Personalización:</strong> cada tarjeta apunta a un archivo HTML independiente. Guarda este índice en la misma carpeta que tus páginas y modifica los valores de <code>href</code> cuando tengas los nombres definitivos.</div>
+    <div class="footer">HUB del estudio · responsive · sin JavaScript</div>
+  </section>
+</main>
+<div class="wave-field" aria-hidden="true"><div class="foam"></div><div class="wave wave-1"></div><div class="wave wave-2"></div><div class="wave wave-3"></div></div>
+</body>
+</html>
