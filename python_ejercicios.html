@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1013,6 +1012,42 @@ precio_por_gramo=float(input("Introduce el precio por gramo: "))
 coste_envio=pesototal*precio_por_gramo
 
 print(f"Se necesita un total de {coste_envio} €")`
+                    },
+                    
+                    {
+                        title: "Ejercicio 4",
+
+                        description:
+                            "Diseñar el algoritmo correspondiente a un programa que pida el total de kilómetros recorridos, el precio de la gasolina (por litro), el consumo del coche (litros/100 km) y nos muestre la siguiente información: El total de litros de gasolina que ha gastado en el trayecto. | ¿Cuánto dinero te ha costado la gasolina?",
+
+                        code:
+`km_recorridos=float(input("Cuantos km has recorrido: "))
+precio_gasolina=float(input("Cual es el precio de la gasolina: "))
+consumo_coche=float(input("Cuanto consume el coche cada 100 km: "))
+
+litros_totales = (km_recorridos / 100) * consumo_coche
+coste_total = litros_totales * precio_gasolina
+
+print(f"Se ha gastado un total de {litros_totales} litros de gasolina y a gastado {coste_total} euros en gasolina")`
+                    },
+                    
+                    {
+                        title: "Ejercicio 5",
+
+                        description:
+                            "Suponiendo que una paella se puede cocinar exclusivamente con arroz y gambas, y que para cada cuatro personas se utiliza medio kilo de arroz y un cuarto de kilo de gambas, escribir un programa que pida por pantalla el número de comensales para la paella, el precio por kilo de los ingredientes y muestre las cantidades de los ingredientes necesarios y el coste de la misma.",
+
+                        code:
+`comensales=int(input("Número de comensales que van a comer paella: "))
+precio_arroz=float(input("Precio por kilo de arroz: "))
+precio_gambas=float(input("Precio por kilo de las gambas: "))
+
+gambas_kg=comensales*(0.25/4)
+arroz_kg=comensales*(0.5/4)
+
+total=(arroz_kg*precio_arroz)+(gambas_kg*precio_gambas)
+
+print(f"La cantidad que va a necesitar de gambas son {gambas_kg} kg, de arroz {arroz_kg} kg y todo eso supone un coste de {total} €")`
                     }
 
                 ]
@@ -2022,5 +2057,4 @@ if isinstance(valor, int):
 
 </body>
 </html>
-```
 
