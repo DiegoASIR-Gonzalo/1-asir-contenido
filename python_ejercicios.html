@@ -1062,33 +1062,65 @@ print(f"La cantidad que va a necesitar de gambas son {gambas_kg} kg, de arroz {a
                             "El programa debe pedir un número positivos al usuario y almacena la respuesta en la variable numero. Después comprueba si el número es negativo. Si lo es, el programa avisa que no era eso lo que se había pedido. Finalmente, el programa imprime siempre el valor introducido por el usuario.",
 
                         code:
-`def saludar(nombre):
-    return f"Hola, {nombre}"
+`numero=int(input("Escribe un número positivo: "))
 
-
-mensaje = saludar("Python")
-
-print(mensaje)`
+if numero <= 0:
+    print("Esto no es lo que se a pedido...")
+else:
+    print(numero)`
                     },
 
 
                     {
-                        title: "Parámetros",
+                        title: "Ejercicio 2",
 
                         description:
-                            "Las funciones pueden recibir varios parámetros.",
+                            "El programa pregunta la edad al usuario y almacena la respuesta en la variable edad. Después comprueba si la edad es inferior a 18 años. Si esta comparación es cierta, el programa escribe que es menor de edad y si es falsa escribe que es mayor de edad. Finalmente el programa siempre se despide, ya que la última instrucción está fuera de cualquier bloque y por tanto se ejecuta siempre.",
 
                         code:
-`def sumar(a, b):
-    resultado = a + b
-    return resultado
+`edad=int(input("Introduce su edad: "))
 
+if edad < 18:
+    print("Es usted menor de edad")
+else:
+    print("Es usted mayor de edad")
 
-numero = sumar(10, 20)
+print("Hasta otra usuario")`
+                    },
 
-print(numero)`
+                    {
+                        title: "Ejercicio 3",
+
+                        description:
+                            "Programa que pide la edad y en función del valor recibido da un mensaje diferente. Podemos distinguir, por ejemplo, tres situaciones: • si el valor es negativo, se trata de un error • si el valor está entre 0 y 17, se trata de un menor de edad • si el valor es superior o igual a 18, se trata de un mayor de edad",
+
+                        code:
+`edad=int(input("Introduce su edad: "))
+
+if edad < 0:
+    print("Error")
+elif edad <=17:
+    print("Eres menor de edad")
+else:
+    print("Eres mayor de edad")`
+                    },
+                    
+                    {
+                        title: "Ejercicio 4",
+
+                        description:
+                            "Programa que pide un valor y nos dice: • si es múltiplo de dos, • si es múltiplo de cuatro (y de dos) • si no es múltiplo de dos",
+
+                        code:
+`valor=int(input("Introduce un valor: "))
+
+if valor % 4 == 0 and valor % 2 == 0:
+    print("Este valor es multiplo de 4 y de 2")
+elif valor % 2 == 0:
+    print("Este valor es multiplo de 2")
+elif not valor % 2 == 0:
+    print("No es multiplo de 2")`
                     }
-
                 ]
             },
 
