@@ -1,0 +1,1960 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Python Archive</title>
+
+    <style>
+
+        /* =========================================================
+           CONFIGURACIÓN VISUAL
+           Puedes modificar estos valores si quieres cambiar
+           ligeramente la apariencia general.
+        ========================================================= */
+
+        :root {
+            --background: #030604;
+            --background-panel: rgba(6, 13, 9, 0.94);
+
+            --green: #38d878;
+            --green-dark: #124c2b;
+            --green-soft: rgba(56, 216, 120, 0.16);
+
+            --text: #dce8df;
+            --text-muted: #718479;
+
+            --border: rgba(56, 216, 120, 0.20);
+
+            --grid-size: 42px;
+        }
+
+
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            background: var(--background);
+            color: var(--text);
+
+            font-family:
+                Inter,
+                "Segoe UI",
+                system-ui,
+                sans-serif;
+
+            overflow-x: hidden;
+        }
+
+
+        /* =========================================================
+           FONDO
+        ========================================================= */
+
+        .background {
+            position: fixed;
+            inset: 0;
+
+            z-index: -10;
+
+            background-color: #030604;
+
+            background-image:
+                linear-gradient(
+                    rgba(40, 150, 76, 0.11) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(40, 150, 76, 0.11) 1px,
+                    transparent 1px
+                );
+
+            background-size:
+                var(--grid-size)
+                var(--grid-size);
+        }
+
+
+        /*
+            Líneas adicionales que serán animadas
+            aleatoriamente mediante JavaScript.
+        */
+
+        .dynamic-lines {
+            position: fixed;
+            inset: 0;
+
+            z-index: -9;
+
+            pointer-events: none;
+        }
+
+        .dynamic-line {
+            position: absolute;
+
+            background: rgba(56, 216, 120, 0.22);
+
+            transition:
+                opacity 0.08s linear,
+                background 0.08s linear,
+                box-shadow 0.08s linear;
+        }
+
+        .dynamic-line.horizontal {
+            width: 100%;
+            height: 1px;
+        }
+
+        .dynamic-line.vertical {
+            width: 1px;
+            height: 100%;
+        }
+
+        .dynamic-line.black {
+            background: #000 !important;
+            opacity: 1 !important;
+            box-shadow: none !important;
+        }
+
+        .dynamic-line.flash {
+            background: var(--green) !important;
+
+            box-shadow:
+                0 0 5px var(--green),
+                0 0 18px rgba(56, 216, 120, 0.35);
+
+            opacity: 1 !important;
+        }
+
+
+        /* =========================================================
+           CONTENEDOR PRINCIPAL
+        ========================================================= */
+
+        .container {
+            width: min(1150px, calc(100% - 36px));
+
+            margin: auto;
+
+            padding:
+                55px 0
+                80px;
+        }
+
+
+        /* =========================================================
+           CABECERA
+        ========================================================= */
+
+        .header {
+            position: relative;
+
+            padding: 35px;
+
+            margin-bottom: 30px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(10, 25, 15, 0.95),
+                    rgba(3, 8, 5, 0.96)
+                );
+
+            border: 1px solid var(--border);
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.55);
+
+            overflow: hidden;
+        }
+
+
+        .header::before {
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 3px;
+            height: 100%;
+
+            background: var(--green);
+
+            box-shadow:
+                0 0 20px var(--green);
+        }
+
+
+        .header-label {
+            margin-bottom: 10px;
+
+            color: var(--green);
+
+            font-family: monospace;
+
+            font-size: 11px;
+
+            letter-spacing: 0.22em;
+
+            text-transform: uppercase;
+        }
+
+
+        .header h1 {
+            margin: 0;
+
+            font-size:
+                clamp(32px, 6vw, 58px);
+
+            font-weight: 600;
+
+            letter-spacing: -0.05em;
+        }
+
+
+        .header p {
+            max-width: 680px;
+
+            margin:
+                14px 0 0;
+
+            color: var(--text-muted);
+
+            font-size: 14px;
+
+            line-height: 1.7;
+        }
+
+
+        .system-status {
+            position: absolute;
+
+            top: 28px;
+            right: 30px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            color: var(--text-muted);
+
+            font-family: monospace;
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.12em;
+        }
+
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: var(--green);
+
+            box-shadow:
+                0 0 10px var(--green);
+
+            animation:
+                statusPulse 2.2s infinite;
+        }
+
+
+        @keyframes statusPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.35;
+            }
+        }
+
+
+        /* =========================================================
+           NAVEGACIÓN
+        ========================================================= */
+
+        .navigation {
+            display: flex;
+
+            overflow-x: auto;
+
+            border-bottom:
+                1px solid var(--border);
+
+            scrollbar-width: thin;
+        }
+
+
+        .navigation button {
+            position: relative;
+
+            flex-shrink: 0;
+
+            padding:
+                15px 22px;
+
+            border: 0;
+
+            border-top:
+                1px solid transparent;
+
+            border-left:
+                1px solid transparent;
+
+            border-right:
+                1px solid transparent;
+
+            background:
+                rgba(3, 8, 5, 0.8);
+
+            color: var(--text-muted);
+
+            font: inherit;
+
+            font-size: 12px;
+
+            cursor: pointer;
+
+            transition:
+                color 0.2s,
+                background 0.2s,
+                border-color 0.2s;
+        }
+
+
+        .navigation button:hover {
+            color: var(--text);
+
+            background:
+                rgba(14, 32, 20, 0.8);
+        }
+
+
+        .navigation button.active {
+            color: var(--green);
+
+            background:
+                rgba(8, 19, 12, 0.95);
+
+            border-color: var(--border);
+        }
+
+
+        .navigation button.active::after {
+            content: "";
+
+            position: absolute;
+
+            bottom: -1px;
+            left: 18px;
+            right: 18px;
+
+            height: 2px;
+
+            background: var(--green);
+
+            box-shadow:
+                0 0 10px var(--green);
+        }
+
+
+        /* =========================================================
+           SECCIÓN
+        ========================================================= */
+
+        .section {
+            display: none;
+
+            background:
+                rgba(4, 10, 6, 0.94);
+
+            border:
+                1px solid var(--border);
+
+            border-top: 0;
+        }
+
+
+        .section.active {
+            display: block;
+
+            animation:
+                sectionIn 0.25s ease;
+        }
+
+
+        @keyframes sectionIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .section-header {
+            padding: 25px;
+
+            border-bottom:
+                1px solid var(--border);
+        }
+
+
+        .section-header h2 {
+            margin: 0;
+
+            font-size: 18px;
+
+            font-weight: 500;
+        }
+
+
+        .section-header p {
+            margin:
+                7px 0 0;
+
+            color: var(--text-muted);
+
+            font-size: 12px;
+
+            line-height: 1.6;
+        }
+
+
+        /* =========================================================
+           BLOQUES DE CÓDIGO
+        ========================================================= */
+
+        .code-list {
+            padding: 18px;
+        }
+
+
+        .code-item {
+            margin-bottom: 8px;
+
+            border:
+                1px solid
+                rgba(56, 216, 120, 0.16);
+
+            background:
+                rgba(6, 15, 9, 0.8);
+        }
+
+
+        .code-item:last-child {
+            margin-bottom: 0;
+        }
+
+
+        /* CABECERA DEL BLOQUE */
+
+        .code-toggle {
+            width: 100%;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+
+            padding:
+                15px;
+
+            border: 0;
+
+            background: transparent;
+
+            color: var(--text);
+
+            text-align: left;
+
+            cursor: pointer;
+        }
+
+
+        .code-toggle:hover {
+            background:
+                rgba(30, 100, 53, 0.08);
+        }
+
+
+        .arrow {
+            width: 7px;
+            height: 7px;
+
+            border-right:
+                1px solid var(--green);
+
+            border-bottom:
+                1px solid var(--green);
+
+            transform:
+                rotate(-45deg);
+
+            transition:
+                transform 0.2s;
+        }
+
+
+        .code-item.open .arrow {
+            transform:
+                rotate(45deg);
+        }
+
+
+        .code-title {
+            flex: 1;
+
+            font-size: 13px;
+        }
+
+
+        .code-tag {
+            padding:
+                3px 7px;
+
+            border:
+                1px solid
+                rgba(56, 216, 120, 0.2);
+
+            color: var(--green);
+
+            font-family: monospace;
+
+            font-size: 9px;
+
+            letter-spacing: 0.1em;
+        }
+
+
+        /* =========================================================
+           CONTENIDO DEL CÓDIGO
+        ========================================================= */
+
+        .code-content {
+            display: none;
+
+            border-top:
+                1px solid
+                rgba(56, 216, 120, 0.12);
+        }
+
+
+        .code-item.open .code-content {
+            display: block;
+        }
+
+
+        .code-description {
+            padding:
+                15px 18px;
+
+            color: var(--text-muted);
+
+            font-size: 12px;
+
+            line-height: 1.7;
+        }
+
+
+        /*
+            IMPORTANTE:
+
+            El código NO se introduce mediante textarea.
+
+            Se representa mediante <pre><code>.
+            Por tanto el visitante NO puede modificarlo.
+        */
+
+        .code-view {
+            position: relative;
+
+            margin: 0;
+        }
+
+
+        pre {
+            margin: 0;
+
+            padding:
+                20px;
+
+            overflow-x: auto;
+
+            background:
+                #020503;
+
+            border-top:
+                1px solid
+                rgba(56, 216, 120, 0.08);
+
+            color:
+                #b9e5c5;
+
+            font-family:
+                "JetBrains Mono",
+                "Fira Code",
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+
+            line-height: 1.7;
+
+            tab-size: 4;
+
+            user-select: text;
+        }
+
+
+        code {
+            font-family: inherit;
+        }
+
+
+        /* =========================================================
+           BOTÓN COPIAR
+        ========================================================= */
+
+        .code-footer {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding:
+                9px 12px;
+
+            background:
+                rgba(7, 16, 10, 0.9);
+
+            border-top:
+                1px solid
+                rgba(56, 216, 120, 0.10);
+        }
+
+
+        .code-info {
+            color:
+                #52675a;
+
+            font-family: monospace;
+
+            font-size: 9px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.08em;
+        }
+
+
+        .copy-button {
+            padding:
+                6px 10px;
+
+            border:
+                1px solid
+                rgba(56, 216, 120, 0.2);
+
+            background:
+                transparent;
+
+            color:
+                var(--text-muted);
+
+            font-size: 10px;
+
+            cursor: pointer;
+
+            transition:
+                color 0.2s,
+                border-color 0.2s,
+                background 0.2s;
+        }
+
+
+        .copy-button:hover {
+            color: var(--green);
+
+            border-color:
+                var(--green-dark);
+
+            background:
+                var(--green-soft);
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        footer {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-top: 15px;
+
+            color:
+                #3e5145;
+
+            font-family: monospace;
+
+            font-size: 9px;
+
+            letter-spacing: 0.08em;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 650px) {
+
+            .container {
+                width:
+                    calc(100% - 20px);
+
+                padding-top: 20px;
+            }
+
+
+            .header {
+                padding: 25px 20px;
+            }
+
+
+            .system-status {
+                position: static;
+
+                margin-top: 20px;
+            }
+
+
+            .section-header {
+                padding: 20px;
+            }
+
+
+            .code-list {
+                padding: 10px;
+            }
+
+
+            footer {
+                flex-direction: column;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+    <!-- =========================================================
+         FONDO
+    ========================================================== -->
+
+    <div class="background"></div>
+
+    <div
+        class="dynamic-lines"
+        id="dynamicLines"
+    ></div>
+
+
+    <!-- =========================================================
+         CONTENIDO PRINCIPAL
+    ========================================================== -->
+
+    <main class="container">
+
+
+        <!-- =====================================================
+             CABECERA
+        ====================================================== -->
+
+        <header class="header">
+
+            <div class="header-label">
+                Python / Knowledge Base
+            </div>
+
+            <h1>
+                Python Archive
+            </h1>
+
+            <p>
+                Biblioteca de fragmentos de código Python
+                organizada por categorías. Consulta, estudia
+                y copia los ejemplos que necesites.
+            </p>
+
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                SYSTEM ONLINE
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             NAVEGACIÓN
+        ====================================================== -->
+
+        <nav
+            class="navigation"
+            id="navigation"
+        ></nav>
+
+
+        <!-- =====================================================
+             SECCIONES
+        ====================================================== -->
+
+        <div id="sections"></div>
+
+
+        <footer>
+
+            <span>
+                PYTHON ARCHIVE
+            </span>
+
+            <span>
+                STATIC KNOWLEDGE SYSTEM
+            </span>
+
+        </footer>
+
+    </main>
+
+
+
+    <script>
+
+        /* =========================================================
+           =========================================================
+           
+           PYTHON LIBRARY
+           
+           =========================================================
+
+           ESTE ES EL ÚNICO LUGAR QUE NECESITAS MODIFICAR
+           PARA AÑADIR O CAMBIAR EL CONTENIDO DE LA WEB.
+
+           El visitante NO puede modificar estos datos.
+
+           Para añadir una nueva categoría:
+
+               {
+                   id: "mi_categoria",
+                   title: "Mi categoría",
+                   description: "Descripción...",
+                   blocks: [...]
+               }
+
+           Para añadir un bloque:
+
+               {
+                   title: "Título del bloque",
+                   description: "Explicación...",
+                   code: `
+
+                       código Python
+
+                   `
+               }
+
+           IMPORTANTE:
+
+           Utiliza las comillas invertidas ` para el código Python.
+
+           =========================================================
+        */
+
+
+        const PYTHON_LIBRARY = [
+
+            /* =====================================================
+               CATEGORÍA 1
+            ====================================================== */
+
+            {
+                id: "fundamentos",
+
+                title: "Ejercicios Repaso 1",
+
+                description:
+                    "Ejercicios de repaso que se mandaron, fueron de los primeros.",
+
+                blocks: [
+
+                    {
+                        title: "Ejercicio 1",
+
+                        description:
+                            "Diseñar el algoritmo correspondiente a un programa que lea el valor correspondiente a una distancia en millas marinas y las escriba expresadas en metros.",
+
+                        code:
+`milas_marinas=50
+
+conversion=int(milas_marinas*1852)
+
+print(f"Las milas marinas sale en metros a {conversion}")`
+                    },
+
+
+                    {
+                        title: "Ejercicio 2",
+
+                        description:
+                            "Escribir un programa que pida al usuario su peso (en kg) y estatura (en metros), calcule el índice de masa corporal y lo almacene en una variable, e imprima por pantalla la frase “Tu índice de masa corporal es…” y el resultado.",
+
+                        code:
+`peso=float(input("Introduce tu peso (kg): "))
+estatura=float(input("Introduce tu estatura (metros): "))
+
+masa_corporal=peso/estatura**2
+
+print(f"Tu índice de masa corporal es {masa_corporal}")`
+                    },
+
+
+                    {
+                        title: "Ejercicio 3",
+
+                        description:
+                            "Una juguetería tiene mucho éxito en dos de sus productos: payasos y muñecas. Suele hacer venta por correo y la empresa de logística les cobra por peso de cada paquete así que deben calcular el peso de los payasos y muñecas que saldrán en cada paquete a demanda. Cada payaso pesa 112 g y cada muñeca 75 g. Escribir un programa que lea el número de payasos y muñecas vendidos en el último pedido y calcule el peso total del paquete que será enviado. Además se nos pide el precio que se cobra por gramo, , y se nos mostrará el total de dinero que necesitamos para realizar el envío.",
+
+                        code:
+`cant_payasos=int(input("Número de payasos: "))
+cant_munecas=int(input("Número de muñecas: "))
+
+pesototal=cant_payasos*112+cant_munecas*75
+
+precio_por_gramo=float(input("Introduce el precio por gramo: "))
+
+coste_envio=pesototal*precio_por_gramo
+
+print(f"Se necesita un total de {coste_envio} €")`
+                    }
+
+                ]
+            },
+
+
+            /* =====================================================
+               CATEGORÍA 2
+            ====================================================== */
+
+            {
+                id: "funciones",
+
+                title: "Funciones",
+
+                description:
+                    "Creación y utilización de funciones reutilizables.",
+
+                blocks: [
+
+                    {
+                        title: "Función básica",
+
+                        description:
+                            "Una función sencilla que recibe un nombre y devuelve un saludo.",
+
+                        code:
+`def saludar(nombre):
+    return f"Hola, {nombre}"
+
+
+mensaje = saludar("Python")
+
+print(mensaje)`
+                    },
+
+
+                    {
+                        title: "Parámetros",
+
+                        description:
+                            "Las funciones pueden recibir varios parámetros.",
+
+                        code:
+`def sumar(a, b):
+    resultado = a + b
+    return resultado
+
+
+numero = sumar(10, 20)
+
+print(numero)`
+                    }
+
+                ]
+            },
+
+
+            /* =====================================================
+               CATEGORÍA 3
+            ====================================================== */
+
+            {
+                id: "archivos",
+
+                title: "Archivos",
+
+                description:
+                    "Lectura y escritura de archivos desde Python.",
+
+                blocks: [
+
+                    {
+                        title: "Leer archivo",
+
+                        description:
+                            "Abre un archivo de texto y obtiene todo su contenido.",
+
+                        code:
+`with open(
+    "archivo.txt",
+    "r",
+    encoding="utf-8"
+) as archivo:
+
+    contenido = archivo.read()
+
+
+print(contenido)`
+                    },
+
+
+                    {
+                        title: "Escribir archivo",
+
+                        description:
+                            "Crea o sobrescribe un archivo de texto.",
+
+                        code:
+`texto = "Hola desde Python"
+
+
+with open(
+    "salida.txt",
+    "w",
+    encoding="utf-8"
+) as archivo:
+
+    archivo.write(texto)`
+                    }
+
+                ]
+            },
+
+
+            /* =====================================================
+               CATEGORÍA 4
+            ====================================================== */
+
+            {
+                id: "utilidades",
+
+                title: "Utilidades",
+
+                description:
+                    "Fragmentos pequeños y reutilizables.",
+
+                blocks: [
+
+                    {
+                        title: "Fecha actual",
+
+                        description:
+                            "Obtiene la fecha y hora actual.",
+
+                        code:
+`from datetime import datetime
+
+
+ahora = datetime.now()
+
+
+print(ahora)`
+                    },
+
+
+                    {
+                        title: "Comprobar tipo",
+
+                        description:
+                            "Comprueba el tipo de un objeto.",
+
+                        code:
+`valor = 25
+
+
+if isinstance(valor, int):
+    print("El valor es un entero")`
+                    }
+
+                ]
+            }
+
+        ];
+
+
+        /* =========================================================
+           =========================================================
+           FIN DE LA ZONA EDITABLE
+           =========================================================
+
+           NO ES NECESARIO MODIFICAR NADA A PARTIR DE AQUÍ.
+           
+           El siguiente código controla exclusivamente
+           la interfaz.
+           
+           =========================================================
+        */
+
+
+        /*
+        ============================================================
+        VARIABLES DE LA INTERFAZ
+        ============================================================
+        */
+
+        const navigation =
+            document.getElementById(
+                "navigation"
+            );
+
+
+        const sections =
+            document.getElementById(
+                "sections"
+            );
+
+
+        /*
+            Primera categoría activa.
+        */
+
+        let activeCategory =
+            PYTHON_LIBRARY[0]?.id;
+
+
+        /*
+        ============================================================
+        GENERAR NAVEGACIÓN
+        ============================================================
+        */
+
+        function renderNavigation() {
+
+            navigation.innerHTML = "";
+
+
+            PYTHON_LIBRARY.forEach(
+                category => {
+
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    button.type = "button";
+
+
+                    button.textContent =
+                        category.title;
+
+
+                    if (
+                        category.id ===
+                        activeCategory
+                    ) {
+
+                        button.classList.add(
+                            "active"
+                        );
+
+                    }
+
+
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            activeCategory =
+                                category.id;
+
+                            renderNavigation();
+
+                            renderSections();
+
+                        }
+                    );
+
+
+                    navigation.appendChild(
+                        button
+                    );
+
+                }
+            );
+        }
+
+
+        /*
+        ============================================================
+        GENERAR SECCIONES
+        ============================================================
+        */
+
+        function renderSections() {
+
+            sections.innerHTML = "";
+
+
+            PYTHON_LIBRARY.forEach(
+                category => {
+
+                    const section =
+                        document.createElement(
+                            "section"
+                        );
+
+
+                    section.className =
+                        "section";
+
+
+                    if (
+                        category.id ===
+                        activeCategory
+                    ) {
+
+                        section.classList.add(
+                            "active"
+                        );
+
+                    }
+
+
+                    /*
+                    CABECERA
+                    */
+
+                    const header =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    header.className =
+                        "section-header";
+
+
+                    const title =
+                        document.createElement(
+                            "h2"
+                        );
+
+
+                    title.textContent =
+                        category.title;
+
+
+                    const description =
+                        document.createElement(
+                            "p"
+                        );
+
+
+                    description.textContent =
+                        category.description;
+
+
+                    header.appendChild(title);
+
+                    header.appendChild(
+                        description
+                    );
+
+
+                    /*
+                    LISTA DE CÓDIGO
+                    */
+
+                    const list =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    list.className =
+                        "code-list";
+
+
+                    category.blocks.forEach(
+                        (block, index) => {
+
+                            list.appendChild(
+                                createCodeBlock(
+                                    block,
+                                    index
+                                )
+                            );
+
+                        }
+                    );
+
+
+                    section.appendChild(
+                        header
+                    );
+
+                    section.appendChild(
+                        list
+                    );
+
+
+                    sections.appendChild(
+                        section
+                    );
+
+                }
+            );
+        }
+
+
+        /*
+        ============================================================
+        CREAR BLOQUE DE CÓDIGO
+        ============================================================
+        */
+
+        function createCodeBlock(
+            block,
+            index
+        ) {
+
+            const item =
+                document.createElement(
+                    "article"
+                );
+
+
+            item.className =
+                "code-item";
+
+
+            /*
+            --------------------------------------------------------
+            CABECERA
+            --------------------------------------------------------
+            */
+
+            const toggle =
+                document.createElement(
+                    "button"
+                );
+
+
+            toggle.type = "button";
+
+            toggle.className =
+                "code-toggle";
+
+
+            const arrow =
+                document.createElement(
+                    "span"
+                );
+
+
+            arrow.className =
+                "arrow";
+
+
+            const title =
+                document.createElement(
+                    "span"
+                );
+
+
+            title.className =
+                "code-title";
+
+
+            title.textContent =
+                block.title;
+
+
+            const tag =
+                document.createElement(
+                    "span"
+                );
+
+
+            tag.className =
+                "code-tag";
+
+
+            tag.textContent =
+                "PY";
+
+
+            toggle.appendChild(
+                arrow
+            );
+
+            toggle.appendChild(
+                title
+            );
+
+            toggle.appendChild(
+                tag
+            );
+
+
+            /*
+            --------------------------------------------------------
+            CONTENIDO
+            --------------------------------------------------------
+            */
+
+            const content =
+                document.createElement(
+                    "div"
+                );
+
+
+            content.className =
+                "code-content";
+
+
+            /*
+            DESCRIPCIÓN
+            */
+
+            if (
+                block.description
+            ) {
+
+                const description =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                description.className =
+                    "code-description";
+
+
+                description.textContent =
+                    block.description;
+
+
+                content.appendChild(
+                    description
+                );
+
+            }
+
+
+            /*
+            CONTENEDOR DEL CÓDIGO
+            */
+
+            const codeView =
+                document.createElement(
+                    "div"
+                );
+
+
+            codeView.className =
+                "code-view";
+
+
+            /*
+                <pre><code> se utiliza deliberadamente
+                en lugar de textarea.
+
+                Esto hace que el contenido sea de solo lectura.
+            */
+
+            const pre =
+                document.createElement(
+                    "pre"
+                );
+
+
+            const code =
+                document.createElement(
+                    "code"
+                );
+
+
+            code.textContent =
+                block.code;
+
+
+            pre.appendChild(
+                code
+            );
+
+
+            codeView.appendChild(
+                pre
+            );
+
+
+            /*
+            FOOTER
+            */
+
+            const footer =
+                document.createElement(
+                    "div"
+                );
+
+
+            footer.className =
+                "code-footer";
+
+
+            const info =
+                document.createElement(
+                    "span"
+                );
+
+
+            info.className =
+                "code-info";
+
+
+            info.textContent =
+                "READ ONLY · PYTHON";
+
+
+            /*
+            BOTÓN COPIAR
+            */
+
+            const copy =
+                document.createElement(
+                    "button"
+                );
+
+
+            copy.type = "button";
+
+
+            copy.className =
+                "copy-button";
+
+
+            copy.textContent =
+                "Copiar código";
+
+
+            copy.addEventListener(
+                "click",
+                async event => {
+
+                    /*
+                        Evita que el clic también
+                        cierre el bloque.
+                    */
+
+                    event.stopPropagation();
+
+
+                    try {
+
+                        await navigator.clipboard
+                            .writeText(
+                                block.code
+                            );
+
+
+                        copy.textContent =
+                            "✓ Copiado";
+
+
+                        setTimeout(
+                            () => {
+
+                                copy.textContent =
+                                    "Copiar código";
+
+                            },
+                            1400
+                        );
+
+                    }
+
+                    catch {
+
+                        copy.textContent =
+                            "No disponible";
+
+                    }
+
+                }
+            );
+
+
+            footer.appendChild(
+                info
+            );
+
+            footer.appendChild(
+                copy
+            );
+
+
+            content.appendChild(
+                codeView
+            );
+
+            content.appendChild(
+                footer
+            );
+
+
+            /*
+            --------------------------------------------------------
+            TOGGLE
+            --------------------------------------------------------
+            */
+
+            toggle.addEventListener(
+                "click",
+                () => {
+
+                    item.classList.toggle(
+                        "open"
+                    );
+
+                }
+            );
+
+
+            item.appendChild(
+                toggle
+            );
+
+            item.appendChild(
+                content
+            );
+
+
+            return item;
+        }
+
+
+        /*
+        ============================================================
+        FONDO DINÁMICO
+        ============================================================
+        */
+
+        const dynamicLines =
+            document.getElementById(
+                "dynamicLines"
+            );
+
+
+        /*
+            Crea líneas que coinciden aproximadamente
+            con la cuadrícula del fondo.
+        */
+
+        function createDynamicLines() {
+
+            const horizontalCount =
+                Math.ceil(
+                    window.innerHeight /
+                    42
+                );
+
+
+            const verticalCount =
+                Math.ceil(
+                    window.innerWidth /
+                    42
+                );
+
+
+            /*
+            Líneas horizontales
+            */
+
+            for (
+                let i = 0;
+                i < horizontalCount;
+                i++
+            ) {
+
+                const line =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                line.className =
+                    "dynamic-line horizontal";
+
+
+                line.style.top =
+                    `${i * 42}px`;
+
+
+                line.style.opacity =
+                    0.04 +
+                    Math.random() * 0.12;
+
+
+                dynamicLines.appendChild(
+                    line
+                );
+
+            }
+
+
+            /*
+            Líneas verticales
+            */
+
+            for (
+                let i = 0;
+                i < verticalCount;
+                i++
+            ) {
+
+                const line =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                line.className =
+                    "dynamic-line vertical";
+
+
+                line.style.left =
+                    `${i * 42}px`;
+
+
+                line.style.opacity =
+                    0.04 +
+                    Math.random() * 0.12;
+
+
+                dynamicLines.appendChild(
+                    line
+                );
+
+            }
+
+        }
+
+
+        /*
+        ============================================================
+        EVENTOS ALEATORIOS DEL FONDO
+        ============================================================
+        */
+
+        function randomGridEffect() {
+
+            const lines =
+                dynamicLines.querySelectorAll(
+                    ".dynamic-line"
+                );
+
+
+            if (!lines.length) {
+                return;
+            }
+
+
+            const line =
+                lines[
+                    Math.floor(
+                        Math.random() *
+                        lines.length
+                    )
+                ];
+
+
+            const effect =
+                Math.random();
+
+
+            /*
+                Efecto negro.
+            */
+
+            if (effect < 0.35) {
+
+                line.classList.add(
+                    "black"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        line.classList.remove(
+                            "black"
+                        );
+
+                    },
+                    70 +
+                    Math.random() * 180
+                );
+
+            }
+
+
+            /*
+                Parpadeo verde.
+            */
+
+            else if (effect < 0.70) {
+
+                line.classList.add(
+                    "flash"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        line.classList.remove(
+                            "flash"
+                        );
+
+                    },
+                    80 +
+                    Math.random() * 220
+                );
+
+            }
+
+
+            /*
+                Desaparición temporal.
+            */
+
+            else {
+
+                const oldOpacity =
+                    line.style.opacity;
+
+
+                line.style.opacity =
+                    "0";
+
+
+                setTimeout(
+                    () => {
+
+                        line.style.opacity =
+                            oldOpacity;
+
+                    },
+                    150 +
+                    Math.random() * 500
+                );
+
+            }
+
+
+            /*
+                Próximo evento.
+            */
+
+            setTimeout(
+                randomGridEffect,
+                350 +
+                Math.random() * 2200
+            );
+
+        }
+
+
+        /*
+        ============================================================
+        INICIO
+        ============================================================
+        */
+
+        renderNavigation();
+
+        renderSections();
+
+        createDynamicLines();
+
+        setTimeout(
+            randomGridEffect,
+            1000
+        );
+
+
+    </script>
+
+</body>
+</html>
+```
+
