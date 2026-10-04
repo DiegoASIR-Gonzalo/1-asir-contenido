@@ -1,668 +1,457 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HUB del estudio</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{--ink:#17324d;--muted:#62788c;--line:rgba(72,126,164,.13);--blue:#1377a8;--blue-dark:#0e638e;--aqua:#38a8be;--shadow:0 18px 45px rgba(22,61,90,.12);--radius:24px}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;overflow-x:hidden;color:var(--ink);font-family:"DM Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),linear-gradient(180deg,#f9fcff 0%,#eef8fb 58%,#dff1f6 100%);background-size:27px 27px,27px 27px,auto;position:relative;isolation:isolate}
-body::before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:radial-gradient(circle at 16% 10%,rgba(255,255,255,.95),transparent 29%),radial-gradient(circle at 88% 18%,rgba(106,200,218,.15),transparent 24%),linear-gradient(180deg,transparent 0 63%,rgba(255,255,255,.16) 100%)}
-body::after{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.33;background:repeating-linear-gradient(0deg,transparent 0 6px,rgba(255,255,255,.06) 6px 7px);mix-blend-mode:soft-light}
-.page{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:30px 0 270px;position:relative;z-index:2}
-.hero{padding:26px 0 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid rgba(19,119,168,.16);background:rgba(255,255,255,.64);backdrop-filter:blur(8px);border-radius:999px;color:var(--blue-dark);font-size:.73rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 6px 18px rgba(25,78,105,.05)}.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--aqua);box-shadow:0 0 0 4px rgba(56,168,190,.12)}
-h1{margin:13px 0 10px;font-family:"Space Grotesk","DM Sans",sans-serif;font-size:clamp(3rem,7vw,5.8rem);line-height:.94;letter-spacing:-.055em;font-weight:700;max-width:760px}.hero p{margin:0;max-width:680px;font-size:clamp(1rem,1.7vw,1.14rem);line-height:1.65;color:var(--muted)}
-.hero-mark{min-width:130px;height:130px;border-radius:35% 65% 58% 42% / 40% 41% 59% 60%;background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(222,245,248,.35)),radial-gradient(circle at 30% 25%,rgba(255,255,255,.95),transparent 28%),#cbeaf0;box-shadow:inset 0 0 0 1px rgba(19,119,168,.10),0 22px 45px rgba(31,104,131,.10);transform:rotate(-7deg);position:relative;overflow:hidden}.hero-mark::before,.hero-mark::after{content:"";position:absolute;width:130%;left:-14%;height:40px;border-radius:50%;border:7px solid rgba(255,255,255,.72);border-left-color:transparent;border-right-color:transparent;transform:rotate(-9deg)}.hero-mark::before{top:26px}.hero-mark::after{top:58px;opacity:.58}
-.board{margin-top:30px}.subject{margin-bottom:28px}.subject-head{display:flex;align-items:center;gap:13px;margin-bottom:14px}.subject-number{width:33px;height:33px;display:grid;place-items:center;border-radius:11px;background:var(--ink);color:#fff;font-size:.82rem;font-weight:900}.subject-head h2{margin:0;font-family:"Space Grotesk","DM Sans",sans-serif;font-size:1.35rem;letter-spacing:-.02em}.subject-head p{margin:0 0 0 auto;color:var(--muted);font-size:.83rem}
-.hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.hub-card{display:flex;align-items:center;gap:13px;min-height:136px;padding:17px;border-radius:21px;text-decoration:none;color:inherit;background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(247,252,255,.78));border:1px solid rgba(27,76,108,.12);box-shadow:var(--shadow);backdrop-filter:blur(8px);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;position:relative;overflow:hidden}.hub-card::after{content:"";position:absolute;width:105px;height:105px;right:-45px;bottom:-45px;border-radius:50%;background:rgba(56,168,190,.09);transition:transform .25s ease}.hub-card:hover{transform:translateY(-5px);box-shadow:0 25px 50px rgba(22,61,90,.16);border-color:rgba(19,119,168,.28)}.hub-card:hover::after{transform:scale(1.25)}
-.icon{width:50px;height:50px;min-width:50px;border-radius:16px;display:grid;place-items:center;color:var(--blue-dark);background:linear-gradient(145deg,#ecfbfd,#d8f1f5);border:1px solid rgba(19,119,168,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.85)}.icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.card-copy{flex:1;min-width:0;position:relative;z-index:1}.card-copy h3{margin:0 0 5px;font-size:1rem;font-weight:800}.card-copy p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.45}.arrow{font-size:1.05rem;color:var(--blue);transition:transform .2s ease;position:relative;z-index:2}.hub-card:hover .arrow{transform:translateX(4px)}
-.note{margin-top:18px;padding:18px 20px;background:rgba(255,253,224,.8);border:1px dashed rgba(161,137,29,.32);border-radius:18px;color:#6e641d;line-height:1.6;font-size:.86rem}.note strong{color:#5a5114}.note code{padding:2px 5px;border-radius:5px;background:rgba(255,255,255,.72);font-size:.82em}
-.footer{margin-top:18px;color:#7890a2;font-size:.78rem;text-align:center}
-:root{--wave-1:rgba(92,194,213,.38);--wave-2:rgba(29,151,182,.28);--wave-3:rgba(11,107,149,.18);--foam-shadow:rgba(255,255,255,.16)}
-    .wave-field{position:fixed;left:0;right:0;bottom:0;height:245px;z-index:1;pointer-events:none;overflow:hidden}.wave{position:absolute;left:-5%;width:110%;border-radius:50% 50% 0 0 / 28% 28% 0 0;transition:background .55s ease}.wave-1{height:160px;bottom:-84px;background:var(--wave-1);transform:rotate(-1.4deg)}.wave-2{height:150px;bottom:-90px;background:var(--wave-2);transform:rotate(2deg);left:-4%}.wave-3{height:132px;bottom:-100px;background:var(--wave-3);transform:rotate(-2.3deg)}.foam{position:absolute;left:-4%;width:108%;height:70px;bottom:72px;border-top:6px solid rgba(255,255,255,.84);border-radius:50%;filter:drop-shadow(0 -8px 14px var(--foam-shadow));transform:rotate(-1.7deg);transition:filter .55s ease}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HUB de 1º ASIR</title>
+  <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)" />
+  <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap)" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f7f8fc;
+      --surface: #ffffff;
+      --text: #14161f;
+      --muted: #6b7084;
+      --border: #e6e8f0;
+      --shadow: 0 1px 2px rgba(20,22,31,.04), 0 8px 24px rgba(20,22,31,.06);
+      --radius: 16px;
+      --wave1: #e3e8ff;
+      --wave2: #eef1ff;
+      --wave3: #f7f8fc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1016;
+        --surface: #161922;
+        --text: #eef0f6;
+        --muted: #8b90a5;
+        --border: #242836;
+        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+        --wave1: #1b2040;
+        --wave2: #151a2e;
+        --wave3: #0e1016;
+      }
+    }
 
-/* =========================================================
-   SECCIONES Y SUBSECCIONES
-   ---------------------------------------------------------
-   - Cada .subject puede abrirse/cerrarse desde su cabecera.
-   - Dentro de .subject-content se pueden añadir tantos
-     .topic como se necesiten.
-   - Los botones .hub-card NO se modifican.
-   ========================================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
 
-.subject{
-  margin-bottom:28px;
-  border:1px solid rgba(27,76,108,.10);
-  border-radius:24px;
-  background:rgba(255,255,255,.22);
-  box-shadow:0 10px 30px rgba(22,61,90,.045);
-  overflow:hidden;
-}
+    /* ---------- NAV ---------- */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 75%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: auto; padding: .8rem 1.5rem;
+      display: flex; align-items: center; gap: 1.5rem; overflow-x: auto;
+    }
+    .logo { font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+    .logo span { color: #5b6cff; }
+    .nav-links { display: flex; gap: .35rem; margin-left: auto; }
+    .nav-links a {
+      font-size: .85rem; color: var(--muted); padding: .4rem .8rem;
+      border-radius: 999px; white-space: nowrap; transition: .2s;
+    }
+    .nav-links a:hover { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 
-.subject-toggle{
-  width:100%;
-  border:0;
-  padding:14px 16px;
-  margin:0;
-  display:flex;
-  align-items:center;
-  gap:13px;
-  text-align:left;
-  color:inherit;
-  background:transparent;
-  cursor:pointer;
-  font:inherit;
-}
+    /* ---------- HERO ---------- */
+    header { position: relative; padding: 6rem 1.5rem 9rem; text-align: center; overflow: hidden; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-size: .8rem; font-weight: 500; color: var(--muted);
+      padding: .4rem 1rem; border: 1px solid var(--border);
+      border-radius: 999px; background: var(--surface);
+    }
+    .eyebrow::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%;
+      background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.18);
+    }
+    header h1 {
+      font-size: clamp(2.6rem, 7vw, 4.8rem); font-weight: 800;
+      letter-spacing: -.045em; line-height: 1.05; margin: 1.4rem 0 1rem;
+    }
+    header h1 .grad {
+      background: linear-gradient(120deg, #5b6cff, #a855f7 50%, #ec4899);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    header p { max-width: 560px; margin: auto; color: var(--muted); font-size: 1.1rem; }
+    .hero-cta { margin-top: 2rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .75rem 1.4rem; border-radius: 999px;
+      font-weight: 600; font-size: .92rem; transition: .25s;
+    }
+    .btn-primary { background: var(--text); color: var(--bg); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(91,108,255,.3); }
+    .btn-ghost { border: 1px solid var(--border); background: var(--surface); }
+    .btn-ghost:hover { border-color: var(--muted); }
 
-.subject-toggle:hover{
-  background:rgba(255,255,255,.30);
-}
+    .waves { position: absolute; left: 0; bottom: 0; width: 100%; height: 140px; }
+    .waves use { animation: drift 18s linear infinite; }
+    .waves use:nth-child(1) { fill: var(--wave1); animation-duration: 22s; }
+    .waves use:nth-child(2) { fill: var(--wave2); animation-duration: 16s; animation-delay: -4s; }
+    .waves use:nth-child(3) { fill: var(--wave3); animation-duration: 12s; animation-delay: -2s; }
+    @keyframes drift { from { transform: translateX(-90px); } to { transform: translateX(85px); } }
 
-.subject-toggle:focus-visible,
-.topic-toggle:focus-visible{
-  outline:2px solid var(--blue);
-  outline-offset:-2px;
-}
+    /* ---------- SECTIONS ---------- */
+    main { max-width: 1100px; margin: auto; padding: 0 1.5rem 4rem; display: grid; gap: 2rem; }
+    .section {
+      --accent: #5b6cff;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 24px; padding: 2.2rem; box-shadow: var(--shadow);
+      position: relative; overflow: hidden; scroll-margin-top: 80px;
+    }
+    .section::after {
+      content: ""; position: absolute; top: -60px; right: -60px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%);
+      pointer-events: none;
+    }
+    .s-bd   { --accent: #5b6cff; }
+    .s-hw   { --accent: #f97316; }
+    .s-so   { --accent: #10b981; }
+    .s-red  { --accent: #0ea5e9; }
+    .s-lm   { --accent: #a855f7; }
 
-.subject-chevron,
-.topic-chevron{
-  margin-left:auto;
-  width:31px;
-  height:31px;
-  min-width:31px;
-  display:grid;
-  place-items:center;
-  border-radius:10px;
-  color:var(--blue-dark);
-  background:rgba(255,255,255,.62);
-  border:1px solid rgba(19,119,168,.10);
-  transition:transform .25s ease,background .2s ease;
-}
+    .s-head { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 1.8rem; flex-wrap: wrap; }
+    .num {
+      font-family: "JetBrains Mono", monospace; font-size: .95rem;
+      width: 48px; height: 48px; display: grid; place-items: center;
+      border-radius: 14px; color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .s-head h2 { font-size: 1.55rem; font-weight: 700; letter-spacing: -.025em; }
+    .tags { display: flex; gap: .4rem; margin-top: .3rem; flex-wrap: wrap; }
+    .tags span {
+      font-size: .72rem; font-weight: 600; padding: .2rem .6rem; border-radius: 999px;
+      color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
 
-.subject-chevron::before,
-.topic-chevron::before{
-  content:"⌄";
-  font-size:1.05rem;
-  line-height:1;
-  transform:translateY(-2px);
-}
+    .topic + .topic { margin-top: 1.8rem; }
+    .topic-title {
+      font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin-bottom: .9rem; display: flex; align-items: center; gap: .75rem;
+    }
+    .topic-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-.subject.is-collapsed .subject-chevron,
-.topic.is-collapsed .topic-chevron{
-  transform:rotate(-90deg);
-}
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .9rem; }
 
-.subject-content{
-  display:grid;
-  grid-template-rows:1fr;
-  transition:grid-template-rows .28s ease, opacity .22s ease;
-  opacity:1;
-}
+    .card {
+      position: relative; display: flex; align-items: flex-start; gap: .9rem;
+      padding: 1.1rem 1.1rem 1.1rem 1rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg);
+      transition: transform .25s, border-color .25s, box-shadow .25s, background .25s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+      background: var(--surface);
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+    .icon {
+      flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px;
+      display: grid; place-items: center; color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .icon svg { width: 18px; height: 18px; }
+    .card-body { flex: 1; min-width: 0; }
+    .card strong { display: block; font-weight: 600; font-size: .95rem; margin-bottom: .15rem; }
+    .card small { color: var(--muted); font-size: .83rem; line-height: 1.4; display: block; }
+    .arrow {
+      align-self: center; color: var(--muted); font-size: 1.1rem;
+      transition: transform .25s, color .25s;
+    }
+    .card:hover .arrow { transform: translateX(4px); color: var(--accent); }
 
-.subject-content-inner{
-  min-height:0;
-  overflow:hidden;
-  padding:0 14px 14px;
-}
+    /* ---------- FOOTER ---------- */
+    footer { position: relative; margin-top: 2rem; padding: 5rem 1.5rem 2.5rem; text-align: center; color: var(--muted); font-size: .88rem; }
+    footer svg { position: absolute; top: 0; left: 0; width: 100%; height: 80px; }
+    footer svg path { fill: var(--wave1); }
+    footer .f-bg { position: absolute; inset: 60px 0 0; background: var(--wave1); z-index: -1; }
 
-.subject.is-collapsed .subject-content{
-  grid-template-rows:0fr;
-  opacity:0;
-}
+    /* reveal */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
 
-.subject.is-collapsed .subject-content-inner{
-  padding-bottom:0;
-}
-
-.topic{
-  margin-top:12px;
-  border-radius:19px;
-  border:1px solid rgba(27,76,108,.09);
-  background:rgba(255,255,255,.48);
-  overflow:hidden;
-}
-
-.topic:first-child{
-  margin-top:0;
-}
-
-.topic-toggle{
-  width:100%;
-  border:0;
-  padding:13px 15px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  text-align:left;
-  color:var(--ink);
-  background:rgba(255,255,255,.38);
-  cursor:pointer;
-  font:inherit;
-}
-
-.topic-toggle:hover{
-  background:rgba(255,255,255,.65);
-}
-
-.topic-title{
-  font-family:"Space Grotesk","DM Sans",sans-serif;
-  font-size:.94rem;
-  font-weight:700;
-  letter-spacing:-.01em;
-}
-
-.topic-content{
-  display:grid;
-  grid-template-rows:1fr;
-  transition:grid-template-rows .25s ease, opacity .2s ease;
-  opacity:1;
-}
-
-.topic-content-inner{
-  min-height:0;
-  overflow:hidden;
-  padding:0 13px 13px;
-}
-
-.topic.is-collapsed .topic-content{
-  grid-template-rows:0fr;
-  opacity:0;
-}
-
-.topic.is-collapsed .topic-content-inner{
-  padding-bottom:0;
-}
-
-.topic .hub-grid{
-  padding-top:2px;
-}
-
-/* Mantiene el diseño original de las cabeceras dentro del nuevo contenedor. */
-.subject-head{
-  margin-bottom:0;
-}
-
-.subject-number{
-  flex:0 0 auto;
-}
-
-@media(max-width:600px){
-  .subject-toggle{padding:12px 12px}
-  .subject-content-inner{padding-left:10px;padding-right:10px}
-  .topic-toggle{padding:12px}
-  .topic-content-inner{padding-left:9px;padding-right:9px}
-}
-
-@media(max-width:900px){.hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{align-items:flex-start}.subject-head p{margin-left:auto}.hero-mark{display:none}}
-@media(max-width:600px){.page{width:min(100% - 20px,1120px);padding-top:18px}.hero{padding-top:14px}h1{font-size:clamp(2.65rem,15vw,4rem)}.hub-grid{grid-template-columns:1fr}.subject-head{align-items:flex-start}.subject-head h2{font-size:1.15rem}.subject-head p{font-size:.78rem}.hub-card{min-height:124px}.wave-field{height:190px}}
-</style>
+    @media (max-width: 640px) {
+      header { padding: 4rem 1.2rem 7rem; }
+      .section { padding: 1.5rem; }
+      .nav-links { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, .waves use { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
 </head>
 <body>
-<main class="page">
-  <section class="hero">
-    <div>
-      <span class="eyebrow">Espacio personal de aprendizaje  1º ASIR</span>
-      <h1>HUB de ASIR</h1>
-      <p>Un punto de entrada donde encontraras cuestionarios, resumenes y recursos organizados en una sola página.</p>
+
+  <!-- Iconos reutilizables -->
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="i-pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 18h4"/></symbol>
+    <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></symbol>
+    <symbol id="i-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0 5 5L22 14l-8 8-2.3-2.3a4 4 0 0 0-5-5L2 10l8-8z"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></symbol>
+  </svg>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="logo">HUB<span>.</span>ASIR</a>
+      <div class="nav-links">
+        <a href="#bd">Base de Datos</a>
+        <a href="#hw">Hardware</a>
+        <a href="#so">Implantación</a>
+        <a href="#redes">Redes</a>
+        <a href="#lm">Lenguaje de Marcas</a>
+      </div>
     </div>
-    <div class="hero-mark" aria-hidden="true"></div>
-  </section>
+  </nav>
 
-  <section class="board" aria-label="Asignaturas">
-    <section class="subject" data-subject="base-datos">
-      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
-      <button class="subject-toggle" type="button" aria-expanded="true">
-        <div class="subject-head">
-          <div class="subject-number">01</div>
+  <header>
+    <h1>HUB de <span class="grad">ASIR</span></h1>
+    <p>HUB donde encontraras los recursos, resumenes, cuestionarios necesarios para ayudarte en el curso.</p>
+    <div class="hero-cta">
+      <a href="#bd" class="btn btn-primary">Empezar a estudiar ↓</a>
+      <a href="#lm" class="btn btn-ghost">Ver recursos</a>
+    </div>
+
+    <svg class="waves" viewBox="0 24 150 28" preserveAspectRatio="none">
+      <defs>
+        <path id="wave" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z"/>
+      </defs>
+      <use href="#wave" x="48" y="0"/>
+      <use href="#wave" x="48" y="3"/>
+      <use href="#wave" x="48" y="6"/>
+    </svg>
+  </header>
+
+  <main>
+
+    <!-- 01 BASE DE DATOS -->
+    <section class="section s-bd reveal" id="bd">
+      <div class="s-head">
+        <div class="num">01</div>
+        <div>
           <h2>Base de Datos</h2>
-          <p>SGBD · SQL · PostgreSQL</p>
+          <div class="tags"><span>SGBD</span><span>SQL</span><span>PostgreSQL</span></div>
         </div>
-        <span class="subject-chevron" aria-hidden="true"></span>
-      </button>
+      </div>
 
-      <div class="subject-content">
-        <div class="subject-content-inner">
+      <div class="topic">
+        <div class="topic-title">Tema 1 · Introducción a las BD y los SGBD</div>
+        <div class="grid">
+          <a class="card" href="cuestionario_gbd_1asIR.html">
+            <span class="icon"><svg><use href="#i-quiz"/></svg></span>
+            <span class="card-body"><strong>Cuestionario SQL</strong><small>Preguntas tipo test sobre SQL.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="chuleta-sql.html">
+            <span class="icon"><svg><use href="#i-code"/></svg></span>
+            <span class="card-body"><strong>BBDD STUDY_HUB</strong><small>Cosas mixtas de SQL (chuletillas, cuestionarios, etc.) hecho por akiles</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="pdfs/UD1_BD.pdf">
+            <span class="icon"><svg><use href="#i-pdf"/></svg></span>
+            <span class="card-body"><strong>Resumen</strong><small>Diapositiva de SQL (sacada de clase)</small></span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
 
-          <!--
-            SUBSECCIONES / TEMAS
-            -------------------
-            Para añadir otro tema, copia TODO este bloque y cambia:
-              1. "Tema 1" por "Tema 2", "Tema 3", etc.
-              2. El contenido que haya dentro de .hub-grid.
-
-            Los <a class="hub-card"> de abajo son los botones originales:
-            no hace falta modificar su estructura para añadir temas.
-          -->
-          <section class="topic" data-topic="base-datos-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">Tema 1 · Introducción a las BD y los SGBD</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <!-- Usa un icono tipo cuestionario -->
-        <a class="hub-card" data-subject="base-datos" href="cuestionario_gbd_1asIR.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M9 12.5 11 15l4-5"></path></svg></div>
-          <div class="card-copy"><h3>Cuestionario SQL</h3><p>Preguntas tipo test sobre SQL.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="base-datos" href="chuleta-sql.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="2.8"></ellipse><path d="M5 5v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5"></path><path d="M5 12v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-7"></path></svg></div>
-          <div class="card-copy"><h3>BBDD STUDY_HUB</h3><p>Cosas mixtas de SQL (chuletillas, cuestionarios, etc.) hecho por akiles</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="base-datos" href="pdfs/UD1_BD.pdf">
-		  <!-- Usa icono tipo resumen-->
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Resumen</h3><p>Diapositiva de SQL (sacada de clase)</p></div><div class="arrow">→</div>
-        </a>
-                </div>
-              </div>
-            </div>
-          </section>
-		  
-		  <section class="topic" data-topic="base-datos-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">Tema 2 · Introducción a las Bases de Datos Relacionales</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <!-- BOTONES: modifica href, h3 y p para crear tus propios accesos -->
-        <a class="hub-card" data-subject="base-datos" href="consultas-tipos.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="2.8"></ellipse><path d="M5 5v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5"></path><path d="M5 12v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-7"></path></svg></div>
-          <div class="card-copy"><h3>Consultas tipos</h3><p>Resumen de tipos de consultas breves.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="base-datos" href="pdfs/UD2_BD.pdf">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>(PDF) Introducción a BD Relacionales</h3><p>Resumen del Tema 2.</p></div><div class="arrow">→</div>
-        </a>
-		<a class="hub-card" data-subject="base-datos" href="sql_lab_estudio.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="2.8"></ellipse><path d="M5 5v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5"></path><path d="M5 12v7c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8v-7"></path></svg></div>
-          <div class="card-copy"><h3>Practicas consultas SQL</h3><p>Página interactiva sobre consultas SQL.</p></div><div class="arrow">→</div>
-        </a>
-        <!--
-		<a class="hub-card" data-subject="base-datos" href="pdfs/UD1_BD.pdf">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14v12H5z"></path><path d="m8 10 3 2-3 2M13 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Resumen</h3><p>Diapositiva de SQL (sacada de clase)</p></div><div class="arrow">→</div>
-        </a>
-		--!>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!--
-            AÑADIR OTRO TEMA:
-            copia el <section class="topic"> completo de arriba,
-            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
-          -->
-
+      <div class="topic">
+        <div class="topic-title">Tema 2 · Introducción a las Bases de Datos Relacionales</div>
+        <div class="grid">
+          <a class="card" href="consultas-tipos.html">
+            <span class="icon"><svg><use href="#i-book"/></svg></span>
+            <span class="card-body"><strong>Consultas tipos</strong><small>Resumen de tipos de consultas breves.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="pdfs/UD2_BD.pdf">
+            <span class="icon"><svg><use href="#i-pdf"/></svg></span>
+            <span class="card-body"><strong>(PDF) Introducción a BD Relacionales</strong><small>Resumen del Tema 2.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="sql_lab_estudio.html">
+            <span class="icon"><svg><use href="#i-code"/></svg></span>
+            <span class="card-body"><strong>Practicas consultas SQL</strong><small>Página interactiva sobre consultas SQL.</small></span>
+            <span class="arrow">→</span>
+          </a>
         </div>
       </div>
     </section>
 
-    <section class="subject" data-subject="hardware">
-      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
-      <button class="subject-toggle" type="button" aria-expanded="true">
-        <div class="subject-head">
-          <div class="subject-number">02</div>
+    <!-- 02 HARDWARE -->
+    <section class="section s-hw reveal" id="hw">
+      <div class="s-head">
+        <div class="num">02</div>
+        <div>
           <h2>Fundamentos de Hardware</h2>
-          <p>Componentes · Montaje · Binario</p>
+          <div class="tags"><span>Componentes</span><span>Montaje</span><span>Binario</span></div>
         </div>
-        <span class="subject-chevron" aria-hidden="true"></span>
-      </button>
+      </div>
 
-      <div class="subject-content">
-        <div class="subject-content-inner">
-
-          <!--
-            SUBSECCIONES / TEMAS
-            -------------------
-            Para añadir otro tema, copia TODO este bloque y cambia:
-              1. "Tema 1" por "Tema 2", "Tema 3", etc.
-              2. El contenido que haya dentro de .hub-grid.
-
-            Los <a class="hub-card"> de abajo son los botones originales:
-            no hace falta modificar su estructura para añadir temas.
-          -->
-          <section class="topic" data-topic="hardware-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">Tema 1 · Introducción a los SI. Arquitectura de Von Neumann</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <a class="hub-card" data-subject="hardware" href="pdfs/fundamentos-hardware/binario.pdf">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Binario PDF</h3><p>PDF sobre como usar calculos binarios, hexadecimal, octal, etc.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="hardware" href="pdfs/fundamentos-hardware/UD1.pdf">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Resumen Tema 1</h3><p>Resumen del primer tema en PDF.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="hardware" href="hardware_practicas.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15.5 6.5 2-2 2 2-2 2"></path><path d="m13 9 4 4"></path><path d="M10 5 5 10l4 4 5-5"></path><path d="m5 16 3 3h9"></path></svg></div>
-          <div class="card-copy"><h3>Prácticas</h3><p>Montaje, identificación y diagnóstico de equipos.</p></div><div class="arrow">→</div>
-        </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!--
-            AÑADIR OTRO TEMA:
-            copia el <section class="topic"> completo de arriba,
-            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
-          -->
-
+      <div class="topic">
+        <div class="topic-title">Tema 1 · Introducción a los SI. Arquitectura de Von Neumann</div>
+        <div class="grid">
+          <a class="card" href="pdfs/fundamentos-hardware/binario.pdf">
+            <span class="icon"><svg><use href="#i-pdf"/></svg></span>
+            <span class="card-body"><strong>Binario PDF</strong><small>PDF sobre como usar calculos binarios, hexadecimal, octal, etc.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="pdfs/fundamentos-hardware/UD1.pdf">
+            <span class="icon"><svg><use href="#i-pdf"/></svg></span>
+            <span class="card-body"><strong>Resumen Tema 1</strong><small>Resumen del primer tema en PDF.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="hardware_practicas.html">
+            <span class="icon"><svg><use href="#i-tool"/></svg></span>
+            <span class="card-body"><strong>Prácticas</strong><small>Montaje, identificación y diagnóstico de equipos.</small></span>
+            <span class="arrow">→</span>
+          </a>
         </div>
       </div>
     </section>
 
-    <section class="subject" data-subject="implantacion">
-      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
-      <button class="subject-toggle" type="button" aria-expanded="true">
-        <div class="subject-head">
-          <div class="subject-number">03</div>
+    <!-- 03 IMPLANTACIÓN -->
+    <section class="section s-so reveal" id="so">
+      <div class="s-head">
+        <div class="num">03</div>
+        <div>
           <h2>Implantación de Sistemas</h2>
-          <p>SO · Instalación · Administración</p>
+          <div class="tags"><span>SO</span><span>Instalación</span><span>Administración</span></div>
         </div>
-        <span class="subject-chevron" aria-hidden="true"></span>
-      </button>
+      </div>
 
-      <div class="subject-content">
-        <div class="subject-content-inner">
-
-          <!--
-            SUBSECCIONES / TEMAS
-            -------------------
-            Para añadir otro tema, copia TODO este bloque y cambia:
-              1. "Tema 1" por "Tema 2", "Tema 3", etc.
-              2. El contenido que haya dentro de .hub-grid.
-
-            Los <a class="hub-card"> de abajo son los botones originales:
-            no hace falta modificar su estructura para añadir temas.
-          -->
-          <section class="topic" data-topic="implantacion-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">Tema 1 · Introducción a los Sistemas Operativos</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <a class="hub-card" data-subject="implantacion" href="implantacion_apuntes.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Apuntes</h3><p>Sistemas operativos, particiones y conceptos clave.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="implantacion" href="implantacion_cuestionarios.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6z"></path><path d="M9 8h6M9 12h6M9 16h3"></path></svg></div>
-          <div class="card-copy"><h3>Cuestionarios</h3><p>Repasa procedimientos y terminología.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="implantacion" href="implantacion_practicas.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path><path d="M9 9h6v6H9zM12 3v3M12 18v3M3 12h3M18 12h3"></path></svg></div>
-          <div class="card-copy"><h3>Prácticas</h3><p>Instalación, configuración y administración.</p></div><div class="arrow">→</div>
-        </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!--
-            AÑADIR OTRO TEMA:
-            copia el <section class="topic"> completo de arriba,
-            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
-          -->
-
+      <div class="topic">
+        <div class="topic-title">Tema 1 · Introducción a los Sistemas Operativos</div>
+        <div class="grid">
+          <a class="card" href="implantacion_apuntes.html">
+            <span class="icon"><svg><use href="#i-book"/></svg></span>
+            <span class="card-body"><strong>Apuntes</strong><small>Sistemas operativos, particiones y conceptos clave.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="implantacion_cuestionarios.html">
+            <span class="icon"><svg><use href="#i-quiz"/></svg></span>
+            <span class="card-body"><strong>Cuestionarios</strong><small>Repasa procedimientos y terminología.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="implantacion_practicas.html">
+            <span class="icon"><svg><use href="#i-tool"/></svg></span>
+            <span class="card-body"><strong>Prácticas</strong><small>Instalación, configuración y administración.</small></span>
+            <span class="arrow">→</span>
+          </a>
         </div>
       </div>
     </section>
 
-    <section class="subject" data-subject="redes">
-      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
-      <button class="subject-toggle" type="button" aria-expanded="true">
-        <div class="subject-head">
-          <div class="subject-number">04</div>
+    <!-- 04 REDES -->
+    <section class="section s-red reveal" id="redes">
+      <div class="s-head">
+        <div class="num">04</div>
+        <div>
           <h2>Redes</h2>
-          <p>TCP/IP · Servicios · Conectividad</p>
+          <div class="tags"><span>TCP/IP</span><span>Servicios</span><span>Conectividad</span></div>
         </div>
-        <span class="subject-chevron" aria-hidden="true"></span>
-      </button>
+      </div>
 
-      <div class="subject-content">
-        <div class="subject-content-inner">
+      <div class="topic">
+        <div class="topic-title">Tema 1 · Introducción a las comunicaciones</div>
+        <div class="grid">
+          <a class="card" href="pdfs/ResumenTema0.pdf">
+            <span class="icon"><svg><use href="#i-pdf"/></svg></span>
+            <span class="card-body"><strong>Apuntes</strong><small>Todo sobre telefonía y su historia.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="cuestionario_redes1.html">
+            <span class="icon"><svg><use href="#i-quiz"/></svg></span>
+            <span class="card-body"><strong>Cuestionario</strong><small>Cuestionario sobre el primer tema.</small></span>
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </div>
 
-          <!--
-            SUBSECCIONES / TEMAS
-            -------------------
-            Para añadir otro tema, copia TODO este bloque y cambia:
-              1. "Tema 1" por "Tema 2", "Tema 3", etc.
-              2. El contenido que haya dentro de .hub-grid.
-
-            Los <a class="hub-card"> de abajo son los botones originales:
-            no hace falta modificar su estructura para añadir temas.
-          -->
-          <section class="topic" data-topic="redes-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">Tema 1 · Introducción a las comunicaciones</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <a class="hub-card" data-subject="redes" href="pdfs/ResumenTema0.pdf">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Apuntes</h3><p>Todo sobre telefonía y su historia.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="redes" href="cuestionario_redes1.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M9 12.5 11 15l4-5"></path></svg></div>
-          <div class="card-copy"><h3>Cuestionario</h3><p>Cuestionario sobre el primer tema.</p></div><div class="arrow">→</div>
-        </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
-		  <section class="topic" data-topic="redes-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">Tema 2 · Introducción a las Redes</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <a class="hub-card" data-subject="redes" href="pdfs/redes/ResumenTema1.pdf">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 12h6M8 15h3"></path></svg></div>
-          <div class="card-copy"><h3>Apuntes</h3><p>Redes, dispositivos, etc...</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="redes" href="cuestionario_redes2.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M9 12.5 11 15l4-5"></path></svg></div>
-          <div class="card-copy"><h3>Cuestionario</h3><p>Cuestionario sobre el segundo tema.</p></div><div class="arrow">→</div>
-        </a>
-                </div>
-              </div>
-            </div>
-          </section>	
-          <!--
-            AÑADIR OTRO TEMA:
-            copia el <section class="topic"> completo de arriba,
-            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
-          -->
-
+      <div class="topic">
+        <div class="topic-title">Tema 2 · Introducción a las Redes</div>
+        <div class="grid">
+          <a class="card" href="pdfs/redes/ResumenTema1.pdf">
+            <span class="icon"><svg><use href="#i-pdf"/></svg></span>
+            <span class="card-body"><strong>Apuntes</strong><small>Redes, dispositivos, etc...</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="cuestionario_redes2.html">
+            <span class="icon"><svg><use href="#i-quiz"/></svg></span>
+            <span class="card-body"><strong>Cuestionario</strong><small>Cuestionario sobre el segundo tema.</small></span>
+            <span class="arrow">→</span>
+          </a>
         </div>
       </div>
     </section>
 
-    <section class="subject" data-subject="lenguaje">
-      <!-- CABECERA DE LA ASIGNATURA: haz clic aquí para ocultarla/mostrarla -->
-      <button class="subject-toggle" type="button" aria-expanded="true">
-        <div class="subject-head">
-          <div class="subject-number">05</div>
+    <!-- 05 LENGUAJE DE MARCAS -->
+    <section class="section s-lm reveal" id="lm">
+      <div class="s-head">
+        <div class="num">05</div>
+        <div>
           <h2>Lenguaje de Marcas</h2>
-          <p>HTML · CSS · XML</p>
+          <div class="tags"><span>HTML</span><span>CSS</span><span>XML</span></div>
         </div>
-        <span class="subject-chevron" aria-hidden="true"></span>
-      </button>
+      </div>
 
-      <div class="subject-content">
-        <div class="subject-content-inner">
-
-          <!--
-            SUBSECCIONES / TEMAS
-            -------------------
-            Para añadir otro tema, copia TODO este bloque y cambia:
-              1. "Tema 1" por "Tema 2", "Tema 3", etc.
-              2. El contenido que haya dentro de .hub-grid.
-
-            Los <a class="hub-card"> de abajo son los botones originales:
-            no hace falta modificar su estructura para añadir temas.
-          -->
-          <section class="topic" data-topic="lenguaje-tema-1">
-            <button class="topic-toggle" type="button" aria-expanded="true">
-              <span class="topic-title">General</span>
-              <span class="topic-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="topic-content">
-              <div class="topic-content-inner">
-                <div class="hub-grid">
-        <a class="hub-card" data-subject="lenguaje" href="python_lab_estudio.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 7-4 5 4 5M16 7l4 5-4 5M14 5l-4 14"></path></svg></div>
-          <div class="card-copy"><h3>Miniretos Online</h3><p>Miniretos que se pueden realizar a traves de la web</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="lenguaje" href="lenguaje_marcas_cuestionarios.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="m8 10 2 2 5-5M8 16h8"></path></svg></div>
-          <div class="card-copy"><h3>Cuestionarios</h3><p>Repasa etiquetas, sintaxis y conceptos.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="lenguaje" href="python_ejercicios.html">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 7-4 5 4 5M16 7l4 5-4 5M14 5l-4 14"></path></svg></div>
-          <div class="card-copy"><h3>Python en clase</h3><p>Apartado recopilado de ejercicios Python de clase.</p></div><div class="arrow">→</div>
-        </a>
-        <a class="hub-card" data-subject="lenguaje" href="https://github.com/asabeneh/30-days-of-python">
-          <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"></path><path d="M8 9h8M8 12h6M8 15h4"></path></svg></div>
-          <div class="card-copy"><h3>Repositorio útil para aprender</h3><p>Aprende Python gracias a este repositorio en solo 30 días.</p></div><div class="arrow">→</div>
-        </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!--
-            AÑADIR OTRO TEMA:
-            copia el <section class="topic"> completo de arriba,
-            pégalo aquí y cambia su título a "Tema 2", "Tema 3", etc.
-          -->
-
+      <div class="topic">
+        <div class="topic-title">General</div>
+        <div class="grid">
+          <a class="card" href="python_lab_estudio.html">
+            <span class="icon"><svg><use href="#i-code"/></svg></span>
+            <span class="card-body"><strong>Miniretos Online</strong><small>Miniretos que se pueden realizar a traves de la web</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="lenguaje_marcas_cuestionarios.html">
+            <span class="icon"><svg><use href="#i-quiz"/></svg></span>
+            <span class="card-body"><strong>Cuestionarios</strong><small>Repasa etiquetas, sintaxis y conceptos.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="python_ejercicios.html">
+            <span class="icon"><svg><use href="#i-book"/></svg></span>
+            <span class="card-body"><strong>Python en clase</strong><small>Apartado recopilado de ejercicios Python de clase.</small></span>
+            <span class="arrow">→</span>
+          </a>
+          <a class="card" href="[github.com](https://github.com/asabeneh/30-days-of-python)" target="_blank" rel="noopener">
+            <span class="icon"><svg><use href="#i-ext"/></svg></span>
+            <span class="card-body"><strong>Repositorio útil para aprender</strong><small>Aprende Python gracias a este repositorio en solo 30 días.</small></span>
+            <span class="arrow">↗</span>
+          </a>
         </div>
       </div>
     </section>
-    <div class="footer">HUB del estudio · 1º ASIR</div>
-  </section>
-</main>
 
-<div class="wave-field" aria-hidden="true">
-  <div class="foam"></div>
-  <div class="wave wave-1"></div>
-  <div class="wave wave-2"></div>
-  <div class="wave wave-3"></div>
-</div>
+  </main>
 
-<script>
-  /* =========================================================
-     PLEGADO DE ASIGNATURAS Y TEMAS
-     ---------------------------------------------------------
-     El estado se controla con una clase CSS; los botones
-     .hub-card siguen siendo enlaces normales y no se tocan.
-     ========================================================= */
-  document.querySelectorAll(".subject-toggle").forEach(toggle => {
-    toggle.addEventListener("click", () => {
-      const subject = toggle.closest(".subject");
-      const collapsed = subject.classList.toggle("is-collapsed");
-      toggle.setAttribute("aria-expanded", String(!collapsed));
-    });
-  });
+  <footer>
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0 40c120 20 240 30 360 20S600 20 720 20s240 30 360 30 240-20 360-30v60H0z"/>
+    </svg>
+    <div class="f-bg"></div>
+    HUB del estudio · 1º ASIR
+  </footer>
 
-  document.querySelectorAll(".topic-toggle").forEach(toggle => {
-    toggle.addEventListener("click", () => {
-      const topic = toggle.closest(".topic");
-      const collapsed = topic.classList.toggle("is-collapsed");
-      toggle.setAttribute("aria-expanded", String(!collapsed));
-    });
-  });
-
-  /*
-    COLORES DE LAS OLAS POR ASIGNATURA
-    ----------------------------------
-    Para añadir una asignatura nueva:
-      1. Pon data-subject="tu-nombre" en su <section class="subject">.
-      2. Pon el mismo data-subject en sus botones.
-      3. Añade aquí su paleta. Ejemplo:
-         "programacion": {
-           wave1: "rgba(255, 120, 80, .38)",
-           wave2: "rgba(210, 80, 50, .28)",
-           wave3: "rgba(150, 50, 30, .20)",
-           foam:  "rgba(255, 120, 80, .18)"
-         }
-  */
-  const SUBJECT_WAVES = {
-    "base-datos": {
-      wave1: "rgba(21, 147, 198, .38)",
-      wave2: "rgba(15, 111, 159, .28)",
-      wave3: "rgba(8, 77, 120, .20)",
-      foam:  "rgba(21, 147, 198, .18)"
-    },
-    "hardware": {
-      wave1: "rgba(226, 151, 63, .38)",
-      wave2: "rgba(196, 111, 29, .28)",
-      wave3: "rgba(145, 73, 17, .20)",
-      foam:  "rgba(226, 151, 63, .18)"
-    },
-    "implantacion": {
-      wave1: "rgba(155, 122, 216, .38)",
-      wave2: "rgba(117, 83, 181, .28)",
-      wave3: "rgba(80, 51, 133, .20)",
-      foam:  "rgba(155, 122, 216, .18)"
-    },
-    "redes": {
-      wave1: "rgba(38, 181, 165, .38)",
-      wave2: "rgba(17, 137, 128, .28)",
-      wave3: "rgba(8, 97, 93, .20)",
-      foam:  "rgba(38, 181, 165, .18)"
-    },
-    "lenguaje": {
-      wave1: "rgba(216, 120, 169, .38)",
-      wave2: "rgba(183, 81, 133, .28)",
-      wave3: "rgba(132, 53, 94, .20)",
-      foam:  "rgba(216, 120, 169, .18)"
-    }
-  };
-
-  function setWaveTheme(subject) {
-    const theme = SUBJECT_WAVES[subject] || SUBJECT_WAVES["base-datos"];
-    const root = document.documentElement;
-    root.style.setProperty("--wave-1", theme.wave1);
-    root.style.setProperty("--wave-2", theme.wave2);
-    root.style.setProperty("--wave-3", theme.wave3);
-    root.style.setProperty("--foam-shadow", theme.foam);
-    try { localStorage.setItem("hub-estudio-wave-theme", subject); } catch (_) {}
-  }
-
-  // Recupera el último tema al volver al HUB.
-  let savedSubject = "base-datos";
-  try { savedSubject = localStorage.getItem("hub-estudio-wave-theme") || savedSubject; } catch (_) {}
-  setWaveTheme(savedSubject);
-
-  // Cada botón cambia el color justo antes de navegar al HTML de destino.
-  document.querySelectorAll(".hub-card[data-subject]").forEach(card => {
-    card.addEventListener("click", () => setWaveTheme(card.dataset.subject));
-  });
-
-  // También admite enlaces con #base-datos, #hardware, #implantacion, #redes o #lenguaje.
-  const hashSubject = location.hash.slice(1);
-  if (SUBJECT_WAVES[hashSubject]) setWaveTheme(hashSubject);
-</script>
-
+  <script>
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
 </body>
 </html>
