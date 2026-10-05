@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bases de Datos - Tema 1 | ASIR Hub (IES Gonzalo Nazareno)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            accent: {
+              cyan: '#06b6d4',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Estilos para el giro 3D de las tarjetas */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-bold text-white text-lg">
+          BD
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-bold text-base md:text-lg text-white">ASIR Hub · Bases de Datos</h1>
+            <span class="text-xs bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full font-medium">Tema 1</span>
+          </div>
+          <p class="text-xs text-slate-400">IES Gonzalo Nazareno · 1º ASIR · Examen Conceptos</p>
+        </div>
+      </div>
+
+      <!-- Pestañas de modo -->
+      <nav class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-xs sm:text-sm">
+        <button onclick="switchView('flashcards')" id="tab-flashcards" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow-sm">
+          🎴 Flashcards
+        </button>
+        <button onclick="switchView('test')" id="tab-test" class="tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all">
+          📝 Test Examen
+        </button>
+        <button onclick="switchView('glosario')" id="tab-glosario" class="tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all">
+          📖 Chuleta 27/27
+        </button>
+      </nav>
+
+      <!-- Botón de sonido & Ayuda -->
+      <div class="flex items-center space-x-2">
+        <button onclick="toggleAudio()" id="btn-sound" class="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1.5" title="Sonido activo">
+          <span id="sound-icon">🔊</span>
+        </button>
+        <button onclick="openModal('modal-info')" class="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs" title="Instrucciones e integración en GitHub">
+          ℹ️ Info
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- VISTA 1: FLASHCARDS -->
+    <section id="view-flashcards" class="space-y-6">
+      
+      <!-- Panel de Estadísticas y Filtros -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+        <!-- Barra de Progreso -->
+        <div class="w-full md:w-1/2 space-y-2">
+          <div class="flex justify-between items-center text-xs sm:text-sm">
+            <span class="text-slate-400">Progreso de estudio:</span>
+            <span class="font-bold text-indigo-400"><span id="learned-count">0</span> de <span id="total-count">27</span> aprendidas (<span id="progress-percent">0</span>%)</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
+            <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Filtros por categoría -->
+        <div class="flex flex-wrap items-center gap-1.5 justify-center md:justify-end text-xs">
+          <button onclick="setCategory('todas')" class="cat-pill active px-2.5 py-1 rounded-lg border border-indigo-500/40 bg-indigo-600/30 text-indigo-200">Todas (27)</button>
+          <button onclick="setCategory('fundamentos')" class="cat-pill px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white">Fundamentos</button>
+          <button onclick="setCategory('arquitectura')" class="cat-pill px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white">ANSI & SGBD</button>
+          <button onclick="setCategory('sql')" class="cat-pill px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white">SQL & ACID</button>
+          <button onclick="setCategory('modelos')" class="cat-pill px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white">Modelos & Diseño</button>
+          <button onclick="setCategory('integridad')" class="cat-pill px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white">Integridad</button>
+          <button onclick="setCategory('repasar')" class="cat-pill px-2.5 py-1 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20">Por repasar</button>
+        </div>
+      </div>
+
+      <!-- ZONA DE LA FLASHCARD 3D -->
+      <div class="flex flex-col items-center justify-center py-4">
+        
+        <!-- Tarjeta Interactiva -->
+        <div class="w-full max-w-2xl h-[380px] sm:h-[400px] perspective-1000 cursor-pointer select-none" onclick="flipCard()">
+          <div id="card-inner" class="relative w-full h-full transform-style-3d transition-transform duration-500 rounded-3xl shadow-2xl border border-slate-800 bg-slate-900/90">
+            
+            <!-- CARA FRONTAL -->
+            <div class="absolute inset-0 w-full h-full backface-hidden rounded-3xl p-6 sm:p-8 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 hover:border-indigo-500/40 transition-colors">
+              <div class="flex items-center justify-between">
+                <span id="card-category" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 tracking-wide uppercase">
+                  Categoría
+                </span>
+                <div class="flex items-center space-x-2 text-xs text-slate-400">
+                  <span id="card-status-badge" class="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700">Por aprender</span>
+                  <span id="card-index-indicator" class="font-mono text-slate-300 font-bold">1 / 27</span>
+                </div>
+              </div>
+
+              <div class="my-auto text-center space-y-4">
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-medium">Concepto Clave</p>
+                <h3 id="card-front-text" class="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
+                  Cargando concepto...
+                </h3>
+                <div id="hint-box" class="hidden mt-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-xs sm:text-sm animate-fade-in text-left">
+                  💡 <strong class="font-semibold">Pista:</strong> <span id="hint-text"></span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-4 border-t border-slate-800/80 text-xs text-slate-400">
+                <button type="button" onclick="event.stopPropagation(); toggleHint()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-amber-300 transition-colors">
+                  💡 <span>Mostrar pista</span>
+                </button>
+                <span class="flex items-center gap-1 text-slate-500">
+                  <span>Haz clic para voltear</span> 🔄
+                </span>
+              </div>
+            </div>
+
+            <!-- CARA TRASERA -->
+            <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl p-6 sm:p-8 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-900 border border-indigo-500/40">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Explicación Oficial de Examen</span>
+                </div>
+                <span id="card-back-number" class="text-xs font-mono text-slate-400 font-bold">#1</span>
+              </div>
+
+              <div class="my-auto overflow-y-auto max-h-[220px] pr-2 text-slate-200 text-sm sm:text-base leading-relaxed" id="card-back-text">
+                Definición y detalles del concepto...
+              </div>
+
+              <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-slate-400">
+                <span class="text-slate-500 text-xs">Atajo: Espacio para voltear</span>
+                <span class="text-indigo-400 font-medium">Volver al frente ↺</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CONTROLES INFERIORES -->
+        <div class="flex flex-wrap items-center justify-center gap-3 mt-6 w-full max-w-2xl">
+          <button onclick="prevCard()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-medium text-sm flex items-center gap-2 border border-slate-700 transition-all hover:scale-105 active:scale-95" title="Anterior (Flecha Izquierda)">
+            ◀ Anterior
+          </button>
+          
+          <button onclick="markLearned(false)" id="btn-review" class="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl font-medium text-sm transition-all hover:scale-105 active:scale-95">
+            🔄 Repasar luego
+          </button>
+
+          <button onclick="markLearned(true)" id="btn-mastered" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95">
+            ✓ ¡Ya me la sé!
+          </button>
+
+          <button onclick="nextCard()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-medium text-sm flex items-center gap-2 border border-slate-700 transition-all hover:scale-105 active:scale-95" title="Siguiente (Flecha Derecha)">
+            Siguiente ▶
+          </button>
+
+          <button onclick="shuffleCards()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-all" title="Barajar tarjetas">
+            🔀
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-4 flex items-center gap-3">
+          <span>⌨️ Atajos: <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">Espacio</kbd> Voltear</span>
+          <span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">→</kbd> Navegar</span>
+        </p>
+
+      </div>
+    </section>
+
+    <!-- VISTA 2: TEST DE EXAMEN -->
+    <section id="view-test" class="hidden space-y-6">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 text-center max-w-2xl mx-auto shadow-xl">
+        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 uppercase tracking-wider">
+          Simulador de Examen Tipo Test
+        </span>
+        <h2 class="text-2xl font-bold text-white mt-3">Comprueba tu Nivel para Mañana</h2>
+        <p class="text-sm text-slate-400 mt-1">10 preguntas aleatorias de alta probabilidad basadas en los apuntes del IES Gonzalo Nazareno.</p>
+
+        <div id="test-container" class="mt-6 text-left space-y-6">
+          <!-- Preguntas generadas por JS -->
+        </div>
+
+        <div id="test-results" class="hidden mt-6 p-6 bg-slate-800/80 rounded-2xl border border-slate-700 text-center space-y-4">
+          <div id="test-score-badge" class="text-4xl font-extrabold text-indigo-400">8 / 10</div>
+          <p id="test-feedback" class="text-slate-300 font-medium"></p>
+          <button onclick="startTest()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm transition-all">
+            Reintentar con nuevas preguntas 🔄
+          </button>
+        </div>
+
+        <div id="test-start-btn-wrap" class="mt-6">
+          <button onclick="startTest()" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all hover:scale-105">
+            Comenzar Simulador (10 preguntas) 🚀
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 3: GLOSARIO Y CHULETA COMPLETA (27 PUNTOS) -->
+    <section id="view-glosario" class="hidden space-y-6">
+      
+      <!-- Buscador en tiempo real -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        <div class="relative w-full sm:w-96">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            🔍
+          </span>
+          <input type="text" id="glossary-search" oninput="filterGlossary()" placeholder="Buscar: ACID, ANSI, clave foránea, DDL..." class="w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-colors">
+        </div>
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-400 font-medium">Mostrando:</span>
+          <span id="glossary-count" class="font-bold text-indigo-400">27 conceptos</span>
+        </div>
+      </div>
+
+      <!-- Grid con las 27 definiciones oficiales -->
+      <div id="glossary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Generado dinámicamente con JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DE INFORMACIÓN Y CÓDIGO GITHUB -->
+  <div id="modal-info" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+      <button onclick="closeModal('modal-info')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">🎓</span>
+        <h3 class="text-lg font-bold text-white">¿Cómo añadir esto al ASIR Hub?</h3>
+      </div>
+      <div class="text-xs text-slate-300 space-y-2.5 leading-relaxed">
+        <p>Para incluir este repaso en el repositorio <code class="bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded">diegoasir-gonzalo.github.io/1-asir-contenido</code> de Diego:</p>
+        <ol class="list-decimal list-inside space-y-1 bg-slate-950 p-3 rounded-xl border border-slate-800 text-slate-400 font-mono text-[11px]">
+          <li>Guarda este archivo como <span class="text-cyan-400 font-bold">bd-tema1.html</span> dentro de la carpeta del módulo.</li>
+          <li>En tu <span class="text-emerald-400 font-bold">index.html</span> principal, añade un enlace: <br><code class="text-slate-300">&lt;a href="bd-tema1.html"&gt;🎴 Repaso Tema 1 (Flashcards)&lt;/a&gt;</code></li>
+          <li>Haz <code class="text-indigo-400">git add .</code>, <code class="text-indigo-400">git commit -m "Add flashcards BD tema 1"</code> y <code class="text-indigo-400">git push</code>. ¡Listo en GitHub Pages!</li>
+        </ol>
+        <p>Contiene el temario oficial completo de la <em>Actividad: Conceptos de Alejandro Caballero Moreno</em> para 1º ASIR.</p>
+      </div>
+      <div class="pt-2 text-right">
+        <button onclick="closeModal('modal-info')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 bg-slate-900/40 py-4 mt-8">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <p>Material de estudio para 1º ASIR · IES Gonzalo Nazareno (Dos Hermanas).</p>
+      <p class="text-slate-400">Hecho para repasar y aprobar el examen de Bases de Datos.</p>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT: LÓGICA COMPLETA DE FLASHCARDS, TEST Y AUDIO -->
+  <script>
+    // BASE DE DATOS DE LOS 27 CONCEPTOS DEL TEMARIO DE ALEJANDRO CABALLERO / 1º ASIR
+    const flashcardsData = [
+      {
+        id: 1,
+        title: "Dato y Base de Datos",
+        category: "fundamentos",
+        catName: "Fundamentos",
+        front: "Dato vs Base de Datos",
+        back: "<strong>Dato:</strong> Unidad mínima de información aislada sin contexto propio (ej. un número o una cadena).<br><br><strong>Base de Datos (BD):</strong> Conjunto organizado, integrado y persistente de datos interrelacionados que permite un acceso, consulta y actualización rápida y segura.",
+        hint: "El dato es el bloque individual suelto; la base de datos es el almacén estructurado con propósito.",
+        options: [
+          "El dato ya está procesado y la BD solo guarda texto plano.",
+          "El dato es la unidad mínima aislada y la BD es el conjunto estructurado y organizado de datos.",
+          "Son sinónimos en sistemas relacionales.",
+          "La base de datos es el hardware y el dato es el software."
+        ],
+        correct: 1
+      },
+      {
+        id: 2,
+        title: "Fichero tradicional vs SGBD",
+        category: "fundamentos",
+        catName: "Fundamentos",
+        front: "Fichero tradicional vs SGBD (Sistema Gestor)",
+        back: "<strong>Ficheros tradicionales:</strong> Generan redundancia incontrolada, inconsistencia, dependencia de los programas y problemas con accesos concurrentes.<br><br><strong>SGBD:</strong> Software especializado que centraliza el almacenamiento, independiza los datos de las aplicaciones, garantiza integridad y control de concurrencia.",
+        hint: "Piensa en archivos CSV dispersos frente a un motor de base de datos profesional.",
+        options: [
+          "Los ficheros son más seguros y rápidos que un SGBD.",
+          "El SGBD independiza los datos del software y evita redundancias que sí provocan los ficheros.",
+          "Un fichero es un tipo de SGBD NoSQL.",
+          "No hay diferencia técnica salvo el tamaño de almacenamiento."
+        ],
+        correct: 1
+      },
+      {
+        id: 3,
+        title: "SGBD Relacional y Base de Datos Distribuida",
+        category: "fundamentos",
+        catName: "Fundamentos",
+        front: "SGBD Relacional vs Base de Datos Distribuida",
+        back: "<strong>SGBD Relacional:</strong> Organiza la información en tablas (filas y columnas) conectadas por claves lógicas.<br><br><strong>Base de Datos Distribuida:</strong> Los datos y el procesamiento están repartidos físicamente en múltiples nodos u ordenadores comunicados por red, pero se muestran al usuario como un único sistema.",
+        hint: "Uno define la forma lógica de organizar los datos (tablas); el otro, la separación física en varios servidores.",
+        options: [
+          "La BD distribuida reparte los datos en múltiples servidores por red funcionando como una sola.",
+          "El SGBD relacional no soporta redes de ordenadores.",
+          "Una BD distribuida solo puede almacenar archivos binarios.",
+          "Ambos términos se refieren exactamente a lo mismo."
+        ],
+        correct: 0
+      },
+      {
+        id: 4,
+        title: "Arquitectura Cliente/Servidor y 4GL",
+        category: "arquitectura",
+        catName: "ANSI & SGBD",
+        front: "Arquitectura Cliente/Servidor y Lenguajes 4GL",
+        back: "<strong>Cliente/Servidor:</strong> El cliente (interfaz o app) envía peticiones de datos por la red y el servidor (SGBD) procesa las consultas y devuelve los resultados.<br><br><strong>Lenguajes 4GL (4ª Generación):</strong> Lenguajes declarativos orientados a <em>qué datos obtener</em> y no a cómo programar el algoritmo para buscarlos (ejemplo típico: <strong>SQL</strong>).",
+        hint: "El cliente solicita, el servidor procesa. SQL es el lenguaje de 4ª generación por excelencia.",
+        options: [
+          "SQL es un lenguaje 3GL procedimental clásico como C.",
+          "En Cliente/Servidor el cliente ejecuta todo el motor y el servidor solo guarda archivos.",
+          "4GL son lenguajes declarativos de alto nivel como SQL donde indicas qué quieres y no el algoritmo paso a paso.",
+          "Cliente/servidor solo funciona en ordenadores aislados sin red."
+        ],
+        correct: 2
+      },
+      {
+        id: 5,
+        title: "SGBD Objeto-Relacional vs Orientado a Objetos",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "SGBD Objeto-Relacional vs SGBD Orientado a Objetos",
+        back: "<strong>SGBD Objeto-Relacional (ORDBMS):</strong> Sistema relacional tradicional que amplía sus capacidades permitiendo tipos de datos complejos y objetos dentro de tablas (ej. <strong>PostgreSQL</strong> u <strong>Oracle</strong>).<br><br><strong>SGBD Orientado a Objetos (OODBMS):</strong> Almacena directamente los objetos tal cual se programan (con herencia, métodos y encapsulación).",
+        hint: "PostgreSQL es objeto-relacional: tablas relacionales enriquecidas con objetos y JSON.",
+        options: [
+          "El objeto-relacional extiende el modelo relacional tradicional con soporte para objetos y tipos complejos.",
+          "PostgreSQL no admite objetos, solo texto plano.",
+          "El orientado a objetos utiliza tablas exclusivamente bidimensionales.",
+          "Son idénticos a los modelos jerárquicos de los años 60."
+        ],
+        correct: 0
+      },
+      {
+        id: 6,
+        title: "SGBD con soporte XML vs BD nativa XML",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "SGBD Relacional con XML vs BD Nativa XML",
+        back: "<strong>SGBD con soporte XML:</strong> Almacena documentos XML dentro de columnas de tablas relacionales existentes (como campos CLOB o tipo XML).<br><br><strong>BD Nativa XML:</strong> Diseñada específicamente para almacenar árboles XML y consultarlos directamente con lenguajes nativos como <strong>XPath</strong> o <strong>XQuery</strong>.",
+        hint: "¿Guardar el XML en una celda de una tabla o tener un motor hecho a medida para árboles XML?",
+        options: [
+          "La BD nativa XML utiliza tablas y claves foráneas SQL tradicionales.",
+          "El soporte XML guarda XML dentro de una columna de tabla, mientras que la nativa guarda el árbol XML como unidad básica.",
+          "XML no se puede almacenar en ningún tipo de base de datos.",
+          "XPath es un lenguaje DDL de Oracle."
+        ],
+        correct: 1
+      },
+      {
+        id: 7,
+        title: "Independencia Física e Independencia Lógica",
+        category: "arquitectura",
+        catName: "ANSI & SGBD",
+        front: "Independencia Física vs Independencia Lógica",
+        back: "<strong>Independencia Física:</strong> Capacidad de cambiar el soporte de almacenamiento, discos, rutas o índices sin alterar los esquemas conceptuales ni las aplicaciones.<br><br><strong>Independencia Lógica:</strong> Capacidad de modificar el esquema conceptual (añadir tablas, nuevos campos) sin tener que rehacer las aplicaciones o vistas ya existentes.",
+        hint: "Física = cambiar a discos SSD sin tocar consultas; Lógica = añadir una columna a la tabla sin romper las aplicaciones existentes.",
+        options: [
+          "Independencia lógica significa cambiar el disco duro sin que afecte al SGBD.",
+          "Independencia física permite modificar el almacenamiento o índices en disco sin alterar las consultas ni las tablas.",
+          "Ambas se refieren únicamente al cableado de red.",
+          "La independencia lógica solo existe en MongoDB."
+        ],
+        correct: 1
+      },
+      {
+        id: 8,
+        title: "Integridad de datos e Integridad referencial",
+        category: "integridad",
+        catName: "Integridad",
+        front: "Integridad de los datos vs Integridad Referencial",
+        back: "<strong>Integridad de datos:</strong> Garantía de que la información almacenada es exacta, correcta, válida y fiable.<br><br><strong>Integridad referencial:</strong> Regla obligatoria que prohíbe que una clave ajena (FOREIGN KEY) apunte a un registro inexistente en la tabla principal.",
+        hint: "La integridad referencial evita los 'registros huérfanos' entre tablas relacionadas.",
+        options: [
+          "La integridad referencial permite insertar claves foráneas que no existen en la tabla padre.",
+          "La integridad de datos solo vigila la velocidad del procesador.",
+          "La integridad referencial asegura que las claves foráneas siempre apunten a claves primarias válidas existentes.",
+          "La integridad referencial se aplica solo en bases de datos NoSQL."
+        ],
+        correct: 2
+      },
+      {
+        id: 9,
+        title: "Redundancia y Concurrencia en SGBD",
+        category: "fundamentos",
+        catName: "Fundamentos",
+        front: "Redundancia vs Concurrencia de Usuarios",
+        back: "<strong>Redundancia:</strong> Repetición innecesaria del mismo dato en varios lugares, lo que malgasta espacio y causa peligro de inconsistencia.<br><br><strong>Concurrencia:</strong> Capacidad del SGBD para permitir que múltiples usuarios y aplicaciones lean y escriban datos a la vez sin interferir entre sí ni corromperlos.",
+        hint: "Redundancia = copias duplicadas peligrosas; Concurrencia = muchos usuarios usando la BD a la vez.",
+        options: [
+          "La redundancia es deseable para que los usuarios escriban al mismo tiempo.",
+          "La redundancia es la duplicación innecesaria de datos y la concurrencia es el acceso simultáneo de múltiples usuarios sin interferencias.",
+          "La concurrencia solo se permite si hay un único usuario conectado.",
+          "El SGBD no puede controlar la concurrencia de accesos."
+        ],
+        correct: 1
+      },
+      {
+        id: 10,
+        title: "Transacción, Bloqueo, COMMIT y ROLLBACK",
+        category: "sql",
+        catName: "SQL & ACID",
+        front: "Transacción (ACID), Bloqueos, COMMIT y ROLLBACK",
+        back: "<strong>Transacción:</strong> Conjunto de operaciones indivisibles que cumplen <strong>ACID</strong> (Atomicidad, Consistencia, Aislamiento y Durabilidad).<br><br><strong>Bloqueo (Lock):</strong> Mecanismo que restringe accesos a un dato mientras una transacción lo modifica.<br><br><strong>COMMIT:</strong> Confirma los cambios definitivamente.<br><br><strong>ROLLBACK:</strong> Deshace y cancela las operaciones devolviendo la BD a su estado anterior.",
+        hint: "En una transferencia bancaria: restar y sumar dinero es todo o nada. Si falla, ROLLBACK; si sale bien, COMMIT.",
+        options: [
+          "ROLLBACK confirma los cambios haciéndolos permanentes en el disco.",
+          "ACID significa: Actualización, Compatibilidad, Integridad y Duplicación.",
+          "COMMIT guarda definitivamente la transacción y ROLLBACK deshace todos los cambios si hay error.",
+          "El bloqueo elimina la tabla para que nadie pueda consultarla."
+        ],
+        correct: 2
+      },
+      {
+        id: 11,
+        title: "Sublenguajes SQL: DDL, DML y DCL",
+        category: "sql",
+        catName: "SQL & ACID",
+        front: "Sublenguajes SQL: DDL vs DML vs DCL",
+        back: "<strong>DDL (Data Definition Language):</strong> Define y modifica la estructura (<code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>).<br><br><strong>DML (Data Manipulation Language):</strong> Consulta y modifica los registros (<code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>).<br><br><strong>DCL (Data Control Language):</strong> Administra la seguridad y permisos de acceso (<code>GRANT</code>, <code>REVOKE</code>).",
+        hint: "DDL diseña el edificio, DML mete a la gente en las habitaciones, DCL revisa los pases de entrada.",
+        options: [
+          "SELECT pertenece a DDL y CREATE a DML.",
+          "DDL define estructuras (CREATE), DML manipula datos (INSERT/SELECT) y DCL gestiona permisos (GRANT).",
+          "DCL es el lenguaje para hacer copias de seguridad en cinta magnética.",
+          "DDL solo sirve para borrar bases de datos."
+        ],
+        correct: 1
+      },
+      {
+        id: 12,
+        title: "SQL vs PL/SQL vs PL/pgSQL",
+        category: "sql",
+        catName: "SQL & ACID",
+        front: "SQL vs PL/SQL vs PL/pgSQL",
+        back: "<strong>SQL:</strong> Estándar declarativo universal (ANSI/ISO) para consultas y manipulación relacional.<br><br><strong>PL/SQL:</strong> Extensión procedimental propietaria de <strong>Oracle</strong> (variables, bucles, triggers, cursores).<br><br><strong>PL/pgSQL:</strong> Extensión procedimental equivalente desarrollada para <strong>PostgreSQL</strong>.",
+        hint: "SQL dice qué hacer; PL/SQL (Oracle) y PL/pgSQL (PostgreSQL) añaden lógica algorítmica completa.",
+        options: [
+          "PL/SQL es el lenguaje procedimental de Oracle y PL/pgSQL es el de PostgreSQL.",
+          "SQL permite hacer bucles FOR y WHILE de forma nativa sin extensiones.",
+          "PL/SQL pertenece a Microsoft SQL Server.",
+          "PL/pgSQL fue creado para bases de datos MongoDB."
+        ],
+        correct: 0
+      },
+      {
+        id: 13,
+        title: "Usuarios: Externo, Sofisticado y Administrador (DBA)",
+        category: "fundamentos",
+        catName: "Fundamentos",
+        front: "Usuarios del SGBD: Externo vs Sofisticado vs DBA",
+        back: "<strong>Usuario Externo / Final:</strong> Usa aplicaciones mediante formularios o menús sin saber SQL (ej. cajero de banco).<br><br><strong>Usuario Sofisticado:</strong> Diseñadores o analistas que interactúan directamente con el SGBD escribiendo consultas SQL complejas.<br><br><strong>Administrador (DBA):</strong> Responsable del control total: seguridad, esquemas, rendimiento, espacio y backups periódicos.",
+        hint: "El que pulsa botones en una web, el que escribe consultas SQL y el que mantiene el servidor en marcha.",
+        options: [
+          "El usuario externo es el responsable de hacer las copias de seguridad físicas.",
+          "El usuario sofisticado interactúa directamente con el motor mediante consultas y el DBA administra el sistema globalmente.",
+          "El DBA solo puede utilizar interfaces web simples sin permisos de consola.",
+          "Son términos equivalentes para programadores novatos."
+        ],
+        correct: 1
+      },
+      {
+        id: 14,
+        title: "Diccionario de Datos (Catálogo de Metadatos)",
+        category: "arquitectura",
+        catName: "ANSI & SGBD",
+        front: "Diccionario de Datos (Catálogo)",
+        back: "Repositorio centralizado del SGBD que almacena los <strong>metadatos</strong> (datos sobre los datos).<br><br>Contiene las definiciones de todas las tablas, columnas, tipos de datos, restricciones, vistas, índices, usuarios y privilegios del sistema.",
+        hint: "Es el mapa y manual interno que usa el propio motor para saber cómo está construida la BD.",
+        options: [
+          "Es un libro en PDF que la empresa guarda en secretaría.",
+          "Es el repositorio del SGBD que contiene los metadatos: tablas, columnas, tipos y restricciones.",
+          "Es una tabla temporal que solo almacena las contraseñas de los usuarios.",
+          "Solo existe en los sistemas de ficheros ext4."
+        ],
+        correct: 1
+      },
+      {
+        id: 15,
+        title: "Arquitectura ANSI/SPARC de 3 Niveles",
+        category: "arquitectura",
+        catName: "ANSI & SGBD",
+        front: "Arquitectura ANSI/SPARC (3 Niveles)",
+        back: "Propuesta en 1975 para aislar a las aplicaciones de los detalles físicos de almacenamiento:<br><br>1. <strong>Nivel Externo (Vistas):</strong> Cómo ve los datos cada usuario o aplicación específica.<br>2. <strong>Nivel Conceptual (Lógico):</strong> Estructura global de qué datos existen y sus relaciones.<br>3. <strong>Nivel Interno (Físico):</strong> Cómo y dónde se guardan físicamente en disco y archivos.",
+        hint: "Externo = lo que ves; Conceptual = qué existe en conjunto; Interno = discos, bloques y archivos.",
+        options: [
+          "1. Nivel Red, 2. Nivel Web, 3. Nivel Nube.",
+          "Nivel Externo (vistas de usuario), Nivel Conceptual (esquema lógico global) y Nivel Interno (almacenamiento físico en disco).",
+          "Es un modelo exclusivo de bases de datos NoSQL.",
+          "Nivel Usuario, Nivel Desarrollador y Nivel Hacker."
+        ],
+        correct: 1
+      },
+      {
+        id: 16,
+        title: "Modelos Clásicos: Jerárquico, En Red y Relacional",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "Modelo Jerárquico vs En Red vs Relacional",
+        back: "<strong>Jerárquico:</strong> Árbol invertido donde cada nodo hijo tiene un único padre (1:N estricto).<br><br><strong>En Red:</strong> Extensión que permite a un nodo hijo tener múltiples padres (relaciones N:M mediante grafos).<br><br><strong>Relacional:</strong> Organiza la información en tablas bidimensionales (tuplas y atributos) enlazadas mediante claves.",
+        hint: "Árbol con un solo padre por hijo, telaraña con múltiples padres, y tablas rectangulares.",
+        options: [
+          "El jerárquico permite que un hijo tenga varios padres y el de red no.",
+          "El modelo relacional organiza datos en tablas bidimensionales, el jerárquico en árbol (1:N) y en red en grafos (N:M).",
+          "El modelo relacional fue creado antes que el jerárquico.",
+          "El modelo en red almacena los datos en documentos JSON."
+        ],
+        correct: 1
+      },
+      {
+        id: 17,
+        title: "Modelo de datos NoSQL",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "Modelo de datos NoSQL (Not Only SQL)",
+        back: "Sistemas no relacionales orientados a gran volumen (Big Data), alta escalabilidad y esquemas flexibles sin necesidad de tablas fijas ni claves foráneas rígidas.<br><br><strong>Tipos principales:</strong> Documentos (MongoDB), Clave-Valor (Redis), Columnas anchas (Cassandra) y Grafos (Neo4j).",
+        hint: "Not Only SQL: flexible, escalable y sin tablas rígidas.",
+        options: [
+          "Es un SQL antiguo que no permite consultas rápidas.",
+          "Sistemas no relacionales de esquema flexible diseñados para alto volumen y escalabilidad (documentos, clave-valor, grafos).",
+          "Solo permite almacenar números enteros.",
+          "Fue creado por IBM en 1970 junto con el álgebra relacional."
+        ],
+        correct: 1
+      },
+      {
+        id: 18,
+        title: "Diseño Conceptual de una BD",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "Diseño Conceptual de una Base de Datos",
+        back: "Fase inicial e independiente de la tecnología donde se recopilan los requisitos de la organización y se crea un modelo abstracto.<br><br>La herramienta más utilizada es el <strong>Diagrama Entidad-Relación (E/R)</strong>, representando entidades, atributos y cardinalidades.",
+        hint: "Es el boceto de la realidad sin pensar todavía en qué SGBD o tablas concretas se usará.",
+        options: [
+          "Es la instalación física del servidor en el rack de comunicaciones.",
+          "Fase inicial abstracta que representa la información mediante esquemas conceptuales como el diagrama Entidad-Relación.",
+          "Es la creación directa de las tablas mediante sentencias CREATE TABLE.",
+          "Es la fase de configuración de la memoria RAM del SGBD."
+        ],
+        correct: 1
+      },
+      {
+        id: 19,
+        title: "Diseño Lógico de una BD",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "Diseño Lógico de una Base de Datos",
+        back: "Fase que transforma el modelo conceptual (diagrama E/R) en un esquema estructurado adaptado al modelo de datos elegido (generalmente el <strong>modelo relacional</strong>).<br><br>Se definen tablas, columnas, claves primarias, claves foráneas y se aplican reglas de normalización.",
+        hint: "Transformar el diagrama Entidad-Relación en tablas con sus claves primarias y foráneas.",
+        options: [
+          "Configurar los discos RAID en el sistema operativo Linux.",
+          "Transformar el modelo conceptual en un esquema estructurado específico (tablas relacionales, claves y normalización).",
+          "Escribir programas en Java o Python para consultar la BD.",
+          "Elegir el cableado de red entre clientes y servidores."
+        ],
+        correct: 1
+      },
+      {
+        id: 20,
+        title: "Diseño Físico de una BD",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "Diseño Físico de una Base de Datos",
+        back: "Fase final que implementa el modelo lógico sobre un <strong>SGBD concreto</strong> (ej. Oracle, PostgreSQL o MySQL).<br><br>Se configuran rutas de disco, tipos nativos de datos, índices para optimizar consultas, particiones y políticas de seguridad física.",
+        hint: "La adaptación directa a las tripas del software SGBD y sus discos.",
+        options: [
+          "Diseñar el diagrama de entidades y relaciones con lápiz y papel.",
+          "Adaptar el esquema lógico a un SGBD concreto definiendo almacenamiento, índices y optimización física.",
+          "Eliminar todas las claves foráneas de las tablas.",
+          "Comprar las licencias de software privativo."
+        ],
+        correct: 1
+      },
+      {
+        id: 21,
+        title: "Oracle Database y Oracle SQL Developer",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "Oracle Database vs Oracle SQL Developer",
+        back: "<strong>Oracle Database:</strong> El motor SGBD relacional de nivel empresarial líder, que ejecuta el almacenamiento, transacciones y seguridad en el servidor.<br><br><strong>Oracle SQL Developer:</strong> Entorno de desarrollo gráfico gratuito (IDE cliente) para conectarse a Oracle DB, escribir código SQL/PL-SQL y administrar objetos visualmente.",
+        hint: "Uno es el motor servidor; el otro es la aplicación con botones para conectarte a él.",
+        options: [
+          "Oracle DB es el cliente gráfico y SQL Developer es el servidor.",
+          "Oracle Database es el motor gestor empresarial (servidor) y SQL Developer es la herramienta visual cliente (IDE).",
+          "Son exactamente el mismo programa sin ninguna diferencia.",
+          "SQL Developer sustituye por completo la necesidad de un motor de BD."
+        ],
+        correct: 1
+      },
+      {
+        id: 22,
+        title: "PostgreSQL",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "PostgreSQL",
+        back: "SGBD <strong>objeto-relacional</strong> de código abierto y altamente extensible.<br><br>Destaca por su estricto cumplimiento del estándar SQL, soporte avanzado para JSON/JSONB, tipos geométricos, transacciones ACID completas y gran rendimiento en entornos de misión crítica.",
+        hint: "El elefante de código abierto más potente y riguroso con los estándares.",
+        options: [
+          "Es un motor NoSQL que no soporta consultas SQL estándar.",
+          "SGBD relacional/objeto-relacional de código abierto reconocido por su alta robustez y soporte para tipos complejos.",
+          "Un sistema privativo perteneciente a Microsoft.",
+          "Una herramienta web para diseñar diagramas E/R."
+        ],
+        correct: 1
+      },
+      {
+        id: 23,
+        title: "MySQL",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "MySQL",
+        back: "SGBD relacional de código abierto ampliamente utilizado en servidores web (pila LAMP). Organiza datos en tablas conectadas, utiliza SQL y funciona bajo una arquitectura cliente/servidor eficiente y rápida. Actualmente es propiedad de Oracle.",
+        hint: "El motor de bases de datos que impulsó la web y WordPress, hoy propiedad de Oracle.",
+        options: [
+          "Un motor exclusivo para almacenar imágenes PNG.",
+          "SGBD relacional de código abierto muy extendido en entornos web (cliente/servidor) propiedad de Oracle.",
+          "Un lenguaje de programación compilado como C++.",
+          "Un protocolo de correo electrónico."
+        ],
+        correct: 1
+      },
+      {
+        id: 24,
+        title: "MariaDB",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "MariaDB",
+        back: "SGBD relacional de código abierto nacido como una <strong>bifurcación (fork)</strong> de MySQL tras la compra de Sun por Oracle.<br><br>Fue creado por los desarrolladores originales de MySQL para garantizar que siempre exista una versión 100% libre, comunitaria y compatible.",
+        hint: "El fork libre de MySQL creado por Monty Widenius para proteger la comunidad open source.",
+        options: [
+          "Es un motor NoSQL de clave-valor sin compatibilidad con SQL.",
+          "Un fork libre y comunitario de MySQL creado para asegurar su gratuidad y compatibilidad total.",
+          "Un componente de hardware para acelerar discos SSD.",
+          "La versión comercial de pago de Oracle DB."
+        ],
+        correct: 1
+      },
+      {
+        id: 25,
+        title: "MongoDB",
+        category: "modelos",
+        catName: "Modelos & SGBD",
+        front: "MongoDB",
+        back: "El SGBD <strong>NoSQL orientado a documentos</strong> más popular del mundo.<br><br>En lugar de tablas con filas y columnas fijas, guarda la información en colecciones de documentos en formato <strong>BSON</strong> (representación binaria de JSON) con esquemas dinámicos y flexibles.",
+        hint: "NoSQL, documentos BSON/JSON, colecciones en lugar de tablas.",
+        options: [
+          "Almacena datos en documentos similares a JSON (BSON) en vez de tablas y filas fijas.",
+          "Utiliza exclusivamente el lenguaje PL/SQL para transacciones bancarias.",
+          "Es una base de datos jerárquica de los años 70.",
+          "Requiere que todas las filas tengan exactamente las mismas columnas."
+        ],
+        correct: 0
+      },
+      {
+        id: 26,
+        title: "Reglas de Integridad o Restricciones (Constraints)",
+        category: "integridad",
+        catName: "Integridad",
+        front: "Restricciones SQL: PRIMARY KEY, NOT NULL, UNIQUE, CHECK",
+        back: "Condiciones obligatorias que actúan como 'guardias de seguridad':<br><br>• <strong>PRIMARY KEY:</strong> Identificador único no nulo de cada fila.<br>• <strong>NOT NULL:</strong> Impide que una columna se deje vacía.<br>• <strong>UNIQUE:</strong> Evita valores repetidos en la columna.<br>• <strong>FOREIGN KEY:</strong> Asegura enlace válido con otra tabla.<br>• <strong>CHECK:</strong> Valida una condición (ej. <code>sueldo > 0</code>).",
+        hint: "Las restricciones impiden que entren datos corruptos, incompletos o sin sentido.",
+        options: [
+          "CHECK impide que la clave primaria sea numérica.",
+          "PRIMARY KEY identifica unívocamente, NOT NULL prohíbe vacíos, UNIQUE prohíbe duplicados y CHECK valida condiciones.",
+          "NOT NULL permite dejar cualquier campo en blanco sin restricciones.",
+          "Son opcionales y el SGBD nunca las comprueba al insertar datos."
+        ],
+        correct: 1
+      },
+      {
+        id: 27,
+        title: "Restricciones Inherentes del Modelo Relacional",
+        category: "integridad",
+        catName: "Integridad",
+        front: "Restricciones del Modelo en un SGBD (Entidad, Referencial, Dominio)",
+        back: "Reglas intrínsecas impuestas automáticamente por el modelo relacional:<br><br>1. <strong>Integridad de Entidad:</strong> La clave primaria debe existir, ser única y nunca ser nula (<code>NULL</code>).<br>2. <strong>Integridad Referencial:</strong> La clave ajena debe apuntar a una clave primaria real o ser nula.<br>3. <strong>Integridad de Dominio:</strong> Los valores deben pertenecer al tipo de dato y rango permitido de la columna.",
+        hint: "Las 3 leyes fundamentales que definen el modelo relacional de E.F. Codd.",
+        options: [
+          "Integridad de disco, Integridad de cable e Integridad de red.",
+          "Integridad de Entidad (PK única y no nula), Integridad Referencial (FK válidas) e Integridad de Dominio (valores y tipos válidos).",
+          "Solo se aplican si la base de datos no tiene usuarios conectados.",
+          "Obligan a que todas las tablas tengan exactamente 10 columnas."
+        ],
+        correct: 1
+      }
+    ];
+
+    // ESTADO DE LA APLICACIÓN
+    let currentCategory = 'todas';
+    let filteredCards = [...flashcardsData];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let soundEnabled = true;
+    let learnedSet = new Set(JSON.parse(localStorage.getItem('asir_bd_learned') || '[]'));
+
+    // SINTETIZADOR DE AUDIO (Web Audio API - Cero dependencias externas)
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'flip') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(480, now + 0.08);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'review') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(350, now);
+          osc.frequency.setValueAtTime(280, now + 0.1);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        }
+      } catch (e) {
+        // En navegadores restringidos continúa en silencio
+      }
+    }
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-icon').innerText = soundEnabled ? '🔊' : '🔇';
+    }
+
+    // GESTIÓN DE PESTAÑAS
+    function switchView(viewName) {
+      document.getElementById('view-flashcards').classList.add('hidden');
+      document.getElementById('view-test').classList.add('hidden');
+      document.getElementById('view-glosario').classList.add('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${viewName}`);
+      activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+      activeBtn.classList.remove('text-slate-400');
+
+      if (viewName === 'glosario') {
+        renderGlossary();
+      }
+    }
+
+    // CONTROL DE FLASHCARDS
+    function updateProgress() {
+      const total = flashcardsData.length;
+      const learned = learnedSet.size;
+      const percent = Math.round((learned / total) * 100);
+
+      document.getElementById('learned-count').innerText = learned;
+      document.getElementById('total-count').innerText = total;
+      document.getElementById('progress-percent').innerText = percent;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+
+      localStorage.setItem('asir_bd_learned', JSON.stringify([...learnedSet]));
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(pill => {
+        pill.classList.remove('active', 'border-indigo-500/40', 'bg-indigo-600/30', 'text-indigo-200');
+        pill.classList.add('border-slate-700', 'bg-slate-800', 'text-slate-400');
+      });
+      event.target.classList.add('active', 'border-indigo-500/40', 'bg-indigo-600/30', 'text-indigo-200');
+      event.target.classList.remove('border-slate-700', 'bg-slate-800', 'text-slate-400');
+
+      if (cat === 'todas') {
+        filteredCards = [...flashcardsData];
+      } else if (cat === 'repasar') {
+        filteredCards = flashcardsData.filter(c => !learnedSet.has(c.id));
+        if (filteredCards.length === 0) {
+          alert('¡Enhorabuena! Te sabes todas las tarjetas. Reiniciando a todas.');
+          filteredCards = [...flashcardsData];
+        }
+      } else {
+        filteredCards = flashcardsData.filter(c => c.category === cat);
+      }
+
+      currentIndex = 0;
+      renderCurrentCard();
+    }
+
+    function renderCurrentCard() {
+      if (filteredCards.length === 0) return;
+      const card = filteredCards[currentIndex];
+
+      // Resetear giro
+      const inner = document.getElementById('card-inner');
+      inner.classList.remove('rotate-y-180');
+      isFlipped = false;
+
+      // Ocultar pista
+      document.getElementById('hint-box').classList.add('hidden');
+
+      // Asignar textos
+      document.getElementById('card-category').innerText = card.catName;
+      document.getElementById('card-index-indicator').innerText = `${currentIndex + 1} / ${filteredCards.length}`;
+      document.getElementById('card-front-text').innerText = card.front;
+      document.getElementById('hint-text').innerText = card.hint;
+      document.getElementById('card-back-number').innerText = `#${card.id} de 27`;
+      document.getElementById('card-back-text').innerHTML = card.back;
+
+      // Estado aprendida
+      const statusBadge = document.getElementById('card-status-badge');
+      if (learnedSet.has(card.id)) {
+        statusBadge.innerText = '✓ Aprendida';
+        statusBadge.className = 'px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-medium';
+      } else {
+        statusBadge.innerText = 'Por repasar';
+        statusBadge.className = 'px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-slate-400';
+      }
+
+      updateProgress();
+    }
+
+    function flipCard() {
+      const inner = document.getElementById('card-inner');
+      isFlipped = !isFlipped;
+      playSound('flip');
+      if (isFlipped) {
+        inner.classList.add('rotate-y-180');
+      } else {
+        inner.classList.remove('rotate-y-180');
+      }
+    }
+
+    function toggleHint() {
+      const hintBox = document.getElementById('hint-box');
+      hintBox.classList.toggle('hidden');
+      playSound('flip');
+    }
+
+    function nextCard() {
+      if (currentIndex < filteredCards.length - 1) {
+        currentIndex++;
+      } else {
+        currentIndex = 0; // bucle
+      }
+      renderCurrentCard();
+    }
+
+    function prevCard() {
+      if (currentIndex > 0) {
+        currentIndex--;
+      } else {
+        currentIndex = filteredCards.length - 1;
+      }
+      renderCurrentCard();
+    }
+
+    function markLearned(isLearned) {
+      const card = filteredCards[currentIndex];
+      if (isLearned) {
+        learnedSet.add(card.id);
+        playSound('success');
+      } else {
+        learnedSet.delete(card.id);
+        playSound('review');
+      }
+      renderCurrentCard();
+      setTimeout(() => {
+        nextCard();
+      }, 250);
+    }
+
+    function shuffleCards() {
+      for (let i = filteredCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filteredCards[i], filteredCards[j]] = [filteredCards[j], filteredCards[i]];
+      }
+      currentIndex = 0;
+      playSound('flip');
+      renderCurrentCard();
+    }
+
+    // ATAJOS DE TECLADO
+    window.addEventListener('keydown', (e) => {
+      // Si el usuario está escribiendo en el buscador no procesar atajos
+      if (document.activeElement.tagName === 'INPUT') return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        flipCard();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        nextCard();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        prevCard();
+      }
+    });
+
+    // VISTA 2: SIMULADOR DE TEST (10 PREGUNTAS)
+    let testQuestions = [];
+    let userAnswers = {};
+
+    function startTest() {
+      document.getElementById('test-start-btn-wrap').classList.add('hidden');
+      document.getElementById('test-results').classList.add('hidden');
+      const container = document.getElementById('test-container');
+      container.innerHTML = '';
+      userAnswers = {};
+
+      // Elegir 10 preguntas aleatorias de los 27 conceptos
+      const shuffled = [...flashcardsData].sort(() => 0.5 - Math.random());
+      testQuestions = shuffled.slice(0, 10);
+
+      testQuestions.forEach((q, idx) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'p-5 bg-slate-800/60 border border-slate-700/70 rounded-2xl space-y-3';
+        qCard.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Pregunta ${idx + 1} de 10</span>
+            <span class="text-xs text-slate-400 font-mono">${q.catName}</span>
+          </div>
+          <h4 class="text-base font-bold text-white">${q.front}</h4>
+          <div class="space-y-2 mt-3" id="options-q-${idx}">
+            ${q.options.map((opt, optIdx) => `
+              <button onclick="selectOption(${idx}, ${optIdx})" id="opt-${idx}-${optIdx}" class="w-full text-left p-3 rounded-xl bg-slate-900 border border-slate-700 text-xs sm:text-sm text-slate-200 hover:border-indigo-500 hover:bg-slate-800/80 transition-all flex items-start gap-2.5">
+                <span class="w-5 h-5 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] font-bold text-slate-300 shrink-0 mt-0.5">
+                  ${String.fromCharCode(65 + optIdx)}
+                </span>
+                <span>${opt}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div id="explanation-${idx}" class="hidden p-3 rounded-xl text-xs leading-relaxed bg-slate-900/90 border border-slate-700"></div>
+        `;
+        container.appendChild(qCard);
+      });
+
+      const finishBtn = document.createElement('div');
+      finishBtn.className = 'text-center pt-4';
+      finishBtn.innerHTML = `
+        <button onclick="evaluateTest()" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all hover:scale-105">
+          Terminar y Corregir Examen 📋
+        </button>
+      `;
+      container.appendChild(finishBtn);
+    }
+
+    function selectOption(qIdx, optIdx) {
+      userAnswers[qIdx] = optIdx;
+      const parent = document.getElementById(`options-q-${qIdx}`);
+      parent.querySelectorAll('button').forEach((btn, idx) => {
+        if (idx === optIdx) {
+          btn.classList.add('border-indigo-500', 'bg-indigo-950/40', 'ring-1', 'ring-indigo-500');
+        } else {
+          btn.classList.remove('border-indigo-500', 'bg-indigo-950/40', 'ring-1', 'ring-indigo-500');
+        }
+      });
+      playSound('flip');
+    }
+
+    function evaluateTest() {
+      let score = 0;
+      testQuestions.forEach((q, idx) => {
+        const selected = userAnswers[idx];
+        const explanationEl = document.getElementById(`explanation-${idx}`);
+        explanationEl.classList.remove('hidden');
+
+        q.options.forEach((_, optIdx) => {
+          const btn = document.getElementById(`opt-${idx}-${optIdx}`);
+          btn.disabled = true;
+          if (optIdx === q.correct) {
+            btn.classList.add('border-emerald-500', 'bg-emerald-950/50', 'text-emerald-200');
+          } else if (selected === optIdx && optIdx !== q.correct) {
+            btn.classList.add('border-rose-500', 'bg-rose-950/50', 'text-rose-200');
+          }
+        });
+
+        if (selected === q.correct) {
+          score++;
+          explanationEl.innerHTML = `<span class="text-emerald-400 font-bold">✓ ¡Correcto!</span> ${q.back}`;
+          explanationEl.classList.add('border-emerald-500/30');
+        } else {
+          explanationEl.innerHTML = `<span class="text-rose-400 font-bold">✗ Incorrecto.</span> La respuesta correcta era la opción ${String.fromCharCode(65 + q.correct)}.<br><div class="mt-1 text-slate-300">${q.back}</div>`;
+          explanationEl.classList.add('border-rose-500/30');
+        }
+      });
+
+      const resultsBox = document.getElementById('test-results');
+      resultsBox.classList.remove('hidden');
+      document.getElementById('test-score-badge').innerText = `${score} / 10`;
+
+      const feedback = document.getElementById('test-feedback');
+      if (score >= 9) {
+        feedback.innerText = "🌟 ¡Nivel excelente! Tienes el Tema 1 completamente dominado para sacar un 10.";
+        playSound('success');
+      } else if (score >= 6) {
+        feedback.innerText = "👍 Aprobado con solvencia. Repasa las flashcards que hayas fallado antes de entrar a clase.";
+        playSound('success');
+      } else {
+        feedback.innerText = "⚠️ Necesitas repasar los conceptos clave (ACID, ANSI/SPARC, DDL/DML y reglas de integridad).";
+        playSound('review');
+      }
+
+      resultsBox.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // VISTA 3: GLOSARIO Y CHULETA
+    function renderGlossary(filtered = flashcardsData) {
+      const grid = document.getElementById('glossary-grid');
+      grid.innerHTML = '';
+      document.getElementById('glossary-count').innerText = `${filtered.length} conceptos`;
+
+      filtered.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'p-5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2 hover:border-slate-700 transition-all';
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-400 border border-slate-700 font-mono">
+              Punto #${c.id}
+            </span>
+            <span class="text-[11px] text-slate-400">${c.catName}</span>
+          </div>
+          <h4 class="font-bold text-white text-base">${c.title}</h4>
+          <div class="text-xs text-slate-300 leading-relaxed pt-1 border-t border-slate-800/80">
+            ${c.back}
+          </div>
+        `;
+        grid.appendChild(item);
+      });
+    }
+
+    function filterGlossary() {
+      const query = document.getElementById('glossary-search').value.toLowerCase().trim();
+      const filtered = flashcardsData.filter(c => 
+        c.title.toLowerCase().includes(query) ||
+        c.front.toLowerCase().includes(query) ||
+        c.back.toLowerCase().includes(query) ||
+        c.catName.toLowerCase().includes(query)
+      );
+      renderGlossary(filtered);
+    }
+
+    // MODAL
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // INICIALIZACIÓN
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCurrentCard();
+      updateProgress();
+    });
+  </script>
+</body>
+</html>
