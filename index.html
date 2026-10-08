@@ -183,6 +183,74 @@
     .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
     .reveal.in { opacity: 1; transform: none; }
 
+
+    /* ---------- SEARCH ---------- */
+    .search-wrap {
+      max-width: 720px;
+      margin: 2rem auto 0;
+      position: relative;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      width: 100%;
+      padding: .25rem .35rem .25rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+    .search-box:focus-within {
+      border-color: #5b6cff;
+      box-shadow: 0 0 0 4px rgba(91,108,255,.12), var(--shadow);
+      transform: translateY(-1px);
+    }
+    .search-icon {
+      flex: 0 0 auto;
+      width: 20px;
+      height: 20px;
+      color: var(--muted);
+    }
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: .95rem;
+      padding: .8rem 0;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-count {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: .75rem;
+      padding: .35rem .65rem;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .search-empty {
+      display: none;
+      max-width: 720px;
+      margin: 1rem auto 0;
+      padding: 1rem 1.2rem;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .search-empty.in { display: block; }
+    .card.search-hidden { display: none; }
+    .topic.search-hidden,
+    .section.search-hidden { display: none; }
+
     @media (max-width: 640px) {
       header { padding: 4rem 1.2rem 7rem; }
       .section { padding: 1.5rem; }
@@ -223,6 +291,29 @@
   <header>
     <h1>HUB de <span class="grad">ASIR</span></h1>
     <p>HUB donde encontraras los recursos, resumenes, cuestionarios necesarios para ayudarte en el curso.</p>
+
+    <div class="search-wrap">
+      <label class="search-box" for="global-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-4-4"></path>
+        </svg>
+        <input
+          id="global-search"
+          class="search-input"
+          type="search"
+          placeholder="Buscar recursos, temas, asignaturas..."
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Buscar recursos"
+        />
+        <span class="search-count" id="search-count" aria-live="polite"></span>
+      </label>
+    </div>
+    <div class="search-empty" id="search-empty" role="status">
+      No se encontraron recursos para esa búsqueda.
+    </div>
     <div class="hero-cta">
       <a href="#bd" class="btn btn-primary">Empezar a estudiar ↓</a>
       <a href="#lm" class="btn btn-ghost">Ver recursos</a>
@@ -467,6 +558,62 @@
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // ---------- BÚSQUEDA GENERAL ----------
+    const searchInput = document.getElementById('global-search');
+    const searchCount = document.getElementById('search-count');
+    const searchEmpty = document.getElementById('search-empty');
+    const sections = [...document.querySelectorAll('main > .section')];
+
+    function normalize(text) {
+      return text
+        .toLocaleLowerCase('es')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function filterResources() {
+      const query = normalize(searchInput.value.trim());
+      let visibleCards = 0;
+      let totalCards = 0;
+
+      sections.forEach(section => {
+        let sectionVisible = false;
+
+        section.querySelectorAll('.topic').forEach(topic => {
+          let topicVisible = false;
+
+          topic.querySelectorAll('.card').forEach(card => {
+            totalCards++;
+            const searchable = normalize(card.textContent);
+            const matches = !query || searchable.includes(query);
+
+            card.classList.toggle('search-hidden', !matches);
+
+            if (matches) {
+              visibleCards++;
+              topicVisible = true;
+              sectionVisible = true;
+            }
+          });
+
+          topic.classList.toggle('search-hidden', !topicVisible);
+        });
+
+        section.classList.toggle('search-hidden', !!query && !sectionVisible);
+      });
+
+      if (!query) {
+        searchCount.textContent = `${totalCards} recursos`;
+        searchEmpty.classList.remove('in');
+      } else {
+        searchCount.textContent = `${visibleCards} resultado${visibleCards === 1 ? '' : 's'}`;
+        searchEmpty.classList.toggle('in', visibleCards === 0);
+      }
+    }
+
+    searchInput.addEventListener('input', filterResources);
+    filterResources();
   </script>
 </body>
 </html>
