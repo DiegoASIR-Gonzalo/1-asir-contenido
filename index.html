@@ -184,6 +184,55 @@
     .reveal.in { opacity: 1; transform: none; }
 
 
+
+    /* ---------- ACCORDION DE TEMAS ---------- */
+    .topic-title {
+      cursor: pointer;
+      user-select: none;
+      padding: .35rem .2rem;
+      border-radius: 10px;
+      transition: background .2s, color .2s;
+    }
+    .topic-title:hover {
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
+    }
+    .topic-title::before {
+      content: "⌄";
+      flex: 0 0 auto;
+      width: 1rem;
+      color: var(--accent);
+      font-size: 1rem;
+      line-height: 1;
+      transition: transform .3s ease;
+    }
+    .topic-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .topic:not(.open) .topic-title::before {
+      transform: rotate(-90deg);
+    }
+    .topic-content {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition: grid-template-rows .4s ease, opacity .3s ease;
+    }
+    .topic-content > .grid {
+      min-height: 0;
+      overflow: hidden;
+    }
+    .topic.open .topic-content {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .topic-content,
+      .topic-title::before { transition: none; }
+    }
+
     /* ---------- SEARCH ---------- */
     .search-wrap {
       max-width: 720px;
@@ -316,6 +365,7 @@
     </div>
     <div class="hero-cta">
       <a href="#bd" class="btn btn-primary">Empezar a estudiar ↓</a>
+      <a href="#lm" class="btn btn-ghost">Ver recursos</a>
     </div>
 
     <svg class="waves" viewBox="0 24 150 28" preserveAspectRatio="none">
@@ -342,7 +392,8 @@
 
       <div class="topic">
         <div class="topic-title">Tema 1 · Introducción a las BD y los SGBD</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="cuestionario_gbd_1asIR.html">
             <span class="icon"><svg><use href="#i-quiz"/></svg></span>
             <span class="card-body"><strong>Cuestionario SQL</strong><small>Preguntas tipo test sobre SQL.</small></span>
@@ -369,11 +420,13 @@
             <span class="arrow">→</span>
           </a>
         </div>
+        </div>
       </div>
 
       <div class="topic">
         <div class="topic-title">Tema 2 · Introducción a las Bases de Datos Relacionales</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="consultas-tipos.html">
             <span class="icon"><svg><use href="#i-book"/></svg></span>
             <span class="card-body"><strong>Consultas tipos</strong><small>Resumen de tipos de consultas breves.</small></span>
@@ -395,6 +448,7 @@
             <span class="arrow">→</span>
           </a>
         </div>
+        </div>
       </div>
     </section>
 
@@ -410,7 +464,8 @@
 
       <div class="topic">
         <div class="topic-title">Tema 1 · Introducción a los SI. Arquitectura de Von Neumann</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="pdfs/fundamentos-hardware/binario.pdf">
             <span class="icon"><svg><use href="#i-pdf"/></svg></span>
             <span class="card-body"><strong>Binario PDF</strong><small>PDF sobre como usar calculos binarios, hexadecimal, octal, etc.</small></span>
@@ -427,6 +482,7 @@
             <span class="arrow">→</span>
           </a>
         </div>
+        </div>
       </div>
     </section>
 
@@ -442,7 +498,8 @@
 
       <div class="topic">
         <div class="topic-title">Tema 1 · Introducción a los Sistemas Operativos</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="implantacion_apuntes.html">
             <span class="icon"><svg><use href="#i-book"/></svg></span>
             <span class="card-body"><strong>Apuntes</strong><small>Sistemas operativos, particiones y conceptos clave.</small></span>
@@ -459,6 +516,7 @@
             <span class="arrow">→</span>
           </a>
         </div>
+        </div>
       </div>
     </section>
 
@@ -474,7 +532,8 @@
 
       <div class="topic">
         <div class="topic-title">Tema 1 · Introducción a las comunicaciones</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="pdfs/ResumenTema0.pdf">
             <span class="icon"><svg><use href="#i-pdf"/></svg></span>
             <span class="card-body"><strong>Apuntes</strong><small>Todo sobre telefonía y su historia.</small></span>
@@ -486,11 +545,13 @@
             <span class="arrow">→</span>
           </a>
         </div>
+        </div>
       </div>
 
       <div class="topic">
         <div class="topic-title">Tema 2 · Introducción a las Redes</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="pdfs/redes/ResumenTema1.pdf">
             <span class="icon"><svg><use href="#i-pdf"/></svg></span>
             <span class="card-body"><strong>Apuntes</strong><small>Redes, dispositivos, etc...</small></span>
@@ -501,6 +562,7 @@
             <span class="card-body"><strong>Cuestionario</strong><small>Cuestionario sobre el segundo tema.</small></span>
             <span class="arrow">→</span>
           </a>
+        </div>
         </div>
       </div>
     </section>
@@ -517,7 +579,8 @@
 
       <div class="topic">
         <div class="topic-title">General</div>
-        <div class="grid">
+        <div class="topic-content">
+          <div class="grid">
           <a class="card" href="python_lab_estudio.html">
             <span class="icon"><svg><use href="#i-code"/></svg></span>
             <span class="card-body"><strong>Miniretos Online</strong><small>Miniretos que se pueden realizar a traves de la web</small></span>
@@ -539,6 +602,7 @@
             <span class="arrow">↗</span>
           </a>
         </div>
+        </div>
       </div>
     </section>
 
@@ -557,6 +621,33 @@
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // ---------- ACORDEÓN DE TEMAS ----------
+    document.querySelectorAll('.topic').forEach((topic) => {
+      const title = topic.querySelector('.topic-title');
+      if (!title) return;
+
+      const previous = topic.previousElementSibling;
+      const isFirstTopic = !previous || !previous.classList.contains('topic');
+      if (isFirstTopic) topic.classList.add('open');
+
+      title.setAttribute('role', 'button');
+      title.setAttribute('tabindex', '0');
+      title.setAttribute('aria-expanded', topic.classList.contains('open'));
+
+      const toggleTopic = () => {
+        topic.classList.toggle('open');
+        title.setAttribute('aria-expanded', topic.classList.contains('open'));
+      };
+
+      title.addEventListener('click', toggleTopic);
+      title.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleTopic();
+        }
+      });
+    });
 
     // ---------- BÚSQUEDA GENERAL ----------
     const searchInput = document.getElementById('global-search');
@@ -597,6 +688,12 @@
           });
 
           topic.classList.toggle('search-hidden', !topicVisible);
+
+          if (query && topicVisible) {
+            topic.classList.add('open');
+            const title = topic.querySelector('.topic-title');
+            if (title) title.setAttribute('aria-expanded', 'true');
+          }
         });
 
         section.classList.toggle('search-hidden', !!query && !sectionVisible);
