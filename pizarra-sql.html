@@ -250,6 +250,11 @@ h1,h2,h3,h4{margin:0}
   box-shadow:0 -16px 34px rgba(20,45,70,.22),inset 0 2px 0 #fff;
   padding:10px 18px 14px 18px;
   max-height:44vh;overflow:auto;
+  transition:max-height .4s cubic-bezier(.4,0,.2,1),padding .4s,border-top-width .3s,opacity .3s;
+}
+.nevera.oculta{
+  max-height:0!important;padding-top:0!important;padding-bottom:0!important;
+  border-top-width:0;overflow:hidden;opacity:0;
 }
 .nevera::before{
   content:"";position:absolute;right:16px;top:18%;bottom:18%;width:11px;border-radius:6px;
@@ -425,6 +430,7 @@ table.tabla-modelo code{background:none;padding:0}
     <div class="chip"><b id="ui-aciertos">0/20</b><small>ejercicios</small></div>
     <button class="boton principal" id="btn-ejercicios">📚 Ejercicios</button>
     <button class="boton" id="btn-ayuda">❓ Ayuda</button>
+    <button class="boton" id="btn-ocultar">🔽 Ocultar imanes</button>
   </div>
 </header>
 
@@ -509,7 +515,7 @@ table.tabla-modelo code{background:none;padding:0}
     <div class="avance"><i id="ov-avance"></i></div>
     <p class="nota" id="ov-nota">Cargando el siguiente ejercicio…</p>
     <div class="ov-botones">
-      <button class="accion" id="ov-btn">Siguiente ejercicio →</button>
+      <button class="accion" id="ov-btn">🎲 Siguiente consulta →</button>
       <button class="accion ghost" id="ov-menu">📚 Ver ejercicios</button>
     </div>
   </div>
@@ -1682,10 +1688,14 @@ function pintarMenu(){
   });
 }
 function siguienteEjercicio(ej){ return EJERCICIOS[EJERCICIOS.indexOf(ej)+1]||null; }
+function ejercicioAleatorio(){
+  const incompletos=EJERCICIOS.filter(e=>!registro(e.id).completado);
+  const pool=incompletos.length?incompletos:EJERCICIOS;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
 function irAlSiguiente(){
-  const ej=ejercicioActual();
   cerrarOverlay();
-  const sig=ej?siguienteEjercicio(ej):null;
+  const sig=ejercicioAleatorio();
   if(sig) cargarEjercicio(sig.id);
   else abreMenu();
 }
@@ -1768,11 +1778,11 @@ function exito(a,ej){
   }
   $("#ov-migas").innerHTML=migas.join("");
   $("#ov-avance").style.width=(100*completados()/EJERCICIOS.length)+"%";
-  const sig=siguienteEjercicio(ej);
+  const siguienteNombre = completados()===EJERCICIOS.length ? null : "🎲 Siguiente consulta aleatoria";
   $("#ov-nota").innerHTML = completados()===EJERCICIOS.length
-    ? "🎓 ¡Has resuelto todos los ejercicios de la pizarra!"
-    : sig ? "Siguiente: <b>"+sig.titulo+"</b> (nivel "+sig.nivel+")" : "Has terminado el último de la lista.";
-  $("#ov-btn").textContent = sig ? "Siguiente ejercicio →" : "Ver ejercicios 📚";
+    ? "🎓 ¡Has resuelto todos los ejercicios de la pizarra! Puedes repetirlos."
+    : "Preparando siguiente consulta aleatoria…";
+  $("#ov-btn").textContent = completados()===EJERCICIOS.length ? "Ver ejercicios 📚" : "🎲 Siguiente consulta →";
   $("#overlay").classList.add("abierto");
   confeti();
   pintarMenu();
@@ -1835,6 +1845,12 @@ $("#menu-cerrar").addEventListener("click",cerrarMenu);
 $("#fondo-menu").addEventListener("click",cerrarMenu);
 $("#btn-ayuda").addEventListener("click",()=>$("#modal").classList.add("abierto"));
 $("#btn-cerrar").addEventListener("click",()=>$("#modal").classList.remove("abierto"));
+let neveraVisible=true;
+$("#btn-ocultar").addEventListener("click",()=>{
+  neveraVisible=!neveraVisible;
+  $("#nevera").classList.toggle("oculta",!neveraVisible);
+  $("#btn-ocultar").textContent=neveraVisible?"🔽 Ocultar imanes":"🔼 Mostrar imanes";
+});
 $("#modal").addEventListener("click",ev=>{ if(ev.target.id==="modal") $("#modal").classList.remove("abierto"); });
 $("#ov-btn").addEventListener("click",irAlSiguiente);
 $("#ov-menu").addEventListener("click",()=>{ cerrarOverlay(); abreMenu(); });
@@ -1848,8 +1864,9 @@ document.addEventListener("keydown",ev=>{
   estado.consulta=[];
   pintar();
   $("#ui-aciertos").textContent="0/"+EJERCICIOS.length;
-  cargarEjercicio(EJERCICIOS[0].id);
-  mostrarEstado("idle","Ejercicio 1 cargado. Monta la consulta con los imanes y pulsa <b>✅ Validar</b>. Si no sale, tendrás una <b>pista</b> 💡.");
+  const inicial=ejercicioAleatorio();
+  cargarEjercicio(inicial.id);
+  mostrarEstado("idle","Ejercicio cargado. Monta la consulta con los imanes y pulsa <b>✅ Validar</b>. Si no sale, tendrás una <b>pista</b> 💡.");
 })();
 </script>
 </body>
