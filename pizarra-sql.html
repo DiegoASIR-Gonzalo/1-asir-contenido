@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pizarra SQL · Imanes de nevera para montar consultas</title>
+<title>Pizarra SQL · Imanes para montar consultas (emp / dept)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* ==========================================================
-   PIZARRA SQL — imanes de nevera para construir consultas
+   PIZARRA SQL — imanes de nevera + ejercicios por dificultad
+   Esquema fijo: emp y dept (Tabla departampentos.txt)
    ========================================================== */
 :root{
   --tinta:#12313f;
   --tinta-suave:#5b7688;
   --linea:rgba(37,86,124,.16);
   --papel:#f7fbff;
-  --blanco:#fff;
   --azul:#2563eb;   --azul2:#1b4bc4;
   --ambar:#d97706;  --ambar2:#b45309;
   --violeta:#7c3aed;--violeta2:#6427d6;
@@ -26,9 +26,7 @@
   --rosa:#db2777;   --rosa2:#be185d;
   --teal:#0891b2;   --teal2:#0e7490;
   --rojo:#e11d48;
-  --ok:#16a34a;
   --sombra:0 18px 40px rgba(21,48,71,.14);
-  --radio:14px;
   --fuente:"Fredoka",ui-rounded,"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
 }
@@ -41,7 +39,7 @@ body{
   overflow-x:hidden;-webkit-font-smoothing:antialiased;
 }
 button{font:inherit;cursor:pointer}
-h1,h2,h3{margin:0}
+h1,h2,h3,h4{margin:0}
 
 /* ---------------- BARRA SUPERIOR ---------------- */
 .barra{
@@ -74,13 +72,13 @@ h1,h2,h3{margin:0}
   transition:.18s;white-space:nowrap;
 }
 .boton:hover{background:rgba(255,255,255,.25);transform:translateY(-1px)}
-.boton.principal{background:linear-gradient(180deg,#22c55e,#15803d);border-color:#0f6b33;color:#fff}
-.boton.principal:hover{background:linear-gradient(180deg,#2ee06b,#16a34a)}
+.boton.principal{background:linear-gradient(180deg,#2563eb,#1b4bc4);border-color:#1b4bc4;color:#fff}
+.boton.principal:hover{background:linear-gradient(180deg,#3b82f6,#2563eb)}
 
 /* ---------------- TABLERO (fondo cuadriculado) ---------------- */
 .tablero{
   flex:1;position:relative;min-height:280px;
-  padding:16px clamp(12px,3vw,32px) 22px;
+  padding:14px clamp(12px,3vw,32px) 20px;
   background-color:var(--papel);
   background-image:
     linear-gradient(rgba(64,116,164,.20) 1px,transparent 1px),
@@ -89,48 +87,79 @@ h1,h2,h3{margin:0}
     linear-gradient(90deg,rgba(64,116,164,.09) 1px,transparent 1px);
   background-size:100px 100px,100px 100px,20px 20px,20px 20px;
   box-shadow:inset 0 0 90px rgba(38,84,124,.10);
-  display:flex;flex-direction:column;gap:12px;overflow:auto;
+  display:flex;flex-direction:column;gap:11px;overflow:auto;
 }
-.tablero::after{ /* reflejo de luz del marcador */
+.tablero::after{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(120% 70% at 8% -10%,rgba(255,255,255,.9),transparent 55%);
 }
-.borde-tablero{ /* marquito de la pizarra */
-  position:absolute;inset:0;pointer-events:none;border:10px solid transparent;
-  box-shadow:inset 0 0 0 3px rgba(38,84,124,.12);border-radius:6px;
-}
-.fila-notas{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;position:relative;z-index:1}
+.borde-tablero{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 3px rgba(38,84,124,.12);border-radius:6px}
+.fila-notas{display:flex;gap:11px;flex-wrap:wrap;align-items:flex-start;position:relative;z-index:1}
 .postit{
   pointer-events:none;
   background:linear-gradient(180deg,#fff6b8,#ffe885);
   border-radius:6px;padding:9px 12px 11px;font-size:.8rem;line-height:1.45;
   box-shadow:0 8px 18px rgba(120,96,10,.22),inset 0 1px 0 #fff;
-  max-width:min(420px,100%);color:#5c4a06;
+  max-width:min(430px,100%);color:#5c4a06;
 }
-.postit.azul{background:linear-gradient(180deg,#d9f0ff,#bfe5ff);color:#0b4a6f;box-shadow:0 8px 18px rgba(12,74,111,.2),inset 0 1px 0 #fff}
-.postit.rojo{background:linear-gradient(180deg,#ffe0e6,#ffc9d3);color:#8a1230;box-shadow:0 8px 18px rgba(138,18,48,.18),inset 0 1px 0 #fff}
-.postit b{display:block;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;opacity:.75;margin-bottom:4px}
-.postit .orden{font-family:var(--mono);font-size:.74rem;display:block;line-height:1.7}
-.postit .cols{font-family:var(--mono);font-size:.74rem;margin:0;padding-left:0;list-style:none}
-.postit .cols li{white-space:nowrap}
-.postit .tupla{opacity:.55}
-.reto{
-  position:relative;z-index:1;align-self:flex-start;
-  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
-  background:#fff;border:2px dashed rgba(37,99,235,.4);border-radius:999px;
-  padding:7px 16px;font-size:.9rem;box-shadow:0 6px 16px rgba(21,48,71,.1);
+.postit.azul{background:linear-gradient(180deg,#d9f0ff,#bfe5ff);color:#0b4a6f;box-shadow:0 8px 18px rgba(12,74,111,.2),inset 0 1px 0 #fff;pointer-events:auto}
+.postit.rojo{background:linear-gradient(180deg,#ffe0e6,#ffc9d3);color:#8a1230;pointer-events:auto}
+.postit b{display:block;font-size:.71rem;letter-spacing:.07em;text-transform:uppercase;opacity:.78;margin-bottom:4px}
+.postit .orden{font-family:var(--mono);font-size:.73rem;display:block;line-height:1.75}
+.postit .sub{display:block;font-size:.72rem;margin-top:5px;opacity:.85}
+.esquema{display:flex;gap:16px;flex-wrap:wrap}
+.esquema .tabla{min-width:120px}
+.esquema h4{font-size:.8rem;letter-spacing:0;text-transform:none;margin-bottom:3px}
+.esquema ul{margin:0;padding:0;list-style:none;font-family:var(--mono);font-size:.72rem;line-height:1.5}
+.esquema li .t{opacity:.6;font-size:.66rem}
+.esquema li.pk{font-weight:700}
+
+/* ---------------- TARJETA DEL EJERCICIO ---------------- */
+.ejercicio{
+  position:relative;z-index:1;background:#fff;border-left:9px solid var(--niv,#16a34a);
+  border-radius:16px;padding:12px 16px 13px;box-shadow:0 10px 24px rgba(21,48,71,.13);
+  max-width:1060px;
 }
-.reto.hecho{border-color:#16a34a;border-style:solid;background:#effcf3}
-.reto b{color:var(--azul)}
-.reto.hecho b{color:var(--ok)}
-.reto .puntos{font-size:.72rem;background:#eef4ff;border-radius:999px;padding:2px 9px;color:#2b4e8a;font-weight:600}
-.reto.hecho .puntos{background:#d8f5e2;color:#14803c}
+.ej-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+.nivel-pill{
+  font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#fff;
+  background:var(--niv,#16a34a);border-radius:999px;padding:3px 11px;
+}
+.ej-num{font-size:.73rem;color:#7288a0;font-weight:600;letter-spacing:.03em}
+.ej-enun{margin:0;font-size:1.03rem;line-height:1.5;color:#1e374a}
+.ej-enun b{color:var(--niv,#16a34a)}
+.ej-acciones{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.btn-validar{
+  border:0;border-radius:13px;padding:11px 22px;font-weight:700;font-size:.95rem;color:#fff;
+  background:linear-gradient(180deg,#22c55e,#15803d);box-shadow:0 6px 16px rgba(21,128,61,.35);
+  transition:.16s;
+}
+.btn-validar:hover{transform:translateY(-2px)}
+.btn-pista,.btn-mini{
+  border:1px solid rgba(37,86,124,.22);background:#fff;border-radius:13px;padding:9px 15px;
+  font-weight:600;font-size:.86rem;color:#2d4a5e;transition:.16s;
+}
+.btn-pista:hover,.btn-mini:hover{background:#f1f7fc;transform:translateY(-1px)}
+.pistas-mini{margin-left:auto;font-size:.74rem;color:#7c91a4;display:flex;align-items:center;gap:5px}
+.pistas-mini i{width:9px;height:9px;border-radius:50%;background:#d7e2ea;display:inline-block}
+.pistas-mini i.on{background:#f0b429}
+.pista{
+  display:none;margin-top:10px;background:#fff9df;border:2px dashed #e0c05c;border-radius:14px;
+  padding:10px 13px;color:#6d5a14;font-size:.9rem;line-height:1.5;
+}
+.pista.abierta{display:block;animation:entraPista .3s ease}
+@keyframes entraPista{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.pista b{display:block;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;opacity:.85;margin-bottom:4px}
+.pista .pista-bloque+.pista-bloque{margin-top:9px;padding-top:9px;border-top:1px dashed rgba(160,120,10,.4)}
+.pista .sintaxis{
+  display:block;margin-bottom:7px;background:#f6ebc9;border-radius:10px;padding:7px 10px;
+  font-family:var(--mono);font-size:.76rem;color:#6a5610;
+}
 
 /* ---------------- ZONA DE CONSULTA ---------------- */
-.zona-wrap{position:relative;z-index:1;margin:auto 0;display:flex;flex-direction:column;gap:10px}
+.zona-wrap{position:relative;z-index:1;margin:auto 0;display:flex;flex-direction:column;gap:9px}
 .zona{
-  position:relative;min-height:104px;border-radius:20px;
-  padding:14px 16px;
+  position:relative;min-height:100px;border-radius:20px;padding:14px 16px;
   background:rgba(255,255,255,.72);
   border:3px dashed rgba(37,120,180,.35);
   box-shadow:inset 0 3px 18px rgba(37,90,140,.09),0 6px 18px rgba(21,48,71,.06);
@@ -138,17 +167,13 @@ h1,h2,h3{margin:0}
   transition:.2s;align-content:flex-start;
 }
 .zona.viva{border-color:rgba(34,197,94,.75);background:rgba(240,255,246,.85);border-style:solid}
-.zona .vacio{
-  color:#8aa6b8;font-size:.95rem;padding:14px 6px;display:flex;align-items:center;gap:9px;
-  pointer-events:none;
-}
+.zona .vacio{color:#8aa6b8;font-size:.95rem;padding:14px 6px;display:flex;align-items:center;gap:9px;pointer-events:none}
 .zona .vacio span{font-size:1.5rem;transform:rotate(-15deg)}
 .eco{
-  display:flex;gap:10px;align-items:flex-start;
-  font-family:var(--mono);font-size:.86rem;color:#2a4a5e;
-  background:rgba(13,38,55,.06);border-radius:14px;padding:9px 14px;min-height:38px;align-items:center;
+  display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:.86rem;color:#2a4a5e;
+  background:rgba(13,38,55,.06);border-radius:14px;padding:9px 14px;min-height:38px;
 }
-.eco .etq{font-family:var(--fuente);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#7291a6;flex:none;padding-top:3px}
+.eco .etq{font-family:var(--fuente);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#7291a6;flex:none}
 .eco code{white-space:pre-wrap;word-break:break-word}
 .kw{color:var(--azul2);font-weight:700}
 .tb{color:var(--naranja2);font-weight:700}
@@ -194,18 +219,13 @@ h1,h2,h3{margin:0}
 .iman.c-op{--c1:var(--violeta);--c2:var(--violeta2)}
 .iman.c-tabla{--c1:var(--naranja);--c2:var(--naranja2)}
 .iman.c-col{--c1:var(--verde);--c2:var(--verde2)}
+.iman.c-col.cual{--c1:var(--teal);--c2:var(--teal2);font-family:var(--mono);font-size:.86rem}
 .iman.c-punct{--c1:var(--gris);--c2:var(--gris2);font-family:var(--mono)}
 .iman.c-litnum{--c1:var(--rosa);--c2:var(--rosa2)}
 .iman.c-littxt{--c1:var(--teal);--c2:var(--teal2)}
+.iman.c-litfecha{--c1:#7c3aed;--c2:#5b21b6}
 .iman.arrastrando{opacity:.28;filter:grayscale(.4)}
-.iman.mal{outline:3px solid var(--rojo);outline-offset:3px;animation:tiembla .5s}
-@keyframes tiembla{
-  0%,100%{transform:rotate(var(--giro,0deg)) translateX(0)}
-  20%{transform:translateX(-6px) rotate(-4deg)}
-  40%{transform:translateX(6px) rotate(4deg)}
-  60%{transform:translateX(-4px) rotate(-3deg)}
-  80%{transform:translateX(3px) rotate(2deg)}
-}
+.iman.mal{outline:3px solid var(--rojo);outline-offset:3px}
 .fantasma{
   position:fixed;left:0;top:0;z-index:90;pointer-events:none;
   filter:drop-shadow(0 16px 22px rgba(10,30,50,.45));opacity:.97;
@@ -229,77 +249,116 @@ h1,h2,h3{margin:0}
   border-top:6px solid #aab7c4;
   box-shadow:0 -16px 34px rgba(20,45,70,.22),inset 0 2px 0 #fff;
   padding:10px 18px 14px 18px;
-  max-height:42vh;overflow:auto;
+  max-height:44vh;overflow:auto;
 }
-.nevera::before{ /* tirador de la puerta */
+.nevera::before{
   content:"";position:absolute;right:16px;top:18%;bottom:18%;width:11px;border-radius:6px;
   background:linear-gradient(90deg,#9dabba,#e8eef4 45%,#8e9cab);
   box-shadow:0 2px 6px rgba(20,45,70,.3);opacity:.8;pointer-events:none;
 }
-.cinta-nunca{
-  position:absolute;left:0;right:0;top:0;height:3px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);opacity:.7;
-}
+.cinta-nunca{position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);opacity:.7}
 .bandeja-tit{
   display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;color:#63798c;
   margin:0 0 8px;font-weight:600;
 }
 .bandeja-tit .pastilla{background:rgba(255,255,255,.75);border:1px solid rgba(120,140,160,.3);border-radius:999px;padding:3px 10px;letter-spacing:.02em;text-transform:none;font-size:.76rem;color:#3f5c72;font-weight:500}
-.grupos{display:flex;flex-direction:column;gap:9px}
+.grupos{display:flex;flex-direction:column;gap:8px}
 .grupo{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.grupo h2{
-  flex:none;width:112px;padding-top:11px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
-  color:#5c7285;font-weight:600
-}
+.grupo h2{flex:none;width:118px;padding-top:11px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#5c7285;font-weight:600}
 .grupo .fila{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-height:42px;padding:1px 0}
-.grupo .fila:empty::after{
-  content:"vacía — trae aquí los imanes";font-size:.72rem;color:#8798a8;align-self:center;font-style:italic
+.grupo .fila:empty::after{content:"vacía — trae aquí los imanes";font-size:.72rem;color:#8798a8;align-self:center;font-style:italic}
+.grupo+.grupo{border-top:1px dashed rgba(110,130,150,.28);padding-top:8px}
+
+/* ---------------- MENÚ DE EJERCICIOS (desplegable) ---------------- */
+.fondo-menu{position:fixed;inset:0;z-index:88;background:rgba(8,26,40,.45);opacity:0;pointer-events:none;transition:.3s}
+.fondo-menu.abierto{opacity:1;pointer-events:auto}
+.menu-ej{
+  position:fixed;left:0;right:0;top:0;z-index:89;padding:0 clamp(8px,3vw,26px) 14px;
+  transform:translateY(-103%);transition:transform .4s cubic-bezier(.3,1.15,.4,1);
 }
-.grupo+ .grupo{border-top:1px dashed rgba(110,130,150,.28);padding-top:9px}
+.menu-ej.abierto{transform:none}
+.menu-caja{
+  background:linear-gradient(180deg,#fff,#f2f8fd);
+  border-radius:0 0 26px 26px;border-top:7px solid var(--azul);
+  box-shadow:0 26px 60px rgba(8,26,40,.5);
+  max-height:88vh;overflow:auto;padding:16px 18px 22px;
+}
+.menu-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:2px dashed rgba(37,86,124,.18);position:sticky;top:0;background:linear-gradient(180deg,#fff 70%,rgba(255,255,255,.85));z-index:2}
+.menu-cab h2{font-size:1.25rem;letter-spacing:-.02em}
+.menu-cab p{margin:0;font-size:.85rem;color:#5b7688}
+.escala{display:flex;align-items:center;gap:7px;font-size:.72rem;color:#5b7688;margin-left:auto;font-weight:600}
+.escala i{width:130px;height:10px;border-radius:6px;background:linear-gradient(90deg,#16a34a,#65a30d,#eab308,#f97316,#dc2626)}
+.menu-cerrar{border:1px solid rgba(37,86,124,.25);background:#fff;border-radius:12px;padding:8px 14px;font-weight:600;color:#2d4a5e}
+.menu-cerrar:hover{background:#eef6fb}
+.nivel-bloque{margin-top:14px}
+.nivel-cab{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.nivel-cab .nivel-pill{background:var(--niv)}
+.nivel-cab .lin{flex:1;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--niv),transparent)}
+.nivel-cab .cuenta{font-size:.76rem;font-weight:700;color:var(--niv)}
+.ejs{display:grid;gap:9px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+.ej{
+  --niv:#16a34a;
+  position:relative;text-align:left;border:2px solid #e6eef5;border-left:8px solid var(--niv);
+  background:#fff;border-radius:14px;padding:10px 40px 11px 12px;transition:.16s;
+}
+.ej:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(21,48,71,.16)}
+.ej b{display:block;font-size:.93rem;color:#1d3346}
+.ej small{display:block;color:#5b7186;font-size:.79rem;line-height:1.4;margin-top:3px}
+.ej .marca-ej{position:absolute;top:9px;right:11px;font-size:.95rem}
+.ej.actual{box-shadow:0 0 0 3px color-mix(in srgb,var(--niv) 45%,transparent)}
+.ej.completado{background:linear-gradient(180deg,#f4fdf7,#fff)}
+.ej.completado b{color:#15803d}
+.ej-nivel-mini{display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--niv);margin-bottom:2px}
+.todo-hecho{margin-top:14px;background:#effcf3;border:2px solid #86efac;border-radius:14px;padding:12px 14px;color:#14532d;font-size:.9rem}
 
 /* ---------------- OVERLAY ¡ES CORRECTO! ---------------- */
 .overlay{
-  position:fixed;inset:0;z-index:80;display:none;place-items:center;
+  position:fixed;inset:0;z-index:91;display:none;place-items:center;
   background:radial-gradient(circle at 50% 40%,rgba(12,40,60,.45),rgba(8,24,38,.72));
   backdrop-filter:blur(4px);padding:20px;
 }
 .overlay.abierto{display:grid}
 .tarjeta-ok{
-  background:linear-gradient(180deg,#ffffff,#f0fdf4);border-radius:26px;padding:28px 30px;
-  max-width:min(620px,94vw);text-align:center;border:5px solid #22c55e;
+  background:linear-gradient(180deg,#fff,#f0fdf4);border-radius:26px;padding:26px 28px;
+  max-width:min(640px,94vw);text-align:center;border:5px solid #22c55e;
   box-shadow:0 30px 70px rgba(6,40,20,.45);
   animation:salta .5s cubic-bezier(.2,1.6,.35,1);
 }
-@keyframes salta{from{transform:scale(.5) rotate(-6deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
-.tarjeta-ok .emoji{font-size:3.4rem;line-height:1;animation:flota 1.6s ease-in-out infinite}
+@keyframes salta{from{transform:scale(.5) rotate(-6deg);opacity:0}to{transform:scale(1) rotate(0)}}
+.tarjeta-ok .emoji{font-size:3.2rem;line-height:1;animation:flota 1.6s ease-in-out infinite}
 @keyframes flota{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-9px) rotate(6deg)}}
 .tarjeta-ok h2{
-  font-size:clamp(2rem,7vw,3rem);font-weight:700;letter-spacing:-.03em;margin:8px 0 6px;
+  font-size:clamp(2rem,7vw,2.9rem);font-weight:700;letter-spacing:-.03em;margin:8px 0 6px;
   background:linear-gradient(120deg,#15803d,#22c55e 60%,#0ea5e9);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .tarjeta-ok .sql{
   font-family:var(--mono);font-size:.92rem;background:#0f2637;color:#d8f5e2;
   border-radius:14px;padding:13px 15px;margin:10px 0 12px;text-align:left;overflow:auto;
-  word-break:break-word;box-shadow:inset 0 3px 12px rgba(0,0,0,.4)
+  word-break:break-word;box-shadow:inset 0 3px 12px rgba(0,0,0,.4);
 }
-.migas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.migas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
 .miga{background:#eef4ff;border:1px solid #c9dcff;border-radius:999px;padding:5px 12px;font-size:.78rem;color:#2b4e8a}
 .miga.oro{background:#fff7e0;border-color:#f0cf7a;color:#8a6109}
+.avance{height:7px;border-radius:6px;background:#dff0e4;overflow:hidden;margin:12px 0 6px}
+.avance i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#22c55e,#0ea5e9)}
+.tarjeta-ok .nota{font-size:.78rem;color:#5b7688;margin:0 0 12px}
+.ov-botones{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
 .tarjeta-ok .accion{
-  border:0;border-radius:999px;padding:13px 26px;font-weight:600;font-size:1rem;color:#fff;
-  background:linear-gradient(180deg,#22c55e,#15803d);box-shadow:0 8px 20px rgba(21,128,61,.4)
+  border:0;border-radius:999px;padding:12px 24px;font-weight:600;font-size:.98rem;color:#fff;
+  background:linear-gradient(180deg,#22c55e,#15803d);box-shadow:0 8px 20px rgba(21,128,61,.4);
 }
 .tarjeta-ok .accion:hover{transform:translateY(-2px)}
-#confeti{position:fixed;inset:0;z-index:90;pointer-events:none}
+.tarjeta-ok .accion.ghost{background:#fff;color:#1d3346;border:1px solid rgba(37,86,124,.25);box-shadow:none}
+#confeti{position:fixed;inset:0;z-index:92;pointer-events:none}
 
 /* ---------------- MODAL AYUDA ---------------- */
-.modal{position:fixed;inset:0;z-index:85;display:none;place-items:center;background:rgba(9,26,39,.6);padding:20px;backdrop-filter:blur(3px)}
+.modal{position:fixed;inset:0;z-index:93;display:none;place-items:center;background:rgba(9,26,39,.6);padding:20px;backdrop-filter:blur(3px)}
 .modal.abierto{display:grid}
 .modal-caja{
-  background:#fff;border-radius:22px;max-width:min(700px,95vw);max-height:88vh;overflow:auto;
-  padding:24px 26px;box-shadow:0 30px 70px rgba(6,20,32,.5);border-top:8px solid var(--azul)
+  background:#fff;border-radius:22px;max-width:min(720px,95vw);max-height:88vh;overflow:auto;
+  padding:24px 26px;box-shadow:0 30px 70px rgba(6,20,32,.5);border-top:8px solid var(--azul);
 }
 .modal-caja h2{font-size:1.4rem;margin-bottom:6px}
 .modal-caja h3{font-size:.95rem;margin:18px 0 6px;color:var(--azul)}
@@ -310,39 +369,43 @@ h1,h2,h3{margin:0}
 table.tabla-modelo{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:6px}
 table.tabla-modelo th,table.tabla-modelo td{border:1px solid #dbe6ef;padding:6px 9px;text-align:left}
 table.tabla-modelo th{background:#f1f7fc}
+table.tabla-modelo code{background:none;padding:0}
 
-/* ---------------- AJUSTES EN PANTALLAS BAJAS (portátiles 768px) ---------------- */
-@media (max-height:840px){
+/* ---------------- PANTALLAS BAJAS / MÓVIL ---------------- */
+@media (max-height:860px){
   .barra{padding:7px 16px}
   .logo{width:38px;height:38px;font-size:20px}
   .marca h1{font-size:1.12rem}
   .tablero{padding:10px clamp(10px,3vw,26px) 12px;gap:9px}
-  .postit{font-size:.72rem;padding:7px 10px 8px;line-height:1.35}
-  .postit .orden{line-height:1.5}
-  .postit .cols{font-size:.7rem}
-  .reto{padding:5px 13px;font-size:.84rem}
-  .zona{min-height:86px;padding:11px 13px}
+  .postit{font-size:.73rem;padding:7px 10px 8px;line-height:1.4}
+  .postit .orden{line-height:1.55}
+  .ej-enun{font-size:.95rem}
+  .btn-validar{padding:9px 18px;font-size:.9rem}
+  .btn-pista,.btn-mini{padding:8px 12px;font-size:.82rem}
+  .zona{min-height:84px;padding:11px 13px}
   .eco{font-size:.8rem;min-height:32px;padding:7px 12px}
   .estado{min-height:38px;font-size:.85rem;padding:7px 12px}
-  .nevera{max-height:36vh}
+  .nevera{max-height:38vh}
   .iman{padding:8px 12px;font-size:.9rem}
 }
-
-/* ---------------- RESPONSIVE ---------------- */
 @media (max-width:820px){
   .barra{padding:9px 12px;gap:10px}
   .marca h1{font-size:1.06rem}
   .marca p{display:none}
   .chip{min-width:52px;padding:4px 8px}
-  .boton{padding:8px 11px;font-size:.78rem}
+  .boton{padding:8px 11px;font-size:.8rem}
   .tablero{padding:12px 10px 16px;background-size:70px 70px,70px 70px,18px 18px,18px 18px}
   .postit{font-size:.72rem;padding:8px 10px}
-  .nevera{max-height:46vh;padding:9px 10px 12px}
+  .esquema{gap:12px}
+  .nevera{max-height:44vh;padding:9px 10px 12px}
   .nevera::before{display:none}
   .grupo h2{width:100%;padding-top:0}
   .iman{padding:8px 11px;font-size:.88rem}
   .zona{min-height:88px;padding:11px}
   .tarjeta-ok{padding:22px 18px}
+  .menu-caja{padding:12px 12px 18px}
+  .escala{display:none}
+  .pistas-mini{margin-left:0;width:100%}
 }
 </style>
 </head>
@@ -354,15 +417,14 @@ table.tabla-modelo th{background:#f1f7fc}
     <div class="logo">🧲</div>
     <div>
       <h1>Pizarra SQL</h1>
-      <p>Monta consultas con los imanes de la nevera · 1º ASIR</p>
+      <p>Imanes de nevera · tablas <b>emp</b> y <b>dept</b> de la práctica</p>
     </div>
   </div>
   <div class="marcador">
     <div class="chip"><b id="ui-puntos">0</b><small>puntos</small></div>
-    <div class="chip"><b id="ui-ronda">1</b><small>ronda</small></div>
+    <div class="chip"><b id="ui-aciertos">0/20</b><small>ejercicios</small></div>
+    <button class="boton principal" id="btn-ejercicios">📚 Ejercicios</button>
     <button class="boton" id="btn-ayuda">❓ Ayuda</button>
-    <button class="boton" id="btn-limpiar">🧹 Limpiar</button>
-    <button class="boton principal" id="btn-otra">🔄 Otra tabla</button>
   </div>
 </header>
 
@@ -373,27 +435,37 @@ table.tabla-modelo th{background:#f1f7fc}
   <div class="fila-notas">
     <div class="postit">
       <b>📌 Orden de las cláusulas</b>
-      <span class="orden">SELECT → FROM → WHERE<br>→ GROUP BY → HAVING<br>→ ORDER BY → LIMIT</span>
+      <span class="orden">SELECT → FROM → [JOIN ON]<br>→ WHERE → GROUP BY → HAVING<br>→ ORDER BY → LIMIT</span>
     </div>
-    <div class="postit azul" id="postit-tabla">
-      <b>📋 Tu tabla de esta ronda</b>
-      <span id="postit-contenido">…</span>
+    <div class="postit azul">
+      <b>📋 Tablas de la práctica (emp / dept)</b>
+      <div class="esquema" id="esquema"></div>
     </div>
   </div>
 
-  <div class="reto" id="reto-caja">
-    <span id="reto-texto">🎯 Reto…</span>
-    <span class="puntos" id="reto-puntos">+10 pts</span>
-  </div>
+  <section class="ejercicio" id="ej-card" style="--niv:#16a34a">
+    <div class="ej-cab">
+      <span class="nivel-pill" id="ej-nivel">Nivel 1 · Muy fácil</span>
+      <span class="ej-num" id="ej-num">—</span>
+    </div>
+    <p class="ej-enun" id="ej-enun">Pulsa <b>📚 Ejercicios</b> para elegir una actividad.</p>
+    <div class="ej-acciones">
+      <button class="btn-validar" id="btn-validar">✅ Validar</button>
+      <button class="btn-pista" id="btn-pista">💡 Pista</button>
+      <button class="btn-mini" id="btn-limpiar">🧹 Limpiar</button>
+      <span class="pistas-mini" id="pistas-mini"></span>
+    </div>
+    <div class="pista" id="pista-caja"></div>
+  </section>
 
   <div class="zona-wrap">
     <div class="zona" id="zona">
-      <div class="vacio" id="zona-vacia"><span>👈</span> Arrastra aquí los imanes y monta tu consulta (se lee de izquierda a derecha)</div>
+      <div class="vacio" id="zona-vacia"><span>👈</span> Arrastra aquí los imanes y monta la consulta (se lee de izquierda a derecha)</div>
     </div>
     <div class="eco"><span class="etq">SQL</span><code id="eco">—</code></div>
     <div class="estado" id="estado" role="status" aria-live="polite">
       <span class="ico">🧲</span>
-      <span id="estado-txt">Coge un imán de la nevera y empieza por <b>SELECT</b>. Se comprueba sola cada vez que colocas una pieza.</span>
+      <span id="estado-txt">Elige un ejercicio en <b>📚 Ejercicios</b> y móntalo con los imanes de la nevera.</span>
     </div>
   </div>
 </main>
@@ -402,13 +474,28 @@ table.tabla-modelo th{background:#f1f7fc}
 <section class="nevera" id="nevera">
   <span class="cinta-nunca"></span>
   <p class="bandeja-tit">
-    Puerta de la nevera · tus imanes
+    Puerta de la nevera · imanes de la práctica
     <span class="pastilla">Arrastra un imán al tablero</span>
     <span class="pastilla">Clic / toca para añadirlo al final</span>
     <span class="pastilla">Clic sobre un imán del tablero para devolverlo</span>
+    <span class="pastilla">Hay varias copias de las columnas y cláusulas que más se repiten</span>
   </p>
   <div class="grupos" id="bandeja"></div>
 </section>
+
+<!-- ======================= MENÚ DE EJERCICIOS ======================= -->
+<div class="fondo-menu" id="fondo-menu"></div>
+<nav class="menu-ej" id="menu-ej" aria-label="Ejercicios">
+  <div class="menu-caja">
+    <div class="menu-cab">
+      <h2>📚 Ejercicios</h2>
+      <p>De más fácil a más difícil · pulsa uno para cargarlo en la pizarra</p>
+      <div class="escala"><span>fácil</span><i></i><span>difícil</span></div>
+      <button class="menu-cerrar" id="menu-cerrar">Cerrar ✕</button>
+    </div>
+    <div id="menu-lista"></div>
+  </div>
+</nav>
 
 <!-- ======================= OVERLAY / MODAL / CONFETI ======================= -->
 <canvas id="confeti"></canvas>
@@ -419,36 +506,53 @@ table.tabla-modelo th{background:#f1f7fc}
     <h2>¡Es correcto!</h2>
     <div class="sql" id="ov-sql"></div>
     <div class="migas" id="ov-migas"></div>
-    <button class="accion" id="ov-btn">Siguiente consulta →</button>
-    <p style="font-size:.78rem;color:#5b7688;margin:10px 0 0">La nevera se randomiza sola en unos segundos…</p>
+    <div class="avance"><i id="ov-avance"></i></div>
+    <p class="nota" id="ov-nota">Cargando el siguiente ejercicio…</p>
+    <div class="ov-botones">
+      <button class="accion" id="ov-btn">Siguiente ejercicio →</button>
+      <button class="accion ghost" id="ov-menu">📚 Ver ejercicios</button>
+    </div>
   </div>
 </div>
 
 <div class="modal" id="modal">
   <div class="modal-caja">
-    <h2>🧲 Cómo se juega</h2>
-    <p>En la nevera de abajo tienes imanes con trozos de SQL: palabras clave, funciones, operadores, columnas de tu tabla, símbolos y valores. <b>El objetivo es montar una consulta SQL correcta y coherente</b> sobre la tabla que te toque.</p>
+    <h2>🧲 Cómo funciona la Pizarra SQL</h2>
+    <p>Los imanes de la nevera son siempre los mismos: las tablas <b>emp</b> (empleados) y <b>dept</b> (departamentos) de la práctica, con sus columnas, valores, cláusulas, funciones y operadores.</p>
+    <h3>Jugar</h3>
     <ul>
-      <li><b>Arrastra</b> un imán de la nevera al tablero (o haz clic para añadirlo al final).</li>
-      <li><b>Reordena</b> arrastrando los imanes dentro del tablero.</li>
-      <li><b>Quita</b> un imán del tablero haciendo clic sobre él (vuelve a su cajón) o arrastrándolo a la nevera.</li>
+      <li>Pulsa <b>📚 Ejercicios</b> y elige una actividad: van de más fácil (verde) a más difícil (rojo).</li>
+      <li>Monta la consulta arrastrando imanes al tablero (o con un clic, que se añaden al final). Reordena arrastrando y quita con un clic sobre el imán.</li>
+      <li>Cuando la tengas, pulsa <b>✅ Validar</b>.</li>
+      <li>De las columnas y cláusulas que más se repiten hay <b>varias copias</b>, porque una misma columna suele usarse en el SELECT, en el WHERE y en el GROUP BY.</li>
     </ul>
-    <h3>¿Cuándo gano?</h3>
-    <p>La pizarra corrige sola: en cuanto la consulta es <b>válida</b> (gramática y orden de cláusulas correctos) y <b>coherente</b> (las columnas existen en la tabla, los tipos cuadran, los agregados están bien usados…) aparece <b>«¡Es correcto!»</b> y la nevera se randomiza con una tabla nueva.</p>
-    <h3>Orden obligatorio de las cláusulas</h3>
-    <p><code>SELECT</code> → <code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>ORDER BY</code> → <code>LIMIT</code></p>
+    <h3>Si no es correcta…</h3>
+    <p>La pizarra <b>no te dice la solución</b>: te da una <b>pista</b> 💡. Se quedan apiladas en la tarjeta de la actividad: cada intento fallido desbloquea una pista nueva, cada vez más concreta. También puedes pedirlas tú con el botón <b>💡 Pista</b>.</p>
+    <p style="font-size:.85rem;color:#5b7688">Ojo: usar pistas resta puntos, así que intenta pensar primero 😉</p>
     <h3>Puntos</h3>
     <ul>
-      <li>Consulta válida: <b>10 pts</b></li>
-      <li>+5 pts por cada cláusula extra que uses (WHERE, GROUP BY, HAVING, ORDER BY, LIMIT…)</li>
-      <li><b>+10 pts</b> si cumples además el reto de la ronda 🎯</li>
+      <li>Ejercicio resuelto: <b>10 × nivel</b> puntos (10, 20, 30, 40 o 50).</li>
+      <li>−3 puntos por cada pista usada (mínimo 5 por ejercicio).</li>
+      <li>Si repites un ejercicio ya resuelto, no suma puntos (pero puedes practicar).</li>
     </ul>
-    <h3>Pistas que da la pizarra</h3>
+    <h3>Tablas de la práctica</h3>
+    <table class="tabla-modelo">
+      <tr><th>emp</th><th>dept</th></tr>
+      <tr>
+        <td><code>empno, ename, job, mgr,<br>hiredate, sal, comm, deptno</code></td>
+        <td><code>deptno, dname, loc</code></td>
+      </tr>
+      <tr>
+        <td>Empleados. <code>comm</code> puede ser <code>NULL</code> y <code>deptno</code> apunta al departamento.</td>
+        <td>Departamentos. <code>deptno</code> es la clave que se relaciona con <code>emp</code>.</td>
+      </tr>
+    </table>
+    <h3>Pistas de sintaxis que da la pizarra</h3>
     <ul>
-      <li>Si te equivocas, el imán problemático se marca en rojo y aparece una pista explicando el fallo.</li>
-      <li><code>WHERE</code> no admite funciones de agregado: eso es <code>HAVING</code>.</li>
-      <li>Si usas <code>GROUP BY</code>, todas las columnas del <code>SELECT</code> deben estar agrupadas o dentro de una función.</li>
-      <li><code>LIKE</code> solo vale con columnas de texto y un valor entre comillas, tipo <code>'M%'</code>.</li>
+      <li>Los agregados (<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>…) no van en <code>WHERE</code>: para filtrar grupos se usa <code>HAVING</code>.</li>
+      <li>Con <code>GROUP BY</code>, las columnas del <code>SELECT</code> deben estar agrupadas o dentro de una función.</li>
+      <li>Si pones dos tablas, hay que relacionarlas con <code>JOIN … ON</code> o con una condición en el <code>WHERE</code>, o saldría un producto cartesiano.</li>
+      <li>Las fechas de esta práctica se filtran con patrones de año: <code>hiredate LIKE '1981%'</code>.</li>
     </ul>
     <button class="cerrar" id="btn-cerrar">¡Entendido, a jugar!</button>
   </div>
@@ -457,948 +561,1295 @@ table.tabla-modelo th{background:#f1f7fc}
 <script>
 "use strict";
 /* =========================================================================
-   1. CATÁLOGO DE TABLAS
-   Cada columna: n = nombre, t = tipo ('num' | 'txt'), vals = valores ejemplo
+   1. ESQUEMA FIJO — práctica "Tabla departampentos"
+      • emp (empno, ename, job, mgr, hiredate, sal, comm, deptno)
+      • dept (deptno, dname, loc)
    ========================================================================= */
-const CATALOGO = {
-  productos:{
-    emoji:"📦",
+const ESQUEMA = {
+  emp:{
+    emoji:"🧑‍💼",
     columnas:[
-      {n:"id",        t:"num", vals:[1,2,3]},
-      {n:"codigo",    t:"txt", vals:["P-01","P-02"]},
-      {n:"nombre",    t:"txt", vals:["Teclado","Monitor","Ratón","Webcam","Altavoz"]},
-      {n:"precio",    t:"num", vals:[10,50,120,300,1000]},
-      {n:"stock",     t:"num", vals:[0,5,25,80]},
-      {n:"categoria", t:"txt", vals:["Informática","Audio","Oficina"]}
-    ]
-  },
-  clientes:{
-    emoji:"👥",
+      {n:"empno",    t:"num",  pk:true},
+      {n:"ename",    t:"txt"},
+      {n:"job",      t:"txt"},
+      {n:"mgr",      t:"num"},
+      {n:"hiredate", t:"fecha"},
+      {n:"sal",      t:"num"},
+      {n:"comm",     t:"num"},
+      {n:"deptno",   t:"num",  fk:true}
+    ]},
+  dept:{
+    emoji:"🏢",
     columnas:[
-      {n:"id",     t:"num", vals:[1,2,3]},
-      {n:"nombre", t:"txt", vals:["Ana","Luis","Marta","Iván","Sara"]},
-      {n:"ciudad", t:"txt", vals:["Madrid","Sevilla","Alicante","Bilbao"]},
-      {n:"email",  t:"txt", vals:["ana@mail.com","luis@mail.com"]},
-      {n:"edad",   t:"num", vals:[18,25,34,45,67]},
-      {n:"puntos", t:"num", vals:[0,100,250]}
-    ]
-  },
-  pedidos:{
-    emoji:"🧾",
-    columnas:[
-      {n:"id",       t:"num", vals:[1,2,3,4]},
-      {n:"cliente",  t:"txt", vals:["Ana","Luis","Marta"]},
-      {n:"fecha",    t:"txt", vals:["2026-01-14","2026-02-03","2026-03-21"]},
-      {n:"total",    t:"num", vals:[15,99,240,1250]},
-      {n:"estado",   t:"txt", vals:["pendiente","enviado","cancelado"]},
-      {n:"pagado",   t:"txt", vals:["sí","no"]}
-    ]
-  },
-  empleados:{
-    emoji:"🧑‍🔧",
-    columnas:[
-      {n:"id",        t:"num", vals:[1,2,3]},
-      {n:"nombre",    t:"txt", vals:["Albert","Julia","Nerea","Óscar"]},
-      {n:"departamento", t:"txt", vals:["Sistemas","Redes","Soporte"]},
-      {n:"salario",   t:"num", vals:[1200,1800,2400,3100]},
-      {n:"antiguedad",t:"num", vals:[1,3,7,12]},
-      {n:"turno",     t:"txt", vals:["mañana","tarde","noche"]}
-    ]
-  },
-  libros:{
-    emoji:"📚",
-    columnas:[
-      {n:"id",        t:"num", vals:[1,2,3]},
-      {n:"titulo",    t:"txt", vals:["Dune","Neuromante","Solaris","Fundación"]},
-      {n:"autor",     t:"txt", vals:["Herbert","Gibson","Lem","Asimov"]},
-      {n:"anio",      t:"num", vals:[1965,1984,2010,2023]},
-      {n:"paginas",   t:"num", vals:[120,300,650]},
-      {n:"genero",    t:"txt", vals:["Ciencia ficción","Ensayo","Novela"]}
-    ]
-  },
-  peliculas:{
-    emoji:"🎬",
-    columnas:[
-      {n:"id",       t:"num", vals:[1,2,3]},
-      {n:"titulo",   t:"txt", vals:["Matrix","Alien","Interstellar","Tenet"]},
-      {n:"director", t:"txt", vals:["Wachowski","Scott","Nolan"]},
-      {n:"duracion", t:"num", vals:[89,117,148,169]},
-      {n:"nota",     t:"num", vals:[5,7,8,9]},
-      {n:"vista",    t:"txt", vals:["sí","no"]}
-    ]
-  },
-  asignaturas:{
-    emoji:"🎓",
-    columnas:[
-      {n:"id",       t:"num", vals:[1,2,3]},
-      {n:"nombre",   t:"txt", vals:["Base de Datos","Redes","Hardware","Marcas"]},
-      {n:"curso",    t:"txt", vals:["1º ASIR","2º ASIR"]},
-      {n:"horas",    t:"num", vals:[64,96,128,160]},
-      {n:"creditos", t:"num", vals:[4,6,8]},
-      {n:"profesor", t:"txt", vals:["Gonzalo","María","Sergio"]}
-    ]
-  }
+      {n:"deptno", t:"num", pk:true},
+      {n:"dname",  t:"txt"},
+      {n:"loc",    t:"txt"}
+    ]}
 };
+const TABLAS = ["emp","dept"];
+
+/* índice nombre de columna → en qué tablas está y de qué tipo */
+const NOMBRES = {};
+TABLAS.forEach(tb=>ESQUEMA[tb].columnas.forEach(c=>{
+  (NOMBRES[c.n] = NOMBRES[c.n] || []).push({tabla:tb, tipo:c.t});
+}));
+const tipoDe = (tabla,col)=>{ const c = ESQUEMA[tabla] && ESQUEMA[tabla].columnas.find(x=>x.n===col); return c?c.t:null; };
+function tipoPorNombre(nombre){
+  const l = NOMBRES[nombre];
+  if(!l || !l.length) return null;
+  return l[0].tipo;
+}
+const etiquetaTipo = t => t==="num" ? "numérica" : t==="fecha" ? "fecha" : "de texto";
 
 /* =========================================================================
-   2. RETOS (opcionales, dan puntos extra)
+   2. NIVELES (color de verde a rojo según dificultad)
    ========================================================================= */
-const RETOS = [
-  {id:"where",   txt:"Escribe un WHERE con un operador de comparación (&gt;, &lt;, =…)", pts:10, test:a=>a.ops.some(o=>["=",">","<",">=","<=","<>"].includes(o))},
-  {id:"dosConds",txt:"Combina dos condiciones con AND u OR",                            pts:10, test:a=>a.numConds>=2},
-  {id:"orden",   txt:"Ordena el resultado con ORDER BY",                                pts:10, test:a=>a.orden.length>0},
-  {id:"sinStar", txt:"Elige columnas concretas, sin usar el comodín *",                 pts:10, test:a=>!a.star&&a.select.length>0},
-  {id:"agg",     txt:"Resume los datos con una función de agregado (COUNT, SUM, AVG…)", pts:10, test:a=>a.aggs.length>0},
-  {id:"grupo",   txt:"Agrupa los resultados con GROUP BY",                              pts:10, test:a=>a.grupos.length>0},
-  {id:"limite",  txt:"Limita las filas con LIMIT",                                      pts:10, test:a=>a.limite!==null},
-  {id:"like",    txt:"Filtra un texto con LIKE (por ejemplo 'A%')",                     pts:10, test:a=>a.usaLike},
-  {id:"distinct",txt:"Muestra valores únicos con DISTINCT",                             pts:10, test:a=>a.distinct},
-  {id:"nulo",    txt:"Comprueba valores vacíos con IS NULL",                            pts:10, test:a=>a.usaNull},
-  {id:"rango",   txt:"Busca un rango con BETWEEN",                                      pts:10, test:a=>a.usaBetween}
+const NIVELES = [
+  {n:1, nombre:"Muy fácil", color:"#16a34a"},
+  {n:2, nombre:"Fácil",     color:"#65a30d"},
+  {n:3, nombre:"Media",     color:"#eab308"},
+  {n:4, nombre:"Difícil",   color:"#f97316"},
+  {n:5, nombre:"Muy difícil",color:"#dc2626"}
+];
+const nivelDe = n => NIVELES[n-1];
+
+/* =========================================================================
+   3. IMANES (siempre los mismos: la práctica tiene un esquema fijo)
+   ========================================================================= */
+const GRUPOS = [   /* el orden manda en la nevera: lo más usado, arriba */
+  {id:"claves",    icono:"🔑", nombre:"Cláusulas"},
+  {id:"tablas",    icono:"🗂️", nombre:"Tablas"},
+  {id:"columnas",  icono:"🧱", nombre:"Columnas"},
+  {id:"funciones", icono:"🧮", nombre:"Funciones"},
+  {id:"operadores",icono:"⚖️", nombre:"Operadores"},
+  {id:"simbolos",  icono:"🧩", nombre:"Símbolos"},
+  {id:"numeros",   icono:"🔢", nombre:"Números"},
+  {id:"textos",    icono:"🏷️", nombre:"Textos"},
+  {id:"fechas",    icono:"📅", nombre:"Fechas"}
+];
+const ordenGrupo = id => GRUPOS.findIndex(g=>g.id===id);
+
+const IMANES = [];
+function iman(o, copias){
+  for(let c=0;c<(copias||1);c++){
+    const b = IMANES.filter(x=>x.grupo===o.grupo && x.texto===o.texto).length;
+    IMANES.push(Object.assign({}, o, {orden:b}));
+  }
+}
+/* Hacen falta copias: una misma columna o cláusula se usa varias veces en la
+   misma consulta (SELECT + WHERE + GROUP BY + ORDER BY…), como en una nevera
+   de verdad, donde tienes varias «a» y varias «e». */
+
+/* --- tablas --- */
+iman({grupo:"tablas", clase:"tabla", texto:"emp",  tabla:"emp"}, 2);
+iman({grupo:"tablas", clase:"tabla", texto:"dept", tabla:"dept"}, 2);
+
+/* --- columnas sin cualificar (las más usadas, con copias) --- */
+[["empno","num",2],["ename","txt",3],["job","txt",3],["mgr","num",1],["hiredate","fecha",3],
+ ["sal","num",4],["comm","num",2],["deptno","num",4],["dname","txt",3],["loc","txt",3]]
+ .forEach(([n,t,copias])=>iman({grupo:"columnas", clase:"col", texto:n, nombre:n, tipo:t}, copias));
+
+/* --- columnas cualificadas (útiles para los JOIN) --- */
+[["emp.ename","ename","emp","txt",2],["emp.job","job","emp","txt",2],["emp.hiredate","hiredate","emp","fecha",1],
+ ["emp.sal","sal","emp","num",2],["emp.comm","comm","emp","num",1],["emp.deptno","deptno","emp","num",2],
+ ["dept.deptno","deptno","dept","num",2],["dept.dname","dname","dept","txt",2],["dept.loc","loc","dept","txt",2]]
+ .forEach(([texto,nombre,tabla,tipo,copias])=>iman({grupo:"columnas", clase:"col", texto, nombre, tabla, tipo, cual:true}, copias));
+
+/* --- cláusulas --- */
+[["SELECT",2],["DISTINCT",1],["FROM",2],["JOIN",2],["INNER",2],["ON",2],["WHERE",2],["AND",3],["OR",2],["NOT",2],
+ ["GROUP BY",2],["HAVING",2],["ORDER BY",2],["ASC",2],["DESC",2],["LIMIT",2],
+ ["LIKE",2],["IN",2],["BETWEEN",2],["IS",2],["NULL",2]]
+ .forEach(([k,copias])=>iman({grupo:"claves", clase:"kw", texto:k, kw:k}, copias));
+
+/* --- funciones --- */
+[["COUNT",3],["SUM",2],["AVG",3],["MAX",2],["MIN",2]]
+ .forEach(([f,copias])=>iman({grupo:"funciones", clase:"fn", texto:f, fn:f}, copias));
+
+/* --- operadores --- */
+[["=",3],[">",2],["<",2],[">=",2],["<=",2],["<>",2]]
+ .forEach(([o,copias])=>iman({grupo:"operadores", clase:"op", texto:o, op:o}, copias));
+
+/* --- símbolos --- */
+[["*",4],["(",4],[")",4],[",",4]]
+ .forEach(([texto,copias])=>iman({grupo:"simbolos", clase:"punct", texto, punct:texto}, copias));
+
+/* --- números --- */
+[0,1,2,3,5,10,20,30,40,1000,1250,1500,1600,2000,3000,5000]
+ .forEach(n=>iman({grupo:"numeros", clase:"lit", texto:String(n), tipo:"num", valor:n}));
+
+/* --- textos --- */
+["CLERK","SALESMAN","MANAGER","ANALYST","PRESIDENT",
+ "ACCOUNTING","RESEARCH","SALES","OPERATIONS",
+ "NEW YORK","DALLAS","CHICAGO","BOSTON"]
+ .forEach(v=>iman({grupo:"textos", clase:"lit", texto:"'"+v+"'", tipo:"txt", valor:v}));
+
+/* --- fechas (patrones de año, como en la práctica) --- */
+["1981%","1982%"].forEach(v=>iman({grupo:"fechas", clase:"lit", texto:"'"+v+"'", tipo:"txt", valor:v, patron:true}));
+
+function crearBandeja(){
+  return IMANES.map((t,i)=>Object.assign({}, t, {id:"m"+(i+1), indice:i, giro:(Math.random()*6-3)}));
+}
+function claseCss(t){
+  if(t.clase==="kw")    return "c-kw";
+  if(t.clase==="fn")    return "c-fn";
+  if(t.clase==="op")    return "c-op";
+  if(t.clase==="tabla") return "c-tabla";
+  if(t.clase==="punct") return "c-punct";
+  if(t.clase==="col")   return "c-col"+(t.cual?" cual":"");
+  if(t.clase==="lit")   return t.grupo==="fechas" ? "c-litfecha" : (t.tipo==="num" ? "c-litnum" : "c-littxt");
+  return "";
+}
+
+/* =========================================================================
+   4. EJERCICIOS (de más fácil a más difícil)
+      Cada uno: comprobador semántico + 3 pistas que NO desvelan la solución
+   ========================================================================= */
+const EJERCICIOS = [
+/* ---------------- NIVEL 1 · MUY FÁCIL ---------------- */
+{
+  id:"e1", nivel:1, titulo:"Nombre y salario de todos",
+  enunciado:"Muestra el <b>nombre</b> (ename) y el <b>salario</b> (sal) de todos los empleados de la empresa.",
+  pistas:[
+    "Todos los datos que pides están en una sola tabla: la de empleados.",
+    "El enunciado nombra dos columnas concretas: son las dos que tienen que salir en el SELECT.",
+    "No pide filtrar nada: quieres ver a toda la plantilla, sin condiciones."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"ename") && H.sel(a,"sal") && H.selCount(a,2) &&
+           !a.where && !a.distinct && !a.grupos.length && a.limit===null
+},
+{
+  id:"e2", nivel:1, titulo:"Departamentos y su localidad",
+  enunciado:"Muestra el <b>nombre de cada departamento</b> (dname) y la <b>localidad</b> donde está (loc).",
+  pistas:[
+    "Fíjate en qué tabla guarda los departamentos: no es la de empleados.",
+    "El enunciado te da los dos nombres de columna que deben aparecer.",
+    "No hay que filtrar ni ordenar nada: solo listar esas dos columnas."
+  ],
+  check:a=> H.soloTabla(a,"dept") && H.sel(a,"dname") && H.sel(a,"loc") && H.selCount(a,2) &&
+           !a.where && !a.distinct && !a.grupos.length && a.limit===null
+},
+{
+  id:"e3", nivel:1, titulo:"Ordenados por salario",
+  enunciado:"Lista a todos los empleados <b>ordenados por su salario</b>, del que más gana al que menos.",
+  pistas:[
+    "Cuando el enunciado habla de un orden, hay una cláusula pensada justo para eso.",
+    "El criterio de orden es la columna del salario.",
+    "Del que más gana al que menos… ¿el orden normal de menor a mayor te sirve, o hay que darle la vuelta?"
+  ],
+  check:a=> H.soloTabla(a,"emp") && !a.where && !a.distinct && !a.grupos.length &&
+           a.orden.some(o=>o.kind==="col" && o.ref && o.ref.nombre==="sal" && o.dir==="DESC")
+},
+/* ---------------- NIVEL 2 · FÁCIL ---------------- */
+{
+  id:"e4", nivel:2, titulo:"Los que cobran más de 2000",
+  enunciado:"Muestra el <b>nombre</b> (ename) y el <b>salario</b> (sal) de los empleados que cobran <b>más de 2000</b>.",
+  pistas:[
+    "El enunciado pide solo una parte de la plantilla: hay que filtrar filas.",
+    "El filtro va sobre la columna del salario y se compara con 2000.",
+    "«Más de 2000» no incluye a quien cobra exactamente 2000."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"ename") && H.sel(a,"sal") &&
+           (H.cmp(a,"sal",">",2000) || H.cmp(a,"sal",">=",2000)) && !a.grupos.length && a.limit===null
+},
+{
+  id:"e5", nivel:2, titulo:"Empleados sin comisión",
+  enunciado:"Muestra los empleados que <b>no tienen comisión</b> asignada (la columna comm está vacía).",
+  pistas:[
+    "«Vacío» en SQL no es ni cero ni un espacio: es un valor especial.",
+    "Un hueco no se compara con el signo igual, tiene su propia forma de comprobarse.",
+    "Puedes mostrar todas las columnas de esos empleados, o solo algunas: lo importante es el filtro."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.isnull(a,"comm",false) && !a.grupos.length && a.limit===null
+},
+{
+  id:"e6", nivel:2, titulo:"Oficios sin repetir",
+  enunciado:"¿Qué <b>oficios distintos</b> existen en la empresa? Muestra la lista <b>sin repetidos</b>.",
+  pistas:[
+    "Si sacaras la columna tal cual, cada empleado repetiría su oficio otra vez.",
+    "Existe una palabra que elimina los valores duplicados en el resultado (también valdría agrupar).",
+    "Solo necesitas una columna: la del oficio."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"job") &&
+           (a.distinct || (a.grupos.length===1 && H.grupo(a,"job")))
+},
+{
+  id:"e7", nivel:2, titulo:"Contratados en 1981",
+  enunciado:"Muestra el <b>nombre</b> (ename) y la <b>fecha de alta</b> (hiredate) de los empleados que entraron a trabajar en <b>1981</b>.",
+  pistas:[
+    "En esta práctica las fechas se filtran por patrón, no con comparaciones.",
+    "Un patrón se escribe entre comillas y puede acabar en % para decir «lo que venga después».",
+    "Necesitas el año de la fecha de alta: 1981 y el comodín."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"ename") && H.sel(a,"hiredate") &&
+           H.hay(a.where, p=>p.type==="like" && p.ref.nombre==="hiredate" && String(p.patr).startsWith("1981"))
+},
+/* ---------------- NIVEL 3 · MEDIA ---------------- */
+{
+  id:"e8", nivel:3, titulo:"Media, máximo y mínimo",
+  enunciado:"Calcula el <b>salario medio</b> de la plantilla, el <b>más alto</b> y el <b>más bajo</b> en la misma consulta.",
+  pistas:[
+    "Para resumir una columna entera en un solo número se usan funciones de agregado.",
+    "Son tres cálculos distintos sobre la misma columna (salario): una media, un máximo y un mínimo.",
+    "No hace falta agrupar nada: quieres un único resultado para toda la empresa."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.agg(a,"AVG","sal") && H.agg(a,"MAX","sal") && H.agg(a,"MIN","sal") &&
+           !a.grupos.length && !a.where
+},
+{
+  id:"e9", nivel:3, titulo:"¿Cuántos empleados hay?",
+  enunciado:"Calcula <b>cuántos empleados</b> forman la plantilla.",
+  pistas:[
+    "Quieres un único número: otra vez una función de agregado.",
+    "Para contar elementos en SQL hay una función específica.",
+    "Puedes contar todas las filas o contar la clave de los empleados: las dos formas valen."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.agg(a,"COUNT") && !a.grupos.length && !a.where
+},
+{
+  id:"e10", nivel:3, titulo:"Empleados por departamento",
+  enunciado:"¿Cuántos empleados hay en <b>cada departamento</b>? Muestra el número de departamento y cuántos empleados tiene.",
+  pistas:[
+    "No quieres un solo número para toda la empresa, sino uno por cada departamento.",
+    "Cuando el resultado se divide en grupos, hay una cláusula que los define.",
+    "En el SELECT deben aparecer dos cosas: la columna que agrupa y la cuenta de empleados."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.agg(a,"COUNT") && H.sel(a,"deptno") &&
+           a.grupos.length===1 && H.grupo(a,"deptno")
+},
+{
+  id:"e11", nivel:3, titulo:"Salarios entre 1000 y 3000",
+  enunciado:"Muestra el <b>nombre</b> (ename) y el <b>salario</b> (sal) de los empleados cuyo salario está <b>entre 1000 y 3000</b>.",
+  pistas:[
+    "Es un filtro con dos límites sobre la misma columna.",
+    "Existe un operador que significa «entre un valor y otro» y se escribe con AND en medio.",
+    "También valdría combinar dos comparaciones con AND, una para cada límite."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"ename") && H.sel(a,"sal") &&
+           (H.between(a,"sal",1000,3000) || (H.cmp(a,"sal",">=",1000) && H.cmp(a,"sal","<=",3000)))
+},
+{
+  id:"e12", nivel:3, titulo:"Solo CLERK o ANALYST",
+  enunciado:"Muestra el <b>nombre</b> (ename) y el <b>oficio</b> (job) de los empleados que son <b>CLERK</b> o <b>ANALYST</b>.",
+  pistas:[
+    "El filtro es sobre el oficio y hay dos valores posibles: uno u otro.",
+    "Dos valores sobre la misma columna se pueden escribir con un operador de lista, o uniendo dos comparaciones con OR.",
+    "Los oficios son texto: van entre comillas y con mayúsculas, tal y como están en los datos."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"ename") && H.sel(a,"job") &&
+           (H.enLista(a,"job",["CLERK","ANALYST"]) ||
+            (H.cmp(a,"job","=","CLERK") && H.cmp(a,"job","=","ANALYST")))
+},
+/* ---------------- NIVEL 4 · DIFÍCIL ---------------- */
+{
+  id:"e13", nivel:4, titulo:"Gasto en salarios por departamento",
+  enunciado:"¿Cuánto se gasta en salarios <b>cada departamento</b>? Muestra el número de departamento y la <b>suma de los salarios</b>.",
+  pistas:[
+    "Quieres un total por departamento: hay que agrupar y resumir.",
+    "La columna que agrupa es el número de departamento; la que se resume, el salario.",
+    "La función que suma una columna es SUM."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.agg(a,"SUM","sal") && H.sel(a,"deptno") &&
+           a.grupos.length===1 && H.grupo(a,"deptno")
+},
+{
+  id:"e14", nivel:4, titulo:"Empleado y su departamento",
+  enunciado:"Muestra el <b>nombre del empleado</b> (ename) junto al <b>nombre de su departamento</b> (dname).",
+  pistas:[
+    "El nombre del empleado está en una tabla y el del departamento en otra: hay que unirlas.",
+    "Las dos tablas se relacionan por la columna que comparten (el número de departamento).",
+    "Al usar dos tablas hay que decir cómo se enlazan, y para las columnas que se llaman igual conviene indicar de qué tabla son."
+  ],
+  check:a=> H.tablasIncluyen(a,"emp","dept") && H.unidas(a) &&
+           H.sel(a,"ename") && H.sel(a,"dname")
+},
+{
+  id:"e15", nivel:4, titulo:"Los que trabajan en DALLAS",
+  enunciado:"Muestra el <b>nombre</b> (ename) y el <b>salario</b> (sal) de los empleados que trabajan en <b>DALLAS</b>.",
+  pistas:[
+    "La ciudad no está en la tabla de empleados: tendrás que traerla de la tabla de departamentos.",
+    "Además de unir las dos tablas, hay que filtrar por la localidad.",
+    "DALLAS es texto: va entre comillas, en mayúsculas, como en los datos."
+  ],
+  check:a=> H.tablasIncluyen(a,"emp","dept") && H.unidas(a) &&
+           H.sel(a,"ename") && H.sel(a,"sal") && H.cmp(a,"loc","=","DALLAS")
+},
+{
+  id:"e16", nivel:4, titulo:"Departamentos con más de dos",
+  enunciado:"Muestra el número de los departamentos que tienen <b>más de dos empleados</b> y cuántos hay en cada uno.",
+  pistas:[
+    "Es como contar empleados por departamento, pero descartando los grupos pequeños.",
+    "El filtro no es sobre una fila, sino sobre el resultado de la cuenta: eso no se hace en el WHERE.",
+    "La condición compara la cuenta de empleados con 2, y «más de dos» excluye exactamente 2."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.agg(a,"COUNT") && H.sel(a,"deptno") &&
+           H.grupo(a,"deptno") && H.hay(a.having, p=>p.type==="cmpAgg" && p.fn==="COUNT" &&
+             ((p.op===">" && p.valor.valor===2) || (p.op===">=" && p.valor.valor===3)))
+},
+/* ---------------- NIVEL 5 · MUY DIFÍCIL ---------------- */
+{
+  id:"e17", nivel:5, titulo:"Plantilla por nombre de departamento",
+  enunciado:"Muestra el <b>nombre de cada departamento</b> (dname) y <b>cuántos empleados</b> tiene (solo los que tienen alguno).",
+  pistas:[
+    "Necesitas datos de las dos tablas: una para el nombre del departamento y otra para contar empleados.",
+    "El resultado debe ir por departamentos: hay que agrupar por el nombre del departamento.",
+    "Como cada empleado pertenece a un departamento, los que no tienen a nadie no aparecerán al unir."
+  ],
+  check:a=> H.tablasIncluyen(a,"emp","dept") && H.unidas(a) &&
+           H.sel(a,"dname") && H.agg(a,"COUNT") && H.grupo(a,"dname")
+},
+{
+  id:"e18", nivel:5, titulo:"Empleado, oficio y ciudad",
+  enunciado:"Muestra el <b>nombre</b> (ename), el <b>oficio</b> (job) y la <b>ciudad del departamento</b> (loc) de cada empleado, del que más cobra al que menos.",
+  pistas:[
+    "Esta vez el resultado mezcla columnas de las dos tablas: hay que unirlas.",
+    "El orden que pide el enunciado es por el salario, y va de mayor a menor.",
+    "En el SELECT tienen que salir las tres columnas: dos de empleados y una de departamentos."
+  ],
+  check:a=> H.tablasIncluyen(a,"emp","dept") && H.unidas(a) && H.sel(a,"ename") && H.sel(a,"job") && H.sel(a,"loc") &&
+           a.orden.some(o=>o.kind==="col" && o.ref && o.ref.nombre==="sal" && o.dir==="DESC")
+},
+{
+  id:"e19", nivel:5, titulo:"Media por departamento, ordenada",
+  enunciado:"Calcula el <b>salario medio</b> de cada departamento y muéstralo <b>ordenado de mayor a menor media</b>.",
+  pistas:[
+    "Es una media por grupo: agrupa por departamento y calcula el promedio del salario.",
+    "El orden no es por una columna normal, sino por el resultado del cálculo.",
+    "Ese orden va de mayor a menor, y no basta con ordenar por el salario a secas."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.agg(a,"AVG","sal") && H.grupo(a,"deptno") &&
+           a.orden.some(o=>o.kind==="agg" && o.fn==="AVG" && o.dir==="DESC")
+},
+{
+  id:"e20", nivel:5, titulo:"Los tres peor pagados",
+  enunciado:"Muestra el <b>nombre</b> (ename) y el <b>salario</b> (sal) de los <b>tres empleados que menos cobran</b>.",
+  pistas:[
+    "Necesitas ordenar por salario… pero fíjate en la dirección: los que menos cobran van primero subiendo.",
+    "Mostrar solo unos pocos de todos los que hay es una limitación del resultado.",
+    "Se combinan dos cláusulas del final de la consulta: una para ordenar y otra para cortar el número de filas."
+  ],
+  check:a=> H.soloTabla(a,"emp") && H.sel(a,"ename") && H.sel(a,"sal") &&
+           a.orden.some(o=>o.kind==="col" && o.ref && o.ref.nombre==="sal" && o.dir==="ASC") &&
+           a.limit===3 && !a.where
+}
 ];
 
 /* =========================================================================
-   3. ESTADO
+   5. ESTADO
    ========================================================================= */
 const estado = {
-  ronda:1, puntos:0,
-  tabla:null, esquema:null,
+  puntos:0,
+  ejercicio:null,          // id del ejercicio cargado
   bandeja:[], consulta:[],
-  reto:null, retoHecho:false,
-  bloqueado:false, contador:0
+  bloqueado:false, yaGanado:false, timer:null,
+  registro:{}              // id → {completado, pistas}
 };
 
-const $  = s=>document.querySelector(s);
-const zona = $("#zona"), bandejaEl = $("#bandeja"), estadoEl = $("#estado"), estadoTxt = $("#estado-txt");
-
 /* =========================================================================
-   4. UTILIDADES
+   6. UTILIDADES
    ========================================================================= */
-const azar = arr=>arr[Math.floor(Math.random()*arr.length)];
-function barajar(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
-const entre = (a,b)=>a+Math.random()*(b-a);
-const nuevoId = ()=> "t"+(++estado.contador);
-
-/* =========================================================================
-   5. REPARTO DE IMANES (una tabla al azar + piezas)
-   ========================================================================= */
-function repartir(tabla, esq){
-  const tok = [];
-  let orden = 0;
-  const haz = (o)=>{ tok.push(Object.assign({id:nuevoId(), orden:orden++, giro:entre(-3,3)}, o)); };
-
-  /* --- palabras clave --- */
-  const claves = [
-    ["SELECT","SELECT"],["FROM","FROM"],["WHERE","WHERE"],["AND","AND"],["OR","OR"],["NOT","NOT"],
-    ["ORDER BY","ORDER BY"],["GROUP BY","GROUP BY"],["HAVING","HAVING"],["LIMIT","LIMIT"],
-    ["DISTINCT","DISTINCT"],["ASC","ASC"],["DESC","DESC"],["LIKE","LIKE"],["IN","IN"],
-    ["BETWEEN","BETWEEN"],["IS","IS"],["NULL","NULL"]
-  ];
-  claves.forEach(([texto,kw])=>haz({texto, clase:"kw", kw, grupo:"claves"}));
-
-  /* --- funciones de agregado --- */
-  ["COUNT","SUM","AVG","MAX","MIN"].forEach(f=>haz({texto:f, clase:"fn", fn:f, grupo:"funciones"}));
-
-  /* --- operadores (3 fijos + 2 al azar) --- */
-  const fijos = ["=",">","<"];
-  const extra = barajar([">=","<=","<>"]).slice(0,2);
-  fijos.concat(extra).forEach((o,i)=>haz({texto:o, clase:"op", op:o, grupo:"operadores", giro:entre(-4,4)}));
-
-  /* --- símbolos --- */
-  [["*","*"],["(","("], [")",")"], [",",","]].forEach(([texto,p])=>haz({texto, clase:"punct", punct:p, grupo:"simbolos"}));
-
-  /* --- la tabla y sus columnas --- */
-  haz({texto:tabla, clase:"tabla", tabla, grupo:"tabla", giro:entre(-2,2)});
-  esq.columnas.forEach(c=>haz({texto:c.n, clase:"col", nombre:c.n, tipo:c.t, tabla, grupo:"tabla"}));
-
-  /* --- valores: números y textos sacados de las columnas --- */
-  const numCols = barajar(esq.columnas.filter(c=>c.t==="num"));
-  const txtCols = barajar(esq.columnas.filter(c=>c.t==="txt"));
-  const numeros = [], textos = [];
-  numCols.slice(0,3).forEach(c=>barajar(c.vals).slice(0,2).forEach(v=>{ if(!numeros.includes(v)) numeros.push(v); }));
-  txtCols.slice(0,3).forEach(c=>barajar(c.vals).slice(0,2).forEach(v=>{ if(!textos.includes(v)) textos.push(v); }));
-  barajar(numeros).slice(0,6).forEach(v=>haz({texto:String(v), clase:"lit", tipo:"num", valor:v, grupo:"valores"}));
-  barajar(textos).slice(0,5).forEach(v=>haz({texto:"'"+v+"'", clase:"lit", tipo:"txt", valor:v, grupo:"valores"}));
-  if(txtCols.length){
-    const patron = txtCols[0].vals[0].trim()[0].toUpperCase()+"%";
-    haz({texto:"'"+patron+"'", clase:"lit", tipo:"txt", valor:patron, grupo:"valores"});
-  }
-
-  /* la bandeja se guarda siempre ordenada por cajón para que las piezas no bailen */
-  return tok;
-}
-
-const GRUPOS = [
-  {id:"claves",     icono:"🔑", nombre:"Palabras clave"},
-  {id:"funciones",  icono:"🧮", nombre:"Funciones"},
-  {id:"operadores", icono:"⚖️", nombre:"Operadores"},
-  {id:"simbolos",   icono:"🧩", nombre:"Símbolos"},
-  {id:"tabla",      icono:"🗂️", nombre:"Tu tabla"},
-  {id:"valores",    icono:"🏷️", nombre:"Valores"}
-];
-const ordenGrupo = id=>GRUPOS.findIndex(g=>g.id===id);
-
-/* =========================================================================
-   6. PINTADO
-   ========================================================================= */
-function crearIman(t, origen, animar){
-  const el = document.createElement("div");
-  el.className = "iman c-"+t.clase + (t.clase==="lit" ? (t.tipo==="num"?" c-litnum":" c-littxt") : "");
-  if(t.clase==="lit") el.classList.remove("c-"+t.clase);
-  el.textContent = t.texto;
-  el.style.setProperty("--giro", t.giro.toFixed(2)+"deg");
-  el.dataset.id = t.id;
-  el.tabIndex = 0;
-  el.setAttribute("role","button");
-  el.setAttribute("aria-label", (origen==="bandeja"?"Añadir ":"Quitar ")+t.texto);
-  if(animar){ el.classList.add("entra"); el.style.animationDelay = (animar*22)+"ms"; }
-  el.addEventListener("pointerdown", ev=>iniciarArrastre(ev, t, origen, el));
-  el.addEventListener("keydown", ev=>{
-    if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); alternar(t, origen); }
-    if(ev.key==="Delete"||ev.key==="Backspace"){ if(origen==="consulta"){ ev.preventDefault(); devolverATray(t); } }
-  });
-  return el;
-}
-
-function pintar(nueva){
-  /* --- bandeja --- */
-  bandejaEl.innerHTML = "";
-  const porGrupo = {};
-  GRUPOS.forEach(g=>porGrupo[g.id]=[]);
-  estado.bandeja.forEach(t=>porGrupo[t.grupo].push(t));
-  GRUPOS.forEach(g=>{
-    const lista = porGrupo[g.id].sort((a,b)=>a.orden-b.orden);
-    const sec = document.createElement("div"); sec.className="grupo";
-    const h = document.createElement("h2"); h.innerHTML = g.icono+" "+g.nombre;
-    const fila = document.createElement("div"); fila.className="fila";
-    fila.dataset.grupo = g.id;
-    lista.forEach((t,i)=>fila.appendChild(crearIman(t,"bandeja", nueva ? i+1 : 0)));
-    sec.append(h,fila); bandejaEl.appendChild(sec);
-  });
-
-  /* --- consulta --- */
-  [...zona.querySelectorAll(".iman,.hueco")].forEach(n=>n.remove());
-  if(!estado.consulta.length){
-    $("#zona-vacia").style.display="";
-  }else{
-    $("#zona-vacia").style.display="none";
-    estado.consulta.forEach((t,i)=>zona.appendChild(crearIman(t,"consulta", nueva? i+1 : 0)));
-  }
-  pintarEco();
-}
-
-/* eco en texto monoespaciado con colores */
-function pintarEco(){
-  const code = $("#eco");
-  if(!estado.consulta.length){ code.innerHTML = "—"; return; }
-  code.innerHTML = estado.consulta.map(t=>{
-    let clase = "op";
-    if(t.clase==="kw") clase="kw"; else if(t.clase==="tabla") clase="tb";
-    else if(t.clase==="col") clase="cl"; else if(t.clase==="lit") clase="li";
-    else if(t.clase==="fn") clase="fn"; else if(t.clase==="punct") clase="op";
-    return '<span class="'+clase+'">'+escapar(t.texto)+'</span>';
-  }).join(" ");
-}
+const $ = s=>document.querySelector(s);
 const escapar = s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const sinHtml = s=>String(s).replace(/&gt;/g,">").replace(/&lt;/g,"<").replace(/&amp;/g,"&");
-
-function mostrarEstado(tipo, html){
-  estadoEl.className = "estado" + (tipo==="error" ? " error" : tipo==="bien" ? " bien" : "");
-  estadoEl.querySelector(".ico").textContent = tipo==="error" ? "❌" : tipo==="bien" ? "✅" : "🧲";
-  estadoTxt.innerHTML = html;
-}
+const entre = (a,b)=>a+Math.random()*(b-a);
 
 /* =========================================================================
-   7. ARRASTRE CON POINTER EVENTS (ratón, dedo y lápiz)
+   7. MOTOR DE ANÁLISIS (gramática + coherencia) — devuelve un AST o lanza ErrorSQL
    ========================================================================= */
-let arr = null;
+const ORDEN_TXT = "SELECT → FROM → [JOIN ON] → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT";
+class ErrorSQL{ constructor(idx,kind,msg){ this.idx=idx; this.kind=kind; this.msg=msg; } }
 
-function iniciarArrastre(ev, t, origen, el){
-  if(ev.pointerType==="mouse" && ev.button!==0) return;
-  ev.preventDefault();
-  const r = el.getBoundingClientRect();
-  arr = {t, origen, el, dx:ev.clientX-r.left, dy:ev.clientY-r.top,
-         x0:ev.clientX, y0:ev.clientY, movido:false, fantasma:null, idx:null, id:ev.pointerId};
-  window.addEventListener("pointermove", moverArrastre);
-  window.addEventListener("pointerup", soltarArrastre);
-  window.addEventListener("pointercancel", cancelarArrastre);
-}
-
-function moverArrastre(ev){
-  if(!arr || ev.pointerId!==arr.id) return;
-  if(!arr.movido){
-    if(Math.hypot(ev.clientX-arr.x0, ev.clientY-arr.y0) < 7) return;
-    arr.movido = true;
-    const f = arr.el.cloneNode(true);
-    f.classList.add("fantasma");
-    f.style.width = arr.el.offsetWidth+"px";
-    f.style.height = arr.el.offsetHeight+"px";
-    document.body.appendChild(f);
-    arr.fantasma = f;
-    f.classList.remove("entra"); f.style.animationDelay = "";
-    arr.el.classList.add("arrastrando");
-    document.body.style.cursor = "grabbing";
-  }
-  arr.fantasma.style.transform =
-    "translate("+(ev.clientX-arr.dx)+"px,"+(ev.clientY-arr.dy)+"px) rotate(-5deg) scale(1.1)";
-
-  const enTablero = puntoEn(ev.clientX, ev.clientY, $("#tablero"));
-  moverHueco(enTablero ? indiceInsercion(ev.clientX, ev.clientY) : null);
-  zona.classList.toggle("viva", enTablero);
-}
-
-function puntoEn(x,y,el){
-  const r = el.getBoundingClientRect();
-  return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
-}
-
-/* índice del hueco, ignorando el imán que está siendo arrastrado */
-function indiceInsercion(x,y){
-  const hijos = [...zona.querySelectorAll(".iman")].filter(n=>n!==arr.el);
-  let i = 0;
-  for(const n of hijos){
-    const r = n.getBoundingClientRect();
-    if(y < r.top) break;                                   // estamos en una fila anterior
-    if(y <= r.bottom && x < r.left + r.width/2) break;     // misma fila, a la izquierda
-    i++;
-  }
-  return i;
-}
-
-function moverHueco(idx){
-  let h = zona.querySelector(".hueco");
-  if(idx===null){ if(h) h.remove(); if(arr) arr.idx=null; return; }
-  if(!h){ h = document.createElement("div"); h.className="hueco"; }
-  const hijos = [...zona.querySelectorAll(".iman")].filter(n=>!arr || n!==arr.el);
-  zona.insertBefore(h, hijos[idx] || null);
-  arr.idx = idx;
-}
-
-function limpiarArrastre(){
-  window.removeEventListener("pointermove", moverArrastre);
-  window.removeEventListener("pointerup", soltarArrastre);
-  window.removeEventListener("pointercancel", cancelarArrastre);
-  if(arr && arr.fantasma) arr.fantasma.remove();
-  zona.querySelectorAll(".hueco").forEach(h=>h.remove());
-  zona.classList.remove("viva");
-  document.body.style.cursor = "";
-}
-
-function cancelarArrastre(){ limpiarArrastre(); arr=null; pintar(); }
-
-function soltarArrastre(ev){
-  if(!arr) return;
-  const d = arr;
-  const enTablero = puntoEn(ev.clientX, ev.clientY, $("#tablero"));
-  const enNevera  = puntoEn(ev.clientX, ev.clientY, $("#nevera"));
-  const idx = d.idx;
-  limpiarArrastre(); arr = null;
-
-  if(!d.movido){                       // ha sido un clic → añadir / quitar
-    alternar(d.t, d.origen);
-    return;
-  }
-  if(enTablero && idx!==null && d.origen!=="nada"){
-    if(d.origen==="bandeja"){          // de la nevera al tablero
-      quitarDe(estado.bandeja, d.t);
-      estado.consulta.splice(Math.min(idx, estado.consulta.length), 0, d.t);
-    }else{
-      const actual = estado.consulta.indexOf(d.t);
-      estado.consulta.splice(actual,1);
-      estado.consulta.splice(Math.min(idx, estado.consulta.length), 0, d.t);
+function tablasDeclaradas(tk){
+  const res=[];
+  const push=t=>{ if(t && t.clase==="tabla" && !res.includes(t.tabla)) res.push(t.tabla); };
+  for(let k=0;k<tk.length;k++){
+    const t=tk[k];
+    if(t.clase==="kw" && t.kw==="JOIN") push(tk[k+1]);
+    else if(t.clase==="kw" && t.kw==="FROM"){      /* FROM a, b, c */
+      let j=k+1;
+      push(tk[j]); j++;
+      while(tk[j] && tk[j].clase==="punct" && tk[j].punct===","){ push(tk[j+1]); j+=2; }
     }
-  }else if(enNevera && d.origen==="consulta"){
-    devolverATray(d.t, true);
-  }else if(d.origen==="consulta" && !enTablero && !enNevera){
-    devolverATray(d.t, true);          // tirarlo fuera = devolverlo a la nevera
-  }else if(d.origen==="bandeja" && enTablero){
-    quitarDe(estado.bandeja, d.t);     // soltado en el tablero sin hueco calculado
-    estado.consulta.push(d.t);
   }
-  pintar();
-  comprobar();
+  return res;
+}
+function tieneCmpCols(nodo){
+  if(!nodo) return false;
+  if(nodo.type==="cmpCols") return true;
+  if(nodo.type==="and"||nodo.type==="or") return tieneCmpCols(nodo.l)||tieneCmpCols(nodo.r);
+  return false;
 }
 
-function quitarDe(lista, t){
-  const i = lista.indexOf(t);
-  if(i>-1) lista.splice(i,1);
-}
-
-function alternar(t, origen){
-  if(origen==="bandeja"){
-    quitarDe(estado.bandeja, t);
-    estado.consulta.push(t);
-  }else{
-    devolverATray(t, true);
-  }
-  pintar(); comprobar();
-}
-
-function devolverATray(t){
-  quitarDe(estado.consulta, t);
-  if(!estado.bandeja.includes(t)) estado.bandeja.push(t);
-}
-
-/* =========================================================================
-   8. VALIDADOR SQL (gramática + coherencia con el esquema)
-   ========================================================================= */
-class ErrorSQL{
-  constructor(idx,msg){ this.idx=idx; this.msg=msg; }
-}
-const ORDEN = "SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT";
-
-function analizar(tk, esq){
-  let i = 0;
-  const ast = {distinct:false, star:false, select:[], aggs:[], grupos:[],
-               orden:[], limite:null, ops:[], numConds:0, usaLike:false,
-               usaNull:false, usaBetween:false, hayWhere:false, hayHaving:false, selectIdx:[]};
-  const cur = ()=>tk[i];
-  const fin = ()=>i>=tk.length;
-  const falla = (idx,msg)=>{ throw new ErrorSQL(idx,msg); };
-  const kw = ()=> cur() && cur().clase==="kw" ? cur().kw : null;
-  const esPunct = p => cur() && cur().clase==="punct" && cur().punct===p;
-  const tipoCol = c => (esq.columnas.find(x=>x.n===c.nombre)||{}).t;
-
-  /* comprueba que la columna pertenece a la tabla de la ronda */
-  const mirarCol = (idx)=>{
-    const t = tk[idx];
-    if(!t || t.clase!=="col") return;
-    if(!esq.columnas.some(c=>c.n===t.nombre))
-      falla(idx, "La columna <b>"+escapar(t.texto)+"</b> no existe en la tabla <b>"+esq.emoji+" "+estado.tabla+"</b>. Mira el post-it azul del tablero.");
+function analizar(tk){
+  let i=0;
+  const a = {
+    select:[], star:false, distinct:false,
+    tablas:tablasDeclaradas(tk), joins:[], unida:false,
+    where:null, having:null, grupos:[], orden:[], limit:null
   };
+  const cur=()=>tk[i], fin=()=>i>=tk.length;
+  const falla=(idx,kind,msg)=>{ throw new ErrorSQL(idx,kind,msg); };
+  const kw=()=>{ const t=cur(); return t && t.clase==="kw" ? t.kw : null; };
+  const esPunct=p=>{ const t=cur(); return t && t.clase==="punct" && t.punct===p; };
+  const avanza=()=>{ i++; };
+
+  /* ---------- resolución de columnas (con contexto de tablas) ---------- */
+  function mirarCol(idx,tok){
+    let tabla=null;
+    const rara=a.tablas.find(t=>!TABLAS.includes(t));
+    if(rara) falla(idx,"tablaRara","<b>"+escapar(rara)+"</b> no es una tabla de esta práctica: aquí solo hay <b>emp</b> y <b>dept</b>.");
+    if(!a.tablas.length){
+      /* todavía no sabemos de qué tabla salen los datos */
+      const hayFrom = tk.some(x=>x.clase==="kw" && x.kw==="FROM");
+      if(hayFrom) falla(idx,"sinTabla","Las columnas salen de una tabla, y el <b>FROM</b> todavía no dice cuál: necesita el imán con el nombre de la tabla (emp o dept).");
+      falla(idx,"sinFrom","Antes de usar columnas hay que decir de qué tabla salen los datos: falta el <b>FROM</b> y la tabla.");
+    }
+    if(tok.tabla){
+      if(!a.tablas.includes(tok.tabla))
+        falla(idx,"tablaFuera","La columna <b>"+escapar(tok.texto)+"</b> pertenece a la tabla <b>"+tok.tabla+"</b>, que no aparece en el FROM de esta consulta.");
+      if(!ESQUEMA[tok.tabla].columnas.some(c=>c.n===tok.nombre))
+        falla(idx,"colRara","<b>"+escapar(tok.texto)+"</b> no es una columna de <b>"+tok.tabla+"</b>.");
+      tabla=tok.tabla;
+    }else{
+      const cand=(NOMBRES[tok.nombre]||[]).filter(c=>a.tablas.includes(c.tabla));
+      if(!cand.length){
+        if(!(NOMBRES[tok.nombre]||[]).length)
+          falla(idx,"colDesconocida","<b>"+escapar(tok.texto)+"</b> no es una columna de las tablas emp ni dept.");
+        falla(idx,"colFueraTabla","La columna <b>"+escapar(tok.texto)+"</b> no está en la tabla (o tablas) que has puesto en el FROM.");
+      }
+      if(cand.length>1)
+        falla(idx,"ambigua","<b>"+tok.nombre+"</b> existe en las dos tablas (emp y dept): hay que indicar de cuál es.");
+      tabla=cand[0].tabla;
+    }
+    return {tabla, nombre:tok.nombre, tipo:tipoDe(tabla,tok.nombre), tok, idx};
+  }
+  function tipoCompatible(ref,v){
+    const t=ref.tipo;
+    if(t==="num" && v.tipo==="txt") return "«"+escapar(ref.nombre)+"» es numérica y "+escapar(v.texto)+" está entre comillas (es texto): los tipos no cuadran.";
+    if(t==="txt" && v.tipo==="num") return "«"+escapar(ref.nombre)+"» guarda texto y "+escapar(v.texto)+" es un número: los tipos no cuadran.";
+    if(t==="fecha" && v.tipo==="num") return "«"+escapar(ref.nombre)+"» guarda fechas y "+escapar(v.texto)+" es un número: no se pueden comparar así.";
+    return null;
+  }
 
   /* ---------- SELECT ---------- */
-  if(fin()) return null;
-  if(kw()!=="SELECT") falla(0, "Toda consulta empieza por el imán <b>SELECT</b>. El orden es: "+ORDEN+".");
-  i++;
-  if(kw()==="DISTINCT"){ ast.distinct=true; i++; }
-
-  /* lista de selección */
-  while(true){
-    const t = cur();
-    if(!t) falla(i, "Después de SELECT faltan columnas, una función o el comodín <b>*</b>.");
-    const idxI = i;
-    if(t.clase==="punct" && t.punct==="*"){ ast.star=true; ast.select.push({star:true,idx:idxI}); i++; }
-    else if(t.clase==="fn"){
-      const fn = t.fn; i++;
-      if(!esPunct("(")) falla(i, "Después de <b>"+fn+"</b> va un paréntesis <b>(</b>.");
-      i++;
-      if(esPunct("*")){ i++; ast.select.push({fn,arg:"*",idx:idxI}); }
-      else if(cur() && cur().clase==="col"){
-        mirarCol(i);
-        const tipo = tipoCol(cur());
-        ast.select.push({fn, arg:cur().nombre, idx:idxI}); i++;
-        if(!tipo) falla(idxI, "Dentro de "+fn+" debe ir una columna de la tabla.");
-      }
-      else falla(i, "<b>"+fn+"</b> necesita un <b>*</b> o una columna dentro del paréntesis. Ejemplo: <b>"+fn+"(precio)</b>.");
-      if(!esPunct(")")) falla(i, "Falta cerrar el paréntesis de <b>"+fn+"</b> con <b>)</b>.");
-      i++;
-      ast.aggs.push(fn); ast.selectIdx.push(idxI);
-    }
-    else if(t.clase==="col"){
-      mirarCol(i);
-      ast.select.push({col:t.nombre, tipo:t.tipo, idx:idxI}); ast.selectIdx.push(idxI); i++;
-    }
-    else if(t.clase==="tabla") falla(i, "En el SELECT van columnas, no el nombre de la tabla <b>"+escapar(t.texto)+"</b> (eso va detrás de <b>FROM</b>).");
-    else if(t.clase==="lit") falla(i, "El valor <b>"+escapar(t.texto)+"</b> no vale como columna: en el SELECT necesitas nombres de columnas o funciones. Los valores van en el WHERE.");
-    else if(t.clase==="op") falla(i, "El operador <b>"+escapar(t.texto)+"</b> no puede ir en el SELECT: ahí solo van columnas, funciones o <b>*</b>.");
-    else if(t.clase==="kw") falla(i, "Antes de <b>"+t.kw+"</b> falta qué quieres mostrar: una columna, una función o <b>*</b>.");
-    else falla(i, "No esperaba <b>"+escapar(t.texto)+"</b> aquí.");
-
-    if(esPunct(",")){ i++; continue; }
+  if(fin()) falla(0,"inicio","La pizarra está vacía: toda consulta empieza por <b>SELECT</b>.");
+  if(kw()!=="SELECT") falla(0,"inicio","Toda consulta empieza por el imán <b>SELECT</b>.");
+  avanza();
+  if(kw()==="DISTINCT"){ a.distinct=true; avanza(); }
+  for(;;){
+    a.select.push(itemSelect());
+    if(esPunct(",")){ avanza(); continue; }
     break;
   }
-
-  /* ---------- FROM ---------- */
-  if(kw()!=="FROM"){
-    if(fin()) falla(tk.length-1, "Te falta el <b>FROM</b> con la tabla que quieres consultar ("+estado.tabla+").");
-    falla(i, "Después de las columnas va <b>FROM</b> y luego la tabla. Ahora hay <b>"+escapar(cur().texto)+"</b>.");
+  function itemSelect(){
+    const t=cur(), idxI=i;
+    if(!t) falla(i,"selectVacio","Después de <b>SELECT</b> faltan columnas, una función o el comodín <b>*</b>.");
+    if(t.clase==="punct" && t.punct==="*"){ a.star=true; avanza(); return {kind:"star",idx:idxI}; }
+    if(t.clase==="fn"){
+      const fn=t.fn; avanza();
+      if(!esPunct("(")) falla(i,"fnParen","Después de <b>"+fn+"</b> va un paréntesis.");
+      avanza();
+      let ref=null;
+      if(esPunct("*")) avanza();
+      else if(cur() && cur().clase==="col"){ ref=mirarCol(i,cur()); avanza(); }
+      else falla(i,"fnArg","Dentro de <b>"+fn+"</b> va un <b>*</b> o una columna.");
+      if(!esPunct(")")) falla(i,"fnCierra","Falta cerrar el paréntesis de <b>"+fn+"</b>.");
+      avanza();
+      return {kind:"agg", fn, ref, idx:idxI};
+    }
+    if(t.clase==="col"){
+      const ref=mirarCol(i,t); avanza();
+      return {kind:"col", ref, idx:idxI};
+    }
+    if(t.clase==="tabla") falla(i,"tablaEnSelect","En el SELECT van columnas, no el nombre de la tabla.");
+    if(t.clase==="lit") falla(i,"litEnSelect","El valor "+escapar(t.texto)+" no vale como columna en el SELECT.");
+    if(t.clase==="op") falla(i,"opEnSelect","Un operador no pinta nada en el SELECT.");
+    if(t.clase==="kw"){
+      if(t.kw==="FROM") falla(i,"selectVacio","Después de <b>SELECT</b> faltan columnas, una función o el comodín <b>*</b>.");
+      falla(i,"kwEnSelect","Antes de <b>"+t.kw+"</b> falta qué quieres mostrar.");
+    }
+    falla(i,"selectRaro","No encaja "+escapar(t.texto)+" ahí.");
   }
-  i++;
-  const tt = cur();
-  if(!tt) falla(tk.length-1, "Después de <b>FROM</b> falta la tabla.");
-  if(tt.clase!=="tabla") falla(i, "Después de <b>FROM</b> debe ir el imán naranja con el nombre de la tabla (<b>"+estado.tabla+"</b>), y hay <b>"+escapar(tt.texto)+"</b>.");
-  if(tt.tabla!==estado.tabla) falla(i, "La tabla <b>"+escapar(tt.texto)+"</b> no es la de esta ronda. Usa <b>"+estado.tabla+"</b>.");
-  i++;
+
+  /* ---------- FROM + JOIN ---------- */
+  if(kw()!=="FROM"){
+    if(fin()) falla(tk.length-1,"sinFrom","Te falta el <b>FROM</b> con la tabla de la que salen los datos.");
+    falla(i,"sinFrom","Después de las columnas va <b>FROM</b> y el nombre de la tabla.");
+  }
+  avanza();
+  const vistas=[];                             /* tablas ya escritas, en orden de lectura */
+  for(;;){
+    const t=cur();
+    if(!t || t.clase!=="tabla"){
+      if(!t) falla(tk.length-1,"sinTabla","Después de <b>FROM</b> falta la tabla.");
+      falla(i,"sinTabla","Después de <b>FROM</b> va el imán naranja con el nombre de una tabla (emp o dept).");
+    }
+    if(!TABLAS.includes(t.tabla)) falla(i,"tablaRara","<b>"+escapar(t.texto)+"</b> no es una tabla de esta práctica: aquí solo hay <b>emp</b> y <b>dept</b>.");
+    if(vistas.includes(t.tabla)) falla(i,"tablaRepetida","La tabla <b>"+t.tabla+"</b> ya estaba en el FROM: no hace falta repetirla.");
+    vistas.push(t.tabla);
+    avanza();
+    if(esPunct(",")){ avanza(); continue; }    /* FROM emp , dept */
+    break;
+  }
+  while(kw()==="INNER" || kw()==="JOIN"){
+    if(kw()==="INNER"){ avanza(); if(kw()!=="JOIN") falla(i,"innerSolo","El imán <b>INNER</b> va pegado a <b>JOIN</b>."); }
+    avanza();                                   /* JOIN */
+    const t=cur();
+    if(!t || t.clase!=="tabla") falla(i,"joinSinTabla","Después de <b>JOIN</b> va la tabla con la que se cruzan los datos.");
+    if(!TABLAS.includes(t.tabla)) falla(i,"tablaRara","<b>"+escapar(t.texto)+"</b> no es una tabla de esta práctica: aquí solo hay <b>emp</b> y <b>dept</b>.");
+    if(vistas.includes(t.tabla)) falla(i,"tablaRepetida","La tabla <b>"+t.tabla+"</b> ya estaba en la consulta: no hace falta unirla consigo misma.");
+    vistas.push(t.tabla);
+    avanza();
+    if(kw()!=="ON") falla(i,"joinSinOn","Al cruzar dos tablas hay que decir con qué se relacionan: falta <b>ON</b> y su condición.");
+    avanza();
+    const c=condicion("on");
+    if(!tieneCmpCols(c)) falla(i,"onSinRelacion","En <b>ON</b> hay que relacionar las dos tablas comparando la columna que comparten.");
+    a.joins.push(c);
+  }
 
   /* ---------- WHERE ---------- */
-  if(kw()==="WHERE"){ ast.hayWhere=true; i++; ast.numConds += condicion(false); }
+  if(kw()==="WHERE"){ avanza(); a.where=condicion("where"); }
 
   /* ---------- GROUP BY ---------- */
   if(kw()==="GROUP BY"){
-    i++;
-    while(true){
-      const c = cur();
-      if(!c || c.clase!=="col") falla(i, "Después de <b>GROUP BY</b> van columnas de la tabla, separadas por comas.");
-      mirarCol(i);
-      ast.grupos.push(c.nombre); i++;
-      if(esPunct(",")){ i++; continue; }
+    avanza();
+    for(;;){
+      const c=cur();
+      if(!c || c.clase!=="col") falla(i,"grupoCol","Después de <b>GROUP BY</b> van columnas de las tablas.");
+      a.grupos.push(mirarCol(i,c)); avanza();
+      if(esPunct(",")){ avanza(); continue; }
       break;
     }
   }
 
   /* ---------- HAVING ---------- */
   if(kw()==="HAVING"){
-    if(!ast.grupos.length)
-      falla(i-1, "<b>HAVING</b> filtra <i>grupos</i>, así que necesita un <b>GROUP BY</b> antes. Si quieres filtrar filas sueltas, usa <b>WHERE</b>.");
-    ast.hayHaving=true; i++; ast.numConds += condicion(true);
+    if(!a.grupos.length)
+      falla(i-1,"havingSinGrupo","<b>HAVING</b> filtra grupos, y sin <b>GROUP BY</b> no hay grupos que filtrar. Para filtrar filas una a una se usa <b>WHERE</b>.");
+    avanza();
+    a.having=condicion("having");
   }
 
   /* ---------- ORDER BY ---------- */
   if(kw()==="ORDER BY"){
-    i++;
-    while(true){
-      const c = cur();
-      if(!c || c.clase!=="col") falla(i, "Después de <b>ORDER BY</b> van columnas de la tabla (y opcionalmente ASC o DESC).");
-      mirarCol(i);
-      const nombre = c.nombre; i++;
-      if(kw()==="ASC" || kw()==="DESC"){ i++; }
-      ast.orden.push(nombre);
-      if(esPunct(",")){ i++; continue; }
+    avanza();
+    for(;;){
+      const t=cur();
+      if(t && t.clase==="fn"){                  /* agregado en ORDER BY: AVG(sal) DESC */
+        const fn=t.fn; avanza();
+        if(!esPunct("(")) falla(i,"ordenFnParen","Después de <b>"+fn+"</b> va un paréntesis.");
+        avanza();
+        let ref=null;
+        if(esPunct("*")) avanza();
+        else if(cur() && cur().clase==="col"){ ref=mirarCol(i,cur()); avanza(); }
+        else falla(i,"ordenFnArg","Dentro de <b>"+fn+"</b> va un <b>*</b> o una columna.");
+        if(!esPunct(")")) falla(i,"ordenFnCierra","Falta cerrar el paréntesis de <b>"+fn+"</b>.");
+        avanza();
+        let dir="ASC";
+        if(kw()==="ASC"||kw()==="DESC"){ dir=kw(); avanza(); }
+        a.orden.push({kind:"agg", fn, ref, dir});
+      }else{
+        if(!t || t.clase!=="col") falla(i,"ordenCol","Después de <b>ORDER BY</b> van columnas (y, si quieres, ASC o DESC).");
+        const ref=mirarCol(i,t); avanza();
+        let dir="ASC";
+        if(kw()==="ASC"||kw()==="DESC"){ dir=kw(); avanza(); }
+        a.orden.push({kind:"col", ref, dir});
+      }
+      if(esPunct(",")){ avanza(); continue; }
       break;
     }
   }
 
   /* ---------- LIMIT ---------- */
   if(kw()==="LIMIT"){
-    i++;
-    const n = cur();
+    avanza();
+    const n=cur();
     if(!n || n.clase!=="lit" || n.tipo!=="num")
-      falla(i, "Después de <b>LIMIT</b> va un número: cuántas filas quieres como máximo. Ejemplo: <b>LIMIT 5</b>.");
-    ast.limite = n.valor; i++;
+      falla(i,"limitNum","Después de <b>LIMIT</b> va un número: cuántas filas quieres como máximo.");
+    a.limit=n.valor; avanza();
   }
 
   /* ---------- ¿sobra algo? ---------- */
   if(!fin()){
-    const s = cur();
-    const repetida = s.clase==="kw" && ["WHERE","GROUP BY","HAVING","ORDER BY","LIMIT","SELECT","FROM"].includes(s.kw);
-    if(repetida)
-      falla(i, "<b>"+s.kw+"</b> está repetido o mal colocado. El orden correcto es: <b>"+ORDEN+"</b>.");
-    falla(i, "Sobra <b>"+escapar(s.texto)+"</b>: la consulta ya estaba completa. Recuerda el orden: <b>"+ORDEN+"</b>.");
+    const s=cur();
+    const clave = s.clase==="kw" && ["SELECT","FROM","JOIN","INNER","ON","WHERE","GROUP BY","HAVING","ORDER BY","LIMIT"].includes(s.kw);
+    if(clave) falla(i,"orden","<b>"+s.kw+"</b> está repetido o fuera de su sitio. Orden correcto: "+ORDEN_TXT+".");
+    falla(i,"sobra","Sobra el imán <b>"+escapar(s.texto)+"</b>: la consulta ya estaba completa. Orden: "+ORDEN_TXT+".");
   }
 
-  /* ---------- coherencia de agregados / GROUP BY ---------- */
-  if(ast.grupos.length){
-    const suelta = ast.select.find(s=>s.col && !ast.grupos.includes(s.col));
+  /* ---------- coherencia agregados / GROUP BY ---------- */
+  const hayAgg = a.select.some(s=>s.kind==="agg");
+  if(a.grupos.length){
+    const suelta = a.select.find(s=>s.kind==="col" && !a.grupos.some(g=>g.nombre===s.ref.nombre));
     if(suelta)
-      falla(suelta.idx, "La columna <b>"+suelta.col+"</b> está en el SELECT pero no en el GROUP BY. Con GROUP BY, cada columna debe estar agrupada o dentro de una función: <b>"+suelta.col+"</b> o <b>COUNT("+suelta.col+")</b>.");
-  }else if(ast.aggs.length){
-    const suelta = ast.select.find(s=>s.col);
+      falla(suelta.idx,"grupoFalta","La columna <b>"+suelta.ref.nombre+"</b> está en el SELECT pero no en el GROUP BY: con <b>GROUP BY</b>, cada columna debe estar agrupada o dentro de una función.");
+  }else if(hayAgg){
+    const suelta = a.select.find(s=>s.kind==="col");
     if(suelta)
-      falla(suelta.idx, "Estás mezclando un agregado (<b>"+ast.aggs[0]+"</b>) con la columna suelta <b>"+suelta.col+"</b>. Añade <b>GROUP BY "+suelta.col+"</b> o quita esa columna del SELECT.");
+      falla(suelta.idx,"aggSuelta","Estás mezclando un agregado con la columna suelta <b>"+suelta.ref.nombre+"</b>: eso pide un <b>GROUP BY</b> (o quitar esa columna del SELECT).");
   }
-  return {ok:true, ast};
 
-  /* =================== sub-parsers de condiciones =================== */
-  function condicion(enHaving){
-    let n = 0;
-    n += yLogico(enHaving);
-    while(kw()==="OR"){ ast.ops.push("OR"); i++; n += yLogico(enHaving); }
-    return n;
+  a.unida = a.joins.length>0 || tieneCmpCols(a.where);
+  return a;
+
+  /* ================= condiciones (WHERE / HAVING / ON) ================= */
+  function condicion(ctx){
+    let nodo=yLogico(ctx);
+    while(kw()==="OR"){ avanza(); nodo={type:"or", l:nodo, r:yLogico(ctx)}; }
+    return nodo;
   }
-  function yLogico(enHaving){
-    let n = 0;
-    n += simple(enHaving);
-    while(kw()==="AND"){ ast.ops.push("AND"); i++; n += simple(enHaving); }
-    return n;
+  function yLogico(ctx){
+    let nodo=simple(ctx);
+    while(kw()==="AND"){ avanza(); nodo={type:"and", l:nodo, r:simple(ctx)}; }
+    return nodo;
   }
-  function simple(enHaving){
+  function simple(ctx){
     if(esPunct("(")){
-      i++;
-      const n = condicion(enHaving);
-      if(!esPunct(")")) falla(i, "Falta cerrar el paréntesis de la condición con <b>)</b>.");
-      i++;
+      avanza();
+      const n=condicion(ctx);
+      if(!esPunct(")")) falla(i,"parenCierra","Falta cerrar el paréntesis de la condición.");
+      avanza();
       return n;
     }
-    if(kw()==="NOT") falla(i, "Aquí <b>NOT</b> solo se usa delante de LIKE, IN o BETWEEN (por ejemplo <b>NOT LIKE</b>).");
-    return predicado(enHaving);
+    return predicado(ctx);
   }
-
-  function predicado(enHaving){
-    const t = cur();
-    if(!t) falla(i, "La condición está incompleta: falta una columna y un valor.");
-    if(t.clase==="lit") falla(i, "Una condición empieza por una <b>columna</b>; has puesto el valor suelto <b>"+escapar(t.texto)+"</b>.");
-    if(t.clase==="op") falla(i, "Un operador (<b>"+escapar(t.texto)+"</b>) no puede empezar la condición: antes va la columna.");
-    if(t.clase==="kw") falla(i, "Después de <b>"+(ast.hayHaving&&enHaving?"HAVING":"WHERE")+"</b> se esperaba una columna y has puesto <b>"+t.kw+"</b>.");
-    if(t.clase==="tabla") falla(i, "En una condición se usan <b>columnas</b>, no el nombre de la tabla.");
-
-    /* --- función de agregado dentro de la condición (solo HAVING) --- */
+  function predicado(ctx){
+    const t=cur();
+    if(!t) falla(i,"condIncompleta","La condición se ha quedado incompleta.");
+    if(t.clase==="lit") falla(i,"valorPrimero","Una condición empieza por una columna; has puesto el valor "+escapar(t.texto)+" suelto.");
+    if(t.clase==="op") falla(i,"opPrimero","Un operador no puede empezar una condición: antes va la columna.");
+    if(t.clase==="tabla") falla(i,"tablaEnCond","En una condición se usan columnas, no el nombre de la tabla.");
     if(t.clase==="fn"){
-      if(!enHaving)
-        falla(i, "Las funciones de agregado (<b>"+t.fn+"</b>) no se pueden usar en <b>WHERE</b>: WHERE filtra filas una a una. Si quieres filtrar grupos, usa <b>GROUP BY ... HAVING "+t.fn+"(...)</b>.");
-      const fn = t.fn; i++;
-      if(!esPunct("(")) falla(i, "Después de <b>"+fn+"</b> va un <b>(</b>.");
-      i++;
-      if(esPunct("*")) i++;
-      else if(cur() && cur().clase==="col"){ mirarCol(i); i++; }
-      else falla(i, "<b>"+fn+"</b> necesita un <b>*</b> o una columna dentro del paréntesis.");
-      if(!esPunct(")")) falla(i, "Falta cerrar el paréntesis de <b>"+fn+"</b> con <b>)</b>.");
-      i++;
-      const o = cur();
-      if(!o || o.clase!=="op")
-        falla(i, "Después de <b>"+fn+"(...)</b> falta un operador de comparación (&gt;, &lt;, =…).");
-      i++;
-      const v = cur();
-      if(!v || v.clase!=="lit")
-        falla(i, "Después del operador <b>"+escapar(o.texto)+"</b> falta un número (por ejemplo <b>3</b>).");
-      i++;
-      ast.ops.push(o.op); ast.aggs.push(fn);
-      return 1;
+      if(ctx==="where")
+        falla(i,"aggEnWhere","Las funciones de agregado resumen grupos enteros y no funcionan en <b>WHERE</b>: para filtrar por un agregado se agrupa y se usa <b>HAVING</b>.");
+      if(ctx==="on") falla(i,"aggEnOn","Dentro de <b>ON</b> se comparan columnas de las dos tablas; un agregado ahí no tiene sentido.");
+      return predicadoAgg(t);
     }
-
-    /* --- columna --- */
-    if(t.clase!=="col") falla(i, "No entiendo <b>"+escapar(t.texto)+"</b> en esta condición.");
-    mirarCol(i);
-    const col = t; const tipo = tipoCol(col);
-    if(enHaving && ast.grupos.length && !ast.grupos.includes(col.nombre))
-      falla(i, "En <b>HAVING</b> solo puedes usar funciones de agregado o columnas del GROUP BY. <b>"+col.nombre+"</b> no está agrupada.");
-    i++;
-    const n = cur();
-    if(!n) falla(i, "Después de <b>"+col.nombre+"</b> falta una comparación (<b>=</b>, <b>&gt;</b>, <b>&lt;</b>…) o una condición (<b>IS NULL</b>, <b>LIKE</b>, <b>IN (…)</b>, <b>BETWEEN … AND …</b>).");
-
-    /* comparación */
-    if(n.clase==="op"){
-      i++;
-      const v = cur();
-      if(!v) falla(i, "Después del operador <b>"+escapar(n.texto)+"</b> falta un valor o una columna.");
+    if(t.clase!=="col") falla(i,"condRara","No encaja "+escapar(t.texto)+" en esta condición.");
+    const ref=mirarCol(i,t), idxCol=i; avanza();
+    let negado=false;
+    if(kw()==="NOT"){
+      const sig=tk[i+1];
+      if(sig && sig.clase==="kw" && ["LIKE","IN","BETWEEN"].includes(sig.kw)){ negado=true; avanza(); }
+      else falla(i,"notSolo","El imán <b>NOT</b> aquí solo acompaña a <b>LIKE</b>, <b>IN</b> o <b>BETWEEN</b>.");
+    }
+    const m=cur();
+    if(!m) falla(i,"condIncompleta","A <b>"+ref.nombre+"</b> le falta la comparación.");
+    if(kw()==="AND"||kw()==="OR")
+      falla(i,"faltaCmp","A <b>"+ref.nombre+"</b> le falta la comparación antes de <b>"+kw()+"</b>.");
+    if(m.clase==="op"){
+      avanza();
+      const v=cur();
+      if(!v) falla(i,"valorFalta","Después del operador <b>"+m.op+"</b> falta el valor con el que comparas.");
       if(v.clase==="lit"){
-        const mal = comprobarTipos(col, v);
-        if(mal) falla(i, mal);
-        ast.ops.push(n.op); i++;
-      }else if(v.clase==="col"){
-        mirarCol(i);
-        if(tipoCol(v)!==tipo)
-          falla(i, "No puedes comparar <b>"+col.nombre+"</b> ("+etiqueta(tipo)+") con <b>"+v.nombre+"</b> ("+etiqueta(tipoCol(v))+").");
-        ast.ops.push(n.op); i++;
-      }else if(v.clase==="fn"){
-        if(!enHaving) falla(i, "Las funciones de agregado no van en WHERE. Usa <b>GROUP BY ... HAVING</b> para filtrar por agregados.");
-        return 1 + predicadoHaving(v);
-      }else if(v.clase==="kw" && v.kw==="NULL"){
-        falla(i, "Para comparar con nada se usa <b>IS NULL</b>, no <b>"+escapar(n.texto)+" NULL</b>.");
-      }else falla(i, "Después de <b>"+escapar(n.texto)+"</b> se esperaba un valor o una columna, y hay <b>"+escapar(v.texto)+"</b>.");
-      return 1;
+        const mal=tipoCompatible(ref,v); if(mal) falla(i,"tipo",mal);
+        avanza();
+        return {type:"cmp", ref, op:m.op, valor:v, tokIdx:idxCol};
+      }
+      if(v.clase==="col"){ const ref2=mirarCol(i,v); avanza();
+        return {type:"cmpCols", ref, op:m.op, ref2, tokIdx:idxCol};
+      }
+      if(v.clase==="kw" && v.kw==="NULL")
+        falla(i,"igualNull","Un hueco vacío no se compara con <b>"+m.op+"</b>: para eso está <b>IS NULL</b>.");
+      falla(i,"valorFalta2","Después de <b>"+m.op+"</b> se esperaba un valor o una columna.");
     }
-
-    /* IS [NOT] NULL */
-    if(n.clase==="kw" && n.kw==="IS"){
-      i++;
-      if(kw()==="NOT") i++;
-      if(kw()!=="NULL") falla(i, "Después de <b>IS"+(kw()?" ":"")+"</b> debe ir <b>NULL</b>: la forma correcta es <b>IS NULL</b> o <b>IS NOT NULL</b>.");
-      i++; ast.usaNull=true; return 1;
-    }
-
-    /* NOT opcional delante de LIKE / IN / BETWEEN */
-    let negado = false, nk = n;
-    if(nk.clase==="kw" && nk.kw==="NOT"){
-      negado = true; i++; nk = cur();
-      if(!nk) falla(i, "Después de <b>NOT</b> falta <b>LIKE</b>, <b>IN</b> o <b>BETWEEN</b>.");
-    }
-
-    /* LIKE / NOT LIKE */
-    if(nk.clase==="kw" && nk.kw==="LIKE"){
-      i++;
-      const v = cur();
+    if(kw()==="LIKE"){
+      avanza();
+      const v=cur();
       if(!v || v.clase!=="lit" || v.tipo!=="txt")
-        falla(i, "<b>LIKE</b> se usa con un texto entre comillas, como <b>'A%'</b> (el % significa «lo que sea»).");
-      if(tipo!=="txt")
-        falla(i, "<b>LIKE</b> solo funciona con columnas de texto: <b>"+col.nombre+"</b> es "+etiqueta(tipo)+". Usa un operador como &gt; o = .");
-      ast.usaLike=true; i++; return 1;
+        falla(i,"likeValor","<b>LIKE</b> se usa con un patrón de texto entre comillas, como <b>'1981%'</b>.");
+      if(ref.tipo==="num") falla(i,"likeNum","<b>LIKE</b> trabaja con texto o fechas, y <b>"+ref.nombre+"</b> es "+etiquetaTipo(ref.tipo)+".");
+      avanza();
+      return {type:"like", ref, patr:v.valor, neg:negado, tokIdx:idxCol};
     }
-
-    /* IN / NOT IN */
-    if(nk.clase==="kw" && nk.kw==="IN"){
-      i++;
-      if(!esPunct("(")) falla(i, "Después de <b>IN</b> va un paréntesis con la lista de valores: <b>IN (10, 20, 30)</b>.");
-      i++;
-      while(true){
-        const v = cur();
-        if(!v || v.clase!=="lit") falla(i, "Dentro de <b>IN (…)</b> van valores separados por comas (números o textos, del tipo de la columna).");
-        const mal = comprobarTipos(col, v); if(mal) falla(i, mal);
-        i++;
-        if(esPunct(",")){ i++; continue; }
+    if(kw()==="IS"){
+      avanza();
+      let neg=false;
+      if(kw()==="NOT"){ neg=true; avanza(); }
+      if(kw()!=="NULL") falla(i,"isNull","Después de <b>IS</b> solo puede venir <b>NULL</b> (o <b>NOT NULL</b>).");
+      avanza();
+      return {type:"isnull", ref, neg, tokIdx:idxCol};
+    }
+    if(kw()==="IN"){
+      avanza();
+      if(!esPunct("(")) falla(i,"inParen","Después de <b>IN</b> va la lista de valores entre paréntesis.");
+      avanza();
+      const valores=[];
+      for(;;){
+        const v=cur();
+        if(!v || v.clase!=="lit") falla(i,"inValores","Dentro de <b>IN (…)</b> van valores separados por comas.");
+        const mal=tipoCompatible(ref,v); if(mal) falla(i,"tipo",mal);
+        valores.push(v.valor); avanza();
+        if(esPunct(",")){ avanza(); continue; }
         break;
       }
-      if(!esPunct(")")) falla(i, "Falta cerrar el paréntesis de <b>IN (…)</b> con <b>)</b>.");
-      i++; return 1;
+      if(!esPunct(")")) falla(i,"inCierra","Falta cerrar el paréntesis de <b>IN (…)</b>.");
+      avanza();
+      return {type:"in", ref, valores, neg:negado, tokIdx:idxCol};
     }
-
-    /* BETWEEN / NOT BETWEEN */
-    if(nk.clase==="kw" && nk.kw==="BETWEEN"){
-      i++;
-      const a = cur();
-      if(!a || a.clase!=="lit") falla(i, "Después de <b>BETWEEN</b> va el valor mínimo.");
-      const malA = comprobarTipos(col, a); if(malA) falla(i, malA);
-      i++;
-      if(kw()!=="AND") falla(i, "<b>BETWEEN</b> necesita la forma <b>BETWEEN mínimo AND máximo</b>.");
-      i++;
-      const b = cur();
-      if(!b || b.clase!=="lit") falla(i, "Después de <b>AND</b> va el valor máximo.");
-      const malB = comprobarTipos(col, b); if(malB) falla(i, malB);
-      i++; ast.usaBetween=true; return 1;
+    if(kw()==="BETWEEN"){
+      avanza();
+      const mn=cur();
+      if(!mn || mn.clase!=="lit") falla(i,"betweenMin","Después de <b>BETWEEN</b> va el valor mínimo.");
+      const mal1=tipoCompatible(ref,mn); if(mal1) falla(i,"tipo",mal1);
+      avanza();
+      if(kw()!=="AND") falla(i,"betweenAnd","<b>BETWEEN</b> necesita la forma <b>BETWEEN mínimo AND máximo</b>.");
+      avanza();
+      const mx=cur();
+      if(!mx || mx.clase!=="lit") falla(i,"betweenMax","Después del AND de <b>BETWEEN</b> va el valor máximo.");
+      const mal2=tipoCompatible(ref,mx); if(mal2) falla(i,"tipo",mal2);
+      avanza();
+      return {type:"between", ref, min:mn.valor, max:mx.valor, neg:negado, tokIdx:idxCol};
     }
-
-    if(negado) falla(i, "Después de <b>NOT</b> aquí solo vale <b>LIKE</b>, <b>IN</b> o <b>BETWEEN</b>.");
-
-    if(n.clase==="kw" && n.kw==="AND")
-      falla(i, "Falta la comparación de <b>"+col.nombre+"</b>: por ejemplo <b>"+col.nombre+" &gt; 10</b>.");
-    falla(i, "Después de <b>"+col.nombre+"</b> no entiendo <b>"+escapar(n.texto)+"</b>. Prueba con un operador (=, &gt;, &lt;…), <b>IS NULL</b>, <b>LIKE</b>, <b>IN (…)</b> o <b>BETWEEN … AND …</b>.");
+    falla(i,"condRara","Después de <b>"+ref.nombre+"</b> no encaja <b>"+escapar(m.texto)+"</b>.");
   }
-
-  /* un agregado comparado dentro de HAVING junto a otra condición */
-  function predicadoHaving(vTok){
-    const fn = vTok.fn;
-    if(!esPunct("(")) falla(i, "Después de <b>"+fn+"</b> va un <b>(</b>.");
-    i++;
-    if(esPunct("*")) i++;
-    else if(cur() && cur().clase==="col"){ mirarCol(i); i++; }
-    else falla(i, "<b>"+fn+"</b> necesita un <b>*</b> o una columna.");
-    if(!esPunct(")")) falla(i, "Falta cerrar el paréntesis de <b>"+fn+"</b>.");
-    i++;
-    const o = cur();
-    if(!o || o.clase!=="op") falla(i, "Después de <b>"+fn+"(...)</b> falta un operador.");
-    i++;
-    const val = cur();
-    if(!val || val.clase!=="lit") falla(i, "Después del operador falta un valor.");
-    i++; ast.ops.push(o.op); ast.aggs.push(fn);
-    return 1;
-  }
-
-  function comprobarTipos(col, lit){
-    if(col.tipo==="num" && lit.tipo!=="num")
-      return "<b>"+col.nombre+"</b> es numérica y <b>"+escapar(lit.texto)+"</b> es texto. Compara números con números (sin comillas).";
-    if(col.tipo==="txt" && lit.tipo==="num")
-      return "<b>"+col.nombre+"</b> es de texto y <b>"+escapar(lit.texto)+"</b> es un número. Los textos van entre comillas: <b>'"+escapar(lit.texto)+"'</b>.";
-    return null;
+  function predicadoAgg(tokFn){
+    const fn=tokFn.fn, idxFn=i; avanza();
+    if(!esPunct("(")) falla(i,"fnParen","Después de <b>"+fn+"</b> va un paréntesis.");
+    avanza();
+    let ref=null;
+    if(esPunct("*")) avanza();
+    else if(cur() && cur().clase==="col"){ ref=mirarCol(i,cur()); avanza(); }
+    else falla(i,"fnArg","Dentro de <b>"+fn+"</b> va un <b>*</b> o una columna.");
+    if(!esPunct(")")) falla(i,"fnCierra","Falta cerrar el paréntesis de <b>"+fn+"</b>.");
+    avanza();
+    const o=cur();
+    if(!o || o.clase!=="op") falla(i,"aggOp","Después de <b>"+fn+"(…)</b> falta el operador de comparación.");
+    avanza();
+    const v=cur();
+    if(!v || v.clase!=="lit") falla(i,"aggValor","Después del operador falta el valor con el que comparas el resultado del agregado.");
+    avanza();
+    return {type:"cmpAgg", fn, ref, op:o.op, valor:v, tokIdx:idxFn};
   }
 }
-const etiqueta = t => t==="num" ? "numérica" : "de texto";
 
 /* =========================================================================
-   9. COMPROBACIÓN EN VIVO
+   8. COMPROBADORES SEMÁNTICOS (H) — para no desvelar la solución,
+      los mensajes de fallo son genéricos y las pistas van aparte
    ========================================================================= */
-let temporizadorFin = null;
+const H = {
+  hay(nodo,pred){
+    if(!nodo) return false;
+    if(pred(nodo)) return true;
+    if(nodo.type==="and"||nodo.type==="or") return H.hay(nodo.l,pred) || H.hay(nodo.r,pred);
+    return false;
+  },
+  nodos(nodo,out){
+    out=out||[];
+    if(!nodo) return out;
+    out.push(nodo);
+    if(nodo.type==="and"||nodo.type==="or"){ H.nodos(nodo.l,out); H.nodos(nodo.r,out); }
+    return out;
+  },
+  soloTabla:(a,tb)=> a.tablas.length===1 && a.tablas[0]===tb && a.joins.length===0,
+  tablasIncluyen:(a,...ts)=> ts.every(t=>a.tablas.includes(t)),
+  unidas:a=> !!a.unida,
+  sel:(a,n)=> a.select.some(s=>s.kind==="col" && s.ref.nombre===n),
+  selCount:(a,n)=> a.select.filter(s=>s.kind!=="star").length===n,
+  star:a=> a.select.some(s=>s.kind==="star"),
+  agg:(a,fn,arg)=> a.select.some(s=>s.kind==="agg" && s.fn===fn && (!arg || (s.ref && s.ref.nombre===arg))),
+  distinct:a=> a.distinct,
+  grupo:(a,n)=> a.grupos.some(g=>g.nombre===n),
+  hayAgg:a=> a.select.some(s=>s.kind==="agg"),
+  cmp:(a,n,op,v)=> H.hay(a.where, p=>p.type==="cmp" && p.ref.nombre===n && p.op===op && p.valor.valor===v),
+  cmpCols:(a,n1,n2)=> H.hay(a.where, p=>p.type==="cmpCols" &&
+        ((p.ref.nombre===n1 && p.ref2.nombre===n2)||(p.ref.nombre===n2 && p.ref2.nombre===n1))),
+  like:(a,n,prefijo)=> H.hay(a.where, p=>p.type==="like" && p.ref.nombre===n && String(p.patr).startsWith(prefijo)),
+  enLista:(a,n,vals)=> H.hay(a.where, p=>p.type==="in" && p.ref.nombre===n && (vals||[]).every(v=>p.valores.includes(v))),
+  between:(a,n,mn,mx)=> H.hay(a.where, p=>p.type==="between" && p.ref.nombre===n && p.min===mn && p.max===mx),
+  isnull:(a,n,neg)=> H.hay(a.where, p=>p.type==="isnull" && p.ref.nombre===n && (neg===undefined || p.neg===neg)),
+  notnull:(a,n)=> H.hay(a.where, p=>p.type==="isnull" && p.ref.nombre===n && p.neg)
+};
 
+/* =========================================================================
+   9. PISTAS POR TIPO DE FALLO (reglas, nunca la solución del ejercicio)
+   ========================================================================= */
+const AYUDA = {
+  inicio:"El orden de las cláusulas lo tienes en el post-it amarillo del tablero: se empieza por SELECT.",
+  selectVacio:"Detrás de SELECT hay que decir qué quieres ver: columnas, una función o el comodín <b>*</b>.",
+  selectFin:"Las columnas del SELECT se separan con comas y la lista termina cuando empieza el FROM.",
+  sinFrom:"Toda consulta necesita decir de qué tabla salen los datos.",
+  sinTabla:"El FROM va seguido del nombre de una tabla (en esta práctica solo hay emp y dept).",
+  kwEnSelect:"En el SELECT van columnas o funciones, no cláusulas.",
+  litEnSelect:"Un valor suelto no ocupa el lugar de una columna.",
+  opEnSelect:"Un operador no pinta nada en el SELECT.",
+  tablaEnSelect:"En el SELECT van columnas, no el nombre de la tabla.",
+  selectRaro:"Repasa qué puede aparecer en la lista del SELECT.",
+  fnParen:"Las funciones se escriben FUNCIÓN(lo_que_sea).",
+  fnCierra:"Todo paréntesis que se abre tiene que cerrarse.",
+  fnArg:"Dentro de una función va un <b>*</b> o el nombre de una columna.",
+  aggEnWhere:"Los agregados (COUNT, SUM, AVG…) resumen grupos enteros: no filtran filas, así que no van en WHERE.",
+  aggEnOn:"En ON se comparan columnas de las dos tablas; un agregado ahí no tiene sentido.",
+  havingSinGrupo:"HAVING filtra grupos, y sin agrupar no hay grupos.",
+  grupoFalta:"Con GROUP BY, cada columna del SELECT debe estar agrupada o dentro de un agregado.",
+  aggSuelta:"Si un agregado convive con una columna suelta en el SELECT, hace falta GROUP BY.",
+  grupoCol:"GROUP BY necesita columnas para formar los grupos.",
+  ordenCol:"ORDER BY ordena por columnas (o por el resultado de un agregado).",
+  ordenFnParen:"Después del nombre de la función va su paréntesis.",
+  ordenFnArg:"Dentro de la función va un <b>*</b> o una columna.",
+  ordenFnCierra:"Repasa los paréntesis de esa función.",
+  limitNum:"LIMIT se lleva un número: cuántas filas quieres como máximo.",
+  orden:"Repasa el orden de las cláusulas en el post-it amarillo del tablero.",
+  sobra:"Hay imanes de más: la consulta ya estaba completa antes de ellos.",
+  notSolo:"El imán NOT solo acompaña a LIKE, IN o BETWEEN.",
+  likeValor:"LIKE trabaja con patrones de texto entre comillas.",
+  likeNum:"LIKE es para texto o fechas; para números se usan operadores de comparación.",
+  isNull:"Para comprobar valores vacíos existen IS NULL e IS NOT NULL.",
+  igualNull:"Con un valor vacío (NULL) no se usa el signo igual.",
+  inParen:"IN se escribe con su lista de valores entre paréntesis.",
+  inValores:"Dentro de IN (…) van valores separados por comas.",
+  inCierra:"Falta cerrar el paréntesis de la lista.",
+  betweenMin:"BETWEEN empieza por el valor mínimo.",
+  betweenAnd:"BETWEEN necesita la forma BETWEEN mínimo AND máximo.",
+  betweenMax:"Después del AND de BETWEEN va el valor máximo.",
+  valorPrimero:"Cada condición se escribe columna primero, luego el operador y luego el valor.",
+  opPrimero:"Un operador no puede empezar una condición: antes va la columna.",
+  condRara:"Cada condición se escribe columna + operador + valor.",
+  condIncompleta:"Esa condición se ha quedado a medias.",
+  faltaCmp:"Faltó la comparación de una columna antes del AND u OR.",
+  tablaEnCond:"En las condiciones se usan columnas, no el nombre de la tabla.",
+  valorFalta:"Todo operador de comparación necesita un valor a su derecha.",
+  valorFalta2:"A la derecha del operador va un valor o una columna.",
+  aggOp:"Después del agregado hace falta el operador de comparación.",
+  aggValor:"Después del operador va el valor con el que comparas.",
+  tipo:"Repasa los tipos: los números van sin comillas y los textos entre comillas (mira el post-it azul).",
+  colDesconocida:"Las columnas tienen que existir en las tablas de la práctica.",
+  colRara:"Esa columna no está en esa tabla.",
+  colFueraTabla:"Solo puedes usar columnas de la tabla o tablas que hayas puesto en el FROM.",
+  ambigua:"Cuando las dos tablas tienen una columna con el mismo nombre, hay que decir de qué tabla es.",
+  tablaFuera:"Has usado una columna de una tabla que no aparece en el FROM.",
+  joinSinTabla:"Después de JOIN va la tabla con la que se cruzan los datos.",
+  innerSolo:"INNER acompaña a JOIN, van juntos.",
+  joinSinOn:"Al cruzar dos tablas hay que explicar con qué se relacionan.",
+  onSinRelacion:"En ON se compara la columna que comparten las dos tablas.",
+  parenCierra:"Revisa los paréntesis: hay alguno sin cerrar.",
+  tablaRara:"En esta práctica solo hay dos tablas: emp y dept.",
+  tablaRepetida:"Una misma tabla no se une consigo misma en esta práctica."
+};
+
+/* =========================================================================
+   10. PINTADO
+   ========================================================================= */
+const zona = $("#zona"), bandejaEl = $("#bandeja");
+const registro = id => (estado.registro[id] = estado.registro[id] || {completado:false, pistas:0});
+const completados = ()=> EJERCICIOS.filter(e=>registro(e.id).completado).length;
+const ejercicioActual = ()=> EJERCICIOS.find(e=>e.id===estado.ejercicio) || null;
+
+function pintarEsquema(){
+  const cont = $("#esquema");
+  cont.innerHTML = TABLAS.map(tb=>{
+    const esq = ESQUEMA[tb];
+    return '<div class="tabla"><h4>'+esq.emoji+' '+tb+'</h4><ul>'+
+      esq.columnas.map(c=>'<li'+(c.pk?' class="pk"':'')+'>'+c.n+' <span class="t">'+etiquetaTipo(c.t)+
+        (c.pk?" · PK":c.fk?" · FK → dept":"")+'</span></li>').join("")+
+      '</ul></div>';
+  }).join("");
+}
+
+function crearIman(t, origen){
+  const el=document.createElement("div");
+  el.className="iman "+claseCss(t);
+  el.textContent=t.texto;
+  el.style.setProperty("--giro", (t.giro||0).toFixed(2)+"deg");
+  el.dataset.id=t.id;
+  el.tabIndex=0;
+  el.setAttribute("role","button");
+  el.setAttribute("aria-label",(origen==="bandeja"?"Añadir ":"Quitar ")+t.texto);
+  el.addEventListener("pointerdown",ev=>iniciarArrastre(ev,t,origen,el));
+  el.addEventListener("keydown",ev=>{
+    if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); alternar(t,origen); }
+  });
+  return el;
+}
+
+function pintar(){
+  /* bandeja */
+  bandejaEl.innerHTML="";
+  GRUPOS.forEach(g=>{
+    const lista=estado.bandeja.filter(t=>t.grupo===g.id).sort((a,b)=>a.orden-b.orden);
+    const sec=document.createElement("div"); sec.className="grupo";
+    const h=document.createElement("h2"); h.innerHTML=g.icono+" "+g.nombre;
+    const fila=document.createElement("div"); fila.className="fila"; fila.dataset.grupo=g.id;
+    lista.forEach(t=>fila.appendChild(crearIman(t,"bandeja")));
+    sec.append(h,fila);
+    bandejaEl.appendChild(sec);
+  });
+  /* consulta */
+  [...zona.querySelectorAll(".iman,.hueco")].forEach(n=>n.remove());
+  $("#zona-vacia").style.display = estado.consulta.length ? "none" : "";
+  estado.consulta.forEach(t=>zona.appendChild(crearIman(t,"consulta")));
+  pintarEco();
+}
+
+function pintarEco(){
+  const code=$("#eco");
+  if(!estado.consulta.length){ code.innerHTML="—"; return; }
+  code.innerHTML=estado.consulta.map(t=>{
+    let c="op";
+    if(t.clase==="kw") c="kw"; else if(t.clase==="tabla") c="tb";
+    else if(t.clase==="col") c="cl"; else if(t.clase==="lit") c="li";
+    else if(t.clase==="fn") c="fn";
+    return '<span class="'+c+'">'+escapar(t.texto)+'</span>';
+  }).join(" ");
+}
+
+function mostrarEstado(tipo,html){
+  const el=$("#estado");
+  el.className="estado"+(tipo==="error"?" error":tipo==="bien"?" bien":"");
+  el.querySelector(".ico").textContent = tipo==="error"?"❌":tipo==="bien"?"✅":"🧲";
+  $("#estado-txt").innerHTML=html;
+}
 function marcarError(idx){
   [...zona.querySelectorAll(".iman")].forEach(n=>n.classList.remove("mal"));
-  if(idx===undefined || idx===null) return;
-  const tok = estado.consulta[idx];
-  if(!tok) return;
-  const el = zona.querySelector('.iman[data-id="'+tok.id+'"]');
-  if(el){ el.classList.add("mal"); }
+  if(idx===undefined||idx===null||!estado.consulta.length) return;
+  /* si el fallo está al final (falta algo), se marca el último imán colocado */
+  const t=estado.consulta[Math.min(idx, estado.consulta.length-1)];
+  if(!t) return;
+  const el=zona.querySelector('.iman[data-id="'+t.id+'"]');
+  if(el) el.classList.add("mal");
+}
+function pintarPistasMini(){
+  const ej=ejercicioActual(), cont=$("#pistas-mini");
+  if(!ej){ cont.innerHTML=""; return; }
+  const usadas=registro(ej.id).pistas;
+  cont.innerHTML = "pistas usadas: " + [0,1,2].map(k=>'<i class="'+(k<usadas?"on":"")+'"></i>').join("");
 }
 
-function comprobar(){
-  pintarEco();
-  if(!estado.consulta.length){
-    marcarError(null);
-    mostrarEstado("idle", "Coge un imán de la nevera y empieza por <b>SELECT</b>. Se comprueba sola cada vez que colocas una pieza.");
-    return;
+/* =========================================================================
+   11. ARRASTRE (ratón, dedo y lápiz)
+   ========================================================================= */
+let arr=null;
+function iniciarArrastre(ev,t,origen,el){
+  if(ev.pointerType==="mouse" && ev.button!==0) return;
+  ev.preventDefault();
+  const r=el.getBoundingClientRect();
+  arr={t,origen,el,dx:ev.clientX-r.left,dy:ev.clientY-r.top,x0:ev.clientX,y0:ev.clientY,
+       movido:false,fantasma:null,idx:null,id:ev.pointerId};
+  window.addEventListener("pointermove",moverArrastre);
+  window.addEventListener("pointerup",soltarArrastre);
+  window.addEventListener("pointercancel",cancelarArrastre);
+}
+function moverArrastre(ev){
+  if(!arr||ev.pointerId!==arr.id) return;
+  if(!arr.movido){
+    if(Math.hypot(ev.clientX-arr.x0,ev.clientY-arr.y0)<7) return;
+    arr.movido=true;
+    const f=arr.el.cloneNode(true);
+    f.classList.add("fantasma");
+    f.style.width=arr.el.offsetWidth+"px"; f.style.height=arr.el.offsetHeight+"px";
+    document.body.appendChild(f);
+    arr.fantasma=f;
+    arr.el.classList.add("arrastrando");
+    document.body.style.cursor="grabbing";
   }
-  if(estado.bloqueado) return;
-
-  let r;
-  try{
-    r = analizar(estado.consulta, estado.esquema);
-  }catch(e){
-    if(e instanceof ErrorSQL){          // error de sintaxis/coherencia → pista al alumno
-      marcarError(e.idx);
-      mostrarEstado("error", e.msg);
-      return;
+  arr.fantasma.style.transform="translate("+(ev.clientX-arr.dx)+"px,"+(ev.clientY-arr.dy)+"px) rotate(-5deg) scale(1.1)";
+  const enTablero=puntoEn(ev.clientX,ev.clientY,$("#tablero"));
+  moverHueco(enTablero?indiceInsercion(ev.clientX,ev.clientY):null);
+  zona.classList.toggle("viva",enTablero);
+}
+function puntoEn(x,y,el){
+  const r=el.getBoundingClientRect();
+  return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
+}
+function indiceInsercion(x,y){
+  const hijos=[...zona.querySelectorAll(".iman")].filter(n=>n!==arr.el);
+  let i=0;
+  for(const n of hijos){
+    const r=n.getBoundingClientRect();
+    if(y<r.top) break;
+    if(y<=r.bottom && x<r.left+r.width/2) break;
+    i++;
+  }
+  return i;
+}
+function moverHueco(idx){
+  let h=zona.querySelector(".hueco");
+  if(idx===null){ if(h) h.remove(); if(arr) arr.idx=null; return; }
+  if(!h){ h=document.createElement("div"); h.className="hueco"; }
+  const hijos=[...zona.querySelectorAll(".iman")].filter(n=>!arr||n!==arr.el);
+  zona.insertBefore(h,hijos[idx]||null);
+  arr.idx=idx;
+}
+function limpiarArrastre(){
+  window.removeEventListener("pointermove",moverArrastre);
+  window.removeEventListener("pointerup",soltarArrastre);
+  window.removeEventListener("pointercancel",cancelarArrastre);
+  if(arr&&arr.fantasma) arr.fantasma.remove();
+  zona.querySelectorAll(".hueco").forEach(h=>h.remove());
+  zona.classList.remove("viva");
+  document.body.style.cursor="";
+}
+function cancelarArrastre(){ limpiarArrastre(); arr=null; pintar(); }
+function soltarArrastre(ev){
+  if(!arr) return;
+  const d=arr, idx=d.idx;
+  const enTablero=puntoEn(ev.clientX,ev.clientY,$("#tablero"));
+  const enNevera=puntoEn(ev.clientX,ev.clientY,$("#nevera"));
+  limpiarArrastre(); arr=null;
+  if(!d.movido){ alternar(d.t,d.origen); return; }
+  if(enTablero&&idx!==null){
+    if(d.origen==="bandeja"){
+      quitarDe(estado.bandeja,d.t);
+      estado.consulta.splice(Math.min(idx,estado.consulta.length),0,d.t);
+    }else{
+      const actual=estado.consulta.indexOf(d.t);
+      estado.consulta.splice(actual,1);
+      estado.consulta.splice(Math.min(idx,estado.consulta.length),0,d.t);
     }
-    console.error(e);
-    mostrarEstado("error","Algo se ha roto en el corrector: "+e.message);
+  }else if(enNevera&&d.origen==="consulta"){ devolverATray(d.t); }
+  else if(d.origen==="consulta"&&!enTablero&&!enNevera){ devolverATray(d.t); }
+  else if(d.origen==="bandeja"&&enTablero){ quitarDe(estado.bandeja,d.t); estado.consulta.push(d.t); }
+  pintar();
+}
+function quitarDe(lista,t){ const i=lista.indexOf(t); if(i>-1) lista.splice(i,1); }
+function alternar(t,origen){
+  if(origen==="bandeja"){ quitarDe(estado.bandeja,t); estado.consulta.push(t); }
+  else devolverATray(t);
+  pintar();
+}
+function devolverATray(t){ quitarDe(estado.consulta,t); if(!estado.bandeja.includes(t)) estado.bandeja.push(t); }
+
+/* =========================================================================
+   12. EJERCICIOS: cargar, menú y progreso
+   ========================================================================= */
+function cargarEjercicio(id){
+  const ej=EJERCICIOS.find(e=>e.id===id);
+  if(!ej) return;
+  estado.ejercicio=id;
+  estado.bloqueado=false;
+  estado.yaGanado=false;
+  clearTimeout(estado.timer);
+  estado.bandeja=estado.bandeja.concat(estado.consulta);
+  estado.consulta=[];
+  $("#pista-caja").classList.remove("abierta");
+  $("#pista-caja").innerHTML="";
+  pintar();
+  pintarCabeceraEjercicio();
+  marcarError(null);
+  mostrarEstado("idle","Monta la consulta con los imanes y pulsa <b>✅ Validar</b> cuando la tengas.");
+  cerrarMenu();
+}
+function pintarCabeceraEjercicio(){
+  const ej=ejercicioActual(), card=$("#ej-card");
+  if(!ej){
+    card.style.setProperty("--niv","#64748b");
+    $("#ej-nivel").textContent="Sin ejercicio";
+    $("#ej-num").textContent="—";
+    $("#ej-enun").innerHTML="Pulsa <b>📚 Ejercicios</b> para elegir una actividad.";
+    pintarPistasMini();
     return;
   }
-  if(r === null){
-    mostrarEstado("idle","Empieza por <b>SELECT</b>.");
+  const niv=nivelDe(ej.nivel);
+  card.style.setProperty("--niv",niv.color);
+  $("#ej-nivel").textContent="Nivel "+ej.nivel+" · "+niv.nombre;
+  $("#ej-num").textContent="Ejercicio "+(EJERCICIOS.indexOf(ej)+1)+" de "+EJERCICIOS.length;
+  $("#ej-enun").innerHTML=ej.enunciado;
+  pintarPistasMini();
+}
+function abreMenu(){ $("#menu-ej").classList.add("abierto"); $("#fondo-menu").classList.add("abierto"); pintarMenu(); }
+function cerrarMenu(){ $("#menu-ej").classList.remove("abierto"); $("#fondo-menu").classList.remove("abierto"); }
+function pintarMenu(){
+  const cont=$("#menu-lista");
+  cont.innerHTML="";
+  const hechos=completados();
+  const resumen=document.createElement("div");
+  resumen.className="todo-hecho";
+  resumen.innerHTML = hechos===EJERCICIOS.length
+    ? "🎓 ¡Has resuelto los "+EJERCICIOS.length+" ejercicios! Repítelos sin pistas para afianzar."
+    : "Progreso: <b>"+hechos+"/"+EJERCICIOS.length+"</b> ejercicios resueltos. Los colores van del verde (más fácil) al rojo (más difícil).";
+  cont.appendChild(resumen);
+  NIVELES.forEach(niv=>{
+    const ejs=EJERCICIOS.filter(e=>e.nivel===niv.n);
+    if(!ejs.length) return;
+    const bloq=document.createElement("div"); bloq.className="nivel-bloque";
+    bloq.innerHTML='<div class="nivel-cab" style="--niv:'+niv.color+'">'+
+      '<span class="nivel-pill">Nivel '+niv.n+' · '+niv.nombre+'</span>'+
+      '<span class="lin"></span>'+
+      '<span class="cuenta">'+ejs.filter(e=>registro(e.id).completado).length+'/'+ejs.length+'</span></div>';
+    const grid=document.createElement("div"); grid.className="ejs";
+    ejs.forEach(e=>{
+      const n=EJERCICIOS.indexOf(e)+1, reg=registro(e.id);
+      const b=document.createElement("button");
+      b.className="ej"+(estado.ejercicio===e.id?" actual":"")+(reg.completado?" completado":"");
+      b.style.setProperty("--niv",niv.color);
+      b.innerHTML='<span class="ej-nivel-mini" style="--niv:'+niv.color+'">Nivel '+e.nivel+'</span>'+
+        '<b>'+n+'. '+e.titulo+'</b><small>'+sinHtml(e.enunciado).replace(/<\/?b>/g,"")+'</small>'+
+        '<span class="marca-ej">'+(reg.completado?"✅":"")+'</span>';
+      b.addEventListener("click",()=>cargarEjercicio(e.id));
+      grid.appendChild(b);
+    });
+    bloq.appendChild(grid);
+    cont.appendChild(bloq);
+  });
+}
+function siguienteEjercicio(ej){ return EJERCICIOS[EJERCICIOS.indexOf(ej)+1]||null; }
+function irAlSiguiente(){
+  const ej=ejercicioActual();
+  cerrarOverlay();
+  const sig=ej?siguienteEjercicio(ej):null;
+  if(sig) cargarEjercicio(sig.id);
+  else abreMenu();
+}
+
+/* =========================================================================
+   13. VALIDAR + PISTAS (nunca se dice la solución)
+   ========================================================================= */
+function darPista(ctx){
+  const ej=ejercicioActual();
+  if(!ej) return;
+  const reg=registro(ej.id);
+  reg.pistas++;
+  const caja=$("#pista-caja");
+  let cuerpo;
+  if(reg.pistas===1 && ctx) cuerpo=ctx;
+  else{
+    const i=Math.min(reg.pistas-1, ej.pistas.length-1);
+    cuerpo=ej.pistas[i];
+    if(reg.pistas-1>=ej.pistas.length) cuerpo="Piensa despacio el enunciado y revisa la consulta imán a imán. "+cuerpo;
+  }
+  const bloque=document.createElement("div");
+  bloque.className="pista-bloque";
+  bloque.innerHTML='<b>💡 Pista '+reg.pistas+'</b>'+cuerpo;
+  caja.appendChild(bloque);
+  caja.classList.add("abierta");
+  if(caja.scrollIntoView) caja.scrollIntoView({block:"nearest",behavior:"smooth"});
+  pintarPistasMini();
+}
+
+function validar(){
+  if(estado.bloqueado) return;
+  const ej=ejercicioActual();
+  if(!ej){ abreMenu(); mostrarEstado("warn","Elige primero un ejercicio en <b>📚 Ejercicios</b>."); return; }
+  if(!estado.consulta.length){
+    mostrarEstado("warn","La pizarra está vacía: monta la consulta con los imanes de la nevera.");
     return;
   }
-  if(r.ok){
+  let a;
+  try{ a=analizar(estado.consulta); }
+  catch(err){
+    if(!(err instanceof ErrorSQL)) throw err;
+    marcarError(err.idx);
+    mostrarEstado("error","❌ Todavía no es correcto: revisa el imán marcado. Te he dejado una <b>pista</b> 💡 abajo.");
+    darPista(AYUDA[err.kind]||"");
+    return;
+  }
+  if(ej.check(a)){ marcarError(null); exito(a,ej); }
+  else{
     marcarError(null);
-    mostrarEstado("bien","¡Consulta válida y coherente! 🎉");
-    ganar(r.ast);
-  }else{
-    marcarError(r.idx);
-    mostrarEstado("error", r.msg);
+    mostrarEstado("error","❌ La consulta es SQL correcto, pero <b>no responde al enunciado</b>. Te he dejado una <b>pista</b> 💡 abajo.");
+    darPista("");
   }
 }
 
 /* =========================================================================
-   10. VICTORIA
+   14. VICTORIA
    ========================================================================= */
-function clausulasExtra(a){
-  let n = 0;
-  if(a.distinct) n++;
-  if(a.hayWhere) n++;
-  if(a.grupos.length) n++;
-  if(a.hayHaving) n++;
-  if(a.orden.length) n++;
-  if(a.limite!==null) n++;
-  if(a.aggs.length) n++;
-  if(a.usaLike||a.usaBetween) n++;
-  return n;
-}
+function exito(a,ej){
+  if(estado.yaGanado) return;
+  estado.bloqueado=true; estado.yaGanado=true;
+  const reg=registro(ej.id);
+  const primera=!reg.completado;
+  reg.completado=true;
+  const bruto=10*ej.nivel;
+  const descuento=Math.min(reg.pistas*3,Math.max(0,bruto-5));
+  const pts=primera?Math.max(5,bruto-descuento):0;
+  estado.puntos+=pts;
+  $("#ui-puntos").textContent=estado.puntos;
+  $("#ui-aciertos").textContent=completados()+"/"+EJERCICIOS.length;
 
-function ganar(ast){
-  if(estado.yaGanado) return;          // una victoria por ronda
-  estado.yaGanado = true;
-  estado.bloqueado = true;
-  const retoOk = estado.reto && estado.reto.test(ast) && !estado.retoHecho;
-  let pts = 10 + 5*clausulasExtra(ast);
-  if(retoOk){ pts += 10; estado.retoHecho = true; }
-
-  estado.puntos += pts;
-  $("#ui-puntos").textContent = estado.puntos;
-
-  const sql = estado.consulta.map(t=>t.texto).join(" ");
-  $("#ov-sql").textContent = sql;
-  const retoTxt = sinHtml(estado.reto.txt);
-  const migas = [];
-  migas.push('<span class="miga">+10 pts por consulta válida</span>');
-  const extra = clausulasExtra(ast);
-  if(extra) migas.push('<span class="miga">+'+5*extra+' pts por '+extra+' cláusula'+(extra>1?'s':'')+' extra'+(extra>1?'s':'')+'</span>');
-  if(retoOk) migas.push('<span class="miga oro">🎯 +10 pts · reto cumplido: '+retoTxt+'</span>');
-  else if(estado.reto) migas.push('<span class="miga">🎯 El reto («'+retoTxt+'») se queda para la próxima ronda</span>');
-  $("#ov-migas").innerHTML = migas.join("");
-
+  $("#ov-sql").textContent=estado.consulta.map(t=>t.texto).join(" ");
+  const migas=['<span class="miga">Nivel '+ej.nivel+' · '+nivelDe(ej.nivel).nombre+'</span>',
+               '<span class="miga">'+ej.titulo+'</span>'];
+  if(primera){
+    migas.push('<span class="miga">+'+bruto+' pts por resolverlo</span>');
+    if(descuento>0) migas.push('<span class="miga">−'+descuento+' pts por '+reg.pistas+' pista'+(reg.pistas>1?'s':'')+'</span>');
+    migas.push('<span class="miga oro">Total: +'+pts+' pts</span>');
+  }else{
+    migas.push('<span class="miga">Ya lo tenías resuelto: sin puntos (vale para practicar)</span>');
+  }
+  $("#ov-migas").innerHTML=migas.join("");
+  $("#ov-avance").style.width=(100*completados()/EJERCICIOS.length)+"%";
+  const sig=siguienteEjercicio(ej);
+  $("#ov-nota").innerHTML = completados()===EJERCICIOS.length
+    ? "🎓 ¡Has resuelto todos los ejercicios de la pizarra!"
+    : sig ? "Siguiente: <b>"+sig.titulo+"</b> (nivel "+sig.nivel+")" : "Has terminado el último de la lista.";
+  $("#ov-btn").textContent = sig ? "Siguiente ejercicio →" : "Ver ejercicios 📚";
   $("#overlay").classList.add("abierto");
   confeti();
-
-  clearTimeout(temporizadorFin);
-  temporizadorFin = setTimeout(()=>{ cerrarOverlay(); nuevaRonda(); }, 3200);
+  pintarMenu();
+  clearTimeout(estado.timer);
+  estado.timer=setTimeout(()=>{ if($("#overlay").classList.contains("abierto")) irAlSiguiente(); },3200);
 }
-
-function cerrarOverlay(){
-  clearTimeout(temporizadorFin);
-  $("#overlay").classList.remove("abierto");
-}
+function cerrarOverlay(){ clearTimeout(estado.timer); $("#overlay").classList.remove("abierto"); }
 
 /* =========================================================================
-   11. RONDAS / ALEATORIEDAD
+   15. CONFETI
    ========================================================================= */
-function nuevaRonda(){
-  cerrarOverlay();
-  const claves = Object.keys(CATALOGO);
-  let elegida;
-  do{ elegida = azar(claves); }while(claves.length>1 && elegida===estado.tabla);
-  estado.tabla = elegida;
-  estado.esquema = CATALOGO[elegida];
-
-  estado.bandeja = barajar(repartir(estado.tabla, estado.esquema))
-                    .sort((a,b)=> ordenGrupo(a.grupo)-ordenGrupo(b.grupo) || a.orden-b.orden);
-  estado.consulta = [];
-  estado.reto = azar(RETOS);
-  estado.retoHecho = false;
-  estado.bloqueado = false;
-  estado.yaGanado = false;
-  estado.ronda++;
-
-  pintar(true);
-  pintarPostit();
-  pintarReto();
-  marcarError(null);
-  mostrarEstado("idle","Nueva tabla <b>"+estado.esquema.emoji+" "+estado.tabla+"</b> en la nevera. Monta otra consulta 👇");
-}
-
-function pintarPostit(){
-  const esq = estado.esquema;
-  $("#postit-contenido").innerHTML =
-    '<b style="font-size:.95rem;opacity:1;letter-spacing:0;text-transform:none;color:inherit;display:block;margin-bottom:5px">'
-    + esq.emoji+" " + estado.tabla + "</b><ul class='cols'>"
-    + esq.columnas.map(c=>"<li>("+c.n+") <span class='tupla'>"+etiqueta(c.t)+"</span></li>").join("")
-    + "</ul>";
-}
-
-function pintarReto(){
-  $("#reto-texto").innerHTML = "🎯 <b>Reto:</b> " + estado.reto.txt;
-  $("#reto-puntos").textContent = "+"+(estado.reto.pts||10)+" pts";
-  $("#reto-caja").classList.toggle("hecho", estado.retoHecho);
-  $("#ui-ronda").textContent = estado.ronda;
-}
-
-/* =========================================================================
-   12. CONFETI
-   ========================================================================= */
-const lienzo = $("#confeti"), ctx = lienzo.getContext("2d");
-let particulas = [], animando = false;
-
-function ajustarLienzo(){
-  lienzo.width = window.innerWidth; lienzo.height = window.innerHeight;
-}
-window.addEventListener("resize", ajustarLienzo); ajustarLienzo();
-
+const lienzo=$("#confeti"), ctx=lienzo.getContext ? lienzo.getContext("2d") : null;
+let particulas=[], animando=false;
+function ajustarLienzo(){ lienzo.width=window.innerWidth; lienzo.height=window.innerHeight; }
+window.addEventListener("resize",ajustarLienzo); ajustarLienzo();
 function confeti(){
   if(!ctx) return;
-  const colores = ["#22c55e","#2563eb","#f59e0b","#e11d48","#7c3aed","#0891b2","#facc15"];
-  particulas = [];
-  for(let i=0;i<130;i++){
-    particulas.push({
-      x: lienzo.width/2 + entre(-160,160), y: lienzo.height*0.42 + entre(-70,70),
-      vx: entre(-7,7), vy: entre(-15,-4), g: 0.42, r: entre(4,10),
-      c: azar(colores), a: entre(0,Math.PI*2), va: entre(-.2,.2), vida: 1
-    });
+  const colores=["#22c55e","#2563eb","#f59e0b","#e11d48","#7c3aed","#0891b2","#facc15"];
+  particulas=[];
+  for(let k=0;k<130;k++){
+    particulas.push({x:lienzo.width/2+entre(-160,160),y:lienzo.height*0.42+entre(-70,70),
+      vx:entre(-7,7),vy:entre(-15,-4),g:0.42,r:entre(4,10),
+      c:colores[Math.floor(Math.random()*colores.length)],a:entre(0,Math.PI*2),va:entre(-.2,.2),vida:1});
   }
-  if(!animando){ animando = true; requestAnimationFrame(paso); }
+  if(!animando){ animando=true; requestAnimationFrame(paso); }
 }
-
 function paso(){
   ctx.clearRect(0,0,lienzo.width,lienzo.height);
   particulas.forEach(p=>{
-    p.vy += p.g; p.x += p.vx; p.y += p.vy; p.a += p.va; p.vida -= 0.008;
-    if(p.y > lienzo.height+40) p.vida = 0;
+    p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.a+=p.va; p.vida-=0.008;
+    if(p.y>lienzo.height+40) p.vida=0;
     ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
-    ctx.globalAlpha = Math.max(0,p.vida);
-    ctx.fillStyle = p.c; ctx.fillRect(-p.r,-p.r*0.6,p.r*2,p.r*1.2);
+    ctx.globalAlpha=Math.max(0,p.vida);
+    ctx.fillStyle=p.c; ctx.fillRect(-p.r,-p.r*0.6,p.r*2,p.r*1.2);
     ctx.restore();
   });
-  particulas = particulas.filter(p=>p.vida>0);
-  if(particulas.length){ requestAnimationFrame(paso); }
+  particulas=particulas.filter(p=>p.vida>0);
+  if(particulas.length) requestAnimationFrame(paso);
   else{ animando=false; ctx.clearRect(0,0,lienzo.width,lienzo.height); }
 }
 
 /* =========================================================================
-   13. BOTONES
+   16. BOTONES Y ARRANQUE
    ========================================================================= */
-$("#btn-limpiar").addEventListener("click", ()=>{
+$("#btn-validar").addEventListener("click",validar);
+$("#btn-pista").addEventListener("click",()=>{
+  if(!ejercicioActual()){ abreMenu(); return; }
+  darPista("");
+  mostrarEstado("warn","Pista desbloqueada 💡. Usar pistas resta puntos, así que intenta pensar primero 😉");
+});
+$("#btn-limpiar").addEventListener("click",()=>{
   if(estado.bloqueado) return;
-  estado.bandeja.push(...estado.consulta);
-  estado.consulta = [];
-  pintar();
-  marcarError(null);
+  estado.bandeja=estado.bandeja.concat(estado.consulta);
+  estado.consulta=[];
+  pintar(); marcarError(null);
   mostrarEstado("idle","Pizarra limpia 🧽. Vuelve a montar la consulta con los imanes.");
 });
-$("#btn-otra").addEventListener("click", ()=> nuevaRonda());
-$("#btn-ayuda").addEventListener("click", ()=> $("#modal").classList.add("abierto"));
-$("#btn-cerrar").addEventListener("click", ()=> $("#modal").classList.remove("abierto"));
-$("#modal").addEventListener("click", ev=>{ if(ev.target.id==="modal") $("#modal").classList.remove("abierto"); });
-$("#ov-btn").addEventListener("click", ()=>{ cerrarOverlay(); nuevaRonda(); });
-document.addEventListener("keydown", ev=>{
-  if(ev.key==="Escape"){ $("#modal").classList.remove("abierto"); $("#overlay").classList.remove("abierto"); }
+$("#btn-ejercicios").addEventListener("click",abreMenu);
+$("#menu-cerrar").addEventListener("click",cerrarMenu);
+$("#fondo-menu").addEventListener("click",cerrarMenu);
+$("#btn-ayuda").addEventListener("click",()=>$("#modal").classList.add("abierto"));
+$("#btn-cerrar").addEventListener("click",()=>$("#modal").classList.remove("abierto"));
+$("#modal").addEventListener("click",ev=>{ if(ev.target.id==="modal") $("#modal").classList.remove("abierto"); });
+$("#ov-btn").addEventListener("click",irAlSiguiente);
+$("#ov-menu").addEventListener("click",()=>{ cerrarOverlay(); abreMenu(); });
+document.addEventListener("keydown",ev=>{
+  if(ev.key==="Escape"){ $("#modal").classList.remove("abierto"); cerrarMenu(); cerrarOverlay(); }
 });
 
-/* =========================================================================
-   14. ¡ARRANCAMOS!
-   ========================================================================= */
 (function arrancar(){
-  estado.tabla = null;
-  const claves = Object.keys(CATALOGO);
-  const inicial = azar(claves);
-  estado.tabla = inicial;
-  estado.esquema = CATALOGO[inicial];
-  estado.bandeja = repartir(estado.tabla, estado.esquema)
-                    .sort((a,b)=> ordenGrupo(a.grupo)-ordenGrupo(b.grupo) || a.orden-b.orden);
-  estado.consulta = [];
-  estado.reto = azar(RETOS);
-  estado.ronda = 1;
-  estado.yaGanado = false;
-  pintar(true);
-  pintarPostit();
-  pintarReto();
-  comprobar();
+  pintarEsquema();
+  estado.bandeja=crearBandeja();
+  estado.consulta=[];
+  pintar();
+  $("#ui-aciertos").textContent="0/"+EJERCICIOS.length;
+  cargarEjercicio(EJERCICIOS[0].id);
+  mostrarEstado("idle","Ejercicio 1 cargado. Monta la consulta con los imanes y pulsa <b>✅ Validar</b>. Si no sale, tendrás una <b>pista</b> 💡.");
 })();
 </script>
 </body>
