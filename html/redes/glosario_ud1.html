@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50 text-slate-800">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuaderno de Redes - Tema 1 (1º ASIR)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Google Fonts for Notebook Academic feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Outfit:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+            hand: ['Patrick Hand', 'cursive']
+          },
+          colors: {
+            notebook: {
+              paper: '#f8fafc',
+              grid: '#e2e8f0',
+              line: '#fecdd3',
+              ink: '#1e293b',
+              blue: '#2563eb',
+              pencil: '#64748b',
+              highlighter: '#fef08a',
+              highlighterGreen: '#bbf7d0',
+              highlighterCyan: '#a5f3fc'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* CSS Notebook Graph Paper Background Pattern */
+    .bg-notebook-grid {
+      background-color: #f8fafc;
+      background-image: 
+        linear-gradient(to right, rgba(203, 213, 225, 0.45) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(203, 213, 225, 0.45) 1px, transparent 1px);
+      background-size: 20px 20px;
+      position: relative;
+    }
+
+    /* Red Margin Line for Notebook */
+    .bg-notebook-grid::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 48px;
+      width: 2px;
+      background-color: rgba(244, 63, 94, 0.35);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @media (max-width: 640px) {
+      .bg-notebook-grid::before {
+        left: 20px;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Marker Highlight Effects */
+    .highlight-yellow {
+      background: linear-gradient(100deg, rgba(254, 240, 138, 0) 1%, rgba(254, 240, 138, 0.85) 2.5%, rgba(254, 240, 138, 0.8) 98%);
+      border-radius: 0.2em;
+    }
+    .highlight-green {
+      background: linear-gradient(100deg, rgba(187, 247, 208, 0) 1%, rgba(187, 247, 208, 0.85) 2.5%, rgba(187, 247, 208, 0.8) 98%);
+      border-radius: 0.2em;
+    }
+
+    /* Folder Tab Styles */
+    .folder-tab {
+      position: relative;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      transition: all 0.2s ease-in-out;
+    }
+    .folder-tab.active {
+      background-color: #ffffff;
+      color: #1d4ed8;
+      border-color: #cbd5e1;
+      border-bottom-color: #ffffff;
+      box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased bg-notebook-grid selection:bg-yellow-200">
+
+  <!-- ========================================================================= -->
+  <!-- HEADER & SCHOOL NOTEBOOK NAVBAR -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b-2 border-slate-300 shadow-sm relative z-20 pt-4 px-4 sm:px-8">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
+      
+      <!-- Title Block -->
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0 border border-blue-700">
+          <i class="fa-solid fa-network-wired text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-hand text-lg text-rose-500 font-bold tracking-wide">1º ASIR · Redes</span>
+            <span class="text-xs bg-slate-100 text-slate-600 font-mono px-2 py-0.5 rounded border border-slate-300">Tema 1</span>
+          </div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight leading-tight">
+            Cuaderno de Estudio: Introducción a las Redes
+          </h1>
+        </div>
+      </div>
+
+      <!-- Header Quick Badges -->
+      <div class="flex items-center space-x-3 text-xs font-mono text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Examen Aleatorio Dinámico Activo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (Folder Dividers) -->
+    <div class="max-w-6xl mx-auto flex space-x-1 sm:space-x-2 border-b border-slate-300 pl-2 sm:pl-12 pt-2 overflow-x-auto">
+      <button onclick="switchTab('glossary')" id="tab-glossary" class="folder-tab active px-3 sm:px-5 py-3 font-semibold text-xs sm:text-sm border-t border-l border-r border-slate-300 text-slate-600 hover:text-blue-600 flex items-center space-x-2 shrink-0">
+        <i class="fa-solid fa-book-bookmark text-blue-600"></i>
+        <span>Glosario y Conceptos</span>
+      </button>
+      <button onclick="switchTab('scenarios')" id="tab-scenarios" class="folder-tab px-3 sm:px-5 py-3 font-semibold text-xs sm:text-sm border-t border-l border-r border-transparent text-slate-600 hover:text-blue-600 flex items-center space-x-2 shrink-0">
+        <i class="fa-solid fa-vial-circle-check text-emerald-600"></i>
+        <span>Casos Prácticos</span>
+      </button>
+      <button onclick="switchTab('quiz')" id="tab-quiz" class="folder-tab px-3 sm:px-5 py-3 font-semibold text-xs sm:text-sm border-t border-l border-r border-transparent text-slate-600 hover:text-blue-600 flex items-center space-x-2 shrink-0">
+        <i class="fa-solid fa-shuffle text-amber-600"></i>
+        <span>Examen Dinámico</span>
+      </button>
+      <button onclick="switchTab('essay')" id="tab-essay" class="folder-tab px-3 sm:px-5 py-3 font-semibold text-xs sm:text-sm border-t border-l border-r border-transparent text-slate-600 hover:text-blue-600 flex items-center space-x-2 shrink-0">
+        <i class="fa-solid fa-pen-clip text-purple-600"></i>
+        <span>Desarrollo Escrito</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 relative z-10">
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: GLOSARIO Y CONCEPTOS -->
+    <!-- ========================================================================= -->
+    <section id="sec-glossary" class="space-y-8">
+      
+      <div class="bg-white rounded-2xl p-6 border-2 border-slate-300 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+          <i class="fa-solid fa-diagram-project text-9xl text-slate-900"></i>
+        </div>
+        <div class="relative z-10 max-w-3xl space-y-2">
+          <div class="inline-block px-3 py-1 bg-yellow-100 text-amber-800 text-xs font-mono font-bold rounded-full mb-1">
+            📌 Fichas de Estudio & Tablas de Comparación
+          </div>
+          <h2 class="text-xl font-bold text-slate-900">Conceptos Fundamentales y Definiciones</h2>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Explora las definiciones oficiales del Tema 1. Utiliza las comparativas visuales para afianzar conceptos clave de redes.
+          </p>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="text" id="glossary-search" oninput="filterGlossary()" placeholder="Buscar término (ej. Switch, Proxy, Half-Duplex, SaaS, Bus...)" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-blue-600 focus:bg-white transition">
+          </div>
+          <div class="sm:w-64">
+            <select id="glossary-category" onchange="filterGlossary()" class="w-full bg-slate-50 border-2 border-slate-300 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-600 font-medium">
+              <option value="all">Todas las Categorías</option>
+              <option value="interconexion">Elementos de Interconexión</option>
+              <option value="servidores">Servidores y Servicios</option>
+              <option value="clasificacion">Clasificación de Redes</option>
+              <option value="topologias">Topologías de Red</option>
+              <option value="transmision">Modos y Técnicas Transmisión</option>
+              <option value="modelos">Modelos Explotación y Cloud</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARISON TABLES -->
+      <div class="space-y-4">
+        <div class="flex items-center space-x-2">
+          <span class="w-3 h-3 bg-blue-600 rounded-full"></span>
+          <h3 class="text-lg font-bold text-slate-900 font-hand text-xl">Cuadros Comparativos para Examen</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Table 1: Hub vs Switch -->
+          <div class="bg-white rounded-2xl border-2 border-slate-300 p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+              <span class="font-bold text-slate-900 flex items-center space-x-2">
+                <i class="fa-solid fa-code-compare text-blue-600"></i>
+                <span>Hub (Concentrador) vs Switch (Conmutador)</span>
+              </span>
+              <span class="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">Interconexión</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-mono">
+                    <th class="p-2 border border-slate-300">Característica</th>
+                    <th class="p-2 border border-slate-300 text-rose-700 bg-rose-50">Hub</th>
+                    <th class="p-2 border border-slate-300 text-emerald-700 bg-emerald-50">Switch</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-slate-700">
+                  <tr>
+                    <td class="p-2 border border-slate-200 font-semibold bg-slate-50">Reenvío Datos</td>
+                    <td class="p-2 border border-slate-200">Difunde a <strong>TODOS</strong> los puertos (Broadcast).</td>
+                    <td class="p-2 border border-slate-200">Envía <strong>SOLO</strong> al puerto destino (Dirección MAC).</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2 border border-slate-200 font-semibold bg-slate-50">Colisiones</td>
+                    <td class="p-2 border border-slate-200">Frecuentes (único dominio de colisión).</td>
+                    <td class="p-2 border border-slate-200">Sin colisiones (dominios independientes).</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Table 2: Circuit vs Packet Switching -->
+          <div class="bg-white rounded-2xl border-2 border-slate-300 p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+              <span class="font-bold text-slate-900 flex items-center space-x-2">
+                <i class="fa-solid fa-route text-emerald-600"></i>
+                <span>Conmutación de Circuitos vs Paquetes</span>
+              </span>
+              <span class="text-xs font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Técnica Red</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-mono">
+                    <th class="p-2 border border-slate-300">Aspecto</th>
+                    <th class="p-2 border border-slate-300 text-amber-700 bg-amber-50">Circuitos</th>
+                    <th class="p-2 border border-slate-300 text-blue-700 bg-blue-50">Paquetes</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-slate-700">
+                  <tr>
+                    <td class="p-2 border border-slate-200 font-semibold bg-slate-50">Reserva Canal</td>
+                    <td class="p-2 border border-slate-200">Camino dedicado y exclusivo reservado antes de hablar.</td>
+                    <td class="p-2 border border-slate-200">Sin reserva previa. Canal compartido dinámicamente.</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2 border border-slate-200 font-semibold bg-slate-50">Datos</td>
+                    <td class="p-2 border border-slate-200">Flujo continuo de datos.</td>
+                    <td class="p-2 border border-slate-200">Se trocea en paquetes independientes.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- GLOSSARY CARDS GRID -->
+      <div id="glossary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+      <div id="no-glossary-results" class="hidden text-center py-12 bg-white rounded-2xl border-2 border-slate-300">
+        <i class="fa-solid fa-magnifying-glass text-4xl text-slate-400 mb-2"></i>
+        <p class="text-slate-600 font-medium">No se han encontrado términos que coincidan con el filtro.</p>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: CASOS PRÁCTICOS -->
+    <!-- ========================================================================= -->
+    <section id="sec-scenarios" class="space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 border-2 border-slate-300 shadow-sm space-y-2">
+        <div class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-mono font-bold rounded-full">
+          🧪 Administración de Sistemas en Entornos Reales
+        </div>
+        <h2 class="text-xl font-bold text-slate-900">Escenarios y Resolución de Problemas de Red</h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Analiza casos reales de la profesión de administrador de redes ASIR. Haz clic sobre cada caso para desplegar la causa técnica raíz y la solución.
+        </p>
+      </div>
+
+      <div class="space-y-4" id="scenarios-list"></div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: EXAMEN INTERACTIVO DINÁMICO (ALEATORIO) -->
+    <!-- ========================================================================= -->
+    <section id="sec-quiz" class="space-y-6 hidden">
+      
+      <!-- Quiz Start Screen -->
+      <div id="quiz-start-card" class="bg-white rounded-2xl border-2 border-slate-300 p-8 text-center max-w-2xl mx-auto space-y-6 shadow-sm">
+        <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto border-2 border-amber-300 text-3xl">
+          <i class="fa-solid fa-shuffle"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 mb-2">Simulador de Examen Aleatorio</h2>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Cada vez que inicias o repites este examen, el sistema **selecciona 10 preguntas al azar** de nuestro banco completo (20 preguntas) y **aleatoriza el orden de las preguntas y de las opciones de respuesta**, garantizando una prueba nueva e impredecible.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 text-center py-4 border-y border-slate-200">
+          <div>
+            <p class="text-xs text-slate-500 font-mono uppercase">Preguntas / Intento</p>
+            <p class="text-xl font-bold text-slate-900">10 (de 20)</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-mono uppercase">Orden Preguntas</p>
+            <p class="text-xl font-bold text-amber-600">Aleatorio</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-mono uppercase">Opciones</p>
+            <p class="text-xl font-bold text-emerald-600">Barajadas</p>
+          </div>
+        </div>
+
+        <button onclick="startDynamicQuiz()" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-blue-500/20 flex items-center justify-center space-x-2 mx-auto">
+          <i class="fa-solid fa-play"></i>
+          <span>Generar y Comprar Examen</span>
+        </button>
+      </div>
+
+      <!-- Quiz Active Question Container -->
+      <div id="quiz-active-container" class="hidden space-y-6 max-w-3xl mx-auto">
+        
+        <!-- Progress Header -->
+        <div class="bg-white rounded-xl p-4 border-2 border-slate-300 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div class="flex items-center space-x-3 w-full sm:w-auto">
+            <span id="quiz-question-number" class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
+              Pregunta 1 de 10
+            </span>
+            <span id="quiz-question-category" class="text-xs text-slate-500 font-mono uppercase">
+              Categoría
+            </span>
+          </div>
+          <div class="w-full sm:w-48 bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-300">
+            <div id="quiz-progress-bar" class="bg-blue-600 h-full transition-all duration-300" style="width: 10%"></div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-2xl border-2 border-slate-300 p-6 sm:p-8 space-y-6 shadow-sm">
+          <h3 id="quiz-question-text" class="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed"></h3>
+
+          <!-- Options Container -->
+          <div id="quiz-options-container" class="space-y-3"></div>
+
+          <!-- Explanation Feedback Box -->
+          <div id="quiz-feedback-box" class="hidden p-4 rounded-xl text-sm leading-relaxed border-2 space-y-2">
+            <div id="quiz-feedback-title" class="font-bold flex items-center space-x-2"></div>
+            <p id="quiz-feedback-text" class="text-slate-700"></p>
+          </div>
+
+          <!-- Bottom Action Controls -->
+          <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+            <span id="quiz-score-badge" class="text-xs font-mono text-slate-500">Aciertos: 0</span>
+            <button id="quiz-next-btn" onclick="nextQuestion()" disabled class="px-6 py-2.5 bg-slate-200 text-slate-400 font-bold rounded-xl transition flex items-center space-x-2 opacity-50 cursor-not-allowed">
+              <span>Siguiente Pregunta</span>
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Results Screen -->
+      <div id="quiz-results-card" class="hidden bg-white rounded-2xl border-2 border-slate-300 p-8 text-center max-w-2xl mx-auto space-y-6 shadow-sm">
+        <div id="result-icon-bg" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto border-2 text-4xl">
+          <i id="result-icon"></i>
+        </div>
+
+        <div>
+          <h2 id="result-title" class="text-2xl font-bold text-slate-900 mb-1">Resultados</h2>
+          <p id="result-subtitle" class="text-slate-600 text-sm">Evaluación del intento generado aleatoriamente.</p>
+        </div>
+
+        <div class="p-6 bg-slate-50 rounded-xl border-2 border-slate-200 grid grid-cols-3 gap-4">
+          <div>
+            <p class="text-xs text-slate-500 font-mono uppercase">Aciertos</p>
+            <p id="result-correct" class="text-2xl font-bold text-emerald-600">0</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-mono uppercase">Errores</p>
+            <p id="result-wrong" class="text-2xl font-bold text-rose-600">0</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-mono uppercase">Nota Final</p>
+            <p id="result-score" class="text-2xl font-bold text-blue-600">0 / 10</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <button onclick="startDynamicQuiz()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-shuffle"></i>
+            <span>Generar Nuevo Examen Diferente</span>
+          </button>
+          <button onclick="switchTab('glossary')" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-300 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-book"></i>
+            <span>Repasar Glosario</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: PREGUNTAS DE DESARROLLO Y AUTOEVALUACIÓN -->
+    <!-- ========================================================================= -->
+    <section id="sec-essay" class="space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 border-2 border-slate-300 shadow-sm space-y-2">
+        <div class="inline-block px-3 py-1 bg-purple-100 text-purple-800 text-xs font-mono font-bold rounded-full">
+          ✍️ Práctica Escrita y Rúbricas de Examen
+        </div>
+        <h2 class="text-xl font-bold text-slate-900">Preguntas de Desarrollo Teórico y Escenarios</h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Escribe tu respuesta en el área de texto como lo harías en un examen real. Al finalizar, pulsa en **"Ver Criterios y Respuesta Modelo"** para comparar con los conceptos clave que debe contener una respuesta perfecta.
+        </p>
+      </div>
+
+      <div class="space-y-6" id="essay-questions-list">
+        <!-- Essay items dynamic render -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-auto relative z-20">
+    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-slate-500 font-mono">
+      Cuaderno de Repaso Académico · 1º ASIR · Redes de Ordenadores - Tema 1
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT DATA & LOGIC -->
+  <!-- ========================================================================= -->
+  <script>
+    /* -------------------------------------------------------------------------
+       1. GLOSSARY DATA
+       ------------------------------------------------------------------------- */
+    const glossaryData = [
+      {
+        id: "red-local",
+        title: "Red de Área Local (LAN)",
+        category: "clasificacion",
+        categoryName: "Clasificación Redes",
+        badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
+        definition: "Conjunto de ordenadores y dispositivos interconectados en una extensión geográfica limitada (oficina, hogar, edificio) a través de medios guiados o inalámbricos.",
+        details: "Permite compartir recursos (impresoras, discos), información y servicios. Alta velocidad de transmisión (hasta 1 Gbps) y muy baja tasa de error."
+      },
+      {
+        id: "hub",
+        title: "Concentrador (Hub)",
+        category: "interconexion",
+        categoryName: "Elementos Interconexión",
+        badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
+        definition: "Dispositivo básico que centraliza el cableado de una red local. Recibe una señal eléctrica por un puerto y la repite emitiéndola por TODOS sus demás puertos.",
+        details: "No interpreta direcciones MAC. Provoca colisiones constantes y comparte el ancho de banda total entre todos los equipos."
+      },
+      {
+        id: "switch",
+        title: "Conmutador (Switch)",
+        category: "interconexion",
+        categoryName: "Elementos Interconexión",
+        badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        definition: "Dispositivo inteligente de interconexión local que reenvía tramas de datos guiándose exclusivamente por la dirección MAC física del destinatario.",
+        details: "Elimina los dominios de colisión, garantizando ancho de banda dedicado en cada puerto."
+      },
+      {
+        id: "router",
+        title: "Encaminador (Router)",
+        category: "interconexion",
+        categoryName: "Elementos Interconexión",
+        badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+        definition: "Dispositivo de capa de red capaz de interconectar dos o más redes independientes de diferente tecnología o subred IP.",
+        details: "Lee la dirección IP lógica de los paquetes para tomar la decisión de encaminamiento óptima."
+      },
+      {
+        id: "proxy",
+        title: "Servidor Proxy",
+        category: "servidores",
+        categoryName: "Servidores y Servicios",
+        badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+        definition: "Servidor intermediario entre los ordenadores de la red local e Internet que gestiona y centraliza las peticiones de recursos.",
+        details: "Guarda copias en memoria caché para acelerar accesos posteriores, permite aplicar filtros (listas negras/blancas) e incrementa la seguridad."
+      },
+      {
+        id: "servidor-aplicaciones",
+        title: "Servidor de Aplicaciones",
+        category: "servidores",
+        categoryName: "Servidores y Servicios",
+        badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+        definition: "Servidor que ejecuta aplicaciones centralizadas ofreciendo sus propios recursos de CPU y RAM para procesar el trabajo de los clientes.",
+        details: "El cliente transmite únicamente eventos de teclado y ratón, recibiendo la imagen de pantalla. Ideal para clientes livianos (thin clients)."
+      },
+      {
+        id: "topologia-bus",
+        title: "Topología en Bus",
+        category: "topologias",
+        categoryName: "Topologías",
+        badgeColor: "bg-cyan-100 text-cyan-800 border-cyan-200",
+        definition: "Estructura de red donde todos los nodos están conectados a un único cable continuo troncal con terminadores en los extremos.",
+        details: "Un fallo o corte en cualquier punto del cable deja sin comunicación a la totalidad de la red."
+      },
+      {
+        id: "topologia-estrella",
+        title: "Topología en Estrella",
+        category: "topologias",
+        categoryName: "Topologías",
+        badgeColor: "bg-cyan-100 text-cyan-800 border-cyan-200",
+        definition: "Todos los equipos se conectan de manera independiente a un dispositivo central de interconexión (Hub o Switch).",
+        details: "Topología estándar actual. Si falla un cable individual, solo queda aislado ese equipo sin interrumpir al resto."
+      },
+      {
+        id: "half-duplex",
+        title: "Half-Dúplex (Semi-Dúplex)",
+        category: "transmision",
+        categoryName: "Modos de Transmisión",
+        badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        definition: "Modo de transmisión bidireccional donde los datos pueden viajar en ambos sentidos, pero NO de manera simultánea.",
+        details: "Ejemplo clásico: Walkie-talkie (un equipo transmite y el otro escucha)."
+      },
+      {
+        id: "full-duplex",
+        title: "Full-Dúplex (Dúplex)",
+        category: "transmision",
+        categoryName: "Modos de Transmisión",
+        badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        definition: "Modo de comunicación bidireccional y simultáneo entre emisor y receptor.",
+        details: "Permite enviar y recibir datos al mismo tiempo utilizando canales o frecuencias distintas (ej. llamadas de teléfono o Ethernet en switch)."
+      },
+      {
+        id: "cloud-types",
+        title: "Modelos Cloud (IaaS, PaaS, SaaS)",
+        category: "modelos",
+        categoryName: "Modelos Explotación & Cloud",
+        badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
+        definition: "Clasificación de los servicios en la nube según el grado de administración que asume el cliente frente al proveedor.",
+        details: "<b>IaaS:</b> Infraestructura virgen.<br><b>PaaS:</b> Entorno con SO y herramientas de desarrollo.<br><b>SaaS:</b> Aplicación final lista para usar (ej. Microsoft 365)."
+      },
+      {
+        id: "intranet-extranet",
+        title: "Intranet vs Extranet",
+        category: "servidores",
+        categoryName: "Servidores & Redes",
+        badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+        definition: "Redes privadas que utilizan tecnologías web para compartir información interna dentro de la organización.",
+        details: "<b>Intranet:</b> Acceso restringido exclusivamente a empleados dentro de la LAN.<br><b>Extranet:</b> Extensión segura accesible por usuarios externos autorizados."
+      }
+    ];
+
+    /* -------------------------------------------------------------------------
+       2. SCENARIOS DATA
+       ------------------------------------------------------------------------- */
+    const scenariosData = [
+      {
+        id: 1,
+        title: "1. Lentitud en carga web externa por falta de ancho de banda de subida",
+        badge: "Servidores & Conexiones",
+        icon: "fa-server",
+        problem: "Una empresa instala un servidor web propio en su sede local. La carga local en la LAN es veloz, pero clientes externos sufren lentitud extrema.",
+        analysis: "Las líneas de conexión estándar son asimétricas (mucha bajada, poca subida). Al servir la web a usuarios de Internet, el servidor local debe SUBIR los datos hacia Internet.",
+        cause: "Ancho de banda de subida (upload) insuficiente en la conexión contratada.",
+        solution: "Contratar línea simétrica o migrar la web a un proveedor de Hosting externo / Cloud."
+      },
+      {
+        id: 2,
+        title: "2. Migración de Red entre Iguales (P2P) a Cliente/Servidor",
+        badge: "Modelos de Explotación",
+        icon: "fa-sitemap",
+        problem: "Una PYME de 80 empleados comparte carpetas desde equipos individuales en modo P2P. Hay desorganización de ficheros e imposibilidad de hacer backups.",
+        analysis: "En redes P2P no existe un nodo central de administración; los archivos se fragmentan entre puestos individuales.",
+        cause: "Falta de administración centralizada de permisos y almacenamiento.",
+        solution: "Implantar un modelo Cliente/Servidor con un Servidor de Archivos central y copias de seguridad automáticas."
+      },
+      {
+        id: 3,
+        title: "3. Colisiones de red masivas al conectar 40 equipos a un Hub",
+        badge: "Elementos de Interconexión",
+        icon: "fa-network-wired",
+        problem: "En un aula con 40 PCs conectados a un Hub, al descargar ficheros simultáneamente la red se bloquea.",
+        analysis: "Un Hub repite la señal por todos los puertos (broadcast). Todos los equipos comparten un único dominio de colisión.",
+        cause: "Uso de Hub pasivo que no filtra por direcciones MAC.",
+        solution: "Sustituir el Hub por un Conmutador (Switch)."
+      },
+      {
+        id: 4,
+        title: "4. Caída total de red en Bus por corte de cable",
+        badge: "Topologías",
+        icon: "fa-scissors",
+        problem: "Al cortarse accidentalmente un cable en una red en Bus, toda la empresa queda sin conexión.",
+        analysis: "El bus continuo requiere terminadores en sus extremos. Un corte rompe la impedancia y anula la red entera.",
+        cause: "Vulnerabilidad inherente a la topología en Bus.",
+        solution: "Migrar a topología en Estrella basada en Switch central."
+      }
+    ];
+
+    /* -------------------------------------------------------------------------
+       3. QUESTION BANK FOR DYNAMIC QUIZ (20 QUESTIONS)
+       ------------------------------------------------------------------------- */
+    const questionBank = [
+      {
+        category: "Elementos Interconexión",
+        question: "¿Cuál es la diferencia principal entre un Concentrador (Hub) y un Conmutador (Switch) al gestionar tramas de red?",
+        options: [
+          "El Hub retransmite los datos a TODOS sus puertos; el Switch solo reenvía la trama al puerto del equipo con la dirección MAC destino.",
+          "El Hub analiza direcciones IP mientras que el Switch gestiona fibra óptica.",
+          "El Hub es exclusivo para redes inalámbricas y el Switch para redes de cobre.",
+          "El Hub guarda copias de seguridad en caché y el Switch no."
+        ],
+        correct: 0,
+        explanation: "El Hub es un dispositivo pasivo que difunde por todos sus puertos (broadcast). El Switch lee la dirección MAC de destino y conmuta de forma dedicada."
+      },
+      {
+        category: "Topologías",
+        question: "¿Qué ocurre en una red con topología en Bus si se rompe el cable principal en un punto intermedio?",
+        options: [
+          "Toda la red deja de funcionar por completo.",
+          "Solo se apaga el ordenador más cercano al router.",
+          "La red conmuta automáticamente a Wi-Fi.",
+          "Sigue funcionando normalmente porque los datos dan la vuelta."
+        ],
+        correct: 0,
+        explanation: "En la topología en Bus, todos los nodos comparten un único cable troncal con terminadores. Un corte rompe el bus de comunicación y anula la red."
+      },
+      {
+        category: "Servidores",
+        question: "¿Qué función clave realiza un Servidor Proxy Web en una red corporativa?",
+        options: [
+          "Asignar automáticamente la dirección MAC a las impresoras.",
+          "Actuar de intermediario, guardando páginas en memoria caché para acelerar accesos y aplicar filtros de seguridad.",
+          "Aumentar la memoria RAM física de los ordenadores clientes.",
+          "Convertir cables de cobre en fibra óptica."
+        ],
+        correct: 1,
+        explanation: "El Proxy intercepta peticiones web, guarda copias en caché local para reducir el consumo de Internet y permite filtrar contenidos."
+      },
+      {
+        category: "Modos Transmisión",
+        question: "¿En qué consiste el modo de transmisión Half-Dúplex (Semi-dúplex)?",
+        options: [
+          "Es bidireccional pero NO simultáneo (mientras uno transmite, el otro debe esperar).",
+          "Es bidireccional y simultáneo en ambos sentidos a la vez.",
+          "Es estrictamente unidireccional (solo un sentido fijo).",
+          "Solo funciona con cables coaxiales."
+        ],
+        correct: 0,
+        explanation: "Half-Dúplex permite la comunicación en ambas direcciones pero no al mismo tiempo (ejemplo clásico: Walkie-talkie)."
+      },
+      {
+        category: "Cloud Computing",
+        question: "Una empresa contrata un servicio en la Nube donde recibe servidores virtuales 'en blanco' (CPU, RAM, disco) sin sistema operativo. ¿Qué servicio Cloud contrata?",
+        options: [
+          "SaaS (Software como Servicio)",
+          "PaaS (Plataforma como Servicio)",
+          "IaaS (Infraestructura como Servicio)",
+          "DbaaS (Base de datos como Servicio)"
+        ],
+        correct: 2,
+        explanation: "IaaS (Infrastructure as a Service) proporciona los recursos físicos/virtualizados de infraestructura pura."
+      },
+      {
+        category: "Modelos Explotación",
+        question: "¿Cuál es un inconveniente grave del modelo de red 'Entre Iguales' (Peer-to-Peer) en empresas medianas?",
+        options: [
+          "Exige comprar un servidor central muy caro.",
+          "Información desorganizada y fragmentada, y dificultad para realizar copias de seguridad.",
+          "Imposibilidad de compartir impresoras.",
+          "Requiere el uso de fibra óptica de manera obligatoria."
+        ],
+        correct: 1,
+        explanation: "En redes P2P no existe un nodo central, provocando dispersión de archivos y dificultando los planes de backup."
+      },
+      {
+        category: "Servidores & Intranet",
+        question: "¿Qué dos tipos de servidores componen como mínimo la arquitectura de una Intranet?",
+        options: [
+          "Un servidor de streaming y un hub pasivo.",
+          "Mínimo un Servidor Web y un Servidor de Base de Datos.",
+          "Un servidor DNS y un conmutador de 8 puertos.",
+          "Un servidor POP3 exclusivamente."
+        ],
+        correct: 1,
+        explanation: "Una Intranet necesita la capa de aplicación/presentación (Servidor Web) y la de almacenamiento de datos (Servidor BD)."
+      },
+      {
+        category: "Técnicas Transmisión",
+        question: "¿Qué es la Multiplexación en Tiempo (TDM)?",
+        options: [
+          "Dividir el canal de comunicación en franjas o intervalos de tiempo para compartirlo entre varios emisores.",
+          "Transmitir únicamente durante la noche para no saturar la red.",
+          "Multiplicar el número de cables de fibra en un edificio.",
+          "Convertir señales analógicas en digitales mediante modulación."
+        ],
+        correct: 0,
+        explanation: "TDM (Time Division Multiplexing) divide el tiempo de uso del canal en pequeñas rodajas asignadas por turnos."
+      },
+      {
+        category: "Pensamiento Lógico",
+        question: "Un Servidor de Aplicaciones ejecuta el software usando su propia CPU y RAM. ¿Qué ventaja aporta a los clientes?",
+        options: [
+          "Permite usar ordenadores clientes de prestaciones reducidas (Thin Clients) ya que el trabajo pesado se hace en el servidor.",
+          "Elimina la necesidad de instalar tarjetas de red.",
+          "Aumenta la velocidad del ratón físico.",
+          "Hace que no se requieran contraseñas de usuario."
+        ],
+        correct: 0,
+        explanation: "Al ejecutar el procesado en el servidor, el cliente solo transmite eventos de ratón/teclado y recibe la imagen."
+      },
+      {
+        category: "Conmutación",
+        question: "¿En qué consiste la Conmutación de Paquetes utilizada en Internet?",
+        options: [
+          "Se reserva un canal exclusivo durante toda la sesión.",
+          "La información se trocea en paquetes independientes que pueden viajar por rutas distintas antes de reensamblarse.",
+          "Solo permite transmitir voz analógica.",
+          "Requiere cables de cobre especiales para cada paquete."
+        ],
+        correct: 1,
+        explanation: "La conmutación de paquetes trocea la información y aprovecha el canal dinámicamente según las mejores rutas disponibles."
+      },
+      {
+        category: "Clasificación Redes",
+        question: "¿Qué red por extensión abarca un ámbito metropolitano o ciudad sobre fibra óptica?",
+        options: [
+          "PAN (Personal Area Network)",
+          "LAN (Local Area Network)",
+          "MAN (Metropolitan Area Network)",
+          "WAN (Wide Area Network)"
+        ],
+        correct: 2,
+        explanation: "Las redes MAN cubren municipios o áreas urbanas interconectando sedes dentro de la ciudad."
+      },
+      {
+        category: "Pensamiento Lógico",
+        question: "Si una web en un servidor local va muy rápida dentro de la oficina pero lenta desde Internet, la causa es...",
+        options: [
+          "Falta de ancho de banda de subida (upload) en la conexión a Internet del servidor.",
+          "Que los usuarios externos no tienen tarjeta de red.",
+          "Que la pantalla del servidor está apagada.",
+          "Que el router local ha bloqueado las direcciones MAC."
+        ],
+        correct: 0,
+        explanation: "Servir contenidos a Internet requiere ancho de banda de SUBIDA (upload). Si la línea es asimétrica, se produce un cuello de botella."
+      },
+      {
+        category: "Dispositivos Red",
+        question: "¿Qué dispositivo se encarga de interconectar redes con diferente direccionamiento IP tomando decisiones de ruta?",
+        options: [
+          "Switch (Conmutador)",
+          "Router (Encaminador)",
+          "Hub (Concentrador)",
+          "Punto de Acceso pasivo"
+        ],
+        correct: 1,
+        explanation: "El Router opera en la Capa de Red (IP) e interconecta subredes distintas guiando el tráfico."
+      },
+      {
+        category: "Modos Transmisión",
+        question: "Una llamada telefónica o una conexión Ethernet en Switch donde ambos hablan y escuchan a la vez funciona en modo:",
+        options: [
+          "Simplex",
+          "Half-Dúplex",
+          "Full-Dúplex",
+          "Multiplexado en Frecuencia únicamente"
+        ],
+        correct: 2,
+        explanation: "Full-Dúplex permite transmisión bidireccional y simultánea de datos."
+      },
+      {
+        category: "Cloud Computing",
+        question: "Al utilizar Google Docs o Microsoft 365 directamente en el navegador sin instalar nada, estamos ante un modelo Cloud:",
+        options: [
+          "IaaS",
+          "PaaS",
+          "SaaS (Software como Servicio)",
+          "DbaaS"
+        ],
+        correct: 2,
+        explanation: "SaaS proporciona el producto o software final listo para su uso directo por parte del cliente."
+      },
+      {
+        category: "Topologías",
+        question: "¿Cuál es la principal ventaja de la topología en Estrella frente a la topología en Bus?",
+        options: [
+          "Aislamiento de fallos: la rotura del cable de un equipo no afecta al resto de la red.",
+          "No requiere usar elementos de interconexión como switches.",
+          "Requiere muchísimos menos metros de cableado que el bus.",
+          "Funciona sin necesidad de electricidad."
+        ],
+        correct: 0,
+        explanation: "En la Estrella, cada equipo tiene su propio cable hacia el nodo central. Un fallo individual no invalida al resto."
+      },
+      {
+        category: "Servidores",
+        question: "¿Qué protocolo de correo electrónico descarga los mensajes del servidor al cliente local vaciando la bandeja remota?",
+        options: [
+          "IMAP",
+          "POP3",
+          "SMTP",
+          "HTTP"
+        ],
+        correct: 1,
+        explanation: "POP3 se caracteriza por descargar el correo directamente a la máquina local del usuario."
+      },
+      {
+        category: "Conceptos Red",
+        question: "¿Qué significa que un medio de transmisión es 'No Guiado'?",
+        options: [
+          "Que los datos se transmiten por el aire mediante ondas electromagnéticas sin cable físico (ej. Wi-Fi, Bluetooth).",
+          "Que el cable de red no tiene funda protectora de plástico.",
+          "Que el router no sabe a dónde enviar los paquetes.",
+          "Que solo se utiliza en la fibra óptica submarina."
+        ],
+        correct: 0,
+        explanation: "Medios No Guiados = Medios inalámbricos (aire/vacío). Medios Guiados = Cables físicos (cobre, fibra)."
+      },
+      {
+        category: "Seguridad & Redes",
+        question: "Una red privada que permite acceso remoto seguro a empleados o clientes autorizados desde fuera de la sede se denomina:",
+        options: [
+          "Intranet",
+          "Extranet",
+          "MAN Privada",
+          "Red en Bus Abierto"
+        ],
+        correct: 1,
+        explanation: "La Extranet es una extensión de la Intranet corporativa accesible de forma segura desde Internet para usuarios autorizados."
+      },
+      {
+        category: "Elementos Interconexión",
+        question: "Un Punto de Acceso (Access Point) inalámbrico doméstico conectado a una línea telefónica actúa habitualmente como:",
+        options: [
+          "Router Inalámbrico (Wireless Router)",
+          "Hub Coaxial de Categoría 5",
+          "Servidor de Base de Datos relacional",
+          "Servidor FTP pasivo"
+        ],
+        correct: 0,
+        explanation: "Los equipos domésticos integran módem/router, switch y punto de acceso inalámbrico en un único dispositivo."
+      }
+    ];
+
+    /* -------------------------------------------------------------------------
+       4. ESSAY / DEVELOPMENT QUESTIONS DATA (WITH RUBRICS)
+       ------------------------------------------------------------------------- */
+    const essayQuestionsData = [
+      {
+        id: 1,
+        title: "Pregunta 1 (Teoría): Conmutación de Circuitos vs Conmutación de Paquetes",
+        category: "Teoría del Temario",
+        prompt: "Compara detalladamente la Conmutación de Circuitos y la Conmutación de Paquetes. Explica el funcionamiento de cada una, sus diferencias en reserva de recursos, tratamiento de la información y pon un ejemplo real de uso de cada técnica.",
+        keyPoints: [
+          "Explicar que la Conmutación de Circuitos establece un camino dedicado y reservado antes de transmitir (ej. Telefonía tradicional RTC).",
+          "Explicar que la Conmutación de Paquetes trocea la información en paquetes independientes con cabeceras que se enrutan dinámicamente (ej. Internet / IP).",
+          "Destacar que la conmutación de paquetes aprovecha mucho mejor el ancho de banda al compartir el medio sin reservar canales vacíos."
+        ],
+        modelAnswer: "La Conmutación de Circuitos requiere establecer una conexión física/lógica dedicada entre emisor y receptor antes de iniciar la transmisión. Durante la sesión, dicho camino queda reservado en exclusiva (haya o no silencio), lo que garantiza latencia constante pero infrautiliza el canal. Ejemplo: la telefonía analógica tradicional (RTC).\n\nPor el contrario, la Conmutación de Paquetes no reserva un canal exclusivo. La información se fragmenta en paquetes provistos de direcciones de origen/destino que viajan de forma independiente por las rutas más eficientes de la red compartida, reordenándose al llegar al destino. Es infinitamente más eficiente para datos computacionales. Ejemplo: Internet y redes Ethernet modernas."
+      },
+      {
+        id: 2,
+        title: "Pregunta 2 (Escenario Real): Cuello de Botella en Servidor Web Propio vs Hosting",
+        category: "Caso Práctico ASIR",
+        prompt: "Una empresa decide alojar su web corporativa en un servidor local dentro de su oficina usando su conexión a Internet de fibra asimétrica. Describe qué problema técnico experimentarán los clientes externos al acceder a la web, por qué ocurre lógicamente este fallo y qué alternativas técnicas debería proponer un administrador ASIR.",
+        keyPoints: [
+          "Identificar la asimetría de la conexión (alto download, bajo upload).",
+          "Explicar que al servir páginas a usuarios externos, la empresa actúa como emisora, requiriendo ancho de banda de SUBIDA (upload).",
+          "Proponer como solución contratar una línea simétrica dedicada o alojar la web en un proveedor de Hosting / Nube (Cloud)."
+        ],
+        modelAnswer: "El problema técnico será una extrema lentitud en la carga de la página para clientes externos. Esto ocurre porque las líneas de comunicación residenciales/empresariales estándar son asimétricas: ofrecen mucha velocidad de bajada pero muy poca velocidad de subida (upload).\n\nCuando un usuario externo visita la web, el servidor local debe enviar (subir) los archivos a través del enlace exterior de la empresa. Al ser el canal de subida estrecho, se genera un cuello de botella. Como solución, el administrador ASIR debe recomendar: 1) Contratar un enlace de fibra simétrica con ancho de banda de subida adecuado, o 2) Migrar el sitio web a un servicio de Hosting / Cloud externo en un centro de datos profesional."
+      },
+      {
+        id: 3,
+        title: "Pregunta 3 (Teoría / Arquitectura): Intranet vs Extranet y Servidores Mínimos",
+        category: "Teoría & Arquitectura",
+        prompt: "Define los conceptos de Intranet y Extranet en una organización. Indica qué requisitos mínimos de servidores se necesitan para implementar una Intranet y qué ventajas clave aporta frente a la instalación de programas en cada equipo cliente.",
+        keyPoints: [
+          "Definir Intranet (red privada de uso interno con tecnología web) y Extranet (extensión accesible desde fuera por usuarios autorizados).",
+          "Especificar que como mínimo se requiere un Servidor Web y un Servidor de Base de Datos.",
+          "Mencionar ventajas: centralización de actualizaciones, ahorro de recursos en clientes, facilidad de mantenimiento."
+        ],
+        modelAnswer: "Una Intranet es una red local privada que utiliza protocolos y tecnologías web para compartir información y aplicaciones corporativas exclusivamente entre los empleados de la organización. La Extranet es una extensión segura de la Intranet que permite a usuarios externos autorizados (comerciales, teletrabajadores, proveedores) acceder a determinados recursos desde Internet.\n\nPara implementar una Intranet se requiere como mínimo: 1) Un Servidor Web (que sirve las páginas e interfaz) y 2) Un Servidor de Base de Datos (que almacena la información). La ventaja clave es que no requiere instalar ni actualizar software en cada PC cliente; basta con un navegador web, reduciendo el tiempo de mantenimiento y unificando el control."
+      },
+      {
+        id: 4,
+        title: "Pregunta 4 (Escenario Real): Aislamiento de Averías en Bus vs Estrella",
+        category: "Caso Práctico ASIR",
+        prompt: "Compara el comportamiento de una red en Topología en Bus frente a una en Topología en Estrella cuando se produce un fallo o corte físico en uno de sus cables. Justifica por qué la estrella es la arquitectura elegida en redes LAN actuales.",
+        keyPoints: [
+          "Explicar el comportamiento del Bus: un corte en el cable troncal anula toda la red debido a la pérdida de terminación y reflexión de onda.",
+          "Explicar el comportamiento de la Estrella: un corte en un cable individual solo aísla al equipo conectado a ese puerto del switch central.",
+          "Concluir que la Estrella ofrece mayor tolerancia a fallos, localización rápida de averías y escalabilidad."
+        ],
+        modelAnswer: "En una red en Bus, todos los nodos comparten un único cable troncal cerrado con terminadores. Si el cable se corta o se solta un conector en cualquier punto, la señal eléctrica rebota en el extremo abierto, anulando la impedancia e interrumpiendo la comunicación en TODA la red de forma instantánea.\n\nEn cambio, en la Topología en Estrella, cada equipo cuenta con un cable de par trenzado independiente hacia un puerto del conmutador (Switch) central. Si un cable individual se rompe o se desenchufa, únicamente ese nodo pierde conectividad, mientras que el resto de la red sigue operando con total normalidad. Por esta razón, la estrella ofrece alta tolerancia a fallos, diagnóstico rápido de averías y es el estándar de cableado estructurado en redes LAN."
+      }
+    ];
+
+    /* -------------------------------------------------------------------------
+       5. STATE MANAGEMENT FOR QUIZ & APP
+       ------------------------------------------------------------------------- */
+    let activeQuizQuestions = [];
+    let currentQuizIndex = 0;
+    let quizScore = 0;
+    let selectedOption = null;
+    let quizAnswered = false;
+
+    // DOM LOADED
+    document.addEventListener("DOMContentLoaded", () => {
+      renderGlossary();
+      renderScenarios();
+      renderEssayQuestions();
+    });
+
+    // NAVIGATION TAB SWITCHER
+    function switchTab(tabId) {
+      document.getElementById('sec-glossary').classList.add('hidden');
+      document.getElementById('sec-scenarios').classList.add('hidden');
+      document.getElementById('sec-quiz').classList.add('hidden');
+      document.getElementById('sec-essay').classList.add('hidden');
+
+      document.querySelectorAll('.folder-tab').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('border-transparent');
+      });
+
+      const activeSec = document.getElementById(`sec-${tabId}`);
+      activeSec.classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.classList.remove('border-transparent');
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       GLOSSARY & SCENARIOS RENDERERS
+       ------------------------------------------------------------------------- */
+    function renderGlossary() {
+      const container = document.getElementById('glossary-grid');
+      container.innerHTML = '';
+
+      glossaryData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "glossary-card bg-white rounded-2xl border-2 border-slate-300 p-5 shadow-sm hover:border-blue-400 transition flex flex-col justify-between";
+        card.setAttribute('data-category', item.category);
+        card.setAttribute('data-text', `${item.title} ${item.definition} ${item.details}`.toLowerCase());
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-md border ${item.badgeColor}">
+                ${item.categoryName}
+              </span>
+            </div>
+            <h4 class="text-base font-bold text-slate-900 mb-2">${item.title}</h4>
+            <p class="text-slate-700 text-xs leading-relaxed mb-3">${item.definition}</p>
+          </div>
+          <div class="pt-3 border-t border-slate-200 text-xs text-slate-600 leading-relaxed bg-slate-50 -mx-5 -mb-5 p-4 rounded-b-xl border-t mt-2">
+            <span class="highlight-yellow font-bold text-slate-900 px-1">Clave Examen:</span> ${item.details}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterGlossary() {
+      const searchVal = document.getElementById('glossary-search').value.toLowerCase().trim();
+      const catVal = document.getElementById('glossary-category').value;
+      const cards = document.querySelectorAll('.glossary-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const text = card.getAttribute('data-text');
+        const category = card.getAttribute('data-category');
+
+        const matchesSearch = searchVal === '' || text.includes(searchVal);
+        const matchesCategory = catVal === 'all' || category === catVal;
+
+        if (matchesSearch && matchesCategory) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      const noResults = document.getElementById('no-glossary-results');
+      if (visibleCount === 0) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+      }
+    }
+
+    function renderScenarios() {
+      const container = document.getElementById('scenarios-list');
+      container.innerHTML = '';
+
+      scenariosData.forEach(sc => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border-2 border-slate-300 overflow-hidden shadow-sm transition";
+        card.innerHTML = `
+          <div onclick="toggleScenario(${sc.id})" class="p-5 cursor-pointer hover:bg-slate-50 transition flex items-start justify-between gap-4">
+            <div class="flex items-start space-x-3.5">
+              <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl border border-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid ${sc.icon}"></i>
+              </div>
+              <div>
+                <div class="flex items-center space-x-2 mb-1">
+                  <span class="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    ${sc.badge}
+                  </span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900">${sc.title}</h3>
+                <p class="text-xs text-slate-600 mt-1">${sc.problem}</p>
+              </div>
+            </div>
+            <div class="text-slate-400 p-1 shrink-0">
+              <i id="scenario-chevron-${sc.id}" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+            </div>
+          </div>
+
+          <div id="scenario-body-${sc.id}" class="hidden border-t-2 border-slate-200 bg-slate-50/80 p-6 space-y-4">
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+              <h4 class="text-xs font-mono font-bold text-amber-900 uppercase flex items-center space-x-2">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                <span>Análisis Lógico</span>
+              </h4>
+              <p class="text-xs text-slate-700 leading-relaxed">${sc.analysis}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl space-y-1">
+                <h4 class="text-xs font-mono font-bold text-rose-900 uppercase flex items-center space-x-2">
+                  <i class="fa-solid fa-bug"></i>
+                  <span>Causa Raíz</span>
+                </h4>
+                <p class="text-xs text-slate-700 leading-relaxed">${sc.cause}</p>
+              </div>
+
+              <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+                <h4 class="text-xs font-mono font-bold text-emerald-900 uppercase flex items-center space-x-2">
+                  <i class="fa-solid fa-wrench"></i>
+                  <span>Solución Recomendada</span>
+                </h4>
+                <p class="text-xs text-slate-700 leading-relaxed">${sc.solution}</p>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleScenario(id) {
+      const body = document.getElementById(`scenario-body-${id}`);
+      const chevron = document.getElementById(`scenario-chevron-${id}`);
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+      } else {
+        body.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       6. DYNAMIC QUIZ ENGINE (RANDOMIZATION & SHUFFLE)
+       ------------------------------------------------------------------------- */
+    function shuffleArray(arr) {
+      const array = [...arr];
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function startDynamicQuiz() {
+      // 1. Pick 10 random questions from the full bank of 20
+      const shuffledBank = shuffleArray(questionBank);
+      const selectedQuestions = shuffledBank.slice(0, 10);
+
+      // 2. Shuffle options for each selected question
+      activeQuizQuestions = selectedQuestions.map(q => {
+        const indexedOptions = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.correct }));
+        const shuffledOpts = shuffleArray(indexedOptions);
+        const newCorrectIndex = shuffledOpts.findIndex(o => o.isCorrect);
+
+        return {
+          category: q.category,
+          question: q.question,
+          options: shuffledOpts.map(o => o.text),
+          correct: newCorrectIndex,
+          explanation: q.explanation
+        };
+      });
+
+      currentQuizIndex = 0;
+      quizScore = 0;
+      selectedOption = null;
+      quizAnswered = false;
+
+      document.getElementById('quiz-start-card').classList.add('hidden');
+      document.getElementById('quiz-results-card').classList.add('hidden');
+      document.getElementById('quiz-active-container').classList.remove('hidden');
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      quizAnswered = false;
+      selectedOption = null;
+
+      const q = activeQuizQuestions[currentQuizIndex];
+
+      const feedbackBox = document.getElementById('quiz-feedback-box');
+      feedbackBox.classList.add('hidden');
+
+      const nextBtn = document.getElementById('quiz-next-btn');
+      nextBtn.disabled = true;
+      nextBtn.className = "px-6 py-2.5 bg-slate-200 text-slate-400 font-bold rounded-xl transition flex items-center space-x-2 opacity-50 cursor-not-allowed";
+
+      document.getElementById('quiz-question-number').innerText = `Pregunta ${currentQuizIndex + 1} de ${activeQuizQuestions.length}`;
+      document.getElementById('quiz-question-category').innerText = q.category;
+      document.getElementById('quiz-score-badge').innerText = `Aciertos: ${quizScore}`;
+
+      const progressPercent = ((currentQuizIndex + 1) / activeQuizQuestions.length) * 100;
+      document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+      document.getElementById('quiz-question-text').innerText = q.question;
+
+      const optionsContainer = document.getElementById('quiz-options-container');
+      optionsContainer.innerHTML = '';
+
+      q.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "quiz-option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-400 text-slate-800 text-sm font-medium transition flex items-start space-x-3";
+        btn.onclick = () => selectOption(idx);
+        btn.id = `option-btn-${idx}`;
+
+        btn.innerHTML = `
+          <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 text-xs flex items-center justify-center font-bold shrink-0 mt-0.5 font-mono">
+            ${String.fromCharCode(65 + idx)}
+          </span>
+          <span class="flex-1 leading-snug">${optText}</span>
+        `;
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function selectOption(idx) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+      selectedOption = idx;
+
+      const q = activeQuizQuestions[currentQuizIndex];
+      const isCorrect = idx === q.correct;
+
+      if (isCorrect) {
+        quizScore++;
+      }
+
+      q.options.forEach((_, optIdx) => {
+        const btn = document.getElementById(`option-btn-${optIdx}`);
+        btn.disabled = true;
+
+        if (optIdx === q.correct) {
+          btn.className = "w-full text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 text-sm font-bold transition flex items-start space-x-3";
+        } else if (optIdx === selectedOption && !isCorrect) {
+          btn.className = "w-full text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-900 text-sm font-medium transition flex items-start space-x-3";
+        } else {
+          btn.className = "w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-400 text-sm transition flex items-start space-x-3 opacity-60";
+        }
+      });
+
+      const feedbackBox = document.getElementById('quiz-feedback-box');
+      const feedbackTitle = document.getElementById('quiz-feedback-title');
+      const feedbackText = document.getElementById('quiz-feedback-text');
+
+      feedbackBox.classList.remove('hidden');
+
+      if (isCorrect) {
+        feedbackBox.className = "p-4 rounded-xl text-sm leading-relaxed border-2 bg-emerald-50 border-emerald-300 text-emerald-900 space-y-1";
+        feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i><span>¡Respuesta Correcta!</span>`;
+      } else {
+        feedbackBox.className = "p-4 rounded-xl text-sm leading-relaxed border-2 bg-rose-50 border-rose-300 text-rose-900 space-y-1";
+        feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600"></i><span>Respuesta Incorrecta</span>`;
+      }
+
+      feedbackText.innerText = q.explanation;
+
+      const nextBtn = document.getElementById('quiz-next-btn');
+      nextBtn.disabled = false;
+      nextBtn.className = "px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition flex items-center space-x-2 cursor-pointer shadow-md shadow-blue-500/20";
+    }
+
+    function nextQuestion() {
+      if (!quizAnswered) return;
+      currentQuizIndex++;
+
+      if (currentQuizIndex < activeQuizQuestions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-active-container').classList.add('hidden');
+      const resultsCard = document.getElementById('quiz-results-card');
+      resultsCard.classList.remove('hidden');
+
+      const total = activeQuizQuestions.length;
+      const wrong = total - quizScore;
+      const scoreOutOfTen = ((quizScore / total) * 10).toFixed(1);
+
+      document.getElementById('result-correct').innerText = quizScore;
+      document.getElementById('result-wrong').innerText = wrong;
+      document.getElementById('result-score').innerText = `${scoreOutOfTen} / 10`;
+
+      const iconBg = document.getElementById('result-icon-bg');
+      const icon = document.getElementById('result-icon');
+      const title = document.getElementById('result-title');
+      const subtitle = document.getElementById('result-subtitle');
+
+      if (scoreOutOfTen >= 8.0) {
+        iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto border-2 bg-emerald-100 border-emerald-300 text-emerald-700 text-4xl";
+        icon.className = "fa-solid fa-trophy";
+        title.innerText = "¡Excelente Resultado!";
+        subtitle.innerText = "Superaste con éxito este examen generado aleatoriamente.";
+      } else if (scoreOutOfTen >= 5.0) {
+        iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto border-2 bg-blue-100 border-blue-300 text-blue-700 text-4xl";
+        icon.className = "fa-solid fa-thumbs-up";
+        title.innerText = "¡Aprobado!";
+        subtitle.innerText = "Buen nivel general. Genera un nuevo examen para seguir practicando más preguntas.";
+      } else {
+        iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto border-2 bg-rose-100 border-rose-300 text-rose-700 text-4xl";
+        icon.className = "fa-solid fa-book-open";
+        title.innerText = "Necesitas Más Repaso";
+        subtitle.innerText = "Te recomendamos revisar las tarjetas del glosario y las preguntas de desarrollo.";
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       7. ESSAY / DEVELOPMENT QUESTIONS MODULE RENDERER
+       ------------------------------------------------------------------------- */
+    function renderEssayQuestions() {
+      const container = document.getElementById('essay-questions-list');
+      container.innerHTML = '';
+
+      essayQuestionsData.forEach((eq, index) => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border-2 border-slate-300 p-6 shadow-sm space-y-4";
+        
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b-2 border-slate-100 pb-3">
+            <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-purple-100 text-purple-800 border border-purple-200">
+              ${eq.category}
+            </span>
+            <span class="text-xs font-mono text-slate-400">Práctica de Redacción ${index + 1}</span>
+          </div>
+
+          <h3 class="text-base font-bold text-slate-900 leading-snug">${eq.title}</h3>
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            ${eq.prompt}
+          </p>
+
+          <!-- Textarea User Input -->
+          <div class="space-y-2">
+            <label class="block text-xs font-mono font-bold text-slate-600">Tu respuesta por escrito:</label>
+            <textarea id="essay-input-${eq.id}" rows="4" placeholder="Escribe aquí tu desarrollo completo antes de comprobar la solución modelo..." class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-purple-600 focus:bg-white transition"></textarea>
+          </div>
+
+          <!-- Action Button to Toggle Model Answer & Rubric -->
+          <div class="pt-2">
+            <button onclick="toggleEssayRubric(${eq.id})" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-sm flex items-center space-x-2">
+              <i class="fa-solid fa-clipboard-check"></i>
+              <span>Ver Criterios y Respuesta Modelo</span>
+            </button>
+          </div>
+
+          <!-- Hidden Rubric & Model Answer Container -->
+          <div id="essay-rubric-${eq.id}" class="hidden space-y-4 pt-4 border-t-2 border-slate-200">
+            
+            <!-- Key Points Rubric -->
+            <div class="p-4 bg-purple-50 border border-purple-200 rounded-xl space-y-2">
+              <h4 class="text-xs font-mono font-bold text-purple-900 uppercase flex items-center space-x-2">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Puntos Clave Exigidos en Examen</span>
+              </h4>
+              <ul class="list-disc list-inside text-xs text-slate-700 space-y-1">
+                ${eq.keyPoints.map(pt => `<li>${pt}</li>`).join('')}
+              </ul>
+            </div>
+
+            <!-- Model Answer Text -->
+            <div class="p-4 bg-slate-900 text-slate-100 rounded-xl space-y-2 border border-slate-700">
+              <h4 class="text-xs font-mono font-bold text-emerald-400 uppercase flex items-center space-x-2">
+                <i class="fa-solid fa-file-pen"></i>
+                <span>Respuesta Modelo Perfecta</span>
+              </h4>
+              <p class="text-xs sm:text-sm font-sans leading-relaxed text-slate-200 whitespace-pre-line">${eq.modelAnswer}</p>
+            </div>
+
+            <!-- Self Evaluation Checkboxes -->
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <span class="text-xs font-mono font-bold text-slate-700 block">Autoevaluación de tu escrito:</span>
+              <div class="flex flex-wrap gap-4 text-xs text-slate-600">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                  <input type="checkbox" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                  <span>¿Incluiste la terminología técnica adecuada?</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                  <input type="checkbox" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                  <span>¿Justificaste el 'por qué' de la solución?</span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleEssayRubric(id) {
+      const rubric = document.getElementById(`essay-rubric-${id}`);
+      rubric.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>
