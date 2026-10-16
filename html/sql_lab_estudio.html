@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SQL Lab · HUB del estudio</title>
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/sql-wasm.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root{
+  --ink:#203247;--muted:#6c8192;--paper:rgba(255,255,255,.88);
+  --line:rgba(37,76,104,.13);--blue:#167fa4;--blue2:#0d6687;
+  --green:#19834d;--orange:#c17a20;--red:#c64859;
+  --shadow:0 18px 45px rgba(30,67,91,.12)
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--ink);font-family:"DM Sans",sans-serif;
+  background:
+    linear-gradient(rgba(86,128,157,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(86,128,157,.12) 1px,transparent 1px),
+    linear-gradient(180deg,#fcfeff,#edf8fa 72%,#dceff3);
+  background-size:27px 27px,27px 27px,auto;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;
+  background:radial-gradient(circle at 12% 8%,#fff 0,transparent 25%),
+             radial-gradient(circle at 90% 12%,rgba(22,127,164,.12),transparent 25%);
+}
+.page{width:min(1160px,calc(100% - 28px));margin:auto;padding:28px 0 245px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:25px}
+.eyebrow{
+  display:inline-block;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.72);
+  border:1px solid var(--line);font-size:.72rem;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--blue2)
+}
+h1{font:700 clamp(2.8rem,7vw,5.3rem)/.94 "Space Grotesk";letter-spacing:-.055em;margin:13px 0 8px}
+.lead{max-width:720px;color:var(--muted);line-height:1.6;margin:0}
+.db{
+  width:130px;height:130px;border-radius:45% 55% 50% 50%;background:rgba(220,242,245,.8);
+  position:relative;transform:rotate(-7deg);box-shadow:var(--shadow);flex:none
+}
+.db i{position:absolute;left:31px;top:28px;width:68px;height:67px;border:4px solid #478da2;border-radius:50% 50% 42% 42%/32% 32% 68% 68%}
+.db i:before,.db i:after{content:"";position:absolute;left:-4px;width:68px;height:23px;border:4px solid #478da2;border-radius:50%}
+.db i:before{top:-4px}.db i:after{top:20px;border-top-color:#9fc5d0;border-bottom-color:#9fc5d0}
+.toolbar{display:grid;grid-template-columns:1fr auto;gap:14px;margin:20px 0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:23px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+.levels{padding:13px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.level{
+  text-align:left;border:2px solid var(--line);border-radius:17px;padding:12px;background:#fff9;
+  transition:.18s
+}
+.level:hover{transform:translateY(-2px)}
+.level.active[data-level=facil]{border-color:#6cbd91;background:#effaf3}
+.level.active[data-level=medio]{border-color:#ddb15d;background:#fff9ec}
+.level.active[data-level=dificil]{border-color:#c98392;background:#fff3f5}
+.level b{display:block}.level small{display:block;color:var(--muted);margin-top:3px;line-height:1.35}
+button{font:inherit;cursor:pointer}
+.schema-btn,.secondary,.hint-btn{
+  border:1px solid var(--line);background:#fff9;border-radius:14px;padding:11px 15px;font-weight:800;color:var(--ink)
+}
+.schema-btn{min-width:175px}
+.grid{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(470px,1.15fr);gap:18px}
+.challenge{padding:23px}
+.challenge-top{display:flex;justify-content:space-between;gap:15px}
+.tag{display:inline-block;padding:6px 9px;border-radius:999px;background:#edf7fa;color:var(--blue2);font-size:.72rem;font-weight:900;letter-spacing:.08em}
+h2{font:600 1.55rem/1.15 "Space Grotesk";margin:10px 0}
+.statement{white-space:pre-line;color:#465c6e;line-height:1.65}
+.hint{display:none;margin-top:15px;padding:13px 14px;border-radius:15px;background:#fff9df;border:1px dashed #d7bd62;color:#705f19;line-height:1.55;font-size:.88rem}
+.hint.show{display:block}
+.mini-title{font-weight:900;font-size:.84rem;margin:18px 0 9px;padding-top:16px;border-top:1px solid var(--line)}
+.tables{display:grid;gap:8px}
+.table{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#f7fafc}
+.table strong{display:block;padding:8px 10px;background:#eef5f8;font-size:.8rem}
+.table code{display:block;padding:8px 10px;color:#536b7c;font:11px/1.55 "Space Mono","Courier New",monospace}
+.editor{padding:15px;position:sticky;top:14px}
+.editor-head{display:flex;justify-content:space-between;padding:3px 4px 12px;font-size:.84rem;font-weight:900}
+.dots{display:flex;gap:6px}.dots i{width:9px;height:9px;border-radius:50%;background:#cbd5e1}
+textarea{
+  width:100%;min-height:385px;resize:vertical;border:0;outline:0;border-radius:17px;padding:18px;
+  background:#111827;color:#edf2f7;font:14px/1.65 "Space Mono","Courier New",monospace;
+}
+.actions{display:flex;flex-wrap:wrap;gap:9px;padding-top:12px}
+.primary{border:0;border-radius:14px;padding:11px 15px;color:#fff;background:var(--blue);font-weight:900;box-shadow:0 9px 20px #167fa433}
+.primary:hover{background:var(--blue2)}
+.result{margin-top:12px;padding:13px 14px;border-radius:15px;border:1px solid var(--line);background:#f7fafc;white-space:pre-line;font-size:.88rem;line-height:1.55}
+.result.ok{background:#effbf3;color:#146c3e;border-color:#19834d33}
+.result.fail{background:#fff2f4;color:#9e3141;border-color:#c6485933}
+.result.run{background:#fff9ec;color:#825013}
+table.output{width:100%;margin-top:12px;border-collapse:collapse;background:#fff;border:1px solid var(--line);font-size:.8rem}
+.output th,.output td{padding:8px;border-bottom:1px solid var(--line);text-align:left}.output th{background:#eef5f8}.output tr:last-child td{border-bottom:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.meta span{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#fff9;color:var(--muted);font-size:.75rem;font-weight:800}
+.waves{position:fixed;bottom:0;left:0;right:0;height:220px;z-index:-1;overflow:hidden;pointer-events:none}
+.wave{position:absolute;left:-4%;width:108%;border-radius:50% 50% 0 0/30% 30% 0 0}
+.w1{height:150px;bottom:-85px;background:#167fa433;transform:rotate(-1.4deg)}
+.w2{height:130px;bottom:-90px;background:#53bacb44;transform:rotate(2deg)}
+.w3{height:115px;bottom:-97px;background:#7356d822;transform:rotate(-2.2deg)}
+.foam{position:absolute;left:-3%;width:106%;bottom:65px;height:55px;border-top:5px solid #ffffffcc;border-radius:50%;transform:rotate(-1.6deg)}
+.modal-bg{display:none;position:fixed;inset:0;z-index:20;background:#14253644;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:18px}
+.modal{width:min(760px,100%);max-height:82vh;overflow:auto;background:#fbfdff;border-radius:23px;padding:22px;box-shadow:0 30px 80px #102b3b44}
+.modal-top{display:flex;justify-content:space-between;align-items:center}.modal h3{font:600 1.4rem "Space Grotesk";margin:0}
+.close{width:40px;height:40px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:1.1rem}
+pre.schema-full{background:#111827;color:#edf2f7;padding:15px;border-radius:14px;overflow:auto;font:12px/1.6 "Space Mono","Courier New",monospace}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.editor{position:static}.db{display:none}}
+@media(max-width:680px){.toolbar{grid-template-columns:1fr}.levels{grid-template-columns:1fr}.page{width:calc(100% - 18px);padding-top:18px}textarea{min-height:330px}}
+</style>
+</head>
+<body>
+<main class="page">
+<header>
+  <div>
+    <span class="eyebrow">HUB del estudio · Base de Datos</span>
+    <h1>SQL Lab</h1>
+    <p class="lead">Practica SQL directamente en el navegador. Empieza con SELECT y filtros y avanza hacia JOIN, agrupaciones, subconsultas y vistas.</p>
+    <div class="meta">
+      <span id="status">● Cargando SQLite…</span>
+      <span id="levelMeta">Nivel · Medio</span>
+      <span id="score">Superados · 0</span>
+    </div>
+  </div>
+  <div class="db" aria-hidden="true"><i></i></div>
+</header>
+
+<section class="toolbar">
+  <div class="card levels">
+    <button class="level" data-level="facil"><b>🟢 Fácil</b><small>SELECT, WHERE, ORDER BY y funciones básicas</small></button>
+    <button class="level active" data-level="medio"><b>🟡 Medio</b><small>JOIN, GROUP BY, HAVING y agregaciones</small></button>
+    <button class="level" data-level="dificil"><b>🔴 Difícil</b><small>Subconsultas, vistas y consultas compuestas</small></button>
+  </div>
+  <button class="schema-btn" id="schemaBtn">🗂 Ver esquema</button>
+</section>
+
+<section class="grid">
+<article class="card challenge">
+  <div class="challenge-top">
+    <div><span class="tag" id="tag">MEDIO</span><h2 id="title">Cargando reto…</h2></div>
+    <button class="hint-btn" id="hintBtn" title="Mostrar pista">💡</button>
+  </div>
+  <p class="statement" id="statement"></p>
+  <div id="hint" class="hint"></div>
+  <div class="mini-title">Tablas disponibles</div>
+  <div class="tables" id="tables"></div>
+  <p style="color:#7b8f9f;font-size:.77rem;line-height:1.5">La base de datos se recrea al cambiar de reto. Experimenta sin miedo.</p>
+</article>
+
+<section class="card editor">
+  <div class="editor-head"><span>TU CONSULTA · query.sql</span><span class="dots"><i></i><i></i><i></i></span></div>
+  <textarea id="sql" spellcheck="false"></textarea>
+  <div class="actions">
+    <button class="primary" id="check" disabled>Comprobar consulta</button>
+    <button class="secondary" id="run" disabled>▶ Ejecutar</button>
+    <button class="secondary" id="new">↻ Nuevo reto</button>
+    <button class="secondary" id="reset">Restaurar SQL</button>
+  </div>
+  <div id="result" class="result">Cargando motor SQLite…</div>
+  <div id="output"></div>
+</section>
+</section>
+</main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-top"><h3>Esquema de la base de datos</h3><button class="close" id="close">×</button></div>
+    <pre class="schema-full" id="schemaText"></pre>
+  </div>
+</div>
+
+<div class="waves"><div class="foam"></div><div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div></div>
+
+<script>
+/*
+==============================================================
+SQL LAB — CÓMO AÑADIR RETOS
+==============================================================
+
+Busca "RETOS". Para añadir uno copia este formato:
+
+{
+  id:"nuevo1",
+  level:"facil", // "facil", "medio" o "dificil"
+  title:"Mi reto",
+  statement:"Explica qué debe hacer el alumno.",
+  starter:"SELECT ...",
+  hint:"Una pista útil.",
+  check:{
+    type:"select",
+    expected:[[1,"Ana"],[2,"Luis"]],
+    ordered:true
+  }
+}
+
+Para una vista:
+check:{
+  type:"view",
+  viewName:"vw_mi_vista",
+  expected:[[...],...],
+  ordered:true
+}
+
+Para un reto que DEBA usar una subconsulta:
+requiresSubquery:true
+
+La comprobación se hace sobre una base de datos SQLite independiente,
+por lo que el alumno no puede alterar la solución esperada.
+==============================================================
+*/
+
+const SCHEMA={
+  alumnos:{
+    cols:["id INTEGER PRIMARY KEY","nombre TEXT","edad INTEGER","ciudad TEXT","nota REAL"],
+    rows:[[1,"Ana",20,"Sevilla",8.7],[2,"Luis",22,"Córdoba",6.9],[3,"Marta",19,"Sevilla",9.1],[4,"Pablo",24,"Málaga",5.8],[5,"Lucía",21,"Cádiz",7.6],[6,"Diego",20,"Sevilla",9.4],[7,"Sara",23,"Huelva",8.2],[8,"Jorge",18,"Jaén",6.3]]
+  },
+  cursos:{
+    cols:["id INTEGER PRIMARY KEY","nombre TEXT","horas INTEGER"],
+    rows:[[1,"Bases de Datos",192],[2,"Redes",224],[3,"Lenguaje de Marcas",128],[4,"Implantación de Sistemas",192],[5,"Fundamentos de Hardware",160]]
+  },
+  matriculas:{
+    cols:["alumno_id INTEGER","curso_id INTEGER","nota REAL"],
+    rows:[[1,1,9],[1,2,8],[2,1,6.4],[2,3,7.1],[3,1,9.5],[3,3,8.9],[4,2,5.7],[4,4,6],[5,1,7.8],[5,5,7.4],[6,1,9.8],[6,2,9.2],[6,4,9.1],[7,2,8.4],[7,5,8],[8,3,6.7]]
+  }
+};
+
+const RETOS=[
+/* ---------- FÁCIL ---------- */
+{id:"f1",level:"facil",title:"Selecciona alumnos",statement:"Muestra nombre y ciudad de todos los alumnos, ordenados alfabéticamente por nombre.",starter:`SELECT nombre, ciudad
+FROM alumnos
+ORDER BY nombre;`,hint:"Selecciona únicamente las dos columnas indicadas y utiliza ORDER BY para ordenar.",check:{type:"select",expected:[["Ana","Sevilla"],["Diego","Sevilla"],["Jorge","Jaén"],["Luis","Córdoba"],["Lucía","Cádiz"],["Marta","Sevilla"],["Pablo","Málaga"],["Sara","Huelva"]],ordered:true}},
+{id:"f2",level:"facil",title:"Filtra por edad",statement:"Muestra nombre y edad de los alumnos que tengan 21 años o más.",starter:`SELECT nombre, edad
+FROM alumnos
+WHERE edad >= 21
+ORDER BY edad, nombre;`,hint:"El filtro va en WHERE. Puedes ordenar después con ORDER BY.",check:{type:"select",expected:[["Lucía",21],["Luis",22],["Sara",23],["Pablo",24]],ordered:true}},
+{id:"f3",level:"facil",title:"Los tres mejores",statement:"Obtén nombre y nota de los tres alumnos con mayor nota.",starter:`SELECT nombre, nota
+FROM alumnos
+ORDER BY nota DESC
+LIMIT 3;`,hint:"Ordena nota de forma descendente y limita el resultado a tres filas.",check:{type:"select",expected:[["Diego",9.4],["Marta",9.1],["Ana",8.7]],ordered:true}},
+{id:"f4",level:"facil",title:"Cuenta alumnos",statement:"Devuelve una única fila con el número total de alumnos.",starter:`SELECT COUNT(*) AS total
+FROM alumnos;`,hint:"COUNT(*) cuenta las filas de una tabla.",check:{type:"select",expected:[[8]],ordered:true}},
+
+/* ---------- MEDIO ---------- */
+{id:"m1",level:"medio",title:"Alumnos y cursos",statement:"Muestra el nombre de cada alumno junto al nombre de cada curso en el que está matriculado.",starter:`SELECT a.nombre AS alumno, c.nombre AS curso
+FROM alumnos a
+JOIN matriculas m ON a.id = m.alumno_id
+JOIN cursos c ON c.id = m.curso_id
+ORDER BY a.nombre, c.nombre;`,hint:"Necesitas pasar por matriculas para relacionar alumnos con cursos.",check:{type:"select",expected:[["Ana","Bases de Datos"],["Ana","Redes"],["Diego","Bases de Datos"],["Diego","Implantación de Sistemas"],["Diego","Redes"],["Jorge","Lenguaje de Marcas"],["Luis","Bases de Datos"],["Luis","Lenguaje de Marcas"],["Lucía","Bases de Datos"],["Lucía","Fundamentos de Hardware"],["Marta","Bases de Datos"],["Marta","Lenguaje de Marcas"],["Pablo","Implantación de Sistemas"],["Pablo","Redes"],["Sara","Fundamentos de Hardware"],["Sara","Redes"]],ordered:true}},
+{id:"m2",level:"medio",title:"Media por curso",statement:"Calcula la nota media de cada curso. Muestra curso y media redondeada a dos decimales, ordenando de mayor a menor.",starter:`SELECT c.nombre AS curso, ROUND(AVG(m.nota),2) AS media
+FROM cursos c
+JOIN matriculas m ON c.id = m.curso_id
+GROUP BY c.id, c.nombre
+ORDER BY media DESC;`,hint:"Combina JOIN, GROUP BY y AVG. ROUND(...,2) limita la presentación a dos decimales.",check:{type:"select",expected:[["Implantación de Sistemas",9.1],["Redes",8.4],["Bases de Datos",8.63],["Fundamentos de Hardware",7.7],["Lenguaje de Marcas",7.57]],ordered:true,tol:.01}},
+{id:"m3",level:"medio",title:"Cursos con buena media",statement:"Muestra los cursos cuya nota media sea superior a 8, indicando curso y media redondeada a dos decimales.",starter:`SELECT c.nombre AS curso, ROUND(AVG(m.nota),2) AS media
+FROM cursos c
+JOIN matriculas m ON c.id=m.curso_id
+GROUP BY c.id,c.nombre
+HAVING AVG(m.nota)>8
+ORDER BY media DESC;`,hint:"WHERE filtra filas; HAVING filtra grupos después de GROUP BY.",check:{type:"select",expected:[["Implantación de Sistemas",9.1],["Redes",8.4],["Bases de Datos",8.63]],ordered:true,tol:.01}},
+{id:"m4",level:"medio",title:"Alumnos con varias matrículas",statement:"Muestra el nombre de los alumnos que estén matriculados en al menos dos cursos y cuántos cursos tienen.",starter:`SELECT a.nombre, COUNT(*) AS cursos
+FROM alumnos a
+JOIN matriculas m ON a.id=m.alumno_id
+GROUP BY a.id,a.nombre
+HAVING COUNT(*)>=2
+ORDER BY cursos DESC,a.nombre;`,hint:"Agrupa por alumno y utiliza HAVING COUNT(*) para quedarte con los grupos de dos o más matrículas.",check:{type:"select",expected:[["Diego",3],["Ana",2],["Luis",2],["Lucía",2],["Marta",2],["Pablo",2],["Sara",2]],ordered:true}},
+
+/* ---------- DIFÍCIL ---------- */
+{id:"d1",level:"dificil",title:"Por encima de la media",statement:"Muestra nombre y nota de los alumnos cuya nota sea superior a la nota media de todos los alumnos. Debes utilizar una subconsulta.",starter:`SELECT nombre, nota
+FROM alumnos
+WHERE nota > (
+  -- escribe aquí la subconsulta
+)
+ORDER BY nota DESC;`,hint:"La subconsulta debe devolver un único valor: AVG(nota) de alumnos.",requiresSubquery:true,check:{type:"select",expected:[["Diego",9.4],["Marta",9.1],["Ana",8.7],["Sara",8.2]],ordered:true,tol:.001}},
+{id:"d2",level:"dificil",title:"El curso con mejor media",statement:"Muestra el nombre del curso que tiene la media de notas más alta. Debes resolverlo mediante una subconsulta.",starter:`SELECT c.nombre AS curso, ROUND(AVG(m.nota),2) AS media
+FROM cursos c
+JOIN matriculas m ON c.id=m.curso_id
+GROUP BY c.id,c.nombre
+HAVING AVG(m.nota)=(
+  -- encuentra aquí la media máxima
+);`,hint:"Piensa en una consulta que calcule las medias por curso y, sobre ese resultado, obtenga MAX.",requiresSubquery:true,check:{type:"select",expected:[["Implantación de Sistemas",9.1]],ordered:true,tol:.001}},
+{id:"d3",level:"dificil",title:"Vista de alumnos aprobados",statement:"Crea una vista llamada vw_alumnos_aprobados con nombre, ciudad y nota de los alumnos cuya nota sea igual o superior a 7. Después consulta la vista ordenando por nota descendente.",starter:`CREATE VIEW vw_alumnos_aprobados AS
+SELECT nombre, ciudad, nota
+FROM alumnos
+WHERE nota >= 7;
+
+SELECT nombre, ciudad, nota
+FROM vw_alumnos_aprobados
+ORDER BY nota DESC;`,hint:"Una vista se crea con CREATE VIEW nombre AS SELECT ... y después se puede consultar como una tabla.",check:{type:"view",view:"vw_alumnos_aprobados",expected:[["Diego","Sevilla",9.4],["Marta","Sevilla",9.1],["Ana","Sevilla",8.7],["Sara","Huelva",8.2],["Lucía","Cádiz",7.6]],ordered:true,tol:.001}},
+{id:"d4",level:"dificil",title:"Vista resumen de cursos",statement:"Crea una vista llamada vw_resumen_cursos con curso, número de alumnos matriculados y nota media. Después consulta la vista ordenando por número de alumnos descendente y, en empate, por nombre.",starter:`CREATE VIEW vw_resumen_cursos AS
+SELECT c.nombre AS curso,
+       COUNT(m.alumno_id) AS alumnos,
+       ROUND(AVG(m.nota),2) AS media
+FROM cursos c
+LEFT JOIN matriculas m ON c.id=m.curso_id
+GROUP BY c.id,c.nombre;
+
+SELECT curso, alumnos, media
+FROM vw_resumen_cursos
+ORDER BY alumnos DESC, curso;`,hint:"LEFT JOIN mantiene también cursos sin matrículas. GROUP BY permite calcular COUNT y AVG por curso.",check:{type:"view",view:"vw_resumen_cursos",expected:[["Bases de Datos",5,8.63],["Redes",4,8.4],["Lenguaje de Marcas",3,7.57],["Fundamentos de Hardware",2,7.7],["Implantación de Sistemas",2,7.55]],ordered:true,tol:.01}}
+];
+
+let SQL=null,db=null,current=null,level="medio",solved=0,solvedIds=new Set(),busy=false;
+const $=id=>document.getElementById(id);
+
+function makeDb(){
+  const d=new SQL.Database();
+  d.run(`CREATE TABLE alumnos(id INTEGER PRIMARY KEY,nombre TEXT,edad INTEGER,ciudad TEXT,nota REAL);
+         CREATE TABLE cursos(id INTEGER PRIMARY KEY,nombre TEXT,horas INTEGER);
+         CREATE TABLE matriculas(alumno_id INTEGER,curso_id INTEGER,nota REAL);`);
+  for(const r of SCHEMA.alumnos.rows)d.run("INSERT INTO alumnos VALUES(?,?,?,?,?)",r);
+  for(const r of SCHEMA.cursos.rows)d.run("INSERT INTO cursos VALUES(?,?,?)",r);
+  for(const r of SCHEMA.matriculas.rows)d.run("INSERT INTO matriculas VALUES(?,?,?)",r);
+  return d;
+}
+function splitSql(s){
+  const out=[];let start=0,q=null;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(q){if(c===q){if(s[i+1]===q)i++;else q=null}continue}
+    if(c==="'"||c==='"'||c==="`"){q=c;continue}
+    if(c===";"){out.push(s.slice(start,i));start=i+1}
+  }
+  if(s.slice(start).trim())out.push(s.slice(start));
+  return out;
+}
+function valEq(a,b,t=.0001){
+  if(typeof a==="number"&&typeof b==="number")return Math.abs(a-b)<=t;
+  return String(a)===String(b);
+}
+function rowsEq(a,b,ordered,t){
+  if(a.length!==b.length)return false;
+  if(ordered)return a.every((r,i)=>r.length===b[i].length&&r.every((v,j)=>valEq(v,b[i][j],t)));
+  const remaining=b.map((_,i)=>i);
+  for(const r of a){
+    const p=remaining.findIndex(i=>r.length===b[i].length&&r.every((v,j)=>valEq(v,b[i][j],t)));
+    if(p<0)return false;remaining.splice(p,1);
+  }
+  return !remaining.length;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function errorText(e){return String(e?.message||e).replace(/^Error:\s*/,"").slice(0,1800)}
+function resultTable(r){
+  if(!r)return "";
+  return `<table class="output"><thead><tr>${r.columns.map(c=>`<th>${escapeHtml(c)}</th>`).join("")}</tr></thead><tbody>${
+    r.values.map(row=>`<tr>${row.map(v=>`<td>${escapeHtml(v===null?"NULL":v)}</td>`).join("")}</tr>`).join("")
+  }</tbody></table>`;
+}
+function setResult(text,cls=""){ $("result").textContent=text;$("result").className="result "+cls;$("output").innerHTML="" }
+function loadChallenge(){
+  const pool=RETOS.filter(r=>r.level===level),fresh=pool.filter(r=>!solvedIds.has(r.id));
+  current=(fresh.length?fresh:pool)[Math.floor(Math.random()*(fresh.length?fresh:pool).length)];
+  $("tag").textContent={facil:"FÁCIL",medio:"MEDIO",dificil:"DIFÍCIL"}[level];
+  $("title").textContent=current.title;$("statement").textContent=current.statement;
+  $("sql").value=current.starter;$("hint").textContent=current.hint;$("hint").classList.remove("show");
+  renderTables();setResult(SQL?"Escribe tu consulta y pulsa «Comprobar consulta».":"Cargando motor SQLite…");
+}
+function renderTables(){
+  $("tables").innerHTML=Object.entries(SCHEMA).map(([name,t])=>`<div class="table"><strong>${name}</strong><code>${t.cols.map(escapeHtml).join("<br>")}</code></div>`).join("");
+}
+function updateMeta(){ $("levelMeta").textContent="Nivel · "+{facil:"Fácil",medio:"Medio",dificil:"Difícil"}[level];$("score").textContent="Superados · "+solved }
+function requirement(){
+  if(current.requiresSubquery&&!/\(\s*SELECT\b/i.test($("sql").value.replace(/--.*$/gm," ")))
+    return "Este reto requiere una subconsulta. Debe aparecer un SELECT dentro de paréntesis.";
+  return null;
+}
+function verify(){
+  const req=requirement();if(req)return{ok:false,msg:req};
+  const test=makeDb(),sql=$("sql").value.trim();if(!sql){test.close();return{ok:false,msg:"Escribe una consulta SQL."}}
+  try{
+    let last=null;
+    for(const s of splitSql(sql)){
+      if(!s.trim())continue;
+      const r=test.exec(s.trim());
+      if(r.length)last={columns:r[0].columns,values:r[0].values};
+    }
+    const c=current.check;
+    if(c.type==="select"){
+      if(!last){test.close();return{ok:false,msg:"La consulta no devuelve filas que comprobar."}}
+      const ok=rowsEq(last.values,c.expected,!!c.ordered,c.tol||.0001);
+      test.close();return{ok,msg:ok?`✓ Correcto. Resultado válido (${last.values.length} fila(s)).`:`✗ El resultado no coincide. Filas obtenidas: ${last.values.length}; esperadas: ${c.expected.length}.`,data:last};
+    }
+    const exists=test.exec(`SELECT name FROM sqlite_master WHERE type='view' AND lower(name)=lower('${c.view}')`);
+    if(!exists.length){test.close();return{ok:false,msg:`No se ha encontrado la vista «${c.view}».`}}
+    const r=test.exec(`SELECT * FROM "${c.view.replaceAll('"','""')}"`)[0];
+    const data={columns:r.columns,values:r.values};
+    const ok=rowsEq(data.values,c.expected,!!c.ordered,c.tol||.0001);
+    test.close();return{ok,msg:ok?`✓ Vista correcta. «${c.view}» existe y devuelve el resultado esperado.`:`✗ La vista existe, pero sus datos no coinciden con el resultado esperado.`,data};
+  }catch(e){test.close();return{ok:false,msg:"Error SQL:\n"+errorText(e)}}
+}
+async function check(){
+  if(busy||!SQL)return;busy=true;$("check").disabled=true;$("run").disabled=true;setResult("Comprobando consulta…","run");
+  const r=verify();
+  if(r.ok){solved++;solvedIds.add(current.id);setResult(r.msg,"ok");$("output").innerHTML=resultTable(r.data)}
+  else setResult(r.msg,"fail");
+  updateMeta();busy=false;$("check").disabled=false;$("run").disabled=false;
+}
+function run(){
+  if(!db)return;
+  try{
+    let last=null;
+    for(const s of splitSql($("sql").value)){if(!s.trim())continue;const r=db.exec(s.trim());if(r.length)last={columns:r[0].columns,values:r[0].values}}
+    setResult(last?`✓ Ejecutado. ${last.values.length} fila(s) devueltas.`:"✓ Sentencia ejecutada correctamente.","ok");
+    $("output").innerHTML=resultTable(last);
+  }catch(e){setResult("Error SQL:\n"+errorText(e),"fail")}
+}
+document.querySelectorAll(".level").forEach(b=>b.onclick=()=>{document.querySelectorAll(".level").forEach(x=>x.classList.remove("active"));b.classList.add("active");level=b.dataset.level;loadChallenge();updateMeta()});
+$("hintBtn").onclick=()=>$("hint").classList.toggle("show");
+$("check").onclick=check;$("run").onclick=run;$("new").onclick=loadChallenge;
+$("reset").onclick=()=>{$("sql").value=current.starter;$("hint").classList.remove("show");setResult("Consulta restaurada.")};
+$("sql").onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();const s=e.target.selectionStart;e.target.setRangeText("    ",s,s,"end")}if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();check()}};
+$("schemaBtn").onclick=()=>{$("schemaText").textContent=Object.entries(SCHEMA).map(([n,t])=>n+"\n  "+t.cols.join("\n  ")).join("\n\n");$("modalBg").style.display="flex"};
+$("close").onclick=()=>$("modalBg").style.display="none";
+$("modalBg").onclick=e=>{if(e.target===$("modalBg"))$("modalBg").style.display="none"};
+
+loadChallenge();updateMeta();
+(async()=>{
+  try{
+    SQL=await initSqlJs({locateFile:f=>`https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/${f}`});
+    db=makeDb();$("status").textContent="● SQLite listo";$("status").style.color="var(--green)";
+    $("check").disabled=false;$("run").disabled=false;setResult("Motor listo. ¡Empieza a practicar!");
+  }catch(e){$("status").textContent="● Error al cargar SQLite";$("status").style.color="var(--red)";setResult("No se pudo cargar SQLite. Necesitas conexión a Internet para cargar el motor.\n\n"+errorText(e),"fail")}
+})();
+</script>
+</body>
+</html>

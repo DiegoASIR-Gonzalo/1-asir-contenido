@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BBDD Mastery Dashboard - 1º ASIR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .perspective { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-200 min-h-screen p-4 md:p-6">
+
+  <!-- TOP BAR: Info + Pomodoro -->
+  <header class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white mono">BBDD::STUDY_HUB</h1>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Gestión de Bases de Datos • Tema 1 & 2</p>
+    </div>
+
+    <!-- Pomodoro Widget -->
+    <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2">
+      <div class="text-right">
+        <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Pomodoro</span>
+        <span id="timer-display" class="mono text-lg font-bold text-emerald-400">25:00</span>
+      </div>
+      <button id="timer-btn" onclick="toggleTimer()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+        Iniciar
+      </button>
+      <button onclick="resetTimer()" class="text-slate-400 hover:text-white text-xs px-1">↺</button>
+    </div>
+  </header>
+
+  <!-- NAVEGACIÓN POR PESTAÑAS -->
+  <nav class="max-w-6xl mx-auto flex gap-2 my-6 overflow-x-auto pb-2">
+    <button onclick="showTab('cheatsheet')" class="tab-btn active px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-800 text-emerald-400 border border-emerald-500/30">
+      ⚡ Chuleta SQL (MariaDB)
+    </button>
+    <button onclick="showTab('flashcards')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+      🎴 Flashcards (Active Recall)
+    </button>
+    <button onclick="showTab('quiz')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+      🎯 Modo Test Rápido
+    </button>
+    <button onclick="showTab('roadmap')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+      📋 Checklist Temario
+    </button>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="max-w-6xl mx-auto">
+
+    <!-- 1. CHULETA SQL Y VISTAS -->
+    <section id="tab-cheatsheet" class="space-y-4">
+      <div class="flex items-center justify-between gap-4">
+        <input type="text" id="sql-search" oninput="filterSQL()" placeholder="Buscar consulta, vista (AVG, LIKE, SalDep...)" 
+               class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-emerald-500 text-white">
+      </div>
+
+      <div id="sql-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Card 1: Vista SalDep -->
+        <div class="sql-item bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">VISTA / AGRUPACIÓN</span>
+              <button onclick="copyCode(this)" class="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-1 mono">Copiar</button>
+            </div>
+            <h3 class="text-sm font-semibold text-white mb-1">Salario medio por departamento (SalDep)</h3>
+            <p class="text-xs text-slate-400 mb-3">Calcula el salario promedio por departamento agrupado.</p>
+          </div>
+          <pre class="bg-[#05070d] p-3 rounded-lg mono text-xs text-emerald-400 overflow-x-auto"><code>CREATE VIEW SalDep AS 
+SELECT deptno, AVG(sal) 
+FROM emp 
+GROUP BY deptno;</code></pre>
+        </div>
+
+        <!-- Card 2: Vista EmpGananMas -->
+        <div class="sql-item bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">SUBCONSULTA</span>
+              <button onclick="copyCode(this)" class="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-1 mono">Copiar</button>
+            </div>
+            <h3 class="text-sm font-semibold text-white mb-1">Empleados que ganan más de la media</h3>
+            <p class="text-xs text-slate-400 mb-3">Filtra empleados cuyo salario supera el promedio global.</p>
+          </div>
+          <pre class="bg-[#05070d] p-3 rounded-lg mono text-xs text-emerald-400 overflow-x-auto"><code>CREATE VIEW EmpGananMas AS 
+SELECT ename 
+FROM emp 
+WHERE sal > (SELECT AVG(sal) FROM emp);</code></pre>
+        </div>
+
+        <!-- Card 3: Filtro LIKE año -->
+        <div class="sql-item bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">PATRÓN LIKE</span>
+              <button onclick="copyCode(this)" class="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-1 mono">Copiar</button>
+            </div>
+            <h3 class="text-sm font-semibold text-white mb-1">Contratados en 1981 (Emp1981)</h3>
+            <p class="text-xs text-slate-400 mb-3">Búsqueda con comodín de caracteres (%).</p>
+          </div>
+          <pre class="bg-[#05070d] p-3 rounded-lg mono text-xs text-emerald-400 overflow-x-auto"><code>CREATE VIEW Emp1981 AS 
+SELECT ename 
+FROM emp 
+WHERE hiredate LIKE "1981%";</code></pre>
+        </div>
+
+        <!-- Card 4: Departamentos sin empleados -->
+        <div class="sql-item bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">NOT IN / SUBCONSULTA</span>
+              <button onclick="copyCode(this)" class="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-1 mono">Copiar</button>
+            </div>
+            <h3 class="text-sm font-semibold text-white mb-1">Departamentos sin personal (DepSinEmp)</h3>
+            <p class="text-xs text-slate-400 mb-3">Encuentra departamentos que no existen en la tabla emp.</p>
+          </div>
+          <pre class="bg-[#05070d] p-3 rounded-lg mono text-xs text-emerald-400 overflow-x-auto"><code>CREATE VIEW DepSinEmp AS 
+SELECT DNAME 
+FROM dept 
+WHERE deptno NOT IN (SELECT deptno FROM emp);</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. FLASHCARDS 3D -->
+    <section id="tab-flashcards" class="hidden">
+      <p class="text-xs text-slate-400 mb-4 text-center">Haz clic en la tarjeta para voltearla y ver la solución.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Flashcard 1 -->
+        <div class="h-60 perspective cursor-pointer" onclick="this.firstElementChild.classList.toggle('rotate-y-180')">
+          <div class="w-full h-full relative transition-transform duration-500 transform-style-3d">
+            <div class="absolute inset-0 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between backface-hidden">
+              <span class="text-xs font-mono text-emerald-400 uppercase">Arquitectura</span>
+              <h4 class="text-base font-bold text-white text-center">¿Cuáles son los 3 niveles de la arquitectura ANSI/SPARC?</h4>
+              <span class="text-[11px] text-slate-500 text-center">Click para voltear</span>
+            </div>
+            <div class="absolute inset-0 bg-emerald-950 border border-emerald-700/60 rounded-2xl p-6 flex flex-col justify-between backface-hidden rotate-y-180">
+              <span class="text-xs font-mono text-emerald-300">Respuesta</span>
+              <ul class="text-xs text-slate-200 space-y-1.5">
+                <li>• <b>Externo o de Visión</b>: Esquema del usuario/vistas.</li>
+                <li>• <b>Conceptual</b>: Estructura lógica global (tablas).</li>
+                <li>• <b>Interno o Físico</b>: Cómo se almacenan los datos en disco.</li>
+              </ul>
+              <span class="text-[11px] text-emerald-400/80 text-center">Click para volver</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flashcard 2 -->
+        <div class="h-60 perspective cursor-pointer" onclick="this.firstElementChild.classList.toggle('rotate-y-180')">
+          <div class="w-full h-full relative transition-transform duration-500 transform-style-3d">
+            <div class="absolute inset-0 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between backface-hidden">
+              <span class="text-xs font-mono text-blue-400 uppercase">Lenguajes SQL</span>
+              <h4 class="text-base font-bold text-white text-center">¿Qué diferencia hay entre DDL, DML y DCL?</h4>
+              <span class="text-[11px] text-slate-500 text-center">Click para voltear</span>
+            </div>
+            <div class="absolute inset-0 bg-blue-950 border border-blue-700/60 rounded-2xl p-6 flex flex-col justify-between backface-hidden rotate-y-180">
+              <span class="text-xs font-mono text-blue-300">Respuesta</span>
+              <ul class="text-xs text-slate-200 space-y-1.5">
+                <li>• <b>DDL</b>: Definición (CREATE, ALTER, DROP).</li>
+                <li>• <b>DML</b>: Manipulación (SELECT, INSERT, UPDATE, DELETE).</li>
+                <li>• <b>DCL</b>: Control y permisos (GRANT, REVOKE).</li>
+              </ul>
+              <span class="text-[11px] text-blue-400/80 text-center">Click para volver</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flashcard 3 -->
+        <div class="h-60 perspective cursor-pointer" onclick="this.firstElementChild.classList.toggle('rotate-y-180')">
+          <div class="w-full h-full relative transition-transform duration-500 transform-style-3d">
+            <div class="absolute inset-0 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between backface-hidden">
+              <span class="text-xs font-mono text-purple-400 uppercase">Transacciones</span>
+              <h4 class="text-base font-bold text-white text-center">¿Qué hacen COMMIT y ROLLBACK?</h4>
+              <span class="text-[11px] text-slate-500 text-center">Click para voltear</span>
+            </div>
+            <div class="absolute inset-0 bg-purple-950 border border-purple-700/60 rounded-2xl p-6 flex flex-col justify-between backface-hidden rotate-y-180">
+              <span class="text-xs font-mono text-purple-300">Respuesta</span>
+              <p class="text-xs text-slate-200">
+                • <b>COMMIT</b>: Guarda permanentemente todos los cambios de la transacción actual en la base de datos.<br><br>
+                • <b>ROLLBACK</b>: Deshace todas las operaciones de la transacción no confirmada devolviendo la BD al estado previo.
+              </p>
+              <span class="text-[11px] text-purple-400/80 text-center">Click para volver</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. MODO QUIZ -->
+    <section id="tab-quiz" class="hidden max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div id="quiz-container">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-xs mono text-emerald-400">Pregunta <span id="q-num">1</span> de 3</span>
+          <span class="text-xs text-slate-400">Puntos: <span id="q-score" class="font-bold text-white">0</span></span>
+        </div>
+        <h3 id="q-title" class="text-base font-semibold text-white mb-4">¿Cuál es el modelo de base de datos que organiza los datos en forma de árbol con relaciones padre-hijo?</h3>
+        <div id="q-options" class="space-y-2">
+          <!-- Botones inyectados dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CHECKLIST TEMARIO (LOCALSTORAGE) -->
+    <section id="tab-roadmap" class="hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mono">Progreso de estudio</h3>
+          <span id="progress-percent" class="text-xs font-mono text-emerald-400">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full mb-6 overflow-hidden">
+          <div id="progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+        <div id="checklist" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-300">
+          <!-- Items generados por JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // TAB NAVIGATION
+    function showTab(tabId) {
+      ['cheatsheet', 'flashcards', 'quiz', 'roadmap'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+      });
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-slate-800', 'text-emerald-400', 'border-emerald-500/30');
+        btn.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
+      });
+      event.currentTarget.classList.add('active', 'bg-slate-800', 'text-emerald-400', 'border-emerald-500/30');
+      event.currentTarget.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+    }
+
+    // BUSCADOR SQL
+    function filterSQL() {
+      const q = document.getElementById('sql-search').value.toLowerCase();
+      document.querySelectorAll('.sql-item').forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    // COPIAR CÓDIGO
+    function copyCode(btn) {
+      const code = btn.closest('.sql-item').querySelector('code').innerText;
+      navigator.clipboard.writeText(code);
+      btn.innerText = '¡Copiado!';
+      btn.classList.add('text-emerald-400');
+      setTimeout(() => {
+        btn.innerText = 'Copiar';
+        btn.classList.remove('text-emerald-400');
+      }, 1500);
+    }
+
+    // POMODORO
+    let timer, timeLeft = 1500, isRunning = false;
+    function updateTimer() {
+      const min = Math.floor(timeLeft / 60);
+      const sec = timeLeft % 60;
+      document.getElementById('timer-display').innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+      if (timeLeft === 0) {
+        clearInterval(timer);
+        alert('¡Tiempo de descanso!');
+        resetTimer();
+      }
+      timeLeft--;
+    }
+    function toggleTimer() {
+      if (!isRunning) {
+        timer = setInterval(updateTimer, 1000);
+        document.getElementById('timer-btn').innerText = 'Pausar';
+        document.getElementById('timer-btn').classList.replace('bg-emerald-600', 'bg-amber-600');
+      } else {
+        clearInterval(timer);
+        document.getElementById('timer-btn').innerText = 'Reanudar';
+        document.getElementById('timer-btn').classList.replace('bg-amber-600', 'bg-emerald-600');
+      }
+      isRunning = !isRunning;
+    }
+    function resetTimer() {
+      clearInterval(timer);
+      timeLeft = 1500;
+      isRunning = false;
+      document.getElementById('timer-display').innerText = '25:00';
+      document.getElementById('timer-btn').innerText = 'Iniciar';
+      document.getElementById('timer-btn').className = 'bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition';
+    }
+
+    // QUIZ SYSTEM
+    const questions = [
+      {
+        q: "¿Qué modelo de base de datos organiza los datos con relaciones de tipo padre-hijo?",
+        options: ["Modelo Relacional", "Modelo Jerárquico", "Modelo en Red", "Modelo NoSQL"],
+        correct: 1
+      },
+      {
+        q: "¿Qué nivel de la arquitectura ANSI/SPARC se encarga de las distintas vistas para los usuarios?",
+        options: ["Nivel Físico", "Nivel Conceptual", "Nivel Externo", "Nivel Interno"],
+        correct: 2
+      },
+      {
+        q: "¿Qué operador SQL evalúa si un valor está comprendido dentro de un intervalo inclusivo?",
+        options: ["IN", "LIKE", "BETWEEN", "EXISTS"],
+        correct: 2
+      }
+    ];
+    let curQ = 0, score = 0;
+    function loadQuestion() {
+      const data = questions[curQ];
+      document.getElementById('q-num').innerText = curQ + 1;
+      document.getElementById('q-title').innerText = data.q;
+      const opts = document.getElementById('q-options');
+      opts.innerHTML = '';
+      data.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-3 rounded-lg border border-slate-800 bg-slate-800/40 hover:bg-slate-800 text-sm transition";
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(idx, btn);
+        opts.appendChild(btn);
+      });
+    }
+    function checkAnswer(idx, btn) {
+      const data = questions[curQ];
+      const buttons = document.querySelectorAll('#q-options button');
+      buttons.forEach(b => b.disabled = true);
+      if (idx === data.correct) {
+        btn.classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-300');
+        score += 10;
+        document.getElementById('q-score').innerText = score;
+      } else {
+        btn.classList.add('bg-rose-500/20', 'border-rose-500', 'text-rose-300');
+        buttons[data.correct].classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-300');
+      }
+      setTimeout(() => {
+        curQ++;
+        if (curQ < questions.length) {
+          loadQuestion();
+        } else {
+          document.getElementById('quiz-container').innerHTML = `
+            <div class="text-center py-6">
+              <h4 class="text-xl font-bold text-white mb-2">¡Cuestionario completado!</h4>
+              <p class="text-sm text-slate-400">Puntuación final: <span class="text-emerald-400 font-bold">${score} pts</span></p>
+              <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-emerald-600 rounded-lg text-xs font-semibold text-white">Reiniciar</button>
+            </div>
+          `;
+        }
+      }, 1200);
+    }
+    loadQuestion();
+
+    // CHECKLIST LOCALSTORAGE
+    const topics = [
+      "Dato y Base de Datos", "SGBD y Arquitectura Cliente/Servidor", 
+      "SGBD Relacional vs NoSQL", "Independencia física y lógica",
+      "Integridad de datos y referencial", "Transacciones (COMMIT y ROLLBACK)",
+      "Comandos DDL, DML y DCL", "Arquitectura ANSI/SPARC (3 niveles)",
+      "Modelos: Jerárquico, Red, Relacional", "Diseño Conceptual (E/R), Lógico y Físico",
+      "Consultas SQL con LIKE, BETWEEN e IN", "Creación y uso de Vistas (VIEW)"
+    ];
+    function renderChecklist() {
+      const container = document.getElementById('checklist');
+      const saved = JSON.parse(localStorage.getItem('bbdd_progress') || '{}');
+      container.innerHTML = '';
+      let done = 0;
+      topics.forEach((t, i) => {
+        const isChecked = !!saved[i];
+        if (isChecked) done++;
+        const item = document.createElement('label');
+        item.className = "flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/50 cursor-pointer";
+        item.innerHTML = `
+          <input type="checkbox" onchange="toggleTopic(${i})" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-emerald-500 focus:ring-0 bg-slate-800 border-slate-700">
+          <span class="${isChecked ? 'line-through text-slate-500' : ''}">${t}</span>
+        `;
+        container.appendChild(item);
+      });
+      const percent = Math.round((done / topics.length) * 100);
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+      document.getElementById('progress-percent').innerText = `${percent}%`;
+    }
+    function toggleTopic(index) {
+      const saved = JSON.parse(localStorage.getItem('bbdd_progress') || '{}');
+      saved[index] = !saved[index];
+      localStorage.setItem('bbdd_progress', JSON.stringify(saved));
+      renderChecklist();
+    }
+    renderChecklist();
+  </script>
+</body>
+</html>

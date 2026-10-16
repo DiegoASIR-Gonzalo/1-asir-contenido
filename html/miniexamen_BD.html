@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen tipo test — Introducción a las BD y los SGBD</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #17202a;
+    --muted: #667085;
+    --accent: #2457a6;
+    --accent2: #eaf1ff;
+    --border: #d9dee7;
+    --warning: #fff7df;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .container { max-width: 980px; margin: 0 auto; padding: 28px 18px 60px; }
+  header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.04);
+  }
+  h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.2rem); }
+  .subtitle { color: var(--muted); margin: 0 0 18px; }
+  .instructions {
+    background: var(--warning);
+    border-left: 4px solid #d39e00;
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .meta div {
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 10px 12px;
+    background: #fafbfc;
+  }
+  .meta strong { display: block; font-size: .82rem; color: var(--muted); }
+  .question {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 14px 0;
+    box-shadow: 0 2px 9px rgba(0,0,0,.03);
+  }
+  .question h2 { font-size: 1.05rem; margin: 0 0 7px; }
+  .type {
+    color: var(--muted);
+    font-size: .82rem;
+    margin-bottom: 15px;
+  }
+  label {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 11px 13px;
+    margin: 8px 0;
+    cursor: pointer;
+    transition: .15s ease;
+  }
+  label:hover { background: #f8faff; border-color: #b9c8e4; }
+  input { margin-right: 10px; accent-color: var(--accent); }
+  .actions {
+    position: sticky;
+    bottom: 0;
+    background: rgba(244,246,248,.96);
+    border-top: 1px solid var(--border);
+    padding: 15px 0;
+    margin-top: 20px;
+    backdrop-filter: blur(6px);
+  }
+  button {
+    background: var(--accent);
+    color: white;
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(.94); }
+  #status {
+    margin-left: 12px;
+    color: var(--muted);
+    font-size: .93rem;
+  }
+  footer { color: var(--muted); font-size: .82rem; text-align: center; margin-top: 24px; }
+  @media (max-width: 650px) {
+    .meta { grid-template-columns: 1fr; }
+    .container { padding: 15px 10px 45px; }
+    .question, header { padding: 17px; }
+  }
+
+  #results {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin: 20px 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
+  }
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .score-card {
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px;
+    background: #fafbfc;
+  }
+  .score-card strong { display:block; color:var(--muted); font-size:.82rem; }
+  .score-card b { font-size:1.5rem; }
+  .result-row {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:9px 11px;
+    margin:6px 0;
+  }
+  .result-row span { color:var(--muted); margin-left:auto; }
+  .result-row.correct { border-left:4px solid #238636; }
+  .result-row.wrong { border-left:4px solid #c62828; }
+  .result-row.blank { border-left:4px solid #9a6700; }
+  @media (max-width:650px) {
+    .score-grid { grid-template-columns:repeat(2,1fr); }
+    .result-row span { margin-left:0; width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>Examen tipo test — Tanda 2: Introducción a las Bases de Datos y los SGBD</h1>
+  <p class="subtitle">Nivel: Grado Superior · 20 preguntas · Tanda aleatoria · Corrección al finalizar</p>
+  <div class="instructions">
+    <strong>Instrucciones:</strong> Lee cada pregunta con atención. Algunas preguntas tienen <strong>una única respuesta correcta</strong> y otras tienen <strong>varias respuestas correctas</strong>. Selecciona únicamente las opciones que consideres adecuadas.
+    Al pulsar «Finalizar examen» no se mostrarán las respuestas correctas ni se indicará qué preguntas has acertado o fallado.
+  </div>
+  <div class="meta">
+    <div><strong>Preguntas</strong>20</div>
+    <div><strong>Tipo</strong>Única / múltiple</div>
+    <div><strong>Nivel</strong>Grado Superior</div>
+  </div>
+</header>
+
+<form id="exam">
+<section class="question">
+<h2>1. 19. ¿Qué etapa del diseño de una base de datos determina el tipo de BD y transforma el esquema conceptual en un esquema lógico adecuado?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q1"> Análisis de requisitos</label><label><input type="radio" name="q1"> Diseño conceptual</label><label><input type="radio" name="q1"> Diseño lógico</label><label><input type="radio" name="q1"> Diseño físico</label>
+</section>
+
+<section class="question">
+<h2>2. 5. ¿Cuál de las siguientes afirmaciones sobre el modelo jerárquico es correcta?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q2"> Representa los datos mediante tablas y columnas.</label><label><input type="radio" name="q2"> Organiza la información mediante relaciones padre-hijo en estructura de árbol.</label><label><input type="radio" name="q2"> Utiliza exclusivamente documentos JSON.</label><label><input type="radio" name="q2"> Almacena objetos con atributos y métodos.</label>
+</section>
+
+<section class="question">
+<h2>3. 15. Selecciona las afirmaciones correctas sobre los tres niveles ANSI/SPARC.</h2>
+<div class="type">Respuesta múltiple</div>
+<label><input type="checkbox" name="q3"> El nivel externo está relacionado con las vistas que utilizan las aplicaciones.</label><label><input type="checkbox" name="q3"> El nivel conceptual representa la estructura de la base de datos.</label><label><input type="checkbox" name="q3"> El nivel interno define aspectos relacionados con discos y archivos.</label><label><input type="checkbox" name="q3"> Los usuarios finales acceden directamente al nivel interno para modificar los archivos físicos.</label>
+</section>
+
+<section class="question">
+<h2>4. 6. Selecciona las características asociadas al modelo de red.</h2>
+<div class="type">Respuesta múltiple</div>
+<label><input type="checkbox" name="q4"> Los nodos pueden estar interconectados mediante múltiples relaciones.</label><label><input type="checkbox" name="q4"> Ofrece mayor flexibilidad que el modelo jerárquico para relaciones complejas.</label><label><input type="checkbox" name="q4"> Se basa obligatoriamente en filas y columnas.</label><label><input type="checkbox" name="q4"> Representa exclusivamente una jerarquía de padre único.</label>
+</section>
+
+<section class="question">
+<h2>5. 2. Selecciona las afirmaciones correctas sobre las bases de datos centralizadas y distribuidas.</h2>
+<div class="type">Respuesta múltiple</div>
+<label><input type="checkbox" name="q5"> Una BD centralizada mantiene la información en un único servidor.</label><label><input type="checkbox" name="q5"> Una BD distribuida puede repartir o replicar datos entre varios nodos.</label><label><input type="checkbox" name="q5"> Una BD centralizada ofrece necesariamente mayor tolerancia a fallos.</label><label><input type="checkbox" name="q5"> Una BD distribuida puede utilizar nodos geográficamente dispersos.</label>
+</section>
+
+<section class="question">
+<h2>6. 20. Una vez definido el esquema lógico, se selecciona el SGBD concreto y se adapta dicho esquema al SGBD elegido. ¿En qué etapa estamos?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q6"> Análisis de requisitos</label><label><input type="radio" name="q6"> Diseño conceptual</label><label><input type="radio" name="q6"> Diseño lógico</label><label><input type="radio" name="q6"> Diseño físico</label>
+</section>
+
+<section class="question">
+<h2>7. 8. Un administrador necesita controlar qué usuarios pueden acceder a determinados datos. ¿Qué categoría de lenguaje está relacionada directamente con esta tarea?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q7"> DDL</label><label><input type="radio" name="q7"> DML</label><label><input type="radio" name="q7"> DCL</label><label><input type="radio" name="q7"> SQL como modelo de datos</label>
+</section>
+
+<section class="question">
+<h2>8. 1. Una aplicación necesita almacenar entidades completas con atributos y métodos, integrando conceptos propios de la programación orientada a objetos. ¿Qué modelo se ajusta mejor?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q8"> Relacional</label><label><input type="radio" name="q8"> Jerárquico</label><label><input type="radio" name="q8"> Orientado a objetos</label><label><input type="radio" name="q8"> Centralizado</label>
+</section>
+
+<section class="question">
+<h2>9. 17. Una operación debe mantener las propiedades ACID para preservar la consistencia de los datos. ¿Qué componente del SGBD está directamente relacionado con esta función?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q9"> Gestor de transacciones</label><label><input type="radio" name="q9"> Motor de almacenamiento</label><label><input type="radio" name="q9"> Diccionario de datos</label><label><input type="radio" name="q9"> Nivel externo</label>
+</section>
+
+<section class="question">
+<h2>10. 12. Selecciona tareas propias de un administrador de bases de datos.</h2>
+<div class="type">Respuesta múltiple</div>
+<label><input type="checkbox" name="q10"> Vigilar la evolución del rendimiento.</label><label><input type="checkbox" name="q10"> Realizar copias de seguridad periódicas.</label><label><input type="checkbox" name="q10"> Controlar el espacio de disco disponible.</label><label><input type="checkbox" name="q10"> Definir necesariamente el lenguaje de programación utilizado por todos los clientes.</label>
+</section>
+
+<section class="question">
+<h2>11. 11. Una aplicación escrita en C necesita incorporar sentencias del lenguaje de BD directamente dentro de su código. ¿Qué mecanismo descrito en el material representa esta opción?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q11"> Llamadas a funciones</label><label><input type="radio" name="q11"> Sentencias hospedadas</label><label><input type="radio" name="q11"> Diseño físico</label><label><input type="radio" name="q11"> Nivel externo</label>
+</section>
+
+<section class="question">
+<h2>12. 14. En la arquitectura ANSI/SPARC, un usuario final consulta una vista concreta de la base de datos. ¿En qué nivel se sitúa principalmente esta perspectiva?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q12"> Nivel interno o físico</label><label><input type="radio" name="q12"> Nivel conceptual</label><label><input type="radio" name="q12"> Nivel externo o de visión</label><label><input type="radio" name="q12"> Nivel de almacenamiento</label>
+</section>
+
+<section class="question">
+<h2>13. 4. Una empresa quiere reducir redundancias innecesarias y facilitar la integridad de la información. ¿Qué recurso está utilizando directamente?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q13"> Una base de datos organizada y estructurada</label><label><input type="radio" name="q13"> Una sentencia hospedada</label><label><input type="radio" name="q13"> Una interfaz visual</label><label><input type="radio" name="q13"> Un lenguaje procedimental</label>
+</section>
+
+<section class="question">
+<h2>14. 9. Selecciona las afirmaciones correctas sobre SQL, PL/SQL y PL/pgSQL.</h2>
+<div class="type">Respuesta múltiple</div>
+<label><input type="checkbox" name="q14"> SQL es ampliamente utilizado para interactuar con SGBD relacionales.</label><label><input type="checkbox" name="q14"> PL/SQL es un lenguaje procedimental asociado a SGBD de Oracle.</label><label><input type="checkbox" name="q14"> PL/pgSQL está diseñado para trabajar con PostgreSQL.</label><label><input type="checkbox" name="q14"> PL/pgSQL es el nombre del lenguaje estándar de todos los SGBD relacionales.</label>
+</section>
+
+<section class="question">
+<h2>15. 13. ¿Qué tipo de información contiene principalmente un diccionario de datos?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q15"> Metadatos sobre el contenido y la organización de la BD.</label><label><input type="radio" name="q15"> Únicamente los valores almacenados en las tablas.</label><label><input type="radio" name="q15"> Solo las contraseñas de los usuarios.</label><label><input type="radio" name="q15"> Exclusivamente los archivos físicos del servidor.</label>
+</section>
+
+<section class="question">
+<h2>16. 7. ¿Qué afirmación diferencia correctamente DDL y DML?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q16"> DDL se centra en definir la estructura; DML permite consultar y modificar los datos.</label><label><input type="radio" name="q16"> DDL controla permisos; DML define esquemas.</label><label><input type="radio" name="q16"> DDL gestiona copias de seguridad; DML controla usuarios.</label><label><input type="radio" name="q16"> Ambos tienen exactamente la misma finalidad.</label>
+</section>
+
+<section class="question">
+<h2>17. 18. Selecciona las funciones atribuidas al control de seguridad de un SGBD.</h2>
+<div class="type">Respuesta múltiple</div>
+<label><input type="checkbox" name="q17"> Gestionar usuarios.</label><label><input type="checkbox" name="q17"> Gestionar permisos.</label><label><input type="checkbox" name="q17"> Proteger frente a accesos no autorizados.</label><label><input type="checkbox" name="q17"> Optimizar exclusivamente las consultas SQL.</label>
+</section>
+
+<section class="question">
+<h2>18. 10. ¿Cuál es la principal diferencia señalada entre una sentencia procedimental y una declarativa?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q18"> La procedimental puede especificar datos y procedimientos, mientras que la declarativa indica qué datos se desean sin detallar cómo obtenerlos.</label><label><input type="radio" name="q18"> La declarativa siempre requiere indicar paso a paso cómo recuperar los datos.</label><label><input type="radio" name="q18"> La procedimental no puede trabajar con bases de datos.</label><label><input type="radio" name="q18"> No existe ninguna diferencia entre ambas.</label>
+</section>
+
+<section class="question">
+<h2>19. 3. ¿Qué situación describe mejor una base de datos en la nube según el material?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q19"> Una BD almacenada exclusivamente en el ordenador del administrador.</label><label><input type="radio" name="q19"> Una BD gestionada por proveedores externos y con posibilidades de escalabilidad automática.</label><label><input type="radio" name="q19"> Una BD que solo puede utilizar el modelo jerárquico.</label><label><input type="radio" name="q19"> Una BD sin mecanismos de gestión por parte de un SGBD.</label>
+</section>
+
+<section class="question">
+<h2>20. 16. ¿Qué elemento de un SGBD se ocupa de organizar y guardar físicamente los datos en el disco de manera optimizada?</h2>
+<div class="type">Respuesta única</div>
+<label><input type="radio" name="q20"> Procesador de consultas</label><label><input type="radio" name="q20"> Motor de almacenamiento</label><label><input type="radio" name="q20"> Gestor de transacciones</label><label><input type="radio" name="q20"> Control de seguridad</label>
+</section>
+<div class="actions">
+  <button type="button" id="finish">Finalizar examen</button>
+  <span id="status" aria-live="polite"></span>
+</div>
+</form>
+
+<footer>
+  Tanda 2 generada a partir del material «UD1. Introducción a la BD y los SGBD».
+</footer>
+</div>
+
+<script>
+const correctAnswers = {"1": [2], "2": [1], "3": [0, 1, 2], "4": [0, 1], "5": [0, 1, 3], "6": [3], "7": [2], "8": [2], "9": [0], "10": [0, 1, 2], "11": [1], "12": [2], "13": [0], "14": [0, 1, 2], "15": [0], "16": [0], "17": [0, 1, 2], "18": [0], "19": [1], "20": [1]};
+
+function getSelected(questionNumber) {
+  const inputs = [...document.querySelectorAll('[name="q' + questionNumber + '"]:checked')];
+  return inputs.map(input => {
+    const all = [...document.querySelectorAll('[name="q' + questionNumber + '"]')];
+    return all.indexOf(input);
+  }).sort((a,b) => a-b);
+}
+
+function sameArray(a, b) {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+function optionLetter(index) {
+  return String.fromCharCode(65 + index);
+}
+
+document.getElementById("finish").addEventListener("click", function () {
+  const form = document.getElementById("exam");
+  const questions = [...form.querySelectorAll(".question")];
+
+  let correct = 0, wrong = 0, blank = 0;
+  const results = [];
+
+  questions.forEach((q, idx) => {
+    const n = idx + 1;
+    const selected = getSelected(n);
+    const expected = correctAnswers[n];
+
+    if (selected.length === 0) {
+      blank++;
+      results.push({n, state: "blank", expected});
+    } else if (sameArray(selected, expected)) {
+      correct++;
+      results.push({n, state: "correct", expected});
+    } else {
+      wrong++;
+      results.push({n, state: "wrong", expected});
+    }
+  });
+
+  // +1 correcta, -1/3 incorrecta y 0 no contestada.
+  const rawScore = correct - (wrong / 3);
+  const note = Math.max(0, Math.min(10, (rawScore / 20) * 10));
+  const noteFormatted = note.toFixed(2).replace(".", ",");
+
+  const resultBox = document.createElement("section");
+  resultBox.id = "results";
+  resultBox.innerHTML = `
+    <h2>Resultado del examen</h2>
+    <div class="score-grid">
+      <div class="score-card"><strong>Nota</strong><b>${noteFormatted} / 10</b></div>
+      <div class="score-card"><strong>Correctas</strong><b>${correct}</b></div>
+      <div class="score-card"><strong>Incorrectas</strong><b>${wrong}</b></div>
+      <div class="score-card"><strong>Sin contestar</strong><b>${blank}</b></div>
+    </div>
+    <p><strong>Criterio:</strong> +1 por correcta, −1/3 por incorrecta y 0 por no contestada.</p>
+    <p><strong>Puntuación:</strong> ${correct} − (${wrong} × 1/3) = <strong>${rawScore.toFixed(2).replace(".", ",")} / 20</strong>.</p>
+    <hr>
+    <h3>Revisión de respuestas</h3>
+    <div class="results-list">
+      ${results.map(r => {
+        const answerText = r.expected.map(optionLetter).join(", ");
+        const estado = r.state === "correct" ? "✓ Correcta" :
+                       r.state === "wrong" ? "✗ Incorrecta" : "— No contestada";
+        return `<div class="result-row ${r.state}">
+          <strong>Pregunta ${r.n}:</strong> ${estado}
+          <span>Respuesta correcta: <strong>${answerText}</strong></span>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  document.getElementById("results")?.remove();
+  form.parentNode.insertBefore(resultBox, form);
+  resultBox.scrollIntoView({behavior:"smooth", block:"start"});
+
+  form.querySelectorAll("input").forEach(i => i.disabled = true);
+  this.disabled = true;
+  document.getElementById("status").textContent = "Resultado calculado.";
+});
+</script>
+</body>
+</html>
