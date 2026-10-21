@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escritorio Linux · Guía de comandos</title>
+<style>
+  /* ============ COLORES (cámbialos aquí) ============ */
+  :root{
+    --escritorio-1:#2c001e; --escritorio-2:#5e2750;   /* fondo del escritorio */
+    --barra:#1a1a1a;                                  /* barra superior */
+    --ventana:#2e2c33; --lateral:#38353f;             /* marco de la ventana y panel lateral */
+    --acento:#e95420;                                 /* elemento activo */
+    --term:#300a24; --term-txt:#eeeeec;               /* terminal */
+    --usuario:#8ae234; --ruta:#729fcf; --carpeta:#729fcf; --exec:#8ae234; --marca:#fce94f;
+    --kw:#ad7fa8; --str:#e9b96e; --com:#888a85;       /* resaltado de código (.bashrc) */
+    --papel:#f6f5f4; --papel-txt:#241f31;             /* zona de explicación */
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%}
+  body{font:15px/1.5 Ubuntu,Cantarell,"Segoe UI",system-ui,sans-serif;color:#fff;
+    /* 1.ª capa: imagen de fondo (variable --fondo-img, la rellena el script); 2.ª capa: degradado de respaldo */
+    background:var(--fondo-img,none) center/cover no-repeat fixed,linear-gradient(135deg,var(--escritorio-1),var(--escritorio-2)) fixed;
+    display:flex;flex-direction:column}
+  :focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+
+  /* Barra superior tipo GNOME */
+  .barra{background:var(--barra);height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:13px}
+  .barra b{font-weight:500}
+
+  /* Ventana */
+  .ventana{flex:1;min-height:0;margin:18px auto;width:min(1100px,calc(100% - 24px));display:flex;flex-direction:column;
+    background:var(--ventana);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+  .titulo{height:42px;display:flex;align-items:center;justify-content:center;position:relative;font-weight:700;font-size:14px}
+  .titulo i{position:absolute;right:14px;width:22px;height:22px;border-radius:50%;background:#4a4752;font-style:normal;text-align:center;line-height:22px;font-size:12px}
+  .cuerpo{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
+
+  /* Panel lateral */
+  .lateral{background:var(--lateral);overflow:auto;padding:10px 8px}
+  details{margin-bottom:6px}
+  summary{cursor:pointer;padding:6px 10px;font-weight:700;font-size:13px;color:#c0bfbc;list-style:none;border-radius:6px}
+  summary::before{content:"▾ "}
+  details:not([open]) summary::before{content:"▸ "}
+  summary:hover{background:rgba(255,255,255,.07)}
+  .items{overflow:hidden} /* recorta los subapartados mientras se pliegan con desvanecimiento */
+  .item{display:flex;justify-content:space-between;gap:8px;align-items:baseline;width:100%;text-align:left;
+    background:none;border:0;color:#fff;font:inherit;padding:7px 10px 7px 22px;border-radius:6px;cursor:pointer}
+  .item small{color:#c0bfbc;font-size:12px;white-space:nowrap}
+  .item:hover{background:rgba(255,255,255,.08)}
+  .item.activo{background:var(--acento)}
+  .item.activo small{color:#fff}
+  .item code{font-family:"Ubuntu Mono","DejaVu Sans Mono",monospace;font-size:14px}
+
+  /* Zona principal: terminal + explicación */
+  .principal{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
+  .terminal{background:var(--term);color:var(--term-txt);display:flex;flex-direction:column;flex:0 0 52%;min-height:210px}
+  .pantalla{flex:1;overflow:auto;padding:16px 18px;font:15px/1.55 "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+  .u{color:var(--usuario);font-weight:700}.r{color:var(--ruta);font-weight:700}
+  .d{color:var(--carpeta);font-weight:700}.x{color:var(--exec);font-weight:700}
+  mark{background:none;color:var(--marca);font-weight:700}
+  .k{color:var(--kw);font-weight:700}.s{color:var(--str)}.c{color:var(--com)}   /* código: palabra clave, texto, comentario */
+  .cursor{display:inline-block;width:.6em;height:1.1em;background:var(--term-txt);vertical-align:text-bottom;animation:parpadeo 1s steps(1) infinite}
+  @keyframes parpadeo{50%{opacity:0}}
+
+  /* Botones en las esquinas inferiores de la terminal */
+  .pie{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid rgba(255,255,255,.1)}
+  .pie button{font:inherit;font-weight:700;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);padding:7px 16px;border-radius:8px;cursor:pointer}
+  .pie button:hover:not(:disabled){background:var(--acento);border-color:var(--acento)}
+  .pie button:disabled{opacity:.35;cursor:default}
+  .contador{font:13px "Ubuntu Mono",monospace;color:#c0bfbc}
+
+  /* Explicación */
+  .explicacion{flex:1;overflow:auto;padding:18px 24px;color:var(--papel-txt);max-width:78ch}
+  .explicacion h3{font-size:18px;margin-bottom:6px}
+  .explicacion p{margin-bottom:8px}
+  .explicacion code{font:14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#e1dedb;padding:1px 6px;border-radius:4px}
+  .explicacion ul{padding-left:20px}
+
+  @media (max-width:720px){
+    .cuerpo{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    .lateral{max-height:34vh}
+  }
+  /* Transición suave solo en el panel lateral (resaltado del comando activo) */
+  .item{transition:background .2s ease}
+
+  /* Botón cuadriculado y panel de personalización */
+  .ventana{position:relative}
+  .ajustes-btn{position:absolute;left:10px;top:6px;width:30px;height:30px;display:grid;place-items:center;background:#4a4752;color:#fff;border:0;border-radius:8px;cursor:pointer}
+  .ajustes-btn:hover,.ajustes-btn[aria-expanded="true"]{background:var(--acento)}
+  .ajustes{position:absolute;left:10px;top:46px;z-index:5;width:min(290px,calc(100% - 20px));max-height:calc(100% - 56px);overflow:auto;
+    background:#3d3a45;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.5);font-size:14px}
+  .ajustes h2{font-size:15px;margin-bottom:10px}
+  .ajustes .fila{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .ajustes select,.ajustes .reset{font:inherit;background:#2e2c33;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 8px}
+  .ajustes input[type=color]{width:42px;height:26px;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:6px;background:none;cursor:pointer}
+  .ajustes .vel{display:block}
+  .ajustes .vel input{width:100%}
+  .ajustes .vel small{color:#c0bfbc}
+  .ajustes .reset{margin-top:6px;cursor:pointer}
+  .ajustes .reset:hover{background:var(--acento);border-color:var(--acento)}
+  .ajustes .fila .reset{margin:0;flex:1}
+  .ajustes h3{font-size:13px;margin:12px 0 6px;color:#c0bfbc}
+
+  /* Los botones de la terminal siguen los colores elegidos (así se leen también con un tema claro) */
+  .pie{border-top-color:color-mix(in srgb,var(--term-txt) 20%,transparent)}
+  .pie button{color:var(--term-txt);background:color-mix(in srgb,var(--term-txt) 12%,transparent);border-color:color-mix(in srgb,var(--term-txt) 25%,transparent)}
+  .pie button:hover:not(:disabled){color:#fff}
+  .contador{color:var(--term-txt);opacity:.7}
+
+  @media (prefers-reduced-motion:reduce){.cursor{animation:none}.item{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="barra"><b>Actividades</b><span id="reloj"></span><span>ES ⏻</span></div>
+
+<main class="ventana">
+  <div class="titulo">
+    <!-- Botón cuadriculado (esquina superior izquierda): abre el panel de personalización -->
+    <button class="ajustes-btn" id="btn-ajustes" aria-label="Personalizar terminal" aria-expanded="false" aria-controls="panel-ajustes">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <rect x="1" y="1" width="4" height="4" rx="1"/><rect x="6" y="1" width="4" height="4" rx="1"/><rect x="11" y="1" width="4" height="4" rx="1"/>
+        <rect x="1" y="6" width="4" height="4" rx="1"/><rect x="6" y="6" width="4" height="4" rx="1"/><rect x="11" y="6" width="4" height="4" rx="1"/>
+        <rect x="1" y="11" width="4" height="4" rx="1"/><rect x="6" y="11" width="4" height="4" rx="1"/><rect x="11" y="11" width="4" height="4" rx="1"/>
+      </svg>
+    </button>
+    <span id="titulo-ventana">Terminal</span><i aria-hidden="true">✕</i>
+  </div>
+
+  <!-- Panel de personalización (los colores se generan desde AJUSTES_COLORES en el script) -->
+  <div class="ajustes" id="panel-ajustes" hidden>
+    <h2>Personalizar terminal</h2>
+    <label class="fila">Tema <select id="tema"></select></label>
+    <div id="colores"></div>
+    <label class="fila vel">Tiempo de escritura: <span id="vel-txt"></span>
+      <input type="range" id="vel" min="0" max="120" step="4">
+      <small>0 = el comando aparece de golpe</small>
+    </label>
+    <h3>Fondo de pantalla</h3>
+    <div class="fila">
+      <button class="reset" id="fondo-elegir" type="button">Elegir imagen…</button>
+      <button class="reset" id="fondo-quitar" type="button">Quitar</button>
+    </div>
+    <input type="file" id="fondo-archivo" accept="image/*" hidden>
+    <button class="reset" id="restablecer">Restablecer todo</button>
+  </div>
+  <div class="cuerpo">
+    <!-- El panel lateral se genera solo a partir de GRUPOS (ver más abajo) -->
+    <nav class="lateral" id="lateral" aria-label="Comandos"></nav>
+
+    <section class="principal">
+      <div class="terminal">
+        <div class="pantalla" id="pantalla" aria-live="polite"></div>
+        <div class="pie">
+          <button id="ant">◀ Anterior</button>
+          <span class="contador" id="contador"></span>
+          <button id="sig">Siguiente ▶</button>
+        </div>
+      </div>
+      <article class="explicacion" id="explicacion"></article>
+    </section>
+  </div>
+</main>
+
+<script>
+/* =====================================================================
+   CÓMO AÑADIR CONTENIDO (solo tocas este bloque)
+   ---------------------------------------------------------------------
+   GRUPOS      → cada grupo es una sección desplegable del panel lateral.
+   comandos    → cada comando es un subapartado clicable dentro del grupo.
+   diapositivas→ la 1.ª explica el comando; las siguientes, ejemplos.
+   Cada diapositiva tiene:
+     cmd : texto que se "teclea" en la terminal
+     out : salida del comando (HTML). Clases útiles:
+           <b class="d">carpeta</b>  <b class="x">ejecutable</b>  <mark>resaltado</mark>
+           <span class="u">usuario@linux</span>:<span class="r">~/ruta</span>$
+     exp : explicación bajo la terminal (HTML: <h3>, <p>, <code>, <ul>)
+   VARIOS COMANDOS EN CADENA: en vez de cmd/out usa pasos, una lista de {cmd, out, ruta}.
+   Se teclean uno tras otro, como una sesión real. "ruta" (opcional) cambia el prompt
+   tras ese paso (útil con cd), p. ej. ruta:"~/proyectos".
+   Ejemplo: { pasos:[ {cmd:"cd web", ruta:"~/web"}, {cmd:"ls", out:"index.html"} ], exp:"..." }
+   CÓDIGO (funciones de ~/.bashrc): dentro de out usa <span class="k">palabra clave</span>,
+   <span class="s">"texto"</span> y <span class="c"># comentario</span>. Para mostrar < y > escribe &lt; y &gt;.
+
+   Plantilla para copiar y pegar un comando nuevo:
+
+   { nombre:"mkdir", resumen:"Crear carpetas", diapositivas:[
+       { cmd:"mkdir fotos", out:"", exp:"<h3>mkdir</h3><p>Crea una carpeta.</p>" },
+       { cmd:"mkdir -p a/b/c", out:"", exp:"<p>Con <code>-p</code> crea toda la ruta.</p>" }
+   ]},
+   ===================================================================== */
+const prompt = ruta => '<span class="u">usuario@linux</span>:<span class="r">' + ruta + '</span>$ '; // texto antes del comando
+
+// Imagen de fondo por defecto: ruta o URL, p. ej. "fondo.jpg" o "img/escritorio.png".
+// Déjala vacía ("") para usar el degradado de color. Desde el botón cuadriculado también se puede elegir otra imagen.
+const FONDO_IMAGEN = "";
+
+const GRUPOS = [
+
+  { titulo:"Consultar comandos", comandos:[
+
+    { nombre:"type", resumen:"Tipo de comando", diapositivas:[
+      { cmd:"type nano",
+        out:'nano is /usr/bin/nano',
+        exp:'<h3>type</h3><p>Muestra que tipo de comando es el que queremos saber</p><p>Te dice ademas en donde esta alojado el comando o incluso si es interno.</p>' },
+      { cmd:"type nano (pero si fuera un alias)",
+        out:'nano es un alias de nano -l',
+        exp:'<h3>¿Que pasaría si fuera un alias?</h3><p>Solamente nos especificaría que es un alias y no el comando en si.</p>' },
+      { cmd:"type pwd",
+        out:'pwd es una orden interna del shell',
+        exp:'<p>Esto es lo que sucede cuando estamos ante un comando interno, nos especifica que es de la <strong>bash</strong></p>' }
+    ]},
+
+    { nombre:"man", resumen:"Manual de comandos", diapositivas:[
+      { cmd:"man",
+        out:'¿Qué página del manual desea?<p>Por ejemplo, pruebe man man.</p>',
+        exp:'<h3>El manual universal</h3><p>Podremos consultar casi cualquier comando con "man", pero habra otros que no ya que dependa si tiene o no dentro de man.</p>' },
+	  { cmd:"man -k whoami",
+        out:'whoami (1)           - print effective user name',
+        exp:'<h3>Forma de verlo abrebiado</h3><p>Podremos consultar de forma más breve con "man", pero usando el parametro <code>-k</code></p>' },
+    ]},
+			
+	{ nombre:"tldr", resumen:"Resumen de un comando", diapositivas:[
+      { pasos:[
+          { cmd:"tldr pwd", out:'pwd\n  Imprime el nombre del directorio actual.\n  Más información: Enlace ficticio\n\n- Imprime el directorio actual:\n   pwd\n\n- Imprime el directorio actual y resuelve todos los enlaces simbólicos (es decir, muestra la ruta física real):\n    pwd -P' }
+        ],
+        exp:'<h3>Taildeer</h3>Comando que nos sirve para saber que hace un comando o un resumen de este, pero antes de nada siempre hay que poner <code>tldr --update</code>' }
+    ]},
+	
+	{ nombre:"whatis", resumen:"Consultar comando", diapositivas:[
+      { cmd:"whatis whoami",
+        out:'whoami (1)           - print effective user name',
+        exp:'Para consultar brevemente un comando, practicamente es lo mismo que <code>man -k "comando a poner"</code>' }
+    ]},
+	
+	{ nombre:"whereis", resumen:"Ruta de un comando", diapositivas:[
+      { cmd:"whereis whoami",
+        out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
+        exp:'Podremos ver la ruta donde se aloja un comando.' }
+    ]}
+  ]},
+
+  { titulo:"Ficheros y Instalaciones", comandos:[
+
+    { nombre:"file", resumen:"Mostrar un archivo", diapositivas:[
+      { cmd:'file test.txt',
+        out:'test.txt: empty',
+        exp:'<h3>file</h3><p>Nos dira si un archivo tiene contenido dentro o esta vacio, muy util para saber que tipo de archivo es un fichero.' },
+      { cmd:'file test.txt',
+        out:'test.txt: ASCII text',
+        exp:'Lo que pasaría si ese fichero tuviera unos bits rellenados.' }
+    ]},
+    
+    { nombre:"du", resumen:"Consultas espacio", diapositivas:[
+      { pasos:[
+          { cmd:"cd ./Prueba", out:'', ruta:'~/Prueba'},
+          { cmd:"du", out:'4   .'},
+          { cmd:"du -lh", out:'4,0K	.' }
+        ],
+        exp:'<h3>El comando para ver el espacio</h3>Este comando nos permite ver a detalle cuanto espacio se esta consumiendo en una ruta.<p>Si usamos el parametro <code>-lh</code> podremos ver hasta si son MB o GB.</p>' },
+      { pasos:[
+          { cmd:"cd ./Prueba", out:'', ruta:'~/Prueba'},
+          { cmd:"du", out:'8  	./1-asir-contenido-main/pdfs/fundamentos-hardware\n396	./1-asir-contenido-main/pdfs/redes\n2000	./1-asir-contenido-main/pdfs/bd\n7472	./1-asir-contenido-main/pdfs\n80	./1-asir-contenido-main/html/redes\n88	./1-asir-contenido-main/html\n7924	./1-asir-contenido-main\n8	./PruebasISO\n5755448	.' },
+          { cmd:"du -lh", out:'8,0K	./1-asir-contenido-main/pdfs/fundamentos-hardware\n396K	./1-asir-contenido-main/pdfs/redes\n2,0M	./1-asir-contenido-main/pdfs/bd\n7,3M	./1-asir-contenido-main/pdfs\n80K	./1-asir-contenido-main/html/redes\n88K	./1-asir-contenido-main/html\n7,8M	./1-asir-contenido-main\n12K	./PruebasISO\n5,5G	.' }
+        ],
+        exp:'<h3>El comando para ver el espacio</h3>Este comando nos permite ver a detalle cuanto espacio se esta consumiendo en una ruta.<p>Si usamos el parametro <code>-lh</code> podremos ver hasta si son MB o GB.</p>' },
+    ]},
+    
+	  { nombre:"wc", resumen:"Contar líneas", diapositivas:[
+      { cmd:'wc test.txt',
+        out:'1  3 13 test.txt',
+        exp:'<h3>wc (Count World)</h3><p>Contara el número de líneas, palabras, caracteres y bytes que tiene un fichero o documento de texto.' },
+      { cmd:'wc -l test.txt',
+        out:'1 test.txt',
+        exp:'Con el parametro <code>-l</code> contara las líneas directamente.' }
+    ]},
+
+    { nombre:"chmod", resumen:"Cambiar permisos", diapositivas:[
+      { cmd:"chmod +x script.sh && ls -l script.sh",
+        out:'-rwxr-xr-x 1 usuario usuario 58 oct 20 10:30 <b class="x">script.sh</b>',
+        exp:'<h3>chmod — change mode</h3><p>Modifica quién puede leer (<code>r</code>), escribir (<code>w</code>) o ejecutar (<code>x</code>) un archivo. <code>+x</code> lo vuelve ejecutable y por eso <code>ls</code> lo pinta en verde.</p>' },
+      { cmd:"chmod 644 notas.txt && ls -l notas.txt",
+        out:'-rw-r--r-- 1 usuario usuario 120 oct 20 10:12 notas.txt',
+        exp:'<h3>Modo numérico</h3><p>Cada cifra suma permisos: lectura = 4, escritura = 2, ejecución = 1. Las tres cifras son propietario, grupo y resto. Así, <code>644</code> da <code>rw-r--r--</code>.</p>' },
+      { cmd:"chmod 755 script.sh && chmod 600 clave.pem",
+        out:'',
+        exp:'<h3>Valores habituales</h3><ul><li><code>755</code>: scripts y carpetas públicas.</li><li><code>644</code>: documentos normales.</li><li><code>600</code>: archivos privados, como claves.</li></ul>' }
+    ]}
+  ]},
+
+  { titulo:"Cadenas de comandos", comandos:[
+
+    { nombre:"pipes", resumen:"Encadenar con |", diapositivas:[
+      { pasos:[
+          { cmd:"mkdir saludos", out:'' },
+          { cmd:"touch saludo1.txt | mv saludo1.txt saludos", out:'' },
+          { cmd:"ls saludos | wc -l saludos/saludo1.txt | tree saludos", out:'<b class="d">saludos</b>\n└── saludo1.txt\n\n1 directory, 1 file' }
+        ],
+        exp:'<h3>Tuberías</h3><p>El símbolo <code>|</code> envía la salida de un comando como entrada del siguiente. Cada eslabón filtra o transforma: primero se lista el directorio, luego <code>wc -l</code> cuenta las líneas del fichero y <code>tree</code> lista de forma ordenada el directorio de nuevo.</p>' },
+      { pasos:[
+          { cmd:'mkdir demo && echo "carpeta creada"', out:'carpeta creada' },
+          { cmd:'ls /noexiste || echo "no existe, sigo igualmente"', out:'ls: no se puede acceder a \'/noexiste\': No existe el fichero o el directorio\nno existe, sigo igualmente' },
+          { cmd:'echo uno; echo dos; echo tres', out:'uno\ndos\ntres' }
+        ],
+        exp:'<h3>Otros encadenadores</h3><ul><li><code>&amp;&amp;</code>: ejecuta el siguiente solo si el anterior funcionó.</li><li><code>||</code>: ejecuta el siguiente solo si el anterior falló.</li><li><code>;</code>: ejecuta todos, pase lo que pase.</li></ul>' }
+    ]},
+
+    { nombre:"sesión", resumen:"Crear un proyecto", diapositivas:[
+      { pasos:[
+          { cmd:"mkdir -p web/css", out:'' },
+          { cmd:"cd web", out:'', ruta:'~/web' },
+          { cmd:"touch index.html css/estilo.css", out:'' },
+          { cmd:"ls -R", out:'.:\n<b class="d">css</b>  index.html\n\n./css:\nestilo.css' },
+          { cmd:"cd ..", out:'', ruta:'~' }
+        ],
+        exp:'<h3>Una sesión completa</h3><p>Así se ve un flujo real: se crea la estructura (<code>mkdir -p</code>), se entra (<code>cd</code>), se crean archivos vacíos (<code>touch</code>), se revisa todo (<code>ls -R</code>) y se vuelve atrás. Fíjate en cómo el prompt cambia de ruta.</p>' }
+    ]}
+  ]},
+
+  { titulo:"Funciones en .bashrc", comandos:[
+    
+    { nombre:"Ejemplo 1", resumen:"Ver la hora", diapositivas:[
+      { pasos:[
+          { cmd:"Función de ver la hora", out:'hora () {\n        date +%T\n}' },
+          { cmd:"hora", out:'Se vería la hora'}
+        ],
+        exp:'<h3>Una sesión completa</h3><p>Así se ve un flujo real: se crea la estructura (<code>mkdir -p</code>), se entra (<code>cd</code>), se crean archivos vacíos (<code>touch</code>), se revisa todo (<code>ls -R</code>) y se vuelve atrás. Fíjate en cómo el prompt cambia de ruta.</p>' }
+    ]},
+    
+    { nombre:"mkcd", resumen:"Crear y entrar", diapositivas:[
+      { pasos:[
+          { cmd:"tail -n 4 ~/.bashrc", out:'<span class="c"># Crea una carpeta y entra en ella</span>\nmkcd() {\n  mkdir -p <span class="s">"$1"</span> &amp;&amp; cd <span class="s">"$1"</span>\n}' },
+          { cmd:"source ~/.bashrc", out:'' },
+          { cmd:"mkcd proyectos/nuevo", out:'', ruta:'~/proyectos/nuevo' },
+          { cmd:"pwd", out:'/home/usuario/proyectos/nuevo' }
+        ],
+        exp:'<h3>Funciones en ~/.bashrc</h3><ul><li><code>~/.bashrc</code> se lee al abrir cada terminal: ahí se guardan tus funciones.</li><li><code>$1</code> es el primer argumento que recibe la función.</li><li><code>source</code> recarga el archivo sin cerrar la terminal.</li></ul>' },
+      { pasos:[
+          { cmd:'mkcd "mis fotos"', out:'', ruta:'~/mis fotos' },
+          { cmd:"pwd", out:'/home/usuario/mis fotos' }
+        ],
+        exp:'<h3>Las comillas importan</h3><p>Por eso la función usa <code>"$1"</code> entre comillas: así un nombre con espacios cuenta como un solo argumento. Sin ellas, crearía dos carpetas, <code>mis</code> y <code>fotos</code>.</p>' },
+      { pasos:[
+          { cmd:"type mkcd", out:'mkcd is a function\nmkcd () \n{ \n    mkdir -p "$1" &amp;&amp; cd "$1"\n}' },
+          { cmd:"declare -F", out:'declare -f extraer\ndeclare -f mkcd' }
+        ],
+        exp:'<h3>Inspeccionar funciones</h3><p><code>type</code> muestra la definición de una función cargada y <code>declare -F</code> lista todas. Para quitar una de la sesión actual se usa <code>unset -f nombre</code>.</p>' }
+    ]},
+
+    { nombre:"extraer", resumen:"Descomprimir todo", diapositivas:[
+      { pasos:[
+          { cmd:"tail -n 11 ~/.bashrc", out:'<span class="c"># Descomprime según la extensión</span>\nextraer() {\n  <span class="k">if</span> [ -z <span class="s">"$1"</span> ]; <span class="k">then</span>\n    echo <span class="s">"Uso: extraer &lt;archivo&gt;"</span>; <span class="k">return</span> 1\n  <span class="k">fi</span>\n  <span class="k">case</span> <span class="s">"$1"</span> <span class="k">in</span>\n    *.tar.gz) tar -xzf <span class="s">"$1"</span> ;;\n    *.zip)    unzip <span class="s">"$1"</span> ;;\n    *)        echo <span class="s">"Formato no soportado"</span> ;;\n  <span class="k">esac</span>\n}' },
+          { cmd:"source ~/.bashrc", out:'' },
+          { cmd:"extraer datos.tar.gz", out:'' },
+          { cmd:"ls", out:'<b class="d">datos</b>  datos.tar.gz' }
+        ],
+        exp:'<h3>Una función con lógica</h3><p>Con <code>case</code> la función elige el programa según la extensión del archivo. Así recuerdas un solo comando, <code>extraer</code>, en lugar de varias opciones de <code>tar</code> y <code>unzip</code>.</p>' },
+      { pasos:[
+          { cmd:'extraer; echo $?', out:'Uso: extraer &lt;archivo&gt;\n1' },
+          { cmd:"extraer foto.rar", out:'Formato no soportado' }
+        ],
+        exp:'<h3>Validar los argumentos</h3><ul><li><code>[ -z "$1" ]</code> comprueba si no se pasó ningún argumento.</li><li><code>return 1</code> devuelve un código de error; <code>$?</code> muestra el del último comando.</li><li>El patrón <code>*)</code> atrapa cualquier formato no previsto.</li></ul>' }
+    ]}
+  ]},
+
+  { titulo:"Varios Comandos", comandos:[
+    { nombre:"SoftLink", resumen:"Accesos Directos", diapositivas:[
+      { pasos:[
+          { cmd:"ln -s /home/usuario/Descargas/ softDes", out:'' },
+          { cmd:"ls softDes", out:'1-asir-contenido-main\n1-asir-contenido-main.zip\nBinarioFH.pdf\nBoletin Scott II.odt\nConceptos UD 1.pdf\n...'}
+        ],
+        exp:'<h3>SoftLink</h3><p>Un pequeña utilidad para crear accesos directos al estilo de Windows, podemos hacerlo tanto con rutas como con ficheros.</p>' }
+    ]},
+    { nombre:"HardLink", resumen:"* Mas pesados", diapositivas:[
+      { pasos:[
+          { cmd:"touch test.txt > prueba", out:'' },
+          { cmd:"ln test.txt hardtest.txt", out:'' },
+          { cmd:"ls -lhi", out:'total 8,0K\n394844 -rw-rw-r-- 2 usuario usuario 7 oct 21 14:17 hardtest.txt\n394844 -rw-rw-r-- 2 usuario usuario 7 oct 21 14:17 hardtest.txt'}
+        ],
+        exp:'<h3>HardLink</h3><p>Casi lo mismo que el SoftLink, pero puede con ficheros más pesados, el ejemplo en pantalla tiene el mismo peso y mismo contenido.<p>Si borraramos el fichero creado no pasaría nada.</p></p>' }
+    ]}
+  ]}
+];
+/* ================= FIN DE LA ZONA EDITABLE ================= */
+
+
+/* ---------------- Lógica (no hace falta tocarla) ---------------- */
+const $ = id => document.getElementById(id);
+const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const espera = ms => new Promise(r => setTimeout(r, ms));
+let g = 0, c = 0, s = 0, turno = 0;
+
+// Construye el panel lateral
+GRUPOS.forEach((gr, gi) => {
+  const det = document.createElement('details'); det.open = true;
+  det.innerHTML = '<summary></summary><div class="items"></div>';
+  const resumen = det.firstChild, caja = det.lastChild;
+  resumen.textContent = gr.titulo;
+  resumen.onclick = e => { e.preventDefault(); alternarGrupo(det, caja); }; // plegar/desplegar con desvanecimiento
+  gr.comandos.forEach((cm, ci) => {
+    const b = document.createElement('button');
+    b.className = 'item'; b.dataset.g = gi; b.dataset.c = ci;
+    b.innerHTML = '<code></code><small></small>';
+    b.children[0].textContent = cm.nombre; b.children[1].textContent = cm.resumen;
+    b.onclick = () => abrir(gi, ci);
+    caja.appendChild(b);
+  });
+  $('lateral').appendChild(det);
+});
+
+// Pliega o despliega un grupo del panel lateral: los subapartados se desvanecen y encogen (220 ms)
+function alternarGrupo(det, caja){
+  if (reducido){ det.open = !det.open; return; }
+  if (caja.getAnimations().length) return;           // ya se está animando
+  const alto = caja.offsetHeight + 'px';
+  if (det.open){
+    const a = caja.animate([{opacity:1, height:alto}, {opacity:0, height:'0px'}], {duration:220, easing:'ease', fill:'forwards'});
+    a.onfinish = () => { det.open = false; a.cancel(); };
+  } else {
+    det.open = true;
+    caja.animate([{opacity:0, height:'0px'}, {opacity:1, height:caja.offsetHeight + 'px'}], {duration:220, easing:'ease'});
+  }
+}
+
+function abrir(gi, ci){ g = gi; c = ci; s = 0; pintar(); }
+function ir(d){
+  const n = GRUPOS[g].comandos[c].diapositivas.length;
+  s = Math.min(n - 1, Math.max(0, s + d)); pintar();
+}
+
+async function pintar(){
+  const cm = GRUPOS[g].comandos[c], dia = cm.diapositivas[s], mio = ++turno;
+  document.querySelectorAll('.item').forEach(b => b.classList.toggle('activo', +b.dataset.g === g && +b.dataset.c === c));
+  $('titulo-ventana').textContent = 'usuario@linux: ~ — ' + cm.nombre;
+  $('contador').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' · ' + (s + 1) + ' / ' + cm.diapositivas.length;
+  $('ant').disabled = s === 0; $('sig').disabled = s === cm.diapositivas.length - 1;
+  $('explicacion').innerHTML = dia.exp;
+
+  // Terminal: escribe el comando letra a letra y luego muestra la salida
+  // Una diapositiva puede ser un solo comando (cmd/out/ruta) o varios en cadena (pasos)
+  const pasos = dia.pasos || [{ cmd: dia.cmd, out: dia.out, ruta: dia.ruta }];
+  const esc = t => Object.assign(document.createElement('div'), { textContent: t }).innerHTML;
+  const instantaneo = reducido || ajustes.vel === 0;
+  const p = $('pantalla'); let hecho = '', ruta = '~';
+  for (const paso of pasos){
+    p.innerHTML = hecho + prompt(ruta) + '<span id="tec"></span><span class="cursor"></span>';
+    const tec = $('tec');
+    if (instantaneo) tec.textContent = paso.cmd;
+    else for (const ch of paso.cmd){ if (mio !== turno) return; tec.textContent += ch; await espera(ajustes.vel); }
+    hecho += prompt(ruta) + esc(paso.cmd) + '\n' + (paso.out ? paso.out + '\n' : '');
+    if (paso.ruta) ruta = paso.ruta;
+    p.innerHTML = hecho; p.scrollTop = p.scrollHeight;
+    if (!instantaneo){ await espera(350); } // pausa entre comandos de la cadena
+    if (mio !== turno) return;
+  }
+  p.innerHTML = hecho + prompt(ruta) + '<span class="cursor"></span>';
+  p.scrollTop = p.scrollHeight;
+}
+
+$('ant').onclick = () => ir(-1);
+$('sig').onclick = () => ir(1);
+addEventListener('keydown', e => {
+  if (/INPUT|SELECT/.test(e.target.tagName)) return; // no cambiar de diapositiva al usar el panel de ajustes
+  if (e.key === 'ArrowLeft') ir(-1); if (e.key === 'ArrowRight') ir(1);
+});
+
+// Reloj de la barra superior
+const reloj = () => $('reloj').textContent = new Date().toLocaleString('es-ES', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+reloj(); setInterval(reloj, 30000);
+
+/* ---------------- Panel de personalización ----------------
+   EDITABLE: añade colores a AJUSTES_COLORES (v = variable CSS de :root, t = etiqueta)
+   o temas a TEMAS (cada tema da un valor #rrggbb a cada variable). */
+const AJUSTES_COLORES = [
+  {v:'--term', t:'Fondo'}, {v:'--term-txt', t:'Texto'}, {v:'--usuario', t:'Usuario'},
+  {v:'--ruta', t:'Ruta'}, {v:'--carpeta', t:'Carpetas'}, {v:'--exec', t:'Ejecutables'}, {v:'--marca', t:'Resaltado'},
+  {v:'--kw', t:'Código: palabras clave'}, {v:'--str', t:'Código: textos'}, {v:'--com', t:'Código: comentarios'}
+];
+const TEMAS = {
+  'Ubuntu':     {'--term':'#300a24','--term-txt':'#eeeeec','--usuario':'#8ae234','--ruta':'#729fcf','--carpeta':'#729fcf','--exec':'#8ae234','--marca':'#fce94f','--kw':'#ad7fa8','--str':'#e9b96e','--com':'#888a85'},
+  'Matrix':     {'--term':'#000000','--term-txt':'#39ff14','--usuario':'#39ff14','--ruta':'#00c853','--carpeta':'#00e5ff','--exec':'#b2ff59','--marca':'#ffeb3b','--kw':'#76ff03','--str':'#ffee58','--com':'#2e7d32'},
+  'Solarizado': {'--term':'#002b36','--term-txt':'#93a1a1','--usuario':'#859900','--ruta':'#268bd2','--carpeta':'#2aa198','--exec':'#b58900','--marca':'#cb4b16','--kw':'#6c71c4','--str':'#b58900','--com':'#586e75'},
+  'Claro':      {'--term':'#fafafa','--term-txt':'#2e3436','--usuario':'#4e9a06','--ruta':'#3465a4','--carpeta':'#3465a4','--exec':'#4e9a06','--marca':'#c4a000','--kw':'#75507b','--str':'#8f5902','--com':'#6e7371'}
+};
+const VEL_DEFECTO = 24; // milisegundos por letra
+// fondo: "" = usar FONDO_IMAGEN · "ninguna" = solo degradado · otro valor = imagen elegida por la persona (data URL)
+const ajustes = { colores:{...TEMAS.Ubuntu}, vel:VEL_DEFECTO, fondo:'' };
+
+// Recupera lo guardado (si el navegador lo permite)
+try {
+  const guardado = JSON.parse(localStorage.getItem('ajustes-terminal'));
+  if (guardado){ Object.assign(ajustes.colores, guardado.colores); ajustes.vel = guardado.vel ?? VEL_DEFECTO; }
+  ajustes.fondo = localStorage.getItem('fondo-terminal') || '';
+} catch (e) {}
+// La imagen se guarda aparte: si no cupiera, los colores y la velocidad se conservan igualmente
+const guardar = () => {
+  try { localStorage.setItem('ajustes-terminal', JSON.stringify({ colores: ajustes.colores, vel: ajustes.vel })); } catch (e) {}
+  try { if (ajustes.fondo) localStorage.setItem('fondo-terminal', ajustes.fondo); else localStorage.removeItem('fondo-terminal'); } catch (e) {}
+};
+
+// Aplica los ajustes a la página y sincroniza los controles
+function aplicar(){
+  for (const k in ajustes.colores) document.documentElement.style.setProperty(k, ajustes.colores[k]);
+  const imagen = ajustes.fondo === 'ninguna' ? '' : (ajustes.fondo || FONDO_IMAGEN);
+  document.documentElement.style.setProperty('--fondo-img', imagen ? 'url("' + imagen + '")' : 'none');
+  AJUSTES_COLORES.forEach((o, i) => $('col' + i).value = ajustes.colores[o.v]);
+  $('vel').value = ajustes.vel;
+  $('vel-txt').textContent = ajustes.vel ? ajustes.vel + ' ms por letra' : 'instantáneo';
+}
+
+// Selectores de color
+AJUSTES_COLORES.forEach((o, i) => {
+  const fila = document.createElement('label'); fila.className = 'fila'; fila.append(o.t);
+  const inp = document.createElement('input'); inp.type = 'color'; inp.id = 'col' + i;
+  inp.oninput = () => { ajustes.colores[o.v] = inp.value; aplicar(); guardar(); };
+  fila.append(inp); $('colores').append(fila);
+});
+
+// Temas predefinidos
+$('tema').innerHTML = '<option value="">Elegir tema…</option>';
+Object.keys(TEMAS).forEach(n => { const op = document.createElement('option'); op.value = op.textContent = n; $('tema').append(op); });
+$('tema').onchange = () => {
+  if (!$('tema').value) return;
+  ajustes.colores = {...TEMAS[$('tema').value]}; $('tema').value = '';
+  aplicar(); guardar();
+};
+
+// Velocidad: se actualiza al mover y, al soltar, repite el comando para que veas el resultado
+$('vel').oninput = () => { ajustes.vel = +$('vel').value; aplicar(); };
+$('vel').onchange = () => { guardar(); pintar(); };
+
+$('restablecer').onclick = () => { ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; aplicar(); guardar(); pintar(); };
+
+// Abrir y cerrar el panel (botón, clic fuera o Escape)
+const btnAjustes = $('btn-ajustes'), panel = $('panel-ajustes');
+function alternar(abierto){ panel.hidden = !abierto; btnAjustes.setAttribute('aria-expanded', abierto); }
+btnAjustes.onclick = () => alternar(panel.hidden);
+addEventListener('keydown', e => { if (e.key === 'Escape') alternar(false); });
+addEventListener('click', e => { if (!panel.hidden && !panel.contains(e.target) && !btnAjustes.contains(e.target)) alternar(false); });
+
+// Fondo de pantalla: se reduce a 1920 px como máximo para que ocupe poco y se pueda guardar
+function cargarImagen(archivo){
+  const img = new Image(), url = URL.createObjectURL(archivo);
+  img.onload = () => {
+    const k = Math.min(1, 1920 / Math.max(img.width, img.height));
+    const lienzo = document.createElement('canvas');
+    lienzo.width = Math.round(img.width * k); lienzo.height = Math.round(img.height * k);
+    lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
+    ajustes.fondo = lienzo.toDataURL('image/jpeg', .85);
+    URL.revokeObjectURL(url); aplicar(); guardar();
+  };
+  img.src = url;
+}
+$('fondo-elegir').onclick = () => $('fondo-archivo').click();
+$('fondo-archivo').onchange = e => { const f = e.target.files[0]; if (f) cargarImagen(f); e.target.value = ''; };
+$('fondo-quitar').onclick = () => { ajustes.fondo = 'ninguna'; aplicar(); guardar(); };
+
+aplicar();
+abrir(0, 0); // comando que se abre al cargar
+</script>
+</body>
+</html>
