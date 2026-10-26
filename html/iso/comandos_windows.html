@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escritorio Windows 10 · Guía de comandos CMD</title>
+<style>
+:root{--accent:#0078d7;--bar:rgba(20,20,22,.94);--panel:rgba(31,31,34,.97);--win:#202020;--text:#fff;--mut:#b8b8b8;--line:rgba(255,255,255,.14);
+  color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;height:100%;background:#0b2b4f;color:var(--text);font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;overflow:hidden;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+
+/* Fondo de escritorio */
+#desktop{position:fixed;inset:0;background:radial-gradient(1200px 700px at 70% 30%,#2b8be0 0%,#0a4a9e 45%,#06213f 100%) center/cover no-repeat}
+
+/* Iconos (imagen o texto de reserva) */
+.ico{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;font-size:17px;line-height:1;flex:none}
+.ico img{width:100%;height:100%;object-fit:contain}
+
+/* Barra de tareas */
+#task{position:fixed;left:0;right:0;bottom:0;height:calc(48px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bar);backdrop-filter:blur(14px);display:flex;z-index:9000}
+.tb-btn{width:48px;height:48px;display:flex;align-items:center;justify-content:center;position:relative;flex:none}
+.tb-btn:hover{background:rgba(255,255,255,.12)}
+.tb-btn.act{background:rgba(255,255,255,.2)}
+.app::after{content:"";position:absolute;left:6px;right:6px;bottom:0;height:2px;background:#76b9ed}
+#apps{display:flex;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+#apps::-webkit-scrollbar{display:none}
+.app{flex:0 1 150px;width:auto;min-width:48px;justify-content:flex-start;gap:8px;padding:0 12px;overflow:hidden;animation:btnIn .22s cubic-bezier(.2,.8,.2,1)}
+.app .lb{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes btnIn{from{opacity:0;transform:translateY(14px)}}
+#start .logo{display:grid;grid-template-columns:repeat(2,9px);gap:2px}
+#start .logo i{width:9px;height:9px;background:#fff}
+#clock{padding:0 12px;text-align:right;font-size:12px;line-height:1.25;display:flex;flex-direction:column;justify-content:center;white-space:nowrap}
+
+/* Panel lateral (menú Inicio) */
+#panel{position:fixed;left:0;bottom:calc(48px + env(safe-area-inset-bottom,0px));width:min(360px,100vw);height:min(600px,calc(100% - 48px - env(safe-area-inset-bottom,0px)));background:var(--panel);backdrop-filter:blur(18px);opacity:0;visibility:hidden;transform:translateY(48px) scale(.97);transform-origin:0 100%;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .18s ease,visibility 0s .24s;z-index:8000;overflow-y:auto;padding:14px 14px 20px}
+#panel.open{opacity:1;visibility:visible;transform:none;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease,visibility 0s}
+#panel .tile{opacity:0;transform:translateY(18px);transition:opacity .2s ease,transform .26s cubic-bezier(.2,.8,.2,1)}
+#panel.open .tile{opacity:1;transform:none;transition-delay:calc(var(--i,0) * 40ms + 90ms)}
+#panel.open .tile:active{transform:scale(.96);transition-delay:0s}
+#panel h2{margin:0 0 12px;font-size:15px;font-weight:600}
+#panel h3{margin:16px 0 8px;font-size:13px;font-weight:400;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.tile{aspect-ratio:1;background:var(--c,var(--accent));display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;padding:10px;text-align:left;border:2px solid transparent;min-width:0}
+.tile:hover{border-color:rgba(255,255,255,.65)}
+.tile .ico{width:40px;height:40px;font-size:22px;font-family:Consolas,monospace;font-weight:700}
+.tile span:last-child{font-size:12px;overflow-wrap:anywhere}
+
+/* Ventanas */
+.win{position:fixed;width:min(720px,calc(100vw - 16px));min-width:min(320px,calc(100vw - 16px));max-height:calc(100% - 64px);display:flex;flex-direction:column;background:var(--win);border:1px solid #4a4a4a;box-shadow:0 12px 40px rgba(0,0,0,.55);z-index:100}
+.win.max{inset:0 0 calc(48px + env(safe-area-inset-bottom,0px)) 0 !important;width:auto !important;height:auto !important;max-height:none !important}
+.win.show{animation:winIn .26s cubic-bezier(.2,.8,.2,1)}
+.win.minimizing{animation:winMin .22s cubic-bezier(.5,0,.8,.4) forwards}
+.win.closing{animation:winOut .16s ease-in forwards}
+@keyframes winIn{from{opacity:0;transform:translateY(20px) scale(.94)}}
+@keyframes winMin{to{opacity:0;transform:translateY(80px) scale(.85)}}
+@keyframes winOut{to{opacity:0;transform:scale(.94)}}
+/* tiradores de redimensionado (bordes y esquinas) */
+.rz{position:absolute;z-index:2;touch-action:none}
+.rz.n,.rz.s{left:10px;right:10px;height:8px;cursor:ns-resize}
+.rz.e,.rz.w{top:10px;bottom:10px;width:8px;cursor:ew-resize}
+.rz.n{top:-4px}.rz.s{bottom:-4px}.rz.e{right:-4px}.rz.w{left:-4px}
+.rz.ne,.rz.nw,.rz.se,.rz.sw{width:12px;height:12px}
+.rz.ne{top:-4px;right:-4px;cursor:nesw-resize}.rz.nw{top:-4px;left:-4px;cursor:nwse-resize}
+.rz.se{bottom:-4px;right:-4px;cursor:nwse-resize}.rz.sw{bottom:-4px;left:-4px;cursor:nesw-resize}
+.win.max .rz{display:none}
+.tb{display:flex;align-items:center;justify-content:space-between;background:#1a1a1a;height:32px;cursor:default;touch-action:none}
+.ti{display:flex;align-items:center;gap:8px;padding-left:8px;font-size:12px;min-width:0}
+.ti .ico{width:16px;height:16px;font-size:12px}
+.ctl{display:flex;height:100%}
+.ctl button{width:46px;height:100%;font-size:12px}
+.ctl button:hover{background:rgba(255,255,255,.14)}
+.ctl .x:hover{background:#e81123}
+.term{background:#0c0c0c;padding:12px 14px;font:15px/1.4 Consolas,"Cascadia Mono","Courier New",monospace;color:#cccccc;flex:0 1 auto;min-height:130px;overflow:auto;user-select:text;white-space:pre-wrap;overflow-wrap:anywhere}
+.term .out{color:#cccccc;margin:8px 0 0}
+.caret{display:inline-block;width:.6em;height:1em;background:#ccc;vertical-align:text-bottom;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.info{flex:1;overflow:auto;padding:14px 16px;user-select:text;min-height:60px}
+.info h4{margin:0 0 4px;font-size:14px;font-weight:600;color:#76b9ed}
+.info p{margin:0 0 12px;color:#e6e6e6}
+.nav{display:flex;justify-content:space-between;align-items:center;background:#1a1a1a;padding:8px}
+.nav button{background:var(--accent);min-width:44px;height:32px;padding:0 14px;font-size:15px}
+.nav button:hover:not(:disabled){background:#1a86e0}
+.nav button:disabled{background:#3a3a3a;color:#777;cursor:default}
+.nav small{color:var(--mut)}
+
+/* Configuración */
+.set{padding:16px;overflow:auto;flex:1;min-height:0}
+.set h3{margin:0 0 10px;font-weight:300;font-size:22px}
+.prev{width:min(320px,100%);aspect-ratio:16/9;border:1px solid #555;background:#000 center/cover no-repeat;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.btn{background:#3b3b3b;padding:7px 16px;border:2px solid transparent;display:inline-block}
+.btn:hover{border-color:#888}
+.btn.pri{background:var(--accent)}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px;max-width:420px}
+.sw button{aspect-ratio:16/10;border:2px solid transparent}
+.sw button:hover{border-color:#fff}
+.set p{color:var(--mut);margin:0 0 6px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;transition-delay:0s !important}}
+</style>
+</head>
+<body>
+
+<!--
+=====================================================================
+ ICONOS (los añades tú) · colócalos en la carpeta de tu proyecto, p. ej. /iconos/
+ Formato recomendado: PNG con fondo transparente (o SVG).
+   · Icono de CONFIGURACIÓN (barra de tareas y ventana) ... 32 × 32 px  → ICONOS.configuracion
+   · Icono de CMD (barra de tareas y ventanas de comando) .. 32 × 32 px  → ICONOS.cmd
+   · Icono del botón INICIO (opcional, sustituye al logo) .. 32 × 32 px  → ICONOS.inicio
+   · Icono de cada LOSETA del panel lateral ................ 48 × 48 px  → campo "icono" de cada comando
+ Si dejas la ruta vacía (''), se muestra un símbolo de reserva.
+ Las rutas se escriben en comandos.js.
+=====================================================================
+-->
+
+<div id="desktop"></div>
+
+<aside id="panel" aria-label="Panel de comandos"></aside>
+
+<nav id="task">
+  <button class="tb-btn" id="start" title="Comandos" aria-label="Abrir panel de comandos"></button>
+  <div id="apps"></div>
+  <button class="tb-btn" id="cfg" title="Configuración" aria-label="Configuración"></button>
+  <div id="clock"></div>
+</nav>
+
+<script>
+/* =====================================================================
+   comandos.js · contenido editable del escritorio
+   Es el ÚNICO archivo que necesitas tocar para añadir comandos, ejemplos,
+   iconos o el fondo por defecto. Debe cargarse ANTES del script principal
+   (index.html ya lo hace con <script src="comandos.js">).
+   ===================================================================== */
+
+/* =====================================================================
+   1) RUTAS DE ICONOS (ver comentario de dimensiones arriba)
+   ===================================================================== */
+const ICONOS = {
+  inicio: 'windowsicon.png',         // 32×32 px · ej.: 'iconos/inicio.png'
+  configuracion: 'settingscino.png',  // 32×32 px · ej.: 'iconos/configuracion.png'
+  cmd: 'cmdIcon.png'             // 32×32 px · ej.: 'iconos/cmd.png'
+};
+
+/* =====================================================================
+   2) FONDO DE PANTALLA
+   El usuario lo elige desde el botón de Configuración (barra de tareas) y
+   se recuerda en su navegador. Si quieres una imagen por defecto para quien
+   aún no ha elegido ninguna, pon aquí su ruta, ej.: 'fondos/mi-fondo.jpg'.
+   ===================================================================== */
+const FONDO_POR_DEFECTO = '';
+
+/* =====================================================================
+   3) COMANDOS DEL PANEL LATERAL  ← AQUÍ AÑADES CONTENIDO
+   ---------------------------------------------------------------------
+   Cada GRUPO es una sección del panel (con su color de loseta).
+   Para AÑADIR UN COMANDO: copia un bloque { ... } dentro de "comandos".
+   Para AÑADIR UN GRUPO: copia un bloque { titulo, color, comandos } entero.
+
+   Campos de un comando:
+     nombre          → texto de la loseta y título de la ventana
+     icono           → ruta de imagen 48×48 px (opcional, '' = símbolo ">_")
+     cmd             → comando que se "escribe" en la 1.ª diapositiva
+     salida          → (opcional) texto que "devuelve" el comando
+     explicacion     → qué hace el comando (se muestra debajo de la terminal)
+     funcionamiento  → cómo funciona
+     ejemplos        → lista de diapositivas extra: { cmd, salida?, desc }
+   ===================================================================== */
+const GRUPOS = [
+  {
+    titulo: 'Red', color: '#0078d7',
+    comandos: [
+      {
+        nombre: 'ipconfig', icono: '',
+        cmd: 'ipconfig',
+        salida: 'Adaptador de Ethernet:\n   Dirección IPv4. . . : 192.168.1.34\n   Máscara de subred . : 255.255.255.0\n   Puerta de enlace . .: 192.168.1.1',
+        explicacion: 'Muestra la configuración de red de tu equipo: dirección IP, máscara y puerta de enlace.',
+        funcionamiento: 'Consulta cada adaptador de red (cable, Wi-Fi…) y lista sus parámetros actuales. Con modificadores puedes ver más datos o renovar la IP.',
+        ejemplos: [
+          { cmd: 'ipconfig /all', salida: 'Nombre de host . . . : MI-PC\nDirección física . . : 00-1A-2B-3C-4D-5E\nDHCP habilitado . . .: sí', desc: 'Muestra toda la información detallada, incluida la dirección MAC y el DHCP.' },
+          { cmd: 'ipconfig /release', desc: 'Libera la dirección IP que te dio el router.' },
+          { cmd: 'ipconfig /flushdns', salida: 'Se vació correctamente la caché de resolución de DNS.', desc: 'Borra la caché de DNS; útil cuando una web no carga por un nombre mal resuelto.' }
+        ]
+      },
+      {
+        nombre: 'ping', icono: '',
+        cmd: 'ping google.com',
+        salida: 'Respuesta desde 142.250.184.14: bytes=32 tiempo=14ms TTL=117\nRespuesta desde 142.250.184.14: bytes=32 tiempo=13ms TTL=117',
+        explicacion: 'Comprueba si otro equipo o sitio web responde y cuánto tarda.',
+        funcionamiento: 'Envía paquetes ICMP al destino y mide el tiempo que tardan en volver. Si no hay respuesta, hay un problema de conexión o el destino bloquea el ping.',
+        ejemplos: [
+          { cmd: 'ping -n 10 8.8.8.8', desc: 'Envía 10 paquetes en lugar de los 4 por defecto.' },
+          { cmd: 'ping -t 192.168.1.1', desc: 'Ping continuo hasta que pulses Ctrl + C.' }
+        ]
+      },
+      {
+        nombre: 'nslookup', icono: '',
+        cmd: 'nslookup google.com',
+        salida: 'Servidor:  router.local\nAddress:  192.168.1.1\n\nNombre:  google.com\nAddresses:  142.250.184.14',
+        explicacion: 'Averigua la dirección IP que corresponde a un nombre de dominio (y al revés).',
+        funcionamiento: 'Envía una consulta a tu servidor DNS y muestra la respuesta. Sirve para comprobar si un dominio se resuelve bien.',
+        ejemplos: [
+          { cmd: 'nslookup 8.8.8.8', salida: 'Nombre:  dns.google\nAddress:  8.8.8.8', desc: 'Resolución inversa: de una IP obtiene el nombre.' },
+          { cmd: 'nslookup google.com 1.1.1.1', desc: 'Consulta el dominio usando un servidor DNS concreto (aquí, el de Cloudflare).' }
+        ]
+      }
+    ]
+  },
+  {
+    titulo: 'Archivos y sistema', color: '#107c10',
+    comandos: [
+      {
+        nombre: 'dir', icono: '',
+        cmd: 'dir',
+        salida: ' Directorio de C:\\Users\\Usuario\n\n12/03/2026  <DIR>   Documentos\n12/03/2026  <DIR>   Descargas\n05/03/2026   2.048  notas.txt',
+        explicacion: 'Lista los archivos y carpetas del directorio actual.',
+        funcionamiento: 'Lee el contenido de la carpeta en la que estás y muestra fecha, tipo, tamaño y nombre de cada elemento.',
+        ejemplos: [
+          { cmd: 'dir /a', desc: 'Incluye archivos ocultos y de sistema.' },
+          { cmd: 'dir *.txt', salida: '05/03/2026   2.048  notas.txt', desc: 'Filtra y muestra solo los archivos de texto.' }
+        ]
+      },
+      {
+        nombre: 'tasklist', icono: '',
+        cmd: 'tasklist',
+        salida: 'Nombre de imagen     PID   Uso de memoria\nchrome.exe          4120  310.552 KB\nexplorer.exe        2288   95.104 KB',
+        explicacion: 'Muestra los procesos que se están ejecutando en el equipo.',
+        funcionamiento: 'Consulta al sistema la lista de procesos activos con su identificador (PID) y la memoria que consumen.',
+        ejemplos: [
+          { cmd: 'tasklist /fi "imagename eq chrome.exe"', desc: 'Filtra la lista y muestra solo los procesos de un programa.' },
+          { cmd: 'taskkill /PID 4120 /F', salida: 'Correcto: se terminó el proceso con PID 4120.', desc: 'Cierra a la fuerza el proceso indicado por su PID.' }
+        ]
+      },
+      {
+        nombre: 'systeminfo', icono: '',
+        cmd: 'systeminfo',
+        salida: 'Nombre de host:   MI-PC\nNombre del sistema operativo:   Microsoft Windows 10 Pro\nMemoria física total:   16.384 MB',
+        explicacion: 'Muestra un resumen del sistema: versión de Windows, hardware, memoria y actualizaciones.',
+        funcionamiento: 'Recopila datos del sistema operativo y del equipo y los imprime en una sola lista. Tarda unos segundos.',
+        ejemplos: [
+          { cmd: 'systeminfo | find "Memoria"', desc: 'Filtra la salida con find para ver solo las líneas que contienen «Memoria».' }
+        ]
+      }
+    ]
+  }
+];
+
+
+</script>
+<script>
+/* =====================================================================
+   Código del escritorio (no necesitas tocar nada a partir de aquí)
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function ico(src, fallback) {
+  const s = el('span', 'ico');
+  if (src) { const i = new Image(); i.alt = ''; i.src = src; i.onerror = () => { i.remove(); s.textContent = fallback; }; s.append(i); }
+  else s.textContent = fallback;
+  return s;
+}
+
+/* ---- Barra de tareas ---- */
+const startBtn = $('#start');
+if (ICONOS.inicio) startBtn.append(ico(ICONOS.inicio, ''));
+else { const l = el('span', 'logo'); for (let i = 0; i < 4; i++) l.append(el('i')); startBtn.append(l); }
+$('#cfg').append(ico(ICONOS.configuracion, '⚙'));
+function reloj() {
+  const d = new Date(), c = $('#clock'); c.textContent = '';
+  c.append(el('span', null, d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })), el('span', null, d.toLocaleDateString('es-ES')));
+}
+reloj(); setInterval(reloj, 15000);
+
+/* ---- Panel lateral ---- */
+const panel = $('#panel');
+panel.append(el('h2', null, 'Comandos'));
+let ti = 0;   // orden de aparición de las losetas (animación escalonada)
+GRUPOS.forEach(g => {
+  panel.append(el('h3', null, g.titulo));
+  const grid = el('div', 'grid');
+  g.comandos.forEach(c => {
+    const b = el('button', 'tile');
+    b.style.setProperty('--c', g.color || 'var(--accent)'); b.style.setProperty('--i', ti++);
+    b.append(ico(c.icono, '>_'), el('span', null, c.nombre));
+    b.onclick = () => { panel.classList.remove('open'); startBtn.classList.remove('act'); abrirCmd(c); };
+    grid.append(b);
+  });
+  panel.append(grid);
+});
+startBtn.onclick = e => { e.stopPropagation(); panel.classList.toggle('open'); startBtn.classList.toggle('act', panel.classList.contains('open')); };
+$('#desktop').onclick = () => { panel.classList.remove('open'); startBtn.classList.remove('act'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#desktop').onclick(); });
+
+/* ---- Gestor de ventanas: varias a la vez, con animaciones y redimensionables ---- */
+const wins = {}, usos = {}; let zTop = 100, cuenta = 0, idCmd = 0;
+
+/* Reproduce una animación CSS (clase) y al terminar ejecuta fn */
+function animar(w, clase, fn) {
+  const e = w.el, tk = w.tk = {};
+  e.classList.remove('show', 'minimizing', 'closing'); void e.offsetWidth; e.classList.add(clase);
+  const fin = ev => {
+    if (ev && ev.target !== e) return;
+    e.removeEventListener('animationend', fin);
+    if (w.tk !== tk) return;            // una animación más reciente la sustituyó
+    w.tk = null; e.classList.remove(clase); if (fn) fn();
+  };
+  e.addEventListener('animationend', fin); setTimeout(fin, 450);
+}
+function mostrar(w) {
+  const e = w.el;
+  if (e.style.display === 'none' || e.classList.contains('minimizing')) { e.style.display = ''; animar(w, 'show'); }
+  foco(w);
+}
+function foco(w) {
+  Object.values(wins).forEach(o => o.btn.classList.remove('act'));
+  w.el.style.zIndex = ++zTop; w.btn.classList.add('act'); w.btn.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+}
+function focoSiguiente(excepto) {
+  const s = Object.values(wins).filter(o => o !== excepto && o.el.style.display !== 'none')
+    .sort((a, b) => a.el.style.zIndex - b.el.style.zIndex).pop();
+  if (s) foco(s);
+}
+function minimizar(w) { w.btn.classList.remove('act'); animar(w, 'minimizing', () => { w.el.style.display = 'none'; }); focoSiguiente(w); }
+function cerrar(w) {
+  clearInterval(w.t); delete wins[w.id];
+  animar(w, 'closing', () => { w.el.remove(); w.btn.remove(); }); focoSiguiente(w);
+}
+
+/* Redimensionar arrastrando bordes o esquinas (d = n, s, e, w, ne, nw, se, sw) */
+function redimensionar(ev, w, d, h) {
+  const e = w.el; if (e.classList.contains('max')) return;
+  ev.preventDefault(); ev.stopPropagation(); foco(w);
+  const r = e.getBoundingClientRect(), x0 = ev.clientX, y0 = ev.clientY, MINW = Math.min(320, innerWidth - 16), MINH = 300;
+  e.style.width = r.width + 'px'; e.style.height = r.height + 'px'; e.style.maxHeight = 'none';
+  h.setPointerCapture(ev.pointerId);
+  const mv = m => {
+    const dx = m.clientX - x0, dy = m.clientY - y0; let l = r.left, t = r.top, wd = r.width, ht = r.height;
+    if (d.includes('e')) wd = Math.max(MINW, r.width + dx);
+    if (d.includes('s')) ht = Math.max(MINH, r.height + dy);
+    if (d.includes('w')) { wd = Math.max(MINW, r.width - dx); l = r.right - wd; }
+    if (d.includes('n')) { ht = Math.max(MINH, r.height - dy); t = r.bottom - ht; if (t < 0) { ht += t; t = 0; } }
+    Object.assign(e.style, { left: l + 'px', top: t + 'px', width: wd + 'px', height: ht + 'px' });
+  };
+  const up = () => { h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); };
+  h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up);
+}
+
+function crearVentana(id, titulo, icono, fallback, etiqueta) {
+  if (wins[id]) { mostrar(wins[id]); return null; }
+  const w = { id }, e = el('div', 'win'); w.el = e;
+  const off = (cuenta++ % 8) * 28;   // cada ventana nueva se escalona respecto a la anterior
+  e.style.left = Math.max(4, Math.min(40 + off, innerWidth - 340)) + 'px'; e.style.top = (24 + off) + 'px';
+  const bar = el('div', 'tb'), ti = el('div', 'ti'), ctl = el('div', 'ctl');
+  ti.append(ico(icono, fallback), el('span', null, titulo));
+  const bMin = el('button', null, '—'), bMax = el('button', null, '☐'), bX = el('button', 'x', '✕');
+  bMin.setAttribute('aria-label', 'Minimizar'); bMax.setAttribute('aria-label', 'Maximizar'); bX.setAttribute('aria-label', 'Cerrar');
+  ctl.append(bMin, bMax, bX); bar.append(ti, ctl); e.append(bar);
+  ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(d => {
+    const h = el('div', 'rz ' + d); h.addEventListener('pointerdown', ev => redimensionar(ev, w, d, h)); e.append(h);
+  });
+  document.body.append(e);
+  w.btn = el('button', 'tb-btn app'); w.btn.title = titulo;
+  w.btn.append(ico(icono, fallback), el('span', 'lb', etiqueta || titulo)); $('#apps').append(w.btn);
+  w.btn.onclick = () => {
+    if (e.style.display === 'none' || e.classList.contains('minimizing')) mostrar(w);
+    else if (w.btn.classList.contains('act')) minimizar(w);
+    else foco(w);
+  };
+  bMin.onclick = () => minimizar(w);
+  bMax.onclick = () => e.classList.toggle('max');
+  bar.ondblclick = ev => { if (!ev.target.closest('button')) bMax.click(); };
+  bX.onclick = () => cerrar(w);
+  e.addEventListener('pointerdown', () => foco(w));
+  bar.addEventListener('pointerdown', ev => {   // arrastrar por la barra de título
+    if (ev.target.closest('button') || e.classList.contains('max')) return;
+    const r = e.getBoundingClientRect(), dx = ev.clientX - r.left, dy = ev.clientY - r.top;
+    bar.setPointerCapture(ev.pointerId);
+    const mv = m => { e.style.left = Math.max(0, m.clientX - dx) + 'px'; e.style.top = Math.max(0, m.clientY - dy) + 'px'; };
+    const up = () => { bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', up); };
+    bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up);
+  });
+  wins[id] = w; animar(w, 'show'); foco(w); return w;
+}
+
+/* ---- Ventana CMD con diapositivas ---- */
+function abrirCmd(c) {
+  const n = usos[c.nombre] = (usos[c.nombre] || 0) + 1;   // el mismo comando se puede abrir varias veces
+  const w = crearVentana('cmd' + (++idCmd), 'Símbolo del sistema – ' + c.nombre, ICONOS.cmd, '>_', c.nombre + (n > 1 ? ' (' + n + ')' : ''));
+  if (!w) return;
+  const slides = [{ cmd: c.cmd, salida: c.salida, main: true }, ...(c.ejemplos || [])];
+  w.i = 0;
+  const term = el('div', 'term'), info = el('div', 'info'), nav = el('div', 'nav');
+  const prev = el('button', null, '◀'), next = el('button', null, '▶'), pos = el('small');
+  prev.title = 'Diapositiva anterior'; next.title = 'Diapositiva siguiente';
+  nav.append(prev, pos, next); w.el.append(term, info, nav);
+
+  function pintar() {
+    const s = slides[w.i]; clearInterval(w.t);
+    term.textContent = ''; info.textContent = '';
+    const linea = el('div'), pr = el('span', null, 'C:\\Users\\Usuario>'), tx = el('span'), car = el('span', 'caret');
+    linea.append(pr, tx, car); term.append(linea);
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let k = reduce ? s.cmd.length : 0; tx.textContent = s.cmd.slice(0, k);
+    const fin = () => { car.remove(); if (s.salida) term.append(el('div', 'out', s.salida)); term.append(el('div', null, 'C:\\Users\\Usuario>'), el('span', 'caret')); };
+    if (reduce) fin(); else w.t = setInterval(() => { tx.textContent = s.cmd.slice(0, ++k); if (k >= s.cmd.length) { clearInterval(w.t); fin(); } }, 45);
+    const bloque = (t, p) => { info.append(el('h4', null, t), el('p', null, p)); };
+    if (s.main) { bloque('¿Qué hace?', c.explicacion); bloque('Cómo funciona', c.funcionamiento); }
+    else bloque('Ejemplo ' + w.i + ' de ' + (slides.length - 1), s.desc);
+    pos.textContent = (w.i + 1) + ' / ' + slides.length;
+    prev.disabled = w.i === 0; next.disabled = w.i === slides.length - 1;
+  }
+  prev.onclick = () => { if (w.i > 0) { w.i--; pintar(); } };
+  next.onclick = () => { if (w.i < slides.length - 1) { w.i++; pintar(); } };
+  pintar();
+}
+
+/* ---- Configuración y fondo de pantalla ---- */
+const CLAVE = 'win10-fondo';
+const PRESETS = [
+  'radial-gradient(1200px 700px at 70% 30%,#2b8be0 0%,#0a4a9e 45%,#06213f 100%)',
+  'linear-gradient(135deg,#134e5e,#71b280)', 'linear-gradient(135deg,#42275a,#734b6d)',
+  'linear-gradient(135deg,#232526,#414345)', 'linear-gradient(135deg,#cb2d3e,#ef473a)',
+  'linear-gradient(135deg,#0f2027,#2c5364)', '#0063b1', '#1e1e1e'
+];
+let fondo = null;
+try { fondo = JSON.parse(localStorage.getItem(CLAVE)); } catch (e) {}
+function css(f) { return f.t === 'img' ? 'url("' + f.v + '") center/cover no-repeat' : f.v; }
+function aplicar(f, guardar) {
+  fondo = f;
+  const v = f ? css(f) : (FONDO_POR_DEFECTO ? 'url("' + FONDO_POR_DEFECTO + '") center/cover no-repeat' : '');
+  $('#desktop').style.background = v;
+  const p = $('.prev'); if (p) p.style.background = v || getComputedStyle($('#desktop')).background;
+  if (guardar) { try { f ? localStorage.setItem(CLAVE, JSON.stringify(f)) : localStorage.removeItem(CLAVE); } catch (e) {} }
+}
+aplicar(fondo, false);
+
+$('#cfg').onclick = () => {
+  const w = crearVentana('config', 'Configuración', ICONOS.configuracion, '⚙');
+  if (!w) return;
+  w.el.style.width = 'min(520px,calc(100vw - 16px))';
+  const b = el('div', 'set'), prev = el('div', 'prev'), row = el('div', 'row');
+  const lbl = el('label', 'btn pri', 'Examinar imagen…'), inp = el('input'), rst = el('button', 'btn', 'Restablecer');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.hidden = true; lbl.append(inp);
+  inp.onchange = () => {
+    const f = inp.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const im = new Image();
+      im.onload = () => {   // reduce la imagen para que quepa en el almacenamiento
+        const k = Math.min(1, 1920 / im.width), cv = el('canvas');
+        cv.width = im.width * k; cv.height = im.height * k;
+        cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+        aplicar({ t: 'img', v: cv.toDataURL('image/jpeg', .85) }, true);
+      };
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+  rst.onclick = () => aplicar(null, true);
+  row.append(lbl, rst);
+  const sw = el('div', 'sw');
+  PRESETS.forEach(p => { const x = el('button'); x.style.background = p; x.setAttribute('aria-label', 'Fondo de color'); x.onclick = () => aplicar({ t: 'css', v: p }, true); sw.append(x); });
+  b.append(el('h3', null, 'Fondo'), prev, row, el('p', null, 'O elige un color o degradado'), sw);
+  w.el.append(b); aplicar(fondo, false);
+};
+</script>
+</body>
+</html>
