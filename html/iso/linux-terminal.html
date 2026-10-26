@@ -22,6 +22,9 @@
     /* 1.ª capa: imagen de fondo (variable --fondo-img, la rellena el script); 2.ª capa: degradado de respaldo */
     background:var(--fondo-img,none) center/cover no-repeat fixed,linear-gradient(135deg,var(--escritorio-1),var(--escritorio-2)) fixed;
     display:flex;flex-direction:column}
+  /* Lienzo de los fondos animados: fijo, detrás de todo y sin capturar clics */
+  #fondo-anim{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
+  #fondo-anim[hidden]{display:none}
   :focus-visible{outline:2px solid var(--marca);outline-offset:2px}
 
   /* Barra superior tipo GNOME */
@@ -117,6 +120,9 @@
   .act-cab{padding:14px 16px 10px}
   .act-cab h2{font-size:15px}
   .act-cab p{font-size:12px;color:#c0bfbc;margin-top:2px}
+  .act-cab input{width:100%;margin-top:10px;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .act-cab input::placeholder{color:#c0bfbc}
+  .act-vacio{padding:10px 12px;font-size:13px;color:#c0bfbc}
   .act-lista{flex:1;overflow:auto;padding:4px 8px}
   .act-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:#fff;font:inherit;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .2s ease}
   .act-item:hover{background:rgba(255,255,255,.08)}
@@ -182,6 +188,7 @@
 </style>
 </head>
 <body>
+<canvas id="fondo-anim" aria-hidden="true" hidden></canvas>
 
 <div class="barra">
   <!-- Botón "Actividades": abre/cierra el panel lateral con las actividades -->
@@ -212,6 +219,7 @@
       <small>0 = el comando aparece de golpe</small>
     </label>
     <h3>Fondo de pantalla</h3>
+    <label class="fila">Animado <select id="fondo-anim-sel"></select></label>
     <div class="fila">
       <button class="reset" id="fondo-elegir" type="button">Elegir imagen…</button>
       <button class="reset" id="fondo-quitar" type="button">Quitar</button>
@@ -239,7 +247,10 @@
 
 <!-- Pestaña lateral de actividades (la lista se genera desde ACTIVIDADES en el script) -->
 <aside class="act-panel" id="panel-act" aria-label="Actividades">
-  <div class="act-cab"><h2>Actividades</h2><p>Practica tú mismo: escribe los comandos en la terminal.</p></div>
+  <div class="act-cab">
+    <h2>Actividades</h2><p>Practica tú mismo: escribe los comandos en la terminal.</p>
+    <input type="search" id="act-buscar" placeholder="Buscar actividad…" aria-label="Buscar actividad" autocomplete="off">
+  </div>
   <div class="act-lista" id="act-lista"></div>
   <div class="act-pie"><span id="act-progreso"></span><button type="button" id="act-borrar">Borrar progreso</button></div>
 </aside>
@@ -277,347 +288,24 @@
   </section>
 </div>
 
+<!-- Comandos y ejemplos del panel lateral (ver instrucciones dentro del archivo). Debe ir ANTES del script principal. -->
+<script src="ejemplos.js"></script>
+
+<!-- Datos de las actividades (ver instrucciones dentro del archivo). Debe ir ANTES del script principal.
+     Si las repartes en varios archivos, añade aquí un <script src="..."> por cada uno; su orden decide el orden del panel. -->
+<script src="actividades.js"></script>
+
 <script>
-/* =====================================================================
-   CÓMO AÑADIR CONTENIDO (solo tocas este bloque)
-   ---------------------------------------------------------------------
-   GRUPOS      → cada grupo es una sección desplegable del panel lateral.
-   comandos    → cada comando es un subapartado clicable dentro del grupo.
-   diapositivas→ la 1.ª explica el comando; las siguientes, ejemplos.
-   Cada diapositiva tiene:
-     cmd : texto que se "teclea" en la terminal
-     out : salida del comando (HTML). Clases útiles:
-           <b class="d">carpeta</b>  <b class="x">ejecutable</b>  <mark>resaltado</mark>
-           <span class="u">usuario@linux</span>:<span class="r">~/ruta</span>$
-     exp : explicación bajo la terminal (HTML: <h3>, <p>, <code>, <ul>)
-   VARIOS COMANDOS EN CADENA: en vez de cmd/out usa pasos, una lista de {cmd, out, ruta}.
-   Se teclean uno tras otro, como una sesión real. "ruta" (opcional) cambia el prompt
-   tras ese paso (útil con cd), p. ej. ruta:"~/proyectos".
-   Ejemplo: { pasos:[ {cmd:"cd web", ruta:"~/web"}, {cmd:"ls", out:"index.html"} ], exp:"..." }
-   CÓDIGO (funciones de ~/.bashrc): dentro de out usa <span class="k">palabra clave</span>,
-   <span class="s">"texto"</span> y <span class="c"># comentario</span>. Para mostrar < y > escribe &lt; y &gt;.
-
-   Plantilla para copiar y pegar un comando nuevo:
-
-   { nombre:"mkdir", resumen:"Crear carpetas", diapositivas:[
-       { cmd:"mkdir fotos", out:"", exp:"<h3>mkdir</h3><p>Crea una carpeta.</p>" },
-       { cmd:"mkdir -p a/b/c", out:"", exp:"<p>Con <code>-p</code> crea toda la ruta.</p>" }
-   ]},
-   ===================================================================== */
-const prompt = ruta => '<span class="u">usuario@linux</span>:<span class="r">' + ruta + '</span>$ '; // texto antes del comando
-
-// Imagen de fondo por defecto: ruta o URL, p. ej. "fondo.jpg" o "img/escritorio.png".
-// Déjala vacía ("") para usar el degradado de color. Desde el botón cuadriculado también se puede elegir otra imagen.
-const FONDO_IMAGEN = "";
-
-const GRUPOS = [
-
-  { titulo:"Consultar comandos", comandos:[
-
-    { nombre:"type", resumen:"Tipo de comando", diapositivas:[
-      { cmd:"type nano",
-        out:'nano is /usr/bin/nano',
-        exp:'<h3>type</h3><p>Muestra que tipo de comando es el que queremos saber</p><p>Te dice ademas en donde esta alojado el comando o incluso si es interno.</p>' },
-      { cmd:"type nano (pero si fuera un alias)",
-        out:'nano es un alias de nano -l',
-        exp:'<h3>¿Que pasaría si fuera un alias?</h3><p>Solamente nos especificaría que es un alias y no el comando en si.</p>' },
-      { cmd:"type pwd",
-        out:'pwd es una orden interna del shell',
-        exp:'<p>Esto es lo que sucede cuando estamos ante un comando interno, nos especifica que es de la <strong>bash</strong></p>' }
-    ]},
-
-    { nombre:"man", resumen:"Manual de comandos", diapositivas:[
-      { cmd:"man",
-        out:'¿Qué página del manual desea?<p>Por ejemplo, pruebe man man.</p>',
-        exp:'<h3>El manual universal</h3><p>Podremos consultar casi cualquier comando con "man", pero habra otros que no ya que dependa si tiene o no dentro de man.</p>' },
-	  { cmd:"man -k whoami",
-        out:'whoami (1)           - print effective user name',
-        exp:'<h3>Forma de verlo abrebiado</h3><p>Podremos consultar de forma más breve con "man", pero usando el parametro <code>-k</code></p>' },
-    ]},
-			
-	{ nombre:"tldr", resumen:"Resumen de un comando", diapositivas:[
-      { pasos:[
-          { cmd:"tldr pwd", out:'pwd\n  Imprime el nombre del directorio actual.\n  Más información: Enlace ficticio\n\n- Imprime el directorio actual:\n   pwd\n\n- Imprime el directorio actual y resuelve todos los enlaces simbólicos (es decir, muestra la ruta física real):\n    pwd -P' }
-        ],
-        exp:'<h3>Taildeer</h3>Comando que nos sirve para saber que hace un comando o un resumen de este, pero antes de nada siempre hay que poner <code>tldr --update</code>' }
-    ]},
-	
-	{ nombre:"whatis", resumen:"Consultar comando", diapositivas:[
-      { cmd:"whatis whoami",
-        out:'whoami (1)           - print effective user name',
-        exp:'Para consultar brevemente un comando, practicamente es lo mismo que <code>man -k "comando a poner"</code>' }
-    ]},
-	
-	{ nombre:"whereis", resumen:"Ruta de un comando", diapositivas:[
-      { cmd:"whereis whoami",
-        out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
-        exp:'Podremos ver la ruta donde se aloja un comando.' }
-    ]}
-  ]},
-
-  { titulo:"Ficheros y Instalaciones", comandos:[
-
-    { nombre:"file", resumen:"Mostrar un archivo", diapositivas:[
-      { cmd:'file test.txt',
-        out:'test.txt: empty',
-        exp:'<h3>file</h3><p>Nos dira si un archivo tiene contenido dentro o esta vacio, muy util para saber que tipo de archivo es un fichero.' },
-      { cmd:'file test.txt',
-        out:'test.txt: ASCII text',
-        exp:'Lo que pasaría si ese fichero tuviera unos bits rellenados.' }
-    ]},
-    
-    { nombre:"du", resumen:"Consultas espacio", diapositivas:[
-      { pasos:[
-          { cmd:"cd ./Prueba", out:'', ruta:'~/Prueba'},
-          { cmd:"du", out:'4   .'},
-          { cmd:"du -lh", out:'4,0K	.' }
-        ],
-        exp:'<h3>El comando para ver el espacio</h3>Este comando nos permite ver a detalle cuanto espacio se esta consumiendo en una ruta.<p>Si usamos el parametro <code>-lh</code> podremos ver hasta si son MB o GB.</p>' },
-      { pasos:[
-          { cmd:"cd ./Prueba", out:'', ruta:'~/Prueba'},
-          { cmd:"du", out:'8  	./1-asir-contenido-main/pdfs/fundamentos-hardware\n396	./1-asir-contenido-main/pdfs/redes\n2000	./1-asir-contenido-main/pdfs/bd\n7472	./1-asir-contenido-main/pdfs\n80	./1-asir-contenido-main/html/redes\n88	./1-asir-contenido-main/html\n7924	./1-asir-contenido-main\n8	./PruebasISO\n5755448	.' },
-          { cmd:"du -lh", out:'8,0K	./1-asir-contenido-main/pdfs/fundamentos-hardware\n396K	./1-asir-contenido-main/pdfs/redes\n2,0M	./1-asir-contenido-main/pdfs/bd\n7,3M	./1-asir-contenido-main/pdfs\n80K	./1-asir-contenido-main/html/redes\n88K	./1-asir-contenido-main/html\n7,8M	./1-asir-contenido-main\n12K	./PruebasISO\n5,5G	.' }
-        ],
-        exp:'<h3>El comando para ver el espacio</h3>Este comando nos permite ver a detalle cuanto espacio se esta consumiendo en una ruta.<p>Si usamos el parametro <code>-lh</code> podremos ver hasta si son MB o GB.</p>' },
-    ]},
-    
-	  { nombre:"wc", resumen:"Contar líneas", diapositivas:[
-      { cmd:'wc test.txt',
-        out:'1  3 13 test.txt',
-        exp:'<h3>wc (Word Count)</h3><p>Contara el número de líneas, palabras, caracteres y bytes que tiene un fichero o documento de texto.' },
-      { cmd:'wc -l test.txt',
-        out:'1 test.txt',
-        exp:'Con el parametro <code>-l</code> contara las líneas directamente.' }
-    ]},
-
-    { nombre:"chmod", resumen:"Cambiar permisos", diapositivas:[
-      { cmd:"chmod +x script.sh && ls -l script.sh",
-        out:'-rwxr-xr-x 1 usuario usuario 58 oct 20 10:30 <b class="x">script.sh</b>',
-        exp:'<h3>chmod — change mode</h3><p>Modifica quién puede leer (<code>r</code>), escribir (<code>w</code>) o ejecutar (<code>x</code>) un archivo. <code>+x</code> lo vuelve ejecutable y por eso <code>ls</code> lo pinta en verde.</p>' },
-      { cmd:"chmod 644 notas.txt && ls -l notas.txt",
-        out:'-rw-r--r-- 1 usuario usuario 120 oct 20 10:12 notas.txt',
-        exp:'<h3>Modo numérico</h3><p>Cada cifra suma permisos: lectura = 4, escritura = 2, ejecución = 1. Las tres cifras son propietario, grupo y resto. Así, <code>644</code> da <code>rw-r--r--</code>.</p>' },
-      { cmd:"chmod 755 script.sh && chmod 600 clave.pem",
-        out:'',
-        exp:'<h3>Valores habituales</h3><ul><li><code>755</code>: scripts y carpetas públicas.</li><li><code>644</code>: documentos normales.</li><li><code>600</code>: archivos privados, como claves.</li></ul>' }
-    ]}
-  ]},
-
-  { titulo:"Cadenas de comandos", comandos:[
-
-    { nombre:"pipes", resumen:"Encadenar con |", diapositivas:[
-      { pasos:[
-          { cmd:"mkdir saludos", out:'' },
-          { cmd:"touch saludo1.txt | mv saludo1.txt saludos", out:'' },
-          { cmd:"ls saludos | wc -l saludos/saludo1.txt | tree saludos", out:'<b class="d">saludos</b>\n└── saludo1.txt\n\n1 directory, 1 file' }
-        ],
-        exp:'<h3>Tuberías</h3><p>El símbolo <code>|</code> envía la salida de un comando como entrada del siguiente. Cada eslabón filtra o transforma: primero se lista el directorio, luego <code>wc -l</code> cuenta las líneas del fichero y <code>tree</code> lista de forma ordenada el directorio de nuevo.</p>' },
-      { pasos:[
-          { cmd:'mkdir demo && echo "carpeta creada"', out:'carpeta creada' },
-          { cmd:'ls /noexiste || echo "no existe, sigo igualmente"', out:'ls: no se puede acceder a \'/noexiste\': No existe el fichero o el directorio\nno existe, sigo igualmente' },
-          { cmd:'echo uno; echo dos; echo tres', out:'uno\ndos\ntres' }
-        ],
-        exp:'<h3>Otros encadenadores</h3><ul><li><code>&amp;&amp;</code>: ejecuta el siguiente solo si el anterior funcionó.</li><li><code>||</code>: ejecuta el siguiente solo si el anterior falló.</li><li><code>;</code>: ejecuta todos, pase lo que pase.</li></ul>' }
-    ]},
-
-    { nombre:"sesión", resumen:"Crear un proyecto", diapositivas:[
-      { pasos:[
-          { cmd:"mkdir -p web/css", out:'' },
-          { cmd:"cd web", out:'', ruta:'~/web' },
-          { cmd:"touch index.html css/estilo.css", out:'' },
-          { cmd:"ls -R", out:'.:\n<b class="d">css</b>  index.html\n\n./css:\nestilo.css' },
-          { cmd:"cd ..", out:'', ruta:'~' }
-        ],
-        exp:'<h3>Una sesión completa</h3><p>Así se ve un flujo real: se crea la estructura (<code>mkdir -p</code>), se entra (<code>cd</code>), se crean archivos vacíos (<code>touch</code>), se revisa todo (<code>ls -R</code>) y se vuelve atrás. Fíjate en cómo el prompt cambia de ruta.</p>' }
-    ]}
-  ]},
-
-  { titulo:"Funciones en .bashrc", comandos:[
-    
-    { nombre:"Ejemplo 1", resumen:"Ver la hora", diapositivas:[
-      { pasos:[
-          { cmd:"Función de ver la hora", out:'hora () {\n        date +%T\n}' },
-          { cmd:"hora", out:'Se vería la hora'}
-        ],
-        exp:'<h3>Una sesión completa</h3><p>Así se ve un flujo real: se crea la estructura (<code>mkdir -p</code>), se entra (<code>cd</code>), se crean archivos vacíos (<code>touch</code>), se revisa todo (<code>ls -R</code>) y se vuelve atrás. Fíjate en cómo el prompt cambia de ruta.</p>' }
-    ]},
-    
-    { nombre:"mkcd", resumen:"Crear y entrar", diapositivas:[
-      { pasos:[
-          { cmd:"tail -n 4 ~/.bashrc", out:'<span class="c"># Crea una carpeta y entra en ella</span>\nmkcd() {\n  mkdir -p <span class="s">"$1"</span> &amp;&amp; cd <span class="s">"$1"</span>\n}' },
-          { cmd:"source ~/.bashrc", out:'' },
-          { cmd:"mkcd proyectos/nuevo", out:'', ruta:'~/proyectos/nuevo' },
-          { cmd:"pwd", out:'/home/usuario/proyectos/nuevo' }
-        ],
-        exp:'<h3>Funciones en ~/.bashrc</h3><ul><li><code>~/.bashrc</code> se lee al abrir cada terminal: ahí se guardan tus funciones.</li><li><code>$1</code> es el primer argumento que recibe la función.</li><li><code>source</code> recarga el archivo sin cerrar la terminal.</li></ul>' },
-      { pasos:[
-          { cmd:'mkcd "mis fotos"', out:'', ruta:'~/mis fotos' },
-          { cmd:"pwd", out:'/home/usuario/mis fotos' }
-        ],
-        exp:'<h3>Las comillas importan</h3><p>Por eso la función usa <code>"$1"</code> entre comillas: así un nombre con espacios cuenta como un solo argumento. Sin ellas, crearía dos carpetas, <code>mis</code> y <code>fotos</code>.</p>' },
-      { pasos:[
-          { cmd:"type mkcd", out:'mkcd is a function\nmkcd () \n{ \n    mkdir -p "$1" &amp;&amp; cd "$1"\n}' },
-          { cmd:"declare -F", out:'declare -f extraer\ndeclare -f mkcd' }
-        ],
-        exp:'<h3>Inspeccionar funciones</h3><p><code>type</code> muestra la definición de una función cargada y <code>declare -F</code> lista todas. Para quitar una de la sesión actual se usa <code>unset -f nombre</code>.</p>' }
-    ]},
-
-    { nombre:"extraer", resumen:"Descomprimir todo", diapositivas:[
-      { pasos:[
-          { cmd:"tail -n 11 ~/.bashrc", out:'<span class="c"># Descomprime según la extensión</span>\nextraer() {\n  <span class="k">if</span> [ -z <span class="s">"$1"</span> ]; <span class="k">then</span>\n    echo <span class="s">"Uso: extraer &lt;archivo&gt;"</span>; <span class="k">return</span> 1\n  <span class="k">fi</span>\n  <span class="k">case</span> <span class="s">"$1"</span> <span class="k">in</span>\n    *.tar.gz) tar -xzf <span class="s">"$1"</span> ;;\n    *.zip)    unzip <span class="s">"$1"</span> ;;\n    *)        echo <span class="s">"Formato no soportado"</span> ;;\n  <span class="k">esac</span>\n}' },
-          { cmd:"source ~/.bashrc", out:'' },
-          { cmd:"extraer datos.tar.gz", out:'' },
-          { cmd:"ls", out:'<b class="d">datos</b>  datos.tar.gz' }
-        ],
-        exp:'<h3>Una función con lógica</h3><p>Con <code>case</code> la función elige el programa según la extensión del archivo. Así recuerdas un solo comando, <code>extraer</code>, en lugar de varias opciones de <code>tar</code> y <code>unzip</code>.</p>' },
-      { pasos:[
-          { cmd:'extraer; echo $?', out:'Uso: extraer &lt;archivo&gt;\n1' },
-          { cmd:"extraer foto.rar", out:'Formato no soportado' }
-        ],
-        exp:'<h3>Validar los argumentos</h3><ul><li><code>[ -z "$1" ]</code> comprueba si no se pasó ningún argumento.</li><li><code>return 1</code> devuelve un código de error; <code>$?</code> muestra el del último comando.</li><li>El patrón <code>*)</code> atrapa cualquier formato no previsto.</li></ul>' }
-    ]}
-  ]},
-
-  { titulo:"Expansión de llaves", comandos:[
-    { nombre:"Ejemplo 1", resumen:"", diapositivas:[
-      { pasos:[
-          { cmd:"cd Descargas/ && pwd", out:'/home/usuario/Descargas', ruta:'~/Descargas'}
-        ],
-        exp:'<h3>Ejemplo 1</h3><p>El simbolo <code>&</code> nos servirá para poder decir que si un comando es exitoso, pues que se ejecute uno despues.</p>' }
-    ]},
-    { nombre:"Ejemplo 2", resumen:"", diapositivas:[
-      { pasos:[
-          { cmd:"cd Prueba", out:'', ruta:'~/Prueba'},
-          { cmd:"touch fich-{1..10}.txt", out:''},
-          { cmd:"ls", out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt' }
-        ],
-        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>No es muy complicado ya que unicamente usamos los simbolos <code>{ }</code> para poder crear varios ficheros de golpe.</p>' }
-    ]}
-  ]},
-
-  { titulo:"Varios Comandos", comandos:[
-    { nombre:"SoftLink", resumen:"Accesos Directos", diapositivas:[
-      { pasos:[
-          { cmd:"ln -s /home/usuario/Descargas/ softDes", out:'' },
-          { cmd:"ls softDes", out:'1-asir-contenido-main\n1-asir-contenido-main.zip\nBinarioFH.pdf\nBoletin Scott II.odt\nConceptos UD 1.pdf\n...'}
-        ],
-        exp:'<h3>SoftLink</h3><p>Un pequeña utilidad para crear accesos directos al estilo de Windows, podemos hacerlo tanto con rutas como con ficheros.</p>' }
-    ]},
-    { nombre:"HardLink", resumen:"* Mas pesados", diapositivas:[
-      { pasos:[
-          { cmd:"touch test.txt > prueba", out:'' },
-          { cmd:"ln test.txt hardtest.txt", out:'' },
-          { cmd:"ls -lhi", out:'total 8,0K\n394844 -rw-rw-r-- 2 usuario usuario 7 oct 21 14:17 hardtest.txt\n394844 -rw-rw-r-- 2 usuario usuario 7 oct 21 14:17 hardtest.txt'}
-        ],
-        exp:'<h3>HardLink</h3><p>Casi lo mismo que el SoftLink, pero puede con ficheros más pesados, el ejemplo en pantalla tiene el mismo peso y mismo contenido.<p>Si borraramos el fichero creado no pasaría nada.</p></p>' }
-    ]}
-  ]}
-];
+/* Los comandos y ejemplos (GRUPOS, prompt, FONDO_IMAGEN, FONDO_ANIMADO) están en ejemplos.js */
 
 /* =====================================================================
    ACTIVIDADES (botón "Actividades" de la barra superior)
    ---------------------------------------------------------------------
-   Cada actividad es una ventana con enunciado + terminal donde la persona
-   escribe los comandos. Campos:
-     id        : texto único (sirve para recordar cuáles se han completado)
-     grupo     : subapartado del panel donde aparece (mismo texto = mismo subapartado;
-                 se crean solos y salen en el orden en que los escribas)
-     titulo    : nombre de la actividad          resumen : frase corta del panel
-     enunciado : HTML que se muestra arriba (<p>, <code>, <pre>…)
-     final     : mensaje al terminar (HTML, opcional)
-     pasos     : lista de pasos que hay que superar EN ORDEN. Cada paso:
-        tarea : lo que se pide (HTML); aparece como casilla en el enunciado
-        ok    : comandos aceptados. Textos exactos (se ignoran los espacios
-                sobrantes) o expresiones regulares, p. ej. /^ls( -l)?$/
-        out   : salida que se muestra al acertar (HTML, como en las diapositivas)
-        ruta  : (opcional) nuevo prompt tras acertar, p. ej. "~/proyectos"
-        pista : (opcional, texto plano) ayuda; sale con el botón Pista o tras 2 fallos
-   En la terminal también funcionan: clear, ↑ ↓ (historial) y Enter vacío.
-
-   Plantilla para copiar y pegar una actividad nueva:
-
-   { id:"mi-actividad", grupo:"Nombre del subapartado", titulo:"Título", resumen:"Qué se practica",
-     enunciado:"<p>Contexto de la actividad.</p>",
-     final:"¡Muy bien!",
-     pasos:[
-       { tarea:"Crea la carpeta <code>fotos</code>", ok:["mkdir fotos"], out:"", pista:"Usa mkdir." },
-       { tarea:"Lista el contenido", ok:["ls"], out:"fotos" }
-     ]},
+   Los datos de las actividades están en el archivo actividades.js (misma carpeta
+   que este HTML), con todas las instrucciones para añadir o cambiar actividades.
+   Aquí abajo, en "Actividades: panel lateral + ventana…", está la lógica
+   comentada paso a paso.
    ===================================================================== */
-const ACTIVIDADES = [
-
-  { id:"tipo-ubicacion", grupo:"Consultar comandos", titulo:"¿Qué es y dónde vive?", resumen:"type y whereis",
-    enunciado:'<p>Un compañero duda de dos cosas: si <code>pwd</code> es un programa o una orden interna de la bash, y en qué ruta está instalado <code>whoami</code>. Averígualo desde la terminal.</p>',
-    final:'<code>type</code> te dice qué clase de comando es y <code>whereis</code> te dice dónde está.',
-    pasos:[
-      { tarea:'Averigua qué tipo de comando es <code>pwd</code>',
-        ok:['type pwd'], out:'pwd es una orden interna del shell',
-        pista:'El comando que muestra de qué tipo es otro comando se llama type.' },
-      { tarea:'Localiza dónde está <code>whoami</code>',
-        ok:['whereis whoami'], out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
-        pista:'Se usa igual que el anterior, pero la palabra empieza por "where".' }
-    ]},
-
-  { id:"estructura", grupo:"Ficheros y carpetas", titulo:"Tu primera estructura", resumen:"mkdir, cd, touch y ls",
-    enunciado:'<p>Vas a montar la carpeta de una web desde cero. La carpeta <code>proyectos</code> todavía no existe.</p>',
-    final:'Has creado una estructura, entrado en ella y comprobado el resultado: el flujo básico de cualquier sesión.',
-    pasos:[
-      { tarea:'Crea de golpe la ruta <code>proyectos/web</code>',
-        ok:[/^mkdir -p (\.\/)?proyectos\/web\/?$/], out:'',
-        pista:'Con la opción -p, mkdir crea también las carpetas intermedias.' },
-      { tarea:'Entra en <code>proyectos/web</code>',
-        ok:['cd proyectos/web','cd proyectos/web/','cd ./proyectos/web','cd ~/proyectos/web'], out:'', ruta:'~/proyectos/web',
-        pista:'cd seguido de la ruta de la carpeta.' },
-      { tarea:'Crea un fichero vacío llamado <code>index.html</code>',
-        ok:['touch index.html'], out:'',
-        pista:'touch crea ficheros vacíos.' },
-      { tarea:'Muestra el contenido de la carpeta',
-        ok:['ls'], out:'index.html',
-        pista:'El comando para listar es de dos letras.' }
-    ]},
-
-  { id:"ficheros-lote", grupo:"Ficheros y carpetas", titulo:"Ficheros en lote", resumen:"Expansión de llaves",
-    enunciado:'<p>Necesitas diez ficheros de prueba, <code>fich-1.txt</code> … <code>fich-10.txt</code>, dentro de la carpeta <code>Prueba</code>. Hacerlo uno a uno sería eterno: usa las llaves.</p>',
-    final:'Las llaves <code>{1..10}</code> se expanden antes de ejecutar el comando, así que <code>touch</code> recibe los diez nombres.',
-    pasos:[
-      { tarea:'Entra en la carpeta <code>Prueba</code>',
-        ok:['cd Prueba','cd ./Prueba','cd Prueba/','cd ~/Prueba'], out:'', ruta:'~/Prueba',
-        pista:'cd Prueba' },
-      { tarea:'Crea los diez ficheros con un solo <code>touch</code>',
-        ok:['touch fich-{1..10}.txt'], out:'',
-        pista:'El nombre lleva un rango entre llaves: fich-{1..10}.txt' },
-      { tarea:'Comprueba que se han creado',
-        ok:['ls'], out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt',
-        pista:'Lista el contenido de la carpeta.' }
-    ]},
-
-  { id:"funcion-mkcd", grupo:"Funciones en .bashrc", titulo:"Tu función mkcd", resumen:"Funciones en ~/.bashrc",
-    enunciado:'<p>En tu <code>~/.bashrc</code> acabas de añadir esta función:</p><pre>mkcd() {\n  mkdir -p "$1" &amp;&amp; cd "$1"\n}</pre><p>Cárgala y pruébala.</p>',
-    final:'Una función de <code>~/.bashrc</code> se usa como cualquier comando. <code>$1</code> es su primer argumento.',
-    pasos:[
-      { tarea:'Recarga <code>~/.bashrc</code> sin cerrar la terminal',
-        ok:['source ~/.bashrc','. ~/.bashrc'], out:'',
-        pista:'El comando se llama source y recibe el fichero a cargar.' },
-      { tarea:'Usa <code>mkcd</code> para crear y entrar en <code>proyectos/nuevo</code>',
-        ok:['mkcd proyectos/nuevo','mkcd "proyectos/nuevo"'], out:'', ruta:'~/proyectos/nuevo',
-        pista:'mkcd seguido de la ruta que quieres crear.' },
-      { tarea:'Comprueba en qué directorio estás',
-        ok:['pwd'], out:'/home/usuario/proyectos/nuevo',
-        pista:'Imprime el directorio actual.' }
-    ]},
-
-  { id:"enlace-simbolico", grupo:"Varios comandos", titulo:"Acceso directo", resumen:"Enlace simbólico con ln -s",
-    enunciado:'<p>Quieres entrar a tu carpeta <code>/home/usuario/Descargas/</code> desde un acceso directo llamado <code>softDes</code>.</p>',
-    final:'Un enlace simbólico apunta a la ruta original: es el equivalente a un acceso directo de Windows.',
-    pasos:[
-      { tarea:'Crea el enlace simbólico <code>softDes</code> hacia <code>/home/usuario/Descargas/</code>',
-        ok:['ln -s /home/usuario/Descargas/ softDes','ln -s /home/usuario/Descargas softDes','ln -s ~/Descargas softDes','ln -s ~/Descargas/ softDes'], out:'',
-        pista:'ln con la opción -s, luego el destino y por último el nombre del enlace.' },
-      { tarea:'Lista el contenido de <code>softDes</code>',
-        ok:['ls softDes','ls softDes/'], out:'1-asir-contenido-main\nBinarioFH.pdf\nConceptos UD 1.pdf\n...',
-        pista:'ls seguido del nombre del enlace.' }
-    ]}
-];
 /* ================= FIN DE LA ZONA EDITABLE ================= */
 
 
@@ -722,18 +410,22 @@ const TEMAS = {
 };
 const VEL_DEFECTO = 24; // milisegundos por letra
 // fondo: "" = usar FONDO_IMAGEN · "ninguna" = solo degradado · otro valor = imagen elegida por la persona (data URL)
-const ajustes = { colores:{...TEMAS.Ubuntu}, vel:VEL_DEFECTO, fondo:'' };
+// animado: "" = usar FONDO_ANIMADO · "ninguno" = sin animación · otro valor = clave de FONDOS_ANIMADOS (tapa la imagen)
+const ajustes = { colores:{...TEMAS.Ubuntu}, vel:VEL_DEFECTO, fondo:'', animado:'' };
+const fondoAnimado = () => ajustes.animado === 'ninguno' ? '' : (ajustes.animado || (typeof FONDO_ANIMADO === 'string' ? FONDO_ANIMADO : ''));
 
 // Recupera lo guardado (si el navegador lo permite)
 try {
   const guardado = JSON.parse(localStorage.getItem('ajustes-terminal'));
   if (guardado){ Object.assign(ajustes.colores, guardado.colores); ajustes.vel = guardado.vel ?? VEL_DEFECTO; }
   ajustes.fondo = localStorage.getItem('fondo-terminal') || '';
+  ajustes.animado = localStorage.getItem('fondo-animado') || '';
 } catch (e) {}
 // La imagen se guarda aparte: si no cupiera, los colores y la velocidad se conservan igualmente
 const guardar = () => {
   try { localStorage.setItem('ajustes-terminal', JSON.stringify({ colores: ajustes.colores, vel: ajustes.vel })); } catch (e) {}
   try { if (ajustes.fondo) localStorage.setItem('fondo-terminal', ajustes.fondo); else localStorage.removeItem('fondo-terminal'); } catch (e) {}
+  try { if (ajustes.animado) localStorage.setItem('fondo-animado', ajustes.animado); else localStorage.removeItem('fondo-animado'); } catch (e) {}
 };
 
 // Aplica los ajustes a la página y sincroniza los controles
@@ -741,6 +433,9 @@ function aplicar(){
   for (const k in ajustes.colores) document.documentElement.style.setProperty(k, ajustes.colores[k]);
   const imagen = ajustes.fondo === 'ninguna' ? '' : (ajustes.fondo || FONDO_IMAGEN);
   document.documentElement.style.setProperty('--fondo-img', imagen ? 'url("' + imagen + '")' : 'none');
+  const anim = FONDOS_ANIMADOS[fondoAnimado()] ? fondoAnimado() : '';
+  if (anim !== fondoClave || (anim && lienzoFondo.hidden)) iniciarFondo(anim);
+  $('fondo-anim-sel').value = anim || 'ninguno';
   AJUSTES_COLORES.forEach((o, i) => $('col' + i).value = ajustes.colores[o.v]);
   $('vel').value = ajustes.vel;
   $('vel-txt').textContent = ajustes.vel ? ajustes.vel + ' ms por letra' : 'instantáneo';
@@ -767,7 +462,7 @@ $('tema').onchange = () => {
 $('vel').oninput = () => { ajustes.vel = +$('vel').value; aplicar(); };
 $('vel').onchange = () => { guardar(); pintar(); };
 
-$('restablecer').onclick = () => { ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; aplicar(); guardar(); pintar(); };
+$('restablecer').onclick = () => { ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; ajustes.animado = ''; aplicar(); guardar(); pintar(); };
 
 // Abrir y cerrar el panel (botón, clic fuera o Escape)
 const btnAjustes = $('btn-ajustes'), panel = $('panel-ajustes');
@@ -785,20 +480,411 @@ function cargarImagen(archivo){
     lienzo.width = Math.round(img.width * k); lienzo.height = Math.round(img.height * k);
     lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
     ajustes.fondo = lienzo.toDataURL('image/jpeg', .85);
+    ajustes.animado = 'ninguno';   // al elegir una imagen se quita la animación para que se vea
     URL.revokeObjectURL(url); aplicar(); guardar();
   };
   img.src = url;
 }
 $('fondo-elegir').onclick = () => $('fondo-archivo').click();
 $('fondo-archivo').onchange = e => { const f = e.target.files[0]; if (f) cargarImagen(f); e.target.value = ''; };
-$('fondo-quitar').onclick = () => { ajustes.fondo = 'ninguna'; aplicar(); guardar(); };
+$('fondo-quitar').onclick = () => { ajustes.fondo = 'ninguna'; ajustes.animado = 'ninguno'; aplicar(); guardar(); };
 
-/* ---------------- Actividades: panel lateral + ventana con terminal interactiva ---------------- */
+/* =====================================================================
+   FONDOS ANIMADOS (panel de personalización › "Animado")
+   ---------------------------------------------------------------------
+   Se dibujan en un <canvas> fijo detrás de todo (#fondo-anim).
+   Cada fondo tiene un nombre visible y una función crear(ctx, ancho, alto, dpr)
+   que prepara lo necesario y devuelve { dibujar(t, dt) }:
+     t  = segundos desde que empezó la animación
+     dt = segundos desde el fotograma anterior
+   Para añadir uno nuevo, copia un bloque y cambia su clave y su nombre.
+   ===================================================================== */
+const azar = (a, b) => a + Math.random() * (b - a);
+const elegir = lista => lista[Math.floor(Math.random() * lista.length)];
+// Lienzo auxiliar para dibujar una sola vez las partes que no se mueven
+function lienzoAparte(w, h, dpr){
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(w * dpr); c.height = Math.ceil(h * dpr);
+  const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [c, x];
+}
+// Punto de luz difuminado (se reutiliza para cabezas de pulsos y destellos)
+function crearDestello(color, r){
+  const c = document.createElement('canvas'); c.width = c.height = r * 2;
+  const x = c.getContext('2d'), g = x.createRadialGradient(r, r, 0, r, r, r);
+  g.addColorStop(0, '#ffffff'); g.addColorStop(.25, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, r * 2, r * 2);
+  return c;
+}
+
+const FONDOS_ANIMADOS = {
+
+  /* 1 · Microondas: luz cálida que zumba, ondas que oscilan y la rejilla de la puerta delante */
+  microondas: { nombre:'Microondas', crear(ctx, w, h, dpr){
+    const [rejilla, r] = lienzoAparte(w, h, dpr);
+    r.fillStyle = 'rgba(0,0,0,.62)'; r.fillRect(0, 0, w, h);
+    r.globalCompositeOperation = 'destination-out';           // agujeros de la rejilla
+    for (let y = 3, fila = 0; y < h + 7; y += 7, fila++)
+      for (let x = (fila % 2) * 3.5 + 3; x < w + 7; x += 7){ r.beginPath(); r.arc(x, y, 2.3, 0, 7); r.fill(); }
+    const luz = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.hypot(w, h) / 2);
+    luz.addColorStop(0, '#ffb347'); luz.addColorStop(.45, '#7a3a08'); luz.addColorStop(1, '#120700');
+    const ondas = Array.from({length:7}, (_, i) => ({
+      y: h * (.2 + i * .1), amp: azar(18, 60), k: azar(.006, .016), vel: azar(1.2, 2.6) * (i % 2 ? 1 : -1),
+      fase: azar(0, 6.3), color: `hsl(${azar(18, 48).toFixed(0)} 100% ${azar(55, 70).toFixed(0)}%)` }));
+    return { dibujar(t){
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#0a0400'; ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = .75 + .2 * Math.sin(t * 3) + .05 * Math.sin(t * 17);   // zumbido de la lámpara
+      ctx.fillStyle = luz; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = ctx.lineJoin = 'round';
+      for (const o of ondas){
+        const a = o.amp * (.65 + .35 * Math.sin(t * .7 + o.fase));
+        ctx.strokeStyle = o.color; ctx.beginPath();
+        for (let x = -10; x <= w + 10; x += 8) ctx.lineTo(x, o.y + a * Math.sin(x * o.k + t * o.vel + o.fase));
+        // halo: el mismo trazo varias veces, de ancho y tenue a fino y brillante (más ligero que shadowBlur)
+        for (const [ancho, alfa] of [[14, .08], [7, .18], [2.5, 1]]){ ctx.lineWidth = ancho; ctx.globalAlpha = alfa; ctx.stroke(); }
+      }
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(rejilla, 0, 0, w, h);
+    }};
+  }},
+
+  /* 2 · Matrix: lluvia de caracteres verdes con la cabeza de cada gota más clara */
+  matrix: { nombre:'Matrix', crear(ctx, w, h){
+    const tam = 16, letras = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン0123456789ABCDEF<>*+=';
+    const gotas = Array.from({length: Math.ceil(w / tam)}, () => ({ y: azar(-h / tam, 0), vel: azar(.4, 1), fila: -1 }));
+    let acum = 1;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+    ctx.font = `bold ${tam - 2}px "Noto Sans JP", monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    return { dibujar(t, dt){
+      acum += dt; if (acum < 1 / 20) return; acum = 0;          // unos 20 pasos por segundo
+      ctx.fillStyle = 'rgba(0,0,0,.07)'; ctx.fillRect(0, 0, w, h);  // las letras antiguas se van apagando
+      gotas.forEach((g, i) => {
+        g.y += g.vel; const fila = Math.floor(g.y); if (fila === g.fila) return;
+        const x = i * tam + tam / 2;
+        if (g.fila >= 0){                                          // la cabeza anterior pasa a verde
+          ctx.fillStyle = '#000'; ctx.fillRect(i * tam, g.fila * tam, tam, tam);
+          ctx.fillStyle = '#22d63a'; ctx.fillText(elegir(letras), x, g.fila * tam);
+        }
+        g.fila = fila;
+        if (fila >= 0){ ctx.fillStyle = '#d8ffd8'; ctx.fillText(elegir(letras), x, fila * tam); }
+        if (fila * tam > h && Math.random() > .95){ g.y = azar(-20, 0); g.fila = -1; g.vel = azar(.4, 1); }
+      });
+    }};
+  }},
+
+  /* 3 · Cuadrícula eléctrica: rejilla verdosa con pulsos que la recorren, nodos que destellan y chispazos */
+  cuadricula: { nombre:'Cuadrícula eléctrica', crear(ctx, w, h, dpr){
+    const S = 44, nx = Math.ceil(w / S) + 1, ny = Math.ceil(h / S) + 1;
+    const [base, b] = lienzoAparte(w, h, dpr);
+    const fondo = b.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.hypot(w, h) / 2);
+    fondo.addColorStop(0, '#04210f'); fondo.addColorStop(1, '#000804');
+    b.fillStyle = fondo; b.fillRect(0, 0, w, h);
+    b.strokeStyle = 'rgba(60,255,140,.14)'; b.lineWidth = 1; b.beginPath();
+    for (let i = 0; i < nx; i++){ b.moveTo(i * S + .5, 0); b.lineTo(i * S + .5, h); }
+    for (let j = 0; j < ny; j++){ b.moveTo(0, j * S + .5); b.lineTo(w, j * S + .5); }
+    b.stroke();
+    b.fillStyle = 'rgba(120,255,170,.3)';
+    for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) b.fillRect(i * S - 1, j * S - 1, 2, 2);
+
+    const chispa = crearDestello('rgba(80,255,150,.9)', 18), nodo = crearDestello('rgba(80,255,150,.6)', 26);
+    const DIRS = [[1,0],[0,1],[-1,0],[0,-1]];
+    const brillo = new Map();                                    // nodo "i,j" → intensidad del destello
+    const nuevo = () => ({ i: Math.floor(azar(0, nx)), j: Math.floor(azar(0, ny)), d: Math.floor(azar(0, 4)),
+                           p: 0, vel: azar(3, 7), vida: azar(2, 6), estela: [], muerto: false });
+    const pulsos = Array.from({length: Math.max(8, Math.min(40, Math.round(w * h / 45000)))}, nuevo);
+    const arcos = []; let proximoArco = 1;
+    return { dibujar(t, dt){
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(base, 0, 0, w, h);
+      ctx.globalCompositeOperation = 'lighter';
+      // barrido suave de luz de arriba abajo
+      const yb = (t * 120) % (h + 300) - 150, barrido = ctx.createLinearGradient(0, yb - 150, 0, yb + 150);
+      barrido.addColorStop(0, 'rgba(40,255,120,0)'); barrido.addColorStop(.5, 'rgba(40,255,120,.06)'); barrido.addColorStop(1, 'rgba(40,255,120,0)');
+      ctx.fillStyle = barrido; ctx.fillRect(0, yb - 150, w, 300);
+      // pulsos que viajan por las líneas y a veces giran en un cruce
+      ctx.lineWidth = 2; ctx.lineCap = 'round';
+      for (let k = 0; k < pulsos.length; k++){
+        const q = pulsos[k];
+        if (!q.muerto){
+          q.vida -= dt; q.p += q.vel * dt;
+          while (q.p >= 1){
+            q.p -= 1; q.i += DIRS[q.d][0]; q.j += DIRS[q.d][1];
+            brillo.set(q.i + ',' + q.j, 1);
+            const r = Math.random(); if (r < .35) q.d = (q.d + (r < .175 ? 1 : 3)) % 4;
+          }
+          const x = (q.i + DIRS[q.d][0] * q.p) * S, y = (q.j + DIRS[q.d][1] * q.p) * S;
+          q.estela.push([x, y, t]);
+          if (q.vida <= 0 || x < -S || y < -S || x > w + S || y > h + S) q.muerto = true;
+        }
+        while (q.estela.length && t - q.estela[0][2] > .45) q.estela.shift();
+        if (q.muerto && !q.estela.length){ pulsos[k] = nuevo(); continue; }
+        for (let m = 1; m < q.estela.length; m++){
+          const [x0, y0] = q.estela[m - 1], [x1, y1, tm] = q.estela[m];
+          ctx.strokeStyle = `rgba(110,255,170,${(1 - (t - tm) / .45).toFixed(3)})`;
+          ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        }
+        if (!q.muerto && q.estela.length){ const [x, y] = q.estela[q.estela.length - 1]; ctx.drawImage(chispa, x - 18, y - 18); }
+      }
+      // los cruces por los que ha pasado un pulso destellan y se apagan
+      for (const [clave, v] of brillo){
+        const [i, j] = clave.split(','), s = 52 * v;
+        ctx.globalAlpha = v; ctx.drawImage(nodo, i * S - s / 2, j * S - s / 2, s, s);
+        const nv = v - dt * 1.6; if (nv <= 0) brillo.delete(clave); else brillo.set(clave, nv);
+      }
+      ctx.globalAlpha = 1;
+      // chispazos: pequeños rayos entre dos nodos cercanos
+      if (t >= proximoArco){
+        proximoArco = t + azar(.6, 2.5);
+        const i = Math.floor(azar(0, nx)), j = Math.floor(azar(0, ny)), horiz = Math.random() < .5, n = Math.floor(azar(1, 4));
+        const pts = [], pasos = 10 * n;
+        for (let m = 0; m <= pasos; m++){
+          const u = m / pasos, ruido = m && m < pasos ? azar(-9, 9) : 0;
+          pts.push(horiz ? [(i + u * n) * S, j * S + ruido] : [i * S + ruido, (j + u * n) * S]);
+        }
+        arcos.push({ pts, vida: .25 });
+        brillo.set(i + ',' + j, 1); brillo.set(horiz ? (i + n) + ',' + j : i + ',' + (j + n), 1);
+      }
+      ctx.shadowColor = '#5dff9a'; ctx.shadowBlur = 12; ctx.lineWidth = 1.6;
+      for (let k = arcos.length - 1; k >= 0; k--){
+        const a = arcos[k]; a.vida -= dt; if (a.vida <= 0){ arcos.splice(k, 1); continue; }
+        ctx.strokeStyle = `rgba(220,255,230,${(a.vida / .25 * (Math.random() * .5 + .5)).toFixed(3)})`;
+        ctx.beginPath(); a.pts.forEach(([x, y]) => ctx.lineTo(x, y)); ctx.stroke();
+      }
+      ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'source-over';
+    }};
+  }},
+
+  /* 4 · Placa base: pistas, chips y vías generados al azar; algunas pistas se iluminan de vez en cuando */
+  placa: { nombre:'Placa base', crear(ctx, w, h, dpr){
+    const S = 12, nx = Math.floor(w / S), ny = Math.floor(h / S);
+    const ocupado = new Uint8Array(nx * ny);
+    const dentro = (i, j) => i >= 0 && j >= 0 && i < nx && j < ny;
+    const libre = (i, j) => dentro(i, j) && !ocupado[j * nx + i];
+    const marcar = (i, j) => { if (dentro(i, j)) ocupado[j * nx + i] = 1; };
+    const centro = (i, j) => [i * S + S / 2, j * S + S / 2];
+
+    // 1) Componentes: CPU, ranuras de RAM, chips pequeños y condensadores
+    const chips = [], pines = [];
+    function ponerChip(i, j, cw, ch, tipo, lados){
+      i = Math.round(i); j = Math.round(j);
+      if (i < 2 || j < 2 || i + cw > nx - 2 || j + ch > ny - 2) return false;
+      for (let a = i - 2; a < i + cw + 2; a++) for (let c = j - 2; c < j + ch + 2; c++) if (!libre(a, c)) return false;
+      for (let a = i - 1; a <= i + cw; a++) for (let c = j - 1; c <= j + ch; c++) marcar(a, c);   // cuerpo + anillo de patillas
+      chips.push({ i, j, cw, ch, tipo });
+      const saltar = tipo === 'cpu' ? .15 : .3;
+      if (lados.includes('n')) for (let a = i; a < i + cw; a++) if (Math.random() > saltar) pines.push([a, j - 1, 6]);
+      if (lados.includes('s')) for (let a = i; a < i + cw; a++) if (Math.random() > saltar) pines.push([a, j + ch, 2]);
+      if (lados.includes('o')) for (let c = j; c < j + ch; c++) if (Math.random() > saltar) pines.push([i - 1, c, 4]);
+      if (lados.includes('e')) for (let c = j; c < j + ch; c++) if (Math.random() > saltar) pines.push([i + cw, c, 0]);
+      return true;
+    }
+    const lado = Math.max(8, Math.min(22, Math.round(Math.min(nx, ny) * .22)));
+    ponerChip(nx * .33 - lado / 2, ny * .5 - lado / 2, lado, lado, 'cpu', 'nsoe');
+    const altoRam = Math.round(ny * .55), iRam = Math.round(nx * .33 + lado / 2 + 7);
+    for (let k = 0; k < 4; k++) ponerChip(iRam + k * 5, ny * .5 - altoRam / 2, 2, altoRam, 'ram', 'oe');
+    for (let n = 0; n < 60 && chips.length < 18; n++){
+      const cw = Math.floor(azar(3, 8)), ch = Math.floor(azar(2, 6));
+      ponerChip(azar(2, nx - cw - 2), azar(2, ny - ch - 2), cw, ch, 'chip', cw >= ch ? 'ns' : 'oe');
+    }
+    const condensadores = [];
+    for (let n = 0; n < 80 && condensadores.length < 14; n++){
+      const i = Math.floor(azar(2, nx - 3)), j = Math.floor(azar(2, ny - 3));
+      if ([0, 1].every(a => [0, 1].every(c => libre(i + a, j + c)))){
+        [0, 1].forEach(a => [0, 1].forEach(c => marcar(i + a, j + c)));
+        condensadores.push([(i + 1) * S, (j + 1) * S]);
+      }
+    }
+
+    // 2) Pistas: avanzan por una rejilla invisible con giros de 45° y sin cruzarse
+    const D8 = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+    const pistas = [];
+    function trazar(i, j, d, max, viaInicial){
+      const pts = [centro(i, j)]; let pasos = 0;
+      while (pasos < max){
+        const pref = Math.random() < .1 ? (d + (Math.random() < .5 ? 1 : 7)) % 8 : d;
+        let movido = false;
+        for (const giro of [0, 1, 7]){
+          const nd = (pref + giro) % 8;
+          if (nd === (d + 4) % 8 || !libre(i + D8[nd][0], j + D8[nd][1])) continue;
+          if (nd !== d){ pts.push(centro(i, j)); d = nd; }
+          i += D8[nd][0]; j += D8[nd][1]; marcar(i, j); movido = true; break;
+        }
+        if (!movido) break;
+        pasos++;
+      }
+      if (pasos < 4) return;
+      pts.push(centro(i, j));
+      const acum = [0];
+      for (let m = 1; m < pts.length; m++) acum.push(acum[m - 1] + Math.hypot(pts[m][0] - pts[m - 1][0], pts[m][1] - pts[m - 1][1]));
+      pistas.push({ pts, acum, largo: acum[acum.length - 1], viaInicial });
+    }
+    pines.sort(() => Math.random() - .5).forEach(([i, j, d]) => { if (Math.random() < .75) trazar(i, j, d, Math.floor(azar(8, 60)), false); });
+    for (let n = 0, intentos = Math.round(nx * ny / 45); n < intentos; n++){
+      const i = Math.floor(azar(0, nx)), j = Math.floor(azar(0, ny));
+      if (!libre(i, j)) continue;
+      marcar(i, j); trazar(i, j, Math.floor(azar(0, 4)) * 2, Math.floor(azar(6, 40)), true);
+    }
+
+    // 3) Dibujo estático de la placa (una sola vez)
+    const [base, b] = lienzoAparte(w, h, dpr);
+    const fondo = b.createLinearGradient(0, 0, w, h);
+    fondo.addColorStop(0, '#0d3a22'); fondo.addColorStop(1, '#062414');
+    b.fillStyle = fondo; b.fillRect(0, 0, w, h);
+    b.lineCap = b.lineJoin = 'round';
+    b.strokeStyle = '#1d7245'; b.lineWidth = 2;
+    for (const p of pistas){ b.beginPath(); p.pts.forEach(([x, y]) => b.lineTo(x, y)); b.stroke(); }
+    const via = (x, y) => { b.beginPath(); b.arc(x, y, 3.2, 0, 7); b.fillStyle = '#062414'; b.fill(); b.strokeStyle = '#c9a94a'; b.lineWidth = 1.5; b.stroke(); };
+    for (const p of pistas){ const f = p.pts[p.pts.length - 1]; via(f[0], f[1]); if (p.viaInicial) via(p.pts[0][0], p.pts[0][1]); }
+    b.fillStyle = '#b9b9ad';                                         // patillas
+    for (const [i, j, d] of pines){
+      const [x, y] = centro(i, j);
+      if (d === 0 || d === 4) b.fillRect(x - S / 2, y - 2, S, 4); else b.fillRect(x - 2, y - S / 2, 4, S);
+    }
+    b.font = '9px monospace'; b.textBaseline = 'bottom';
+    let ram = 1, ic = 1;
+    for (const c of chips){
+      const x = c.i * S, y = c.j * S, cw = c.cw * S, ch = c.ch * S;
+      b.fillStyle = c.tipo === 'ram' ? '#191919' : '#111316'; b.fillRect(x, y, cw, ch);
+      b.strokeStyle = '#2c3136'; b.lineWidth = 1; b.strokeRect(x + .5, y + .5, cw - 1, ch - 1);
+      b.fillStyle = 'rgba(255,255,255,.55)';
+      if (c.tipo === 'cpu'){
+        b.fillStyle = '#23272c'; b.fillRect(x + cw * .2, y + ch * .2, cw * .6, ch * .6);
+        b.fillStyle = 'rgba(255,255,255,.5)'; b.font = '11px monospace'; b.fillText('NX-CORE', x + cw * .24, y + ch * .5); b.font = '9px monospace';
+        b.fillText('CPU1', x, y - S - 2);
+      } else if (c.tipo === 'ram'){
+        b.fillStyle = '#000'; b.fillRect(x + cw / 2 - 1, y + 8, 2, ch - 16);
+        b.fillStyle = '#d9d9d9'; b.fillRect(x, y, cw, 6); b.fillRect(x, y + ch - 6, cw, 6);
+        b.fillStyle = 'rgba(255,255,255,.55)'; b.fillText('DIMM' + ram++, x - 6, y - S - 2);
+      } else b.fillText('U' + ic++, x, y - S - 2);
+    }
+    for (const [x, y] of condensadores){
+      b.beginPath(); b.arc(x, y, 8, 0, 7); b.fillStyle = '#2a2d31'; b.fill(); b.strokeStyle = '#9a9a92'; b.lineWidth = 1.5; b.stroke();
+      b.beginPath(); b.moveTo(x - 5, y); b.lineTo(x + 5, y); b.moveTo(x, y - 5); b.lineTo(x, y + 5); b.strokeStyle = '#55595e'; b.stroke();
+    }
+
+    // 4) Animación: cada cierto tiempo una pista al azar se enciende de punta a punta y se apaga
+    function trazoParcial(p, d0, d1){
+      let ultimo = null; ctx.beginPath();
+      for (let m = 1; m < p.pts.length; m++){
+        const a = p.acum[m - 1], z = p.acum[m]; if (z < d0) continue; if (a > d1) break;
+        const [x0, y0] = p.pts[m - 1], [x1, y1] = p.pts[m], seg = z - a || 1;
+        const u0 = Math.max(0, (d0 - a) / seg), u1 = Math.min(1, (d1 - a) / seg);
+        if (!ultimo) ctx.moveTo(x0 + (x1 - x0) * u0, y0 + (y1 - y0) * u0);
+        ultimo = [x0 + (x1 - x0) * u1, y0 + (y1 - y0) * u1]; ctx.lineTo(ultimo[0], ultimo[1]);
+      }
+      ctx.stroke(); return ultimo;
+    }
+    const colores = ['#6dffb0', '#6dffb0', '#7df9ff', '#ffd36d'];
+    const destellos = Object.fromEntries(colores.map(c => [c, crearDestello(c, 16)]));
+    const activas = []; let siguiente = 0;
+    return { dibujar(t, dt){
+      ctx.drawImage(base, 0, 0, w, h);
+      if (t >= siguiente && pistas.length){
+        siguiente = t + azar(.08, .4);
+        activas.push({ p: elegir(pistas), d: 0, vel: azar(250, 600), fin: 0, color: elegir(colores) });
+      }
+      ctx.lineCap = ctx.lineJoin = 'round';
+      for (let k = activas.length - 1; k >= 0; k--){
+        const a = activas[k], L = a.p.largo;
+        if (a.d < L) a.d = Math.min(L, a.d + a.vel * dt); else a.fin += dt;
+        const alfa = Math.max(0, 1 - a.fin / .9);
+        if (alfa <= 0){ activas.splice(k, 1); continue; }
+        ctx.strokeStyle = ctx.shadowColor = a.color;
+        ctx.globalAlpha = .4 * alfa; ctx.lineWidth = 2; ctx.shadowBlur = 6;
+        trazoParcial(a.p, 0, a.d);                                   // tramo ya recorrido, encendido
+        ctx.globalAlpha = alfa; ctx.lineWidth = 2.6; ctx.shadowBlur = 14;
+        const punta = trazoParcial(a.p, Math.max(0, a.d - 90), a.d); // estela brillante
+        ctx.shadowBlur = 0;
+        if (punta) ctx.drawImage(destellos[a.color], punta[0] - 16, punta[1] - 16);
+      }
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    }};
+  }}
+};
+
+// Motor: prepara el lienzo, arranca el fondo elegido y lo rehace si cambia el tamaño de la ventana
+const lienzoFondo = $('fondo-anim'), ctxFondo = lienzoFondo.getContext('2d');
+let fondoClave = '', fondoFotograma = 0;
+function iniciarFondo(clave){
+  cancelAnimationFrame(fondoFotograma); fondoClave = clave;
+  const def = FONDOS_ANIMADOS[clave];
+  lienzoFondo.hidden = !def; if (!def) return;
+  const dpr = Math.min(devicePixelRatio || 1, 2), w = innerWidth, h = innerHeight;
+  lienzoFondo.width = Math.round(w * dpr); lienzoFondo.height = Math.round(h * dpr);
+  ctxFondo.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const fondo = def.crear(ctxFondo, w, h, dpr);
+  // Con "reducir movimiento" activado en el sistema se muestra un fotograma fijo
+  if (reducido){ for (let n = 0; n < 240; n++) fondo.dibujar(n / 60, 1 / 60); return; }
+  let inicio = null, previo = 0;
+  const paso = ahora => {
+    if (inicio === null) inicio = previo = ahora;
+    fondo.dibujar((ahora - inicio) / 1000, Math.min(.1, (ahora - previo) / 1000)); previo = ahora;
+    fondoFotograma = requestAnimationFrame(paso);
+  };
+  fondoFotograma = requestAnimationFrame(paso);
+}
+let esperaTamano;
+addEventListener('resize', () => { clearTimeout(esperaTamano); esperaTamano = setTimeout(() => { if (fondoClave) iniciarFondo(fondoClave); }, 200); });
+
+// Selector "Animado" del panel
+$('fondo-anim-sel').innerHTML = '<option value="ninguno">Sin animación</option>' +
+  Object.entries(FONDOS_ANIMADOS).map(([clave, f]) => `<option value="${clave}">${f.nombre}</option>`).join('');
+$('fondo-anim-sel').onchange = () => { ajustes.animado = $('fondo-anim-sel').value; aplicar(); guardar(); };
+
+/* =====================================================================
+   ACTIVIDADES · CÓMO FUNCIONA EL SCRIPT (para quien lo mantenga)
+   ---------------------------------------------------------------------
+   Piezas (ids del HTML entre paréntesis):
+     · Botón "Actividades" de la barra (btn-act) → abre/cierra el panel lateral (panel-act).
+     · Panel lateral: buscador (act-buscar) + subapartados desplegables (act-lista).
+     · Ventana flotante (act-fondo > act-ventana): enunciado (act-enunciado) y una
+       terminal con su propio prompt + <input> (act-pantalla, act-in), más los
+       botones Reiniciar / Pista (act-reiniciar, act-pista).
+   Datos: vienen de actividades.js (lista global window.ACTIVIDADES). Aquí NO se
+   escribe ninguna actividad; solo se leen.
+
+   Flujo:
+     1. DATOS_ACT   → se leen y validan las actividades (las incompletas se descartan
+                      con un aviso en la consola).
+     2. GRUPOS_ACT  → se agrupan por el campo "grupo"; ORDEN_ACT es la lista plana en
+                      el mismo orden que ve la persona en el panel. Todos los índices
+                      (actI, "Siguiente") se refieren a ORDEN_ACT.
+     3. construirLista() dibuja el panel (grupos plegables + filtro del buscador).
+     4. abrirAct(i)  → muestra la ventana (con fundido) y llama a reiniciarAct().
+     5. pintarAct()  → vuelve a dibujar enunciado + terminal a partir del ESTADO
+                      (variables "…Act" de más abajo). Es la única función que toca el DOM
+                      de la actividad: cualquier cambio de estado termina llamándola.
+     6. enviarAct()  → al pulsar Enter compara el comando con los "ok" del paso actual
+                      (aceptado()) y actualiza el estado: acierto → siguiente paso /
+                      actividad completada; fallo → mensaje de error y, a los 2 fallos, pista.
+     7. Ventana: geometría (posición y tamaño) en "geo"; colocar() la aplica al DOM y
+                      limitar() la mantiene dentro de la pantalla. Más abajo: arrastre,
+                      tiradores de redimensión, maximizar y teclado.
+   Ajustes rápidos: PLEGAR_GRUPOS_AL_INICIO, TOPE, MIN_W y MIN_H.
+   ===================================================================== */
 const btnAct = $('btn-act'), panelAct = $('panel-act'), fondoAct = $('act-fondo');
 const entradaAct = $('act-in'), histoAct = $('act-hist'), pantAct = $('act-pantalla');
-// Subapartados: se agrupan por el campo "grupo" (en orden de aparición); ORDEN_ACT es la lista plana en ese mismo orden
+const PLEGAR_GRUPOS_AL_INICIO = true;   // true = los subapartados empiezan plegados · false = todos desplegados
+
+// 1) Lectura y validación de las actividades que cargó actividades.js.
+//    Lo que falle se avisa en la consola (F12) y la actividad se ignora, para que una errata no rompa todo el panel.
+if (!window.ACTIVIDADES) console.error('Actividades: no se encontró actividades.js. Debe estar en la misma carpeta que este HTML y cargarse antes de este script.');
+const idsVistos = new Set();
+const DATOS_ACT = (window.ACTIVIDADES || []).filter((a, i) => {
+  const nombre = '«' + ((a && (a.titulo || a.id)) || 'actividad nº ' + (i + 1)) + '»';
+  if (!a || !a.id){ console.warn('Actividades: ' + nombre + ' no tiene "id" y se ignora.'); return false; }
+  if (idsVistos.has(a.id)) console.warn('Actividades: el id "' + a.id + '" está repetido (' + nombre + '). Cada actividad necesita un id único.');
+  idsVistos.add(a.id);
+  if (!Array.isArray(a.pasos) || !a.pasos.length){ console.warn('Actividades: ' + nombre + ' no tiene "pasos" y se ignora.'); return false; }
+  const mal = a.pasos.findIndex(p => !p || !Array.isArray(p.ok) || !p.ok.length);
+  if (mal >= 0){ console.warn('Actividades: en ' + nombre + ' el paso ' + (mal + 1) + ' no tiene la lista "ok" y la actividad se ignora.'); return false; }
+  return true;
+});
+
+// 2) Subapartados: se agrupan por el campo "grupo" (en orden de aparición); ORDEN_ACT es la lista plana en ese mismo orden
 const GRUPOS_ACT = [];
-ACTIVIDADES.forEach(a => {
+DATOS_ACT.forEach(a => {
   const nombre = a.grupo || 'General';
   let gr = GRUPOS_ACT.find(x => x.titulo === nombre);
   if (!gr) GRUPOS_ACT.push(gr = { titulo: nombre, items: [] });
@@ -813,27 +899,50 @@ let hechas = [];
 try { hechas = JSON.parse(localStorage.getItem('actividades-hechas')) || []; } catch (e) {}
 const guardarHechas = () => { try { localStorage.setItem('actividades-hechas', JSON.stringify(hechas)); } catch (e) {} };
 
-// Estado de la actividad abierta
-let act = null, actI = 0, pasoAct = 0, rutaAct = '~', histAct = '', fallosAct = 0, hechaAct = false, mem = [], memI = 0;
+// ESTADO de la actividad abierta (pintarAct() dibuja la pantalla a partir de estas variables)
+let act = null,          // actividad abierta (objeto de ORDEN_ACT)
+    actI = 0,            // su posición en ORDEN_ACT
+    pasoAct = 0,         // paso que toca resolver (0 = el primero)
+    rutaAct = '~',       // ruta que muestra el prompt (cambia con el campo "ruta" de los pasos)
+    histAct = '',        // HTML de lo ya escrito en la terminal (comandos y salidas)
+    fallosAct = 0,       // fallos seguidos en el paso actual (a los 2 sale la pista)
+    hechaAct = false,    // true cuando se ha superado el último paso
+    mem = [], memI = 0;  // historial de comandos escritos (flechas ↑ ↓) y posición en él
 
-// Lista del panel lateral
+// ---- Panel lateral: subapartados desplegables con buscador ----
+const estadoGrupos = new Map();   // título del subapartado → ¿desplegado? (se recuerda aunque la lista se vuelva a dibujar)
+const sinTildes = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();  // buscar sin distinguir tildes ni mayúsculas
+
+// Dibuja el panel. Se llama al cargar, al completar una actividad, al borrar el progreso y al escribir en el buscador.
 function construirLista(){
-  const lista = $('act-lista');
-  // al reconstruir se recuerdan los subapartados que estaban plegados
-  const plegados = new Set([...lista.querySelectorAll('details')].filter(d => !d.open).map(d => d.dataset.t));
+  const lista = $('act-lista'), q = sinTildes($('act-buscar').value.trim());
+  const aviso = texto => { lista.innerHTML = '<p class="act-vacio"></p>'; lista.firstChild.textContent = texto; };
   lista.innerHTML = '';
+  if (!ORDEN_ACT.length) aviso('No hay actividades cargadas. Comprueba que actividades.js está en la misma carpeta que este HTML.');
+  let coincidencias = 0;
   GRUPOS_ACT.forEach(gr => {
-    const det = document.createElement('details'); det.dataset.t = gr.titulo; det.open = !plegados.has(gr.titulo);
+    // Con búsqueda se muestran solo las actividades que coinciden. El texto buscado incluye el nombre del
+    // subapartado, así que buscar el nombre de un subapartado muestra todas sus actividades.
+    const items = !q ? gr.items : gr.items.filter(a => sinTildes(gr.titulo + ' ' + a.titulo + ' ' + a.resumen).includes(q));
+    if (!items.length) return;
+    coincidencias += items.length;
+    const det = document.createElement('details');
+    // Buscando: todo desplegado. Sin buscar: lo que dejó la persona o, la primera vez, el valor por defecto.
+    det.open = q ? true : (estadoGrupos.has(gr.titulo) ? estadoGrupos.get(gr.titulo) : !PLEGAR_GRUPOS_AL_INICIO);
     det.innerHTML = '<summary></summary><div class="items"></div>';
     const resumen = det.firstChild, caja = det.lastChild;
-    const hechasGr = gr.items.filter(a => hechas.includes(a.id)).length;
-    resumen.textContent = gr.titulo + ' · ' + hechasGr + '/' + gr.items.length;
-    resumen.onclick = e => { e.preventDefault(); alternarGrupo(det, caja); }; // mismo plegado con desvanecimiento que el panel principal
-    gr.items.forEach(a => {
+    resumen.textContent = gr.titulo + ' · ' + gr.items.filter(a => hechas.includes(a.id)).length + '/' + gr.items.length;  // hechas/total
+    resumen.onclick = e => {
+      e.preventDefault();
+      const abriendo = !det.open;
+      alternarGrupo(det, caja);                        // mismo plegado con desvanecimiento que el panel principal
+      if (!q) estadoGrupos.set(gr.titulo, abriendo);   // mientras se busca no se guarda: ese desplegado es temporal
+    };
+    items.forEach(a => {
       const i = ORDEN_ACT.indexOf(a), ok = hechas.includes(a.id), b = document.createElement('button');
       b.type = 'button'; b.className = 'act-item' + (ok ? ' hecha' : '');
       b.innerHTML = '<span class="act-num"></span><span class="act-txt"><b></b><small></small></span>';
-      b.children[0].textContent = ok ? '✓' : i + 1;
+      b.children[0].textContent = ok ? '✓' : i + 1;     // número global (posición en ORDEN_ACT) o ✓ si está completada
       b.children[1].children[0].textContent = a.titulo;
       b.children[1].children[1].textContent = a.resumen + ' · ' + a.pasos.length + (a.pasos.length === 1 ? ' paso' : ' pasos') + (ok ? ' · completada' : '');
       b.onclick = () => abrirAct(i);
@@ -841,16 +950,21 @@ function construirLista(){
     });
     lista.append(det);
   });
+  if (ORDEN_ACT.length && !coincidencias) aviso('Ninguna actividad coincide con «' + $('act-buscar').value.trim() + '».');
   $('act-progreso').textContent = ORDEN_ACT.filter(a => hechas.includes(a.id)).length + ' de ' + ORDEN_ACT.length + ' completadas';
 }
+$('act-buscar').oninput = construirLista;
 
+// Abre/cierra el panel lateral. Al abrir el foco va al buscador (con los grupos plegados no hay botones a los que llevarlo).
 function alternarAct(abierto){
   panelAct.classList.toggle('abierto', abierto);
   btnAct.setAttribute('aria-expanded', abierto);
-  if (abierto) panelAct.querySelector('.act-item')?.focus({ preventScroll: true });
+  if (abierto) $('act-buscar').focus({ preventScroll: true });
   else if (panelAct.contains(document.activeElement)) btnAct.focus();
 }
 
+// Abre la actividad nº i de ORDEN_ACT: pone el título, cierra el panel, coloca la ventana y la muestra con fundido.
+// Si ya había una abierta (botón "Siguiente ▶") se limita a cambiar el contenido: el velo no se repite.
 function abrirAct(i){
   act = ORDEN_ACT[i]; actI = i;
   $('act-titulo').textContent = 'usuario@linux: ~ — Actividad: ' + act.titulo;
@@ -864,6 +978,7 @@ function abrirAct(i){
   reiniciarAct();
 }
 let cierreAct = 0;
+// Cierra la ventana: quita la clase "visible" (el CSS hace el fundido) y oculta el contenedor al terminar la transición.
 function cerrarAct(){
   fondoAct.classList.remove('visible'); // el velo y la ventana se desvanecen y, al terminar, se oculta el contenedor
   cierreAct = setTimeout(() => { fondoAct.hidden = true; }, reducido ? 0 : 300);
@@ -938,6 +1053,7 @@ barraAct.addEventListener('keydown', e => {
   colocar();
 });
 addEventListener('resize', () => { if (!fondoAct.hidden) colocar(); });
+// Vuelve al paso 1 con la terminal limpia (también se llama al abrir una actividad).
 function reiniciarAct(){
   pasoAct = 0; rutaAct = '~'; fallosAct = 0; hechaAct = false; mem = []; memI = 0;
   histAct = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n';
@@ -946,6 +1062,7 @@ function reiniciarAct(){
 }
 
 // Dibuja enunciado (con sus casillas) y terminal según el estado actual
+// Redibuja enunciado (con sus casillas) y terminal a partir del ESTADO. Es lo único que toca el DOM de la actividad.
 function pintarAct(){
   const total = act.pasos.length;
   $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + act.enunciado +
@@ -964,6 +1081,7 @@ const pistaHtml = paso => '<span class="c"># Pista: ' + escapar(paso.pista || 'r
 const aceptado = (paso, t) => paso.ok.some(o => o instanceof RegExp ? o.test(t) : o === t);
 
 // Enter: valida el comando escrito contra el paso actual
+// Se ejecuta al pulsar Enter en la terminal de la actividad: valida el comando y actualiza el estado.
 function enviarAct(){
   if (hechaAct) return;
   const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
