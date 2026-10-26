@@ -43,7 +43,19 @@
         ruta  : (opcional) cambia el prompt tras acertar, p. ej. "~/proyectos"
                 (útil con cd). Se mantiene en los pasos siguientes.
         pista : (opcional, TEXTO PLANO sin HTML) ayuda del botón "Pista" y la
-                que sale tras dos fallos seguidos.
+                que sale tras dos fallos seguidos. Puede ser un texto o una LISTA
+                con tantas pistas como quieras, de más suave a más directa:
+                  pista:["Piensa en crear carpetas.","Es mkdir.","mkdir -p ruta"]
+                Cada vez que se pide una pista sale la siguiente (Pista 2/3...);
+                al agotarlas se repite la última.
+        explica : (opcional, HTML) explicación extra que aparece bajo la tarea
+                cuando se supera ese paso. Texto o LISTA de textos (un párrafo
+                cada uno).
+     solucion : (opcional, a nivel de actividad) explicación de la solución. Al completar
+                la actividad aparece con un fundido en un recuadro blanco bajo el mensaje
+                de éxito. Texto o LISTA de textos (HTML, un párrafo cada uno). Si no lo
+                pones, se genera solo con el comando de cada paso y su "explica".
+     Además, "enunciado" y "final" también pueden ser una lista de textos.
 
    CÓMO SE COMPARA LO QUE ESCRIBE LA PERSONA
    - Antes de comparar se recorta el texto y los espacios repetidos se juntan en
@@ -69,7 +81,9 @@
      enunciado:"<p>Contexto de la actividad.</p>",
      final:"¡Muy bien!",
      pasos:[
-       { tarea:"Crea la carpeta <code>fotos</code>", ok:["mkdir fotos"], out:"", pista:"Usa mkdir." },
+       { tarea:"Crea la carpeta <code>fotos</code>", ok:["mkdir fotos"], out:"",
+         pista:["Es un comando de crear.","Se llama mkdir.","mkdir fotos"],
+         explica:"<code>mkdir</code> = make directory." },
        { tarea:"Lista el contenido", ok:["ls"], out:"fotos" }
      ]},
 
@@ -110,10 +124,13 @@ ACTIVIDADES.push(
   { id:"estructura", grupo:"Ficheros y carpetas", titulo:"Tu primera estructura", resumen:"mkdir, cd, touch y ls",
     enunciado:'<p>Vas a montar la carpeta de una web desde cero. La carpeta <code>proyectos</code> todavía no existe.</p>',
     final:'Has creado una estructura, entrado en ella y comprobado el resultado: el flujo básico de cualquier sesión.',
+    solucion:['La secuencia completa era: <code>mkdir -p proyectos/web</code>, <code>cd proyectos/web</code>, <code>touch index.html</code> y <code>ls</code>.',
+              '<code>-p</code> creó las dos carpetas de una vez, <code>cd</code> te colocó dentro, <code>touch</code> creó el fichero vacío y <code>ls</code> confirmó que existe.'],
     pasos:[
       { tarea:'Crea de golpe la ruta <code>proyectos/web</code>',
         ok:[/^mkdir -p (\.\/)?proyectos\/web\/?$/], out:'',
-        pista:'Con la opción -p, mkdir crea también las carpetas intermedias.' },
+        pista:['Necesitas crear una carpeta dentro de otra que aún no existe.','mkdir tiene una opción que crea también las carpetas intermedias.','La opción es -p: mkdir -p proyectos/web'],
+        explica:['Con <code>-p</code> no hace falta crear <code>proyectos</code> antes que <code>web</code>.','Si la carpeta ya existe, <code>-p</code> no da error.'] },
       { tarea:'Entra en <code>proyectos/web</code>',
         ok:['cd proyectos/web','cd proyectos/web/','cd ./proyectos/web','cd ~/proyectos/web'], out:'', ruta:'~/proyectos/web',
         pista:'cd seguido de la ruta de la carpeta.' },
@@ -170,25 +187,27 @@ ACTIVIDADES.push(
     ]},
   
   // ---------- Subapartado: Ejercicios de Rafa ----------
-  { id:"ejercicio1", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 1/2 Básico", resumen:"Listar /bin",
+  { id:"ejercicio1", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 1/2 Básico", resumen:"Listar carpetas",
     enunciado:'<p>Listar todos los archivos del directorio <code>bin</code>.</p>',
     final:'¡Bien hecho!',
+    solucion:['Podemos siempre consultar carpetas de diferentes formas, ya dependera de como nos lo pida el profesor (ya sea con <code>ls</code> o <code>tree</code>)'],
     pasos:[
       { tarea:'Lista el directorio <code>bin</code> de las formas que conozcas.',
         ok:['ls /bin', 'ls /bin/', 'tree /bin', 'tree /bin/'], out:'',
-        pista:'Recuerda que hay muchos comandos para poder listar directorios.' },
+        pista:['Recuerda que hay muchos comandos para poder listar directorios.', 'Uno de ellos empieza por la l...', 'Siempre podremos listarlo de 2 o 3 formas.'],
+        explica:['Si pusiste <code>ls</code> lo has hecho bien, y si pusiste <code>tree</code> tambien, el proposito iba a ser si o si listar el contenido'] },
       { tarea:'Lista el directorio <code>tmp</code> de las formas que conozcas.',
         ok:['ls /tmp', 'ls /tmp/', 'tree /tmp', 'tree /tmp/'], out:'',
         pista:'Recuerda que hay muchos comandos para poder listar directorios.' }
     ]},
 
-  { id:"ejercicio3", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 3 Básico", resumen:"Listar /bin",
+  { id:"ejercicio3", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 3 Básico", resumen:"Listados complejos",
     enunciado:'<p>Listar todos los archivos del directorio <code>etc</code> que empiecen por t en orden  inverso.</p>',
     final:'¡Bien hecho!',
     pasos:[
       { tarea:'Lista el directorio <code>etc</code> de las formas que conozcas. Pero respetando el orden dictado.',
         ok:['ls -r /etc/t*', 'ls -r etc/t*'], out:'Listado de archivos...',
-        pista:'Para ordenarlo por t tendríamos que poner al final <code>t *</code>' }
+        pista:['Para ordenarlo por t tendríamos que poner al final t *', 'Si no sabes como ordenarlo inversamente, usa -r'] }
     ]},
 
   { id:"ejercicio4", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 4 Básico", resumen:"Listar especial 2",

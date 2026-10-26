@@ -165,26 +165,40 @@
   .res.sw{bottom:-4px;left:-4px;width:16px;height:16px;cursor:nesw-resize}
   .act-ventana.maximizada .res{display:none}
   .act-cuerpo{flex:1;min-height:0;display:flex;flex-direction:column}
-  .enunciado{flex:0 1 auto;max-height:55%;overflow:auto;background:var(--papel);color:var(--papel-txt);padding:16px 24px}
-  .enunciado h3{font-size:18px;margin-bottom:6px}
-  .enunciado p{margin-bottom:8px}
+  .enunciado{flex:0 1 auto;max-height:55%;overflow:auto;background:var(--papel);color:var(--papel-txt);padding:10px 20px;line-height:1.4}
+  .enunciado h3{font-size:17px;margin-bottom:3px}
+  .enunciado p{margin-bottom:4px}
   .enunciado code{font:14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#e1dedb;padding:1px 6px;border-radius:4px}
   .enunciado pre{font:14px/1.5 "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#e1dedb;padding:8px 12px;border-radius:6px;margin:6px 0 8px;overflow:auto}
-  .tareas{list-style:none;padding:0;margin-top:6px}
-  .tareas li{position:relative;padding:3px 0 3px 26px;opacity:.6}
+  .tareas{list-style:none;padding:0;margin-top:3px}
+  .tareas li{position:relative;padding:1px 0 1px 24px;opacity:.6}
   .tareas li::before{content:"☐";position:absolute;left:0}
   .tareas li.actual{opacity:1;font-weight:700}
   .tareas li.actual::before{color:var(--acento)}
   .tareas li.hecha{opacity:1}
+  /* Explicación extra bajo cada tarea superada (campo "explica") */
+  .tareas .nota{font-weight:400;font-size:13.5px;margin:1px 0 3px;padding:3px 8px;border-left:3px solid #26a269;background:rgba(38,162,105,.1);border-radius:0 6px 6px 0}
+  .tareas .nota p{margin:0 0 2px}
   .tareas li.hecha::before{content:"☑";color:#26a269}
-  .exito{margin-top:10px;padding:8px 12px;border-radius:8px;background:#d7f0e0;color:#14532d;font-weight:700}
-  .act-term{flex:1 1 0;min-height:140px}             /* sustituye el 52 % de la terminal principal */
+  .solucion{margin-top:10px;padding:12px 16px;background:#fff;color:var(--papel-txt);border:1px solid rgba(0,0,0,.12);border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.12);animation:aparece .7s ease both .15s}
+  .solucion h4{font-size:14px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .solucion h4::before{content:"✔";display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#26a269;color:#fff;font-size:11px}
+  .solucion p{margin:0 0 4px}
+  .solucion ol{padding-left:22px;margin:2px 0 4px}
+  .solucion li{margin-bottom:2px}
+  .solucion code{background:#eceae8}
+  @keyframes aparece{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .exito{margin-top:6px;padding:6px 12px;border-radius:8px;background:#d7f0e0;color:#14532d;font-weight:700}
+  .act-term{flex:1 1 0;min-height:140px}
+  .act-term .pantalla{padding:8px 16px;line-height:1.3}
+  .act-term .pie{padding:6px 14px}             /* sustituye el 52 % de la terminal principal */
   .act-term .pantalla{cursor:text}
   .entrada{display:flex;align-items:baseline}
   .entrada input{flex:1;min-width:0;font:inherit;color:inherit;background:none;border:0;padding:0;caret-color:var(--term-txt)}
   .entrada input:focus-visible{outline:none}
 
-  @media (prefers-reduced-motion:reduce){.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}}
+  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}}
 </style>
 </head>
 <body>
@@ -906,6 +920,7 @@ let act = null,          // actividad abierta (objeto de ORDEN_ACT)
     rutaAct = '~',       // ruta que muestra el prompt (cambia con el campo "ruta" de los pasos)
     histAct = '',        // HTML de lo ya escrito en la terminal (comandos y salidas)
     fallosAct = 0,       // fallos seguidos en el paso actual (a los 2 sale la pista)
+    pistaIdx = 0,        // pistas del paso actual ya enseñadas (cada petición muestra la siguiente)
     hechaAct = false,    // true cuando se ha superado el último paso
     mem = [], memI = 0;  // historial de comandos escritos (flechas ↑ ↓) y posición en él
 
@@ -1055,7 +1070,7 @@ barraAct.addEventListener('keydown', e => {
 addEventListener('resize', () => { if (!fondoAct.hidden) colocar(); });
 // Vuelve al paso 1 con la terminal limpia (también se llama al abrir una actividad).
 function reiniciarAct(){
-  pasoAct = 0; rutaAct = '~'; fallosAct = 0; hechaAct = false; mem = []; memI = 0;
+  pasoAct = 0; rutaAct = '~'; fallosAct = 0; pistaIdx = 0; hechaAct = false; mem = []; memI = 0;
   histAct = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n';
   entradaAct.value = '';
   pintarAct(); entradaAct.focus();
@@ -1065,19 +1080,41 @@ function reiniciarAct(){
 // Redibuja enunciado (con sus casillas) y terminal a partir del ESTADO. Es lo único que toca el DOM de la actividad.
 function pintarAct(){
   const total = act.pasos.length;
-  $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + act.enunciado +
+  // "enunciado", "explica" y "final" pueden ser un texto o una lista de textos
+  $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + unir(act.enunciado) +
     '<ol class="tareas">' + act.pasos.map((p, i) =>
-      '<li class="' + (i < pasoAct ? 'hecha' : (i === pasoAct && !hechaAct ? 'actual' : '')) + '">' + p.tarea + '</li>').join('') + '</ol>' +
-    (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + (act.final || '') + '</p>' : '');
+      '<li class="' + (i < pasoAct ? 'hecha' : (i === pasoAct && !hechaAct ? 'actual' : '')) + '">' + p.tarea +
+      (i < pasoAct && p.explica ? '<div class="nota">' + unir(p.explica, true) + '</div>' : '') + '</li>').join('') + '</ol>' +
+    (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + unir(act.final) + '</p>' + solucionHtml(act) : '');
   histoAct.innerHTML = histAct;
   $('act-linea').hidden = hechaAct;
   $('act-prompt').innerHTML = prompt(rutaAct);
   $('act-contador').textContent = hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
   pantAct.scrollTop = pantAct.scrollHeight;
+  if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
 }
 
-const pistaHtml = paso => '<span class="c"># Pista: ' + escapar(paso.pista || 'repasa el enunciado y prueba con el comando que se pide.') + '</span>\n';
+// Recuadro blanco con la explicación de la solución. Usa el campo "solucion" de la actividad (texto o lista de párrafos);
+// si no existe, se genera solo: un resumen con el comando de cada paso y su "explica".
+function solucionHtml(a){
+  let cuerpo;
+  if (a.solucion) cuerpo = unir(a.solucion, true);
+  else cuerpo = '<ol>' + a.pasos.map(p => {
+    const cmd = p.ok.find(o => typeof o === 'string');
+    return '<li>' + (cmd ? '<code>' + escapar(cmd) + '</code>' : '') + (p.explica ? ' — ' + [].concat(p.explica).join(' ') : '') + '</li>';
+  }).join('') + '</ol>';
+  return '<div class="solucion" role="region" aria-label="Explicación de la solución"><h4>Explicación de la solución</h4>' + cuerpo + '</div>';
+}
+const unir = (x, parrafos) => [].concat(x || '').map(t => parrafos ? '<p>' + t + '</p>' : t).join('');   // texto o lista de textos → HTML
+// "pista" puede ser un texto o una LISTA con todas las pistas que quieras (de más suave a más directa).
+// Cada petición (botón o 2 fallos seguidos) enseña la siguiente; al acabarse se repite la última.
+const pistasDe = paso => { const l = [].concat(paso.pista || []).filter(Boolean); return l.length ? l : ['repasa el enunciado y prueba con el comando que se pide.']; };
+function pistaHtml(paso){
+  const l = pistasDe(paso), n = Math.min(pistaIdx, l.length - 1), agotadas = pistaIdx >= l.length;
+  pistaIdx = Math.min(pistaIdx + 1, l.length);
+  return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
+}
 const aceptado = (paso, t) => paso.ok.some(o => o instanceof RegExp ? o.test(t) : o === t);
 
 // Enter: valida el comando escrito contra el paso actual
@@ -1093,7 +1130,7 @@ function enviarAct(){
   else if (aceptado(paso, t)){
     if (paso.out) histAct += paso.out + '\n';
     if (paso.ruta) rutaAct = paso.ruta;
-    pasoAct++; fallosAct = 0;
+    pasoAct++; fallosAct = 0; pistaIdx = 0;
     if (pasoAct === act.pasos.length){
       hechaAct = true;
       histAct += '\n<span class="x">✔ Actividad completada</span>\n';
