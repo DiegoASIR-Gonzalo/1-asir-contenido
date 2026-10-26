@@ -107,12 +107,87 @@
   .pie button:hover:not(:disabled){color:#fff}
   .contador{color:var(--term-txt);opacity:.7}
 
-  @media (prefers-reduced-motion:reduce){.cursor{animation:none}.item{transition:none}}
+  /* ===== Botón "Actividades" de la barra superior y su panel lateral ===== */
+  .barra-btn{font:inherit;font-weight:500;color:#fff;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;cursor:pointer;transition:background .2s ease}
+  .barra-btn:hover,.barra-btn[aria-expanded="true"]{background:rgba(255,255,255,.14)}
+  .act-panel{position:fixed;left:0;top:30px;bottom:0;z-index:15;width:min(310px,88vw);display:flex;flex-direction:column;
+    background:var(--lateral);border-right:1px solid rgba(255,255,255,.12);box-shadow:8px 0 28px rgba(0,0,0,.45);
+    transform:translateX(-100%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+  .act-panel.abierto{transform:none;visibility:visible;transition:transform .22s ease}
+  .act-cab{padding:14px 16px 10px}
+  .act-cab h2{font-size:15px}
+  .act-cab p{font-size:12px;color:#c0bfbc;margin-top:2px}
+  .act-lista{flex:1;overflow:auto;padding:4px 8px}
+  .act-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:#fff;font:inherit;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .2s ease}
+  .act-item:hover{background:rgba(255,255,255,.08)}
+  .act-num{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#4a4752;font-size:12px;font-weight:700}
+  .act-item.hecha .act-num{background:#26a269}
+  .act-txt{display:flex;flex-direction:column;min-width:0}
+  .act-txt b{font-weight:700}
+  .act-txt small{color:#c0bfbc;font-size:12px}
+  .act-pie{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:#c0bfbc}
+  .act-pie button{font:inherit;background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer}
+  .act-pie button:hover{color:#fff}
+
+  /* ===== Ventana de actividad: enunciado + terminal (misma terminal que la principal) ===== */
+  /* La ventana flota sobre el escritorio (sin fondo oscuro): la posición y el tamaño los pone el script */
+  .act-fondo{position:fixed;inset:0;z-index:30;pointer-events:none}
+  .act-fondo[hidden],.entrada[hidden]{display:none}
+  .act-ventana{position:absolute;pointer-events:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);
+    opacity:0;transform:scale(.97);transition:opacity .22s ease,transform .22s ease}
+  /* Velo que oscurece el escritorio (solo visual: no bloquea los clics). Aparece y desaparece con suavidad */
+  .act-velo{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .28s ease}
+  .act-fondo.visible .act-velo{opacity:1}
+  .act-fondo.visible .act-ventana{opacity:1;transform:none}
+  .act-ventana.maximizada,.act-ventana.maximizada .act-int{border-radius:0}
+  .act-int{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:var(--ventana)}
+  .act-ventana .titulo{flex:none;user-select:none;touch-action:none;cursor:default}
+  .act-ventana .titulo span{min-width:0;max-width:100%;padding:0 84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-cerrar,.act-max{position:absolute;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font-size:12px;line-height:22px;text-align:center;cursor:pointer}
+  .act-cerrar{right:14px}
+  .act-max{right:42px}
+  .act-cerrar:hover,.act-max:hover{background:var(--acento)}
+  /* Tiradores para cambiar el tamaño: bordes y esquinas, justo por fuera del borde de la ventana */
+  .res{position:absolute;z-index:3;touch-action:none}
+  .res.n{top:-4px;left:12px;right:12px;height:8px;cursor:ns-resize}
+  .res.s{bottom:-4px;left:12px;right:12px;height:8px;cursor:ns-resize}
+  .res.e{right:-4px;top:12px;bottom:12px;width:8px;cursor:ew-resize}
+  .res.w{left:-4px;top:12px;bottom:12px;width:8px;cursor:ew-resize}
+  .res.ne{top:-4px;right:-4px;width:16px;height:16px;cursor:nesw-resize}
+  .res.nw{top:-4px;left:-4px;width:16px;height:16px;cursor:nwse-resize}
+  .res.se{bottom:-4px;right:-4px;width:16px;height:16px;cursor:nwse-resize}
+  .res.sw{bottom:-4px;left:-4px;width:16px;height:16px;cursor:nesw-resize}
+  .act-ventana.maximizada .res{display:none}
+  .act-cuerpo{flex:1;min-height:0;display:flex;flex-direction:column}
+  .enunciado{flex:0 1 auto;max-height:55%;overflow:auto;background:var(--papel);color:var(--papel-txt);padding:16px 24px}
+  .enunciado h3{font-size:18px;margin-bottom:6px}
+  .enunciado p{margin-bottom:8px}
+  .enunciado code{font:14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#e1dedb;padding:1px 6px;border-radius:4px}
+  .enunciado pre{font:14px/1.5 "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#e1dedb;padding:8px 12px;border-radius:6px;margin:6px 0 8px;overflow:auto}
+  .tareas{list-style:none;padding:0;margin-top:6px}
+  .tareas li{position:relative;padding:3px 0 3px 26px;opacity:.6}
+  .tareas li::before{content:"☐";position:absolute;left:0}
+  .tareas li.actual{opacity:1;font-weight:700}
+  .tareas li.actual::before{color:var(--acento)}
+  .tareas li.hecha{opacity:1}
+  .tareas li.hecha::before{content:"☑";color:#26a269}
+  .exito{margin-top:10px;padding:8px 12px;border-radius:8px;background:#d7f0e0;color:#14532d;font-weight:700}
+  .act-term{flex:1 1 0;min-height:140px}             /* sustituye el 52 % de la terminal principal */
+  .act-term .pantalla{cursor:text}
+  .entrada{display:flex;align-items:baseline}
+  .entrada input{flex:1;min-width:0;font:inherit;color:inherit;background:none;border:0;padding:0;caret-color:var(--term-txt)}
+  .entrada input:focus-visible{outline:none}
+
+  @media (prefers-reduced-motion:reduce){.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}}
 </style>
 </head>
 <body>
 
-<div class="barra"><b>Actividades</b><span id="reloj"></span><span>ES ⏻</span></div>
+<div class="barra">
+  <!-- Botón "Actividades": abre/cierra el panel lateral con las actividades -->
+  <button class="barra-btn" id="btn-act" type="button" aria-expanded="false" aria-controls="panel-act">Actividades</button>
+  <span id="reloj"></span><span>ES ⏻</span>
+</div>
 
 <main class="ventana">
   <div class="titulo">
@@ -161,6 +236,46 @@
     </section>
   </div>
 </main>
+
+<!-- Pestaña lateral de actividades (la lista se genera desde ACTIVIDADES en el script) -->
+<aside class="act-panel" id="panel-act" aria-label="Actividades">
+  <div class="act-cab"><h2>Actividades</h2><p>Practica tú mismo: escribe los comandos en la terminal.</p></div>
+  <div class="act-lista" id="act-lista"></div>
+  <div class="act-pie"><span id="act-progreso"></span><button type="button" id="act-borrar">Borrar progreso</button></div>
+</aside>
+
+<!-- Ventana de una actividad: enunciado arriba y terminal interactiva debajo.
+     Flota sobre el escritorio: se mueve arrastrando la barra de título y se redimensiona desde bordes y esquinas
+     (los tiradores .res los crea el script). -->
+<div class="act-fondo" id="act-fondo" hidden>
+  <div class="act-velo" aria-hidden="true"></div>
+  <section class="act-ventana" id="act-ventana" role="dialog" aria-labelledby="act-titulo">
+    <div class="act-int">
+      <div class="titulo" id="act-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño">
+        <span id="act-titulo"></span>
+        <button class="act-max" id="act-max" type="button" aria-label="Maximizar ventana">□</button>
+        <button class="act-cerrar" id="act-cerrar" type="button" aria-label="Cerrar actividad">✕</button>
+      </div>
+      <div class="act-cuerpo">
+        <article class="enunciado" id="act-enunciado"></article>
+        <div class="terminal act-term">
+          <div class="pantalla" id="act-pantalla">
+            <span id="act-hist" aria-live="polite"></span>
+            <div class="entrada" id="act-linea">
+              <span id="act-prompt"></span>
+              <input id="act-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando">
+            </div>
+          </div>
+          <div class="pie">
+            <button id="act-reiniciar" type="button">↺ Reiniciar</button>
+            <span class="contador" id="act-contador"></span>
+            <button id="act-pista" type="button">💡 Pista</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 
 <script>
 /* =====================================================================
@@ -269,7 +384,7 @@ const GRUPOS = [
 	  { nombre:"wc", resumen:"Contar líneas", diapositivas:[
       { cmd:'wc test.txt',
         out:'1  3 13 test.txt',
-        exp:'<h3>wc (Count World)</h3><p>Contara el número de líneas, palabras, caracteres y bytes que tiene un fichero o documento de texto.' },
+        exp:'<h3>wc (Word Count)</h3><p>Contara el número de líneas, palabras, caracteres y bytes que tiene un fichero o documento de texto.' },
       { cmd:'wc -l test.txt',
         out:'1 test.txt',
         exp:'Con el parametro <code>-l</code> contara las líneas directamente.' }
@@ -363,6 +478,23 @@ const GRUPOS = [
     ]}
   ]},
 
+  { titulo:"Expansión de llaves", comandos:[
+    { nombre:"Ejemplo 1", resumen:"", diapositivas:[
+      { pasos:[
+          { cmd:"cd Descargas/ && pwd", out:'/home/usuario/Descargas', ruta:'~/Descargas'}
+        ],
+        exp:'<h3>Ejemplo 1</h3><p>El simbolo <code>&</code> nos servirá para poder decir que si un comando es exitoso, pues que se ejecute uno despues.</p>' }
+    ]},
+    { nombre:"Ejemplo 2", resumen:"", diapositivas:[
+      { pasos:[
+          { cmd:"cd Prueba", out:'', ruta:'~/Prueba'},
+          { cmd:"touch fich-{1..10}.txt", out:''},
+          { cmd:"ls", out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt' }
+        ],
+        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>No es muy complicado ya que unicamente usamos los simbolos <code>{ }</code> para poder crear varios ficheros de golpe.</p>' }
+    ]}
+  ]},
+
   { titulo:"Varios Comandos", comandos:[
     { nombre:"SoftLink", resumen:"Accesos Directos", diapositivas:[
       { pasos:[
@@ -380,6 +512,111 @@ const GRUPOS = [
         exp:'<h3>HardLink</h3><p>Casi lo mismo que el SoftLink, pero puede con ficheros más pesados, el ejemplo en pantalla tiene el mismo peso y mismo contenido.<p>Si borraramos el fichero creado no pasaría nada.</p></p>' }
     ]}
   ]}
+];
+
+/* =====================================================================
+   ACTIVIDADES (botón "Actividades" de la barra superior)
+   ---------------------------------------------------------------------
+   Cada actividad es una ventana con enunciado + terminal donde la persona
+   escribe los comandos. Campos:
+     id        : texto único (sirve para recordar cuáles se han completado)
+     grupo     : subapartado del panel donde aparece (mismo texto = mismo subapartado;
+                 se crean solos y salen en el orden en que los escribas)
+     titulo    : nombre de la actividad          resumen : frase corta del panel
+     enunciado : HTML que se muestra arriba (<p>, <code>, <pre>…)
+     final     : mensaje al terminar (HTML, opcional)
+     pasos     : lista de pasos que hay que superar EN ORDEN. Cada paso:
+        tarea : lo que se pide (HTML); aparece como casilla en el enunciado
+        ok    : comandos aceptados. Textos exactos (se ignoran los espacios
+                sobrantes) o expresiones regulares, p. ej. /^ls( -l)?$/
+        out   : salida que se muestra al acertar (HTML, como en las diapositivas)
+        ruta  : (opcional) nuevo prompt tras acertar, p. ej. "~/proyectos"
+        pista : (opcional, texto plano) ayuda; sale con el botón Pista o tras 2 fallos
+   En la terminal también funcionan: clear, ↑ ↓ (historial) y Enter vacío.
+
+   Plantilla para copiar y pegar una actividad nueva:
+
+   { id:"mi-actividad", grupo:"Nombre del subapartado", titulo:"Título", resumen:"Qué se practica",
+     enunciado:"<p>Contexto de la actividad.</p>",
+     final:"¡Muy bien!",
+     pasos:[
+       { tarea:"Crea la carpeta <code>fotos</code>", ok:["mkdir fotos"], out:"", pista:"Usa mkdir." },
+       { tarea:"Lista el contenido", ok:["ls"], out:"fotos" }
+     ]},
+   ===================================================================== */
+const ACTIVIDADES = [
+
+  { id:"tipo-ubicacion", grupo:"Consultar comandos", titulo:"¿Qué es y dónde vive?", resumen:"type y whereis",
+    enunciado:'<p>Un compañero duda de dos cosas: si <code>pwd</code> es un programa o una orden interna de la bash, y en qué ruta está instalado <code>whoami</code>. Averígualo desde la terminal.</p>',
+    final:'<code>type</code> te dice qué clase de comando es y <code>whereis</code> te dice dónde está.',
+    pasos:[
+      { tarea:'Averigua qué tipo de comando es <code>pwd</code>',
+        ok:['type pwd'], out:'pwd es una orden interna del shell',
+        pista:'El comando que muestra de qué tipo es otro comando se llama type.' },
+      { tarea:'Localiza dónde está <code>whoami</code>',
+        ok:['whereis whoami'], out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
+        pista:'Se usa igual que el anterior, pero la palabra empieza por "where".' }
+    ]},
+
+  { id:"estructura", grupo:"Ficheros y carpetas", titulo:"Tu primera estructura", resumen:"mkdir, cd, touch y ls",
+    enunciado:'<p>Vas a montar la carpeta de una web desde cero. La carpeta <code>proyectos</code> todavía no existe.</p>',
+    final:'Has creado una estructura, entrado en ella y comprobado el resultado: el flujo básico de cualquier sesión.',
+    pasos:[
+      { tarea:'Crea de golpe la ruta <code>proyectos/web</code>',
+        ok:[/^mkdir -p (\.\/)?proyectos\/web\/?$/], out:'',
+        pista:'Con la opción -p, mkdir crea también las carpetas intermedias.' },
+      { tarea:'Entra en <code>proyectos/web</code>',
+        ok:['cd proyectos/web','cd proyectos/web/','cd ./proyectos/web','cd ~/proyectos/web'], out:'', ruta:'~/proyectos/web',
+        pista:'cd seguido de la ruta de la carpeta.' },
+      { tarea:'Crea un fichero vacío llamado <code>index.html</code>',
+        ok:['touch index.html'], out:'',
+        pista:'touch crea ficheros vacíos.' },
+      { tarea:'Muestra el contenido de la carpeta',
+        ok:['ls'], out:'index.html',
+        pista:'El comando para listar es de dos letras.' }
+    ]},
+
+  { id:"ficheros-lote", grupo:"Ficheros y carpetas", titulo:"Ficheros en lote", resumen:"Expansión de llaves",
+    enunciado:'<p>Necesitas diez ficheros de prueba, <code>fich-1.txt</code> … <code>fich-10.txt</code>, dentro de la carpeta <code>Prueba</code>. Hacerlo uno a uno sería eterno: usa las llaves.</p>',
+    final:'Las llaves <code>{1..10}</code> se expanden antes de ejecutar el comando, así que <code>touch</code> recibe los diez nombres.',
+    pasos:[
+      { tarea:'Entra en la carpeta <code>Prueba</code>',
+        ok:['cd Prueba','cd ./Prueba','cd Prueba/','cd ~/Prueba'], out:'', ruta:'~/Prueba',
+        pista:'cd Prueba' },
+      { tarea:'Crea los diez ficheros con un solo <code>touch</code>',
+        ok:['touch fich-{1..10}.txt'], out:'',
+        pista:'El nombre lleva un rango entre llaves: fich-{1..10}.txt' },
+      { tarea:'Comprueba que se han creado',
+        ok:['ls'], out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt',
+        pista:'Lista el contenido de la carpeta.' }
+    ]},
+
+  { id:"funcion-mkcd", grupo:"Funciones en .bashrc", titulo:"Tu función mkcd", resumen:"Funciones en ~/.bashrc",
+    enunciado:'<p>En tu <code>~/.bashrc</code> acabas de añadir esta función:</p><pre>mkcd() {\n  mkdir -p "$1" &amp;&amp; cd "$1"\n}</pre><p>Cárgala y pruébala.</p>',
+    final:'Una función de <code>~/.bashrc</code> se usa como cualquier comando. <code>$1</code> es su primer argumento.',
+    pasos:[
+      { tarea:'Recarga <code>~/.bashrc</code> sin cerrar la terminal',
+        ok:['source ~/.bashrc','. ~/.bashrc'], out:'',
+        pista:'El comando se llama source y recibe el fichero a cargar.' },
+      { tarea:'Usa <code>mkcd</code> para crear y entrar en <code>proyectos/nuevo</code>',
+        ok:['mkcd proyectos/nuevo','mkcd "proyectos/nuevo"'], out:'', ruta:'~/proyectos/nuevo',
+        pista:'mkcd seguido de la ruta que quieres crear.' },
+      { tarea:'Comprueba en qué directorio estás',
+        ok:['pwd'], out:'/home/usuario/proyectos/nuevo',
+        pista:'Imprime el directorio actual.' }
+    ]},
+
+  { id:"enlace-simbolico", grupo:"Varios comandos", titulo:"Acceso directo", resumen:"Enlace simbólico con ln -s",
+    enunciado:'<p>Quieres entrar a tu carpeta <code>/home/usuario/Descargas/</code> desde un acceso directo llamado <code>softDes</code>.</p>',
+    final:'Un enlace simbólico apunta a la ruta original: es el equivalente a un acceso directo de Windows.',
+    pasos:[
+      { tarea:'Crea el enlace simbólico <code>softDes</code> hacia <code>/home/usuario/Descargas/</code>',
+        ok:['ln -s /home/usuario/Descargas/ softDes','ln -s /home/usuario/Descargas softDes','ln -s ~/Descargas softDes','ln -s ~/Descargas/ softDes'], out:'',
+        pista:'ln con la opción -s, luego el destino y por último el nombre del enlace.' },
+      { tarea:'Lista el contenido de <code>softDes</code>',
+        ok:['ls softDes','ls softDes/'], out:'1-asir-contenido-main\nBinarioFH.pdf\nConceptos UD 1.pdf\n...',
+        pista:'ls seguido del nombre del enlace.' }
+    ]}
 ];
 /* ================= FIN DE LA ZONA EDITABLE ================= */
 
@@ -461,6 +698,7 @@ $('ant').onclick = () => ir(-1);
 $('sig').onclick = () => ir(1);
 addEventListener('keydown', e => {
   if (/INPUT|SELECT/.test(e.target.tagName)) return; // no cambiar de diapositiva al usar el panel de ajustes
+  if (e.target.closest('.act-ventana')) return; // ni al usar la ventana de una actividad
   if (e.key === 'ArrowLeft') ir(-1); if (e.key === 'ArrowRight') ir(1);
 });
 
@@ -554,6 +792,233 @@ function cargarImagen(archivo){
 $('fondo-elegir').onclick = () => $('fondo-archivo').click();
 $('fondo-archivo').onchange = e => { const f = e.target.files[0]; if (f) cargarImagen(f); e.target.value = ''; };
 $('fondo-quitar').onclick = () => { ajustes.fondo = 'ninguna'; aplicar(); guardar(); };
+
+/* ---------------- Actividades: panel lateral + ventana con terminal interactiva ---------------- */
+const btnAct = $('btn-act'), panelAct = $('panel-act'), fondoAct = $('act-fondo');
+const entradaAct = $('act-in'), histoAct = $('act-hist'), pantAct = $('act-pantalla');
+// Subapartados: se agrupan por el campo "grupo" (en orden de aparición); ORDEN_ACT es la lista plana en ese mismo orden
+const GRUPOS_ACT = [];
+ACTIVIDADES.forEach(a => {
+  const nombre = a.grupo || 'General';
+  let gr = GRUPOS_ACT.find(x => x.titulo === nombre);
+  if (!gr) GRUPOS_ACT.push(gr = { titulo: nombre, items: [] });
+  gr.items.push(a);
+});
+const ORDEN_ACT = GRUPOS_ACT.flatMap(gr => gr.items);
+const escapar = t => Object.assign(document.createElement('div'), { textContent: t }).innerHTML;
+const normalizar = t => t.trim().replace(/\s+/g, ' ');
+
+// Actividades completadas (se recuerdan si el navegador lo permite)
+let hechas = [];
+try { hechas = JSON.parse(localStorage.getItem('actividades-hechas')) || []; } catch (e) {}
+const guardarHechas = () => { try { localStorage.setItem('actividades-hechas', JSON.stringify(hechas)); } catch (e) {} };
+
+// Estado de la actividad abierta
+let act = null, actI = 0, pasoAct = 0, rutaAct = '~', histAct = '', fallosAct = 0, hechaAct = false, mem = [], memI = 0;
+
+// Lista del panel lateral
+function construirLista(){
+  const lista = $('act-lista');
+  // al reconstruir se recuerdan los subapartados que estaban plegados
+  const plegados = new Set([...lista.querySelectorAll('details')].filter(d => !d.open).map(d => d.dataset.t));
+  lista.innerHTML = '';
+  GRUPOS_ACT.forEach(gr => {
+    const det = document.createElement('details'); det.dataset.t = gr.titulo; det.open = !plegados.has(gr.titulo);
+    det.innerHTML = '<summary></summary><div class="items"></div>';
+    const resumen = det.firstChild, caja = det.lastChild;
+    const hechasGr = gr.items.filter(a => hechas.includes(a.id)).length;
+    resumen.textContent = gr.titulo + ' · ' + hechasGr + '/' + gr.items.length;
+    resumen.onclick = e => { e.preventDefault(); alternarGrupo(det, caja); }; // mismo plegado con desvanecimiento que el panel principal
+    gr.items.forEach(a => {
+      const i = ORDEN_ACT.indexOf(a), ok = hechas.includes(a.id), b = document.createElement('button');
+      b.type = 'button'; b.className = 'act-item' + (ok ? ' hecha' : '');
+      b.innerHTML = '<span class="act-num"></span><span class="act-txt"><b></b><small></small></span>';
+      b.children[0].textContent = ok ? '✓' : i + 1;
+      b.children[1].children[0].textContent = a.titulo;
+      b.children[1].children[1].textContent = a.resumen + ' · ' + a.pasos.length + (a.pasos.length === 1 ? ' paso' : ' pasos') + (ok ? ' · completada' : '');
+      b.onclick = () => abrirAct(i);
+      caja.append(b);
+    });
+    lista.append(det);
+  });
+  $('act-progreso').textContent = ORDEN_ACT.filter(a => hechas.includes(a.id)).length + ' de ' + ORDEN_ACT.length + ' completadas';
+}
+
+function alternarAct(abierto){
+  panelAct.classList.toggle('abierto', abierto);
+  btnAct.setAttribute('aria-expanded', abierto);
+  if (abierto) panelAct.querySelector('.act-item')?.focus({ preventScroll: true });
+  else if (panelAct.contains(document.activeElement)) btnAct.focus();
+}
+
+function abrirAct(i){
+  act = ORDEN_ACT[i]; actI = i;
+  $('act-titulo').textContent = 'usuario@linux: ~ — Actividad: ' + act.titulo;
+  alternarAct(false);
+  if (!geo) geo = geometriaInicial();   // la primera vez se centra; después conserva donde la dejó la persona
+  clearTimeout(cierreAct);              // por si se reabre mientras todavía se está desvaneciendo
+  fondoAct.hidden = false;
+  colocar();
+  void fondoAct.offsetWidth;            // fuerza el primer dibujado para que el fundido de entrada se anime
+  fondoAct.classList.add('visible');
+  reiniciarAct();
+}
+let cierreAct = 0;
+function cerrarAct(){
+  fondoAct.classList.remove('visible'); // el velo y la ventana se desvanecen y, al terminar, se oculta el contenedor
+  cierreAct = setTimeout(() => { fondoAct.hidden = true; }, reducido ? 0 : 300);
+  btnAct.focus();
+}
+
+/* ---- Mover y redimensionar la ventana (como una ventana de GNOME) ----
+   Mover: arrastrar la barra de título (o flechas con la barra enfocada).
+   Redimensionar: arrastrar bordes y esquinas (o Mayús + flechas). Doble clic en la barra o botón □: maximizar. */
+const ventAct = $('act-ventana'), barraAct = $('act-barra');
+const TOPE = 30, MIN_W = 420, MIN_H = 320;   // TOPE = alto de la barra superior; mínimos de tamaño
+let geo = null, maxim = false, gesto = null;
+
+const minimos = () => ({ w: Math.min(MIN_W, innerWidth - 12), h: Math.min(MIN_H, innerHeight - TOPE) });
+function geometriaInicial(){
+  const w = Math.min(900, innerWidth - 12), h = Math.min(680, innerHeight - TOPE - 12);
+  return { x: Math.round((innerWidth - w) / 2), y: TOPE + Math.max(6, Math.round((innerHeight - TOPE - h) / 2)), w, h };
+}
+function limitar(){   // la ventana nunca queda fuera de la pantalla ni más pequeña que el mínimo
+  const m = minimos();
+  geo.w = Math.max(m.w, Math.min(geo.w, innerWidth));
+  geo.h = Math.max(m.h, Math.min(geo.h, innerHeight - TOPE));
+  geo.x = Math.max(80 - geo.w, Math.min(geo.x, innerWidth - 80));  // siempre quedan 80 px visibles para poder agarrarla
+  geo.y = Math.max(TOPE, Math.min(geo.y, innerHeight - 42));       // la barra de título nunca baja del borde inferior
+}
+function colocar(){
+  if (!maxim) limitar();
+  const r = maxim ? { x: 0, y: TOPE, w: innerWidth, h: innerHeight - TOPE } : geo;
+  Object.assign(ventAct.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  ventAct.classList.toggle('maximizada', maxim);
+  $('act-max').textContent = maxim ? '❐' : '□';
+  $('act-max').setAttribute('aria-label', maxim ? 'Restaurar ventana' : 'Maximizar ventana');
+}
+const alternarMax = () => { maxim = !maxim; colocar(); };
+
+// Tiradores de los ocho bordes/esquinas
+['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(d => {
+  const h = document.createElement('span'); h.className = 'res ' + d; h.dataset.d = d; ventAct.append(h);
+});
+
+ventAct.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || maxim) return;
+  const tirador = e.target.closest('.res');
+  const enBarra = barraAct.contains(e.target) && !e.target.closest('button');
+  if (!tirador && !enBarra) return;
+  gesto = { tipo: tirador ? tirador.dataset.d : 'mover', px: e.clientX, py: e.clientY, o: { ...geo } };
+  (tirador || barraAct).setPointerCapture(e.pointerId);
+});
+ventAct.addEventListener('pointermove', e => {
+  if (!gesto) return;
+  const dx = e.clientX - gesto.px, dy = e.clientY - gesto.py, o = gesto.o, t = gesto.tipo, m = minimos();
+  if (t === 'mover'){ geo.x = o.x + dx; geo.y = o.y + dy; }
+  else {
+    if (t.includes('e')) geo.w = Math.max(m.w, Math.min(o.w + dx, innerWidth - o.x));
+    if (t.includes('s')) geo.h = Math.max(m.h, Math.min(o.h + dy, innerHeight - o.y));
+    if (t.includes('w')){ const x = Math.max(0, Math.min(o.x + dx, o.x + o.w - m.w)); geo.w = o.x + o.w - x; geo.x = x; }
+    if (t.includes('n')){ const y = Math.max(TOPE, Math.min(o.y + dy, o.y + o.h - m.h)); geo.h = o.y + o.h - y; geo.y = y; }
+  }
+  colocar();
+});
+['pointerup', 'pointercancel'].forEach(ev => ventAct.addEventListener(ev, () => { gesto = null; }));
+barraAct.addEventListener('dblclick', e => { if (!e.target.closest('button')) alternarMax(); });
+$('act-max').onclick = alternarMax;
+
+// Teclado: con la barra de título enfocada, flechas = mover y Mayús + flechas = redimensionar
+barraAct.addEventListener('keydown', e => {
+  if (e.target !== barraAct || maxim) return;
+  const d = 24, v = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[e.key];
+  if (!v) return;
+  e.preventDefault();
+  if (e.shiftKey){ geo.w += v[0]; geo.h += v[1]; } else { geo.x += v[0]; geo.y += v[1]; }
+  colocar();
+});
+addEventListener('resize', () => { if (!fondoAct.hidden) colocar(); });
+function reiniciarAct(){
+  pasoAct = 0; rutaAct = '~'; fallosAct = 0; hechaAct = false; mem = []; memI = 0;
+  histAct = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n';
+  entradaAct.value = '';
+  pintarAct(); entradaAct.focus();
+}
+
+// Dibuja enunciado (con sus casillas) y terminal según el estado actual
+function pintarAct(){
+  const total = act.pasos.length;
+  $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + act.enunciado +
+    '<ol class="tareas">' + act.pasos.map((p, i) =>
+      '<li class="' + (i < pasoAct ? 'hecha' : (i === pasoAct && !hechaAct ? 'actual' : '')) + '">' + p.tarea + '</li>').join('') + '</ol>' +
+    (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + (act.final || '') + '</p>' : '');
+  histoAct.innerHTML = histAct;
+  $('act-linea').hidden = hechaAct;
+  $('act-prompt').innerHTML = prompt(rutaAct);
+  $('act-contador').textContent = hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total;
+  $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
+  pantAct.scrollTop = pantAct.scrollHeight;
+}
+
+const pistaHtml = paso => '<span class="c"># Pista: ' + escapar(paso.pista || 'repasa el enunciado y prueba con el comando que se pide.') + '</span>\n';
+const aceptado = (paso, t) => paso.ok.some(o => o instanceof RegExp ? o.test(t) : o === t);
+
+// Enter: valida el comando escrito contra el paso actual
+function enviarAct(){
+  if (hechaAct) return;
+  const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
+  entradaAct.value = '';
+  histAct += prompt(rutaAct) + escapar(crudo) + '\n';
+  if (t){ mem.push(crudo.trim()); memI = mem.length; }
+  if (!t){ /* línea vacía: solo avanza el prompt */ }
+  else if (t === 'clear'){ histAct = ''; }
+  else if (aceptado(paso, t)){
+    if (paso.out) histAct += paso.out + '\n';
+    if (paso.ruta) rutaAct = paso.ruta;
+    pasoAct++; fallosAct = 0;
+    if (pasoAct === act.pasos.length){
+      hechaAct = true;
+      histAct += '\n<span class="x">✔ Actividad completada</span>\n';
+      if (!hechas.includes(act.id)){ hechas.push(act.id); guardarHechas(); construirLista(); }
+    }
+  } else {
+    fallosAct++;
+    const primera = t.split(' ')[0];
+    const parecido = paso.ok.some(o => typeof o === 'string' && o.split(' ')[0] === primera);
+    histAct += parecido
+      ? '<span class="c"># Ese comando no es lo que pide el paso actual: revisa el enunciado.</span>\n'
+      : 'bash: ' + escapar(primera) + ': orden no encontrada\n';
+    if (fallosAct >= 2){ histAct += pistaHtml(paso); fallosAct = 0; }
+  }
+  pintarAct();
+}
+
+// Eventos de la terminal de la actividad
+entradaAct.onkeydown = e => {
+  if (e.key === 'Enter'){ e.preventDefault(); enviarAct(); }
+  else if (e.key === 'ArrowUp'){ if (mem.length){ e.preventDefault(); memI = Math.max(0, memI - 1); entradaAct.value = mem[memI]; } }
+  else if (e.key === 'ArrowDown'){ e.preventDefault(); memI = Math.min(mem.length, memI + 1); entradaAct.value = mem[memI] ?? ''; }
+};
+pantAct.onclick = () => { if (!getSelection().toString()) entradaAct.focus(); };
+$('act-reiniciar').onclick = reiniciarAct;
+$('act-pista').onclick = () => {
+  if (hechaAct){ if (actI < ORDEN_ACT.length - 1) abrirAct(actI + 1); else cerrarAct(); return; }
+  histAct += pistaHtml(act.pasos[pasoAct]); pintarAct(); entradaAct.focus();
+};
+$('act-cerrar').onclick = cerrarAct;
+
+// Botón de la barra, borrar progreso, clic fuera y Escape
+btnAct.onclick = () => alternarAct(!panelAct.classList.contains('abierto'));
+$('act-borrar').onclick = () => { hechas = []; guardarHechas(); construirLista(); };
+addEventListener('click', e => {
+  if (panelAct.classList.contains('abierto') && !panelAct.contains(e.target) && !btnAct.contains(e.target)) alternarAct(false);
+});
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!fondoAct.hidden && ventAct.contains(document.activeElement)) cerrarAct(); else alternarAct(false);
+});
+
+construirLista();
 
 aplicar();
 abrir(0, 0); // comando que se abre al cargar
