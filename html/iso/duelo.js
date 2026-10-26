@@ -2,7 +2,7 @@
    DUELO · multijugador (pestaña "Duelo" junto a "Actividades")
    ---------------------------------------------------------------------
    Se carga DESPUÉS del script principal del HTML (reutiliza sus funciones y estilos:
-   $, prompt, escapar, normalizar, unir, aceptado, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
+   $, promptHtml, escapar, normalizar, unir, aceptado, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
 
    Modos:
      · "web"      (1vs1)    : se eligen N actividades al azar de actividades.js (5-12); gana quien las termina antes.
@@ -304,7 +304,7 @@ function pintar(){
   const q = secs[S.q]; enun.classList.remove('d-full'); term.hidden = false;
   enun.innerHTML = barras + '<h3>Secuencia ' + (S.q + 1) + ' / ' + secs.length + ' · ' + escapar(q.titulo) + '</h3>' + q.enun +
     '<ol class="tareas">' + q.pasos.map((p, i) => '<li class="' + (i < S.p ? 'hecha' : i === S.p ? 'actual' : '') + '">' + p.tarea + '</li>').join('') + '</ol>';
-  $('d-hist').innerHTML = S.hist; $('d-prompt').innerHTML = prompt(S.ruta);
+  $('d-hist').innerHTML = S.hist; $('d-prompt').innerHTML = promptHtml(S.ruta);
   $('d-cont').textContent = 'Comando ' + (S.hecho + 1) + ' / ' + total; $('d-pant').scrollTop = $('d-pant').scrollHeight;
   if (document.activeElement !== inp) inp.focus();
 }
@@ -312,7 +312,7 @@ function pintar(){
 function enviar(){
   if (!S || S.q >= secs.length || sala.ganador) return;
   const crudo = inp.value, t = normalizar(crudo), paso = secs[S.q].pasos[S.p]; inp.value = '';
-  S.hist += prompt(S.ruta) + escapar(crudo) + '\n';
+  S.hist += promptHtml(S.ruta) + escapar(crudo) + '\n';
   if (t === 'clear') S.hist = '';
   else if (t){
     if (paso.ok(t)){

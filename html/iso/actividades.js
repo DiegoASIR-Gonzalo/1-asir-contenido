@@ -143,7 +143,7 @@ ACTIVIDADES.push(
     ]},
 
   { id:"ficheros-lote", grupo:"Ficheros y carpetas", titulo:"Ficheros en lote", resumen:"Expansión de llaves",
-    enunciado:'<p>Necesitas diez ficheros de prueba, <code>fich-1.txt</code> … <code>fich-10.txt</code>, dentro de la carpeta <code>Prueba</code>. Hacerlo uno a uno sería eterno: usa las llaves.</p>',
+    enunciado:'<p>Necesitas diez ficheros de prueba, <code>fich-1.txt</code> a <code>fich-10.txt</code>, dentro de la carpeta <code>Prueba</code>. Hacerlo uno a uno sería eterno: usa las llaves.</p>',
     final:'Las llaves <code>{1..10}</code> se expanden antes de ejecutar el comando, así que <code>touch</code> recibe los diez nombres.',
     pasos:[
       { tarea:'Entra en la carpeta <code>Prueba</code>',
@@ -187,39 +187,40 @@ ACTIVIDADES.push(
     ]},
   
   // ---------- Subapartado: Ejercicios de Rafa ----------
-  { id:"ejercicio1", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 1/2 Básico", resumen:"Listar carpetas",
+  { id:"ejercicio1", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 1 Básico", resumen:"Listar carpetas",
     enunciado:'<p>Listar todos los archivos del directorio <code>bin</code>.</p>',
     final:'¡Bien hecho!',
-    solucion:['Podemos siempre consultar carpetas de diferentes formas, ya dependera de como nos lo pida el profesor (ya sea con <code>ls</code> o <code>tree</code>)'],
+    solucion:['Siempre podemos listar carpetas de varias formas; depende de cómo lo pida el profesor (con <code>ls</code> o <code>tree</code>).'],
     pasos:[
       { tarea:'Lista el directorio <code>bin</code> de las formas que conozcas.',
         ok:['ls /bin', 'ls /bin/', 'tree /bin', 'tree /bin/'], out:'',
         pista:['Recuerda que hay muchos comandos para poder listar directorios.', 'Uno de ellos empieza por la l...', 'Siempre podremos listarlo de 2 o 3 formas.'],
-        explica:['Si pusiste <code>ls</code> lo has hecho bien, y si pusiste <code>tree</code> tambien, el proposito iba a ser si o si listar el contenido'] },
+        explica:['Si usaste <code>ls</code> o <code>tree</code>, el objetivo era listar el contenido: ambas respuestas son válidas.'] },
       { tarea:'Lista el directorio <code>tmp</code> de las formas que conozcas.',
         ok:['ls /tmp', 'ls /tmp/', 'tree /tmp', 'tree /tmp/'], out:'',
         pista:'Recuerda que hay muchos comandos para poder listar directorios.' }
     ]},
 
-  { id:"ejercicio3", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 3 Básico", resumen:"Listados complejos",
-    enunciado:'<p>Listar todos los archivos del directorio <code>etc</code> que empiecen por t en orden  inverso.</p>',
+  { id:"ejercicio3", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 2 Básico", resumen:"Listados complejos",
+    enunciado:'<p>Listar todos los archivos del directorio <code>etc</code> que empiecen por t en orden inverso.</p>',
     final:'¡Bien hecho!',
     pasos:[
       { tarea:'Lista el directorio <code>etc</code> de las formas que conozcas. Pero respetando el orden dictado.',
-        ok:['ls -r /etc/t*', 'ls -r etc/t*'], out:'Listado de archivos...',
-        pista:['Para ordenarlo por t tendríamos que poner al final t *', 'Si no sabes como ordenarlo inversamente, usa -r'] }
+        ok:['ls -r /etc/t*'], out:'timezone  terminfo  tmpfiles.d  ...',
+        pista:['Para filtrar por la letra t, añade t* al final de la ruta.', 'Si no sabes cómo ordenarlo al revés, usa -r.'],
+        explica:['<code>ls -r</code> invierte el orden de la lista; <code>ls -R</code> (con mayúscula) es otra cosa: recorre también las subcarpetas.'] }
     ]},
 
-  { id:"ejercicio4", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 4 Básico", resumen:"Listar especial 2",
+  { id:"ejercicio4", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 3 Básico", resumen:"Comodines con ? y []",
     enunciado:'<p>Listar todos los archivos del directorio <code>dev</code> que empiecen por tty y tengan 5 caracteres.</p>',
     final:'¡Bien hecho!',
     pasos:[
       { tarea:'Lista el directorio <code>dev</code> de las formas que conozcas. Pero empezando por tty y que tengan 5 caracteres.',
         ok:['ls /dev/tty??'], out:'',
-        pista:'Para listarlo por los que empiezan por <code>tty</code> tendríamos que ponerlo al final del comando.' },
-	  { tarea:'Lista el directorio <code>dev</code> de las formas que conozcas. Pero que empiecen por tty y acaben en 1,2,3 o 4.',
+        pista:'Para listar los que empiezan por tty y tienen 5 caracteres, usa dos comodines ? al final.' },
+	  { tarea:'Lista el directorio <code>dev</code> de las formas que conozcas. Pero que empiecen por tty y acaben en 1, 2, 3 o 4.',
         ok:['ls /dev/tty[1-4]'], out:'',
-        pista:'Para listarlo por los que empiezan por <code>tty</code> tendríamos que ponerlo al final del comando.' }
+        pista:'Para listar los que empiezan por tty y acaban en un dígito del 1 al 4, usa un rango entre corchetes.' }
 		
     ]}
   

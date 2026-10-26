@@ -4,13 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Escritorio Linux · Guía de comandos</title>
+<meta name="description" content="Terminal Linux interactiva para 1.º de ASIR: comandos, ejemplos y actividades autoevaluables.">
+<meta name="theme-color" content="#300a24">
 <style>
   /* ============ COLORES (cámbialos aquí) ============ */
   :root{
     --escritorio-1:#2c001e; --escritorio-2:#5e2750;   /* fondo del escritorio */
     --barra:#1a1a1a;                                  /* barra superior */
     --ventana:#2e2c33; --lateral:#38353f;             /* marco de la ventana y panel lateral */
-    --acento:#e95420;                                 /* elemento activo */
+    --acento:#c34113;                                 /* elemento activo (oscurecido: blanco encima = 5,1:1) */
     --term:#300a24; --term-txt:#eeeeec;               /* terminal */
     --usuario:#8ae234; --ruta:#729fcf; --carpeta:#729fcf; --exec:#8ae234; --marca:#fce94f;
     --kw:#ad7fa8; --str:#e9b96e; --com:#888a85;       /* resaltado de código (.bashrc) */
@@ -22,20 +24,31 @@
     /* 1.ª capa: imagen de fondo (variable --fondo-img, la rellena el script); 2.ª capa: degradado de respaldo */
     background:var(--fondo-img,none) center/cover no-repeat fixed,linear-gradient(135deg,var(--escritorio-1),var(--escritorio-2)) fixed;
     display:flex;flex-direction:column}
-  /* Lienzo de los fondos animados: fijo, detrás de todo y sin capturar clics */
-  #fondo-anim{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
+  /* Lienzo de los fondos animados: fijo, encima del degradado y debajo de la interfaz */
+  #fondo-anim{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
   #fondo-anim[hidden]{display:none}
   :focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+  /* Contenido solo para lectores de pantalla */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+  /* Aviso flotante (fondo cambiado, progreso borrado, imagen no guardada…) */
+  .aviso{position:fixed;left:50%;bottom:22px;z-index:40;transform:translate(-50%,10px);max-width:calc(100% - 32px);
+    background:#241f31;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:9px 18px;font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+  .aviso.visible{opacity:1;transform:translate(-50%,0)}
+  .sinjs{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;background:#300a24;color:#fff;text-align:center}
 
   /* Barra superior tipo GNOME */
-  .barra{background:var(--barra);height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:13px}
+  .barra{background:var(--barra);height:30px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;font-size:13px;position:relative;z-index:2}
+  .barra #reloj{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .barra-btn{flex:none}
   .barra b{font-weight:500}
 
   /* Ventana */
   .ventana{flex:1;min-height:0;margin:18px auto;width:min(1100px,calc(100% - 24px));display:flex;flex-direction:column;
     background:var(--ventana);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55)}
   .titulo{height:42px;display:flex;align-items:center;justify-content:center;position:relative;font-weight:700;font-size:14px}
-  .titulo i{position:absolute;right:14px;width:22px;height:22px;border-radius:50%;background:#4a4752;font-style:normal;text-align:center;line-height:22px;font-size:12px}
+  .titulo .min{position:absolute;right:12px;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font:inherit;font-size:16px;line-height:24px;text-align:center;cursor:pointer}
+  .titulo .min:hover{background:var(--acento)}
   .cuerpo{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
 
   /* Panel lateral */
@@ -89,13 +102,26 @@
 
   @media (max-width:720px){
     .cuerpo{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-    .lateral{max-height:34vh}
+    .lateral{max-height:32vh}
+    .terminal{min-height:0}   /* en móvil apaisado no debe empujar la explicación fuera de la ventana */
+  }
+  /* En pantallas táctiles los tiradores de redimensión necesitan más superficie */
+  @media (pointer:coarse){
+    .res.n,.res.s{height:14px}
+    .res.n{top:-7px}.res.s{bottom:-7px}
+    .res.e,.res.w{width:14px}
+    .res.e{right:-7px}.res.w{left:-7px}
+    .res.ne,.res.nw,.res.se,.res.sw{width:22px;height:22px}
+    .res.ne{top:-6px;right:-6px}.res.nw{top:-6px;left:-6px}
+    .res.se{bottom:-6px;right:-6px}.res.sw{bottom:-6px;left:-6px}
   }
   /* Transición suave solo en el panel lateral (resaltado del comando activo) */
   .item{transition:background .2s ease}
 
   /* Botón cuadriculado y panel de personalización */
-  .ventana{position:relative}
+  .ventana{position:relative;z-index:1;transition:opacity .25s ease,transform .25s ease}
+  /* "Ver el escritorio": la ventana desaparece y deja ver el fondo de pantalla */
+  .ventana.minimizada{opacity:0;transform:scale(.97);pointer-events:none}
   .ajustes-btn{position:absolute;left:10px;top:6px;width:30px;height:30px;display:grid;place-items:center;background:#4a4752;color:#fff;border:0;border-radius:8px;cursor:pointer}
   .ajustes-btn:hover,.ajustes-btn[aria-expanded="true"]{background:var(--acento)}
   .ajustes{position:absolute;left:10px;top:46px;z-index:5;width:min(290px,calc(100% - 20px));max-height:calc(100% - 56px);overflow:auto;
@@ -145,21 +171,22 @@
 
   /* ===== Ventana de actividad: enunciado + terminal (misma terminal que la principal) ===== */
   /* La ventana flota sobre el escritorio (sin fondo oscuro): la posición y el tamaño los pone el script */
-  .act-fondo{position:fixed;inset:0;z-index:30;pointer-events:none}
+  .act-fondo{position:fixed;inset:0;z-index:30;pointer-events:auto}
   .act-fondo[hidden],.entrada[hidden]{display:none}
   .act-ventana{position:absolute;pointer-events:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);
     opacity:0;transform:scale(.97);transition:opacity .22s ease,transform .22s ease}
-  /* Velo que oscurece el escritorio (solo visual: no bloquea los clics). Aparece y desaparece con suavidad */
+  /* Velo que oscurece el escritorio. La capa .act-fondo captura los clics: mientras el
+     diálogo está abierto, no se puede pulsar nada de la página que hay detrás. */
   .act-velo{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .28s ease}
   .act-fondo.visible .act-velo{opacity:1}
   .act-fondo.visible .act-ventana{opacity:1;transform:none}
   .act-ventana.maximizada,.act-ventana.maximizada .act-int{border-radius:0}
   .act-int{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:var(--ventana)}
   .act-ventana .titulo{flex:none;user-select:none;touch-action:none;cursor:default}
-  .act-ventana .titulo span{min-width:0;max-width:100%;padding:0 84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .act-cerrar,.act-max{position:absolute;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font-size:12px;line-height:22px;text-align:center;cursor:pointer}
-  .act-cerrar{right:14px}
-  .act-max{right:42px}
+  .act-ventana .titulo span{min-width:0;max-width:100%;padding:0 96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-cerrar,.act-max{position:absolute;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font-size:12px;line-height:26px;text-align:center;cursor:pointer}
+  .act-cerrar{right:12px}
+  .act-max{right:44px}
   .act-cerrar:hover,.act-max:hover{background:var(--acento)}
   /* Tiradores para cambiar el tamaño: bordes y esquinas, justo por fuera del borde de la ventana */
   .res{position:absolute;z-index:3;touch-action:none}
@@ -206,17 +233,20 @@
   .entrada input{flex:1;min-width:0;font:inherit;color:inherit;background:none;border:0;padding:0;caret-color:var(--term-txt)}
   .entrada input:focus-visible{outline:none}
 
-  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}}
+  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}.aviso,.ventana{transition:none}}
 </style>
 </head>
 <body>
+<noscript><p class="sinjs">Esta guía necesita JavaScript para mostrar la terminal y las actividades. Actívalo y recarga la página.</p></noscript>
 <canvas id="fondo-anim" aria-hidden="true" hidden></canvas>
 
-<div class="barra">
+<header class="barra">
+  <h1 class="sr-only">Terminal Linux: guía de comandos de 1.º ASIR</h1>
   <!-- Botón "Actividades": abre/cierra el panel lateral con las actividades -->
   <button class="barra-btn" id="btn-act" type="button" aria-expanded="false" aria-controls="panel-act">Actividades</button>
+  <button class="barra-btn" id="btn-restaurar" type="button" hidden>Mostrar ventana</button>
   <span id="reloj"></span><span>ES ⏻</span>
-</div>
+</header>
 
 <main class="ventana">
   <div class="titulo">
@@ -228,7 +258,8 @@
         <rect x="1" y="11" width="4" height="4" rx="1"/><rect x="6" y="11" width="4" height="4" rx="1"/><rect x="11" y="11" width="4" height="4" rx="1"/>
       </svg>
     </button>
-    <span id="titulo-ventana">Terminal</span><i aria-hidden="true">✕</i>
+    <span id="titulo-ventana">Terminal</span>
+    <button class="min" id="btn-min" type="button" aria-label="Minimizar la ventana y ver el escritorio" title="Ver el escritorio">–</button>
   </div>
 
   <!-- Panel de personalización (los colores se generan desde AJUSTES_COLORES en el script) -->
@@ -258,7 +289,7 @@
 
     <section class="principal">
       <div class="terminal">
-        <div class="pantalla" id="pantalla" aria-live="polite"></div>
+        <div class="pantalla" id="pantalla"></div>
         <div class="pie">
           <button id="ant">◀ Anterior</button>
           <span class="contador" id="contador"></span>
@@ -285,7 +316,7 @@
      (los tiradores .res los crea el script). -->
 <div class="act-fondo" id="act-fondo" hidden>
   <div class="act-velo" aria-hidden="true"></div>
-  <section class="act-ventana" id="act-ventana" role="dialog" aria-labelledby="act-titulo">
+  <section class="act-ventana" id="act-ventana" role="dialog" aria-modal="true" aria-labelledby="act-titulo">
     <div class="act-int">
       <div class="titulo" id="act-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño">
         <span id="act-titulo"></span>
@@ -296,7 +327,7 @@
         <article class="enunciado" id="act-enunciado"></article>
         <div class="terminal act-term">
           <div class="pantalla" id="act-pantalla">
-            <span id="act-hist" aria-live="polite"></span>
+            <span id="act-hist"></span>
             <div class="entrada" id="act-linea">
               <span id="act-prompt"></span>
               <input id="act-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando">
@@ -313,6 +344,10 @@
   </section>
 </div>
 
+<!-- Avisos flotantes y anuncios para lectores de pantalla -->
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+<p class="sr-only" id="anuncio" role="status"></p>
+
 <!-- Comandos y ejemplos del panel lateral (ver instrucciones dentro del archivo). Debe ir ANTES del script principal. -->
 <script src="ejemplos.js"></script>
 
@@ -321,7 +356,7 @@
 <script src="actividades.js"></script>
 
 <script>
-/* Los comandos y ejemplos (GRUPOS, prompt, FONDO_IMAGEN, FONDO_ANIMADO) están en ejemplos.js */
+/* Los comandos y ejemplos (GRUPOS, promptHtml, FONDO_IMAGEN, FONDO_ANIMADO) están en ejemplos.js */
 
 /* =====================================================================
    ACTIVIDADES (botón "Actividades" de la barra superior)
@@ -340,12 +375,24 @@ const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const espera = ms => new Promise(r => setTimeout(r, ms));
 let g = 0, c = 0, s = 0, turno = 0;
 
+// Aviso flotante: confirma cambios de fondo, progreso borrado, etc.
+let tAviso = 0;
+function avisar(texto){
+  const caja = $('aviso'); if (!caja) return;
+  caja.textContent = texto; caja.classList.add('visible');
+  clearTimeout(tAviso); tAviso = setTimeout(() => caja.classList.remove('visible'), 2800);
+}
+
+// Los datos vienen de ejemplos.js. Si no está o falla, se avisa en pantalla en vez de dejar la página vacía.
+const grupos = typeof GRUPOS !== 'undefined' && Array.isArray(GRUPOS) ? GRUPOS : [];
+const FONDO_POR_DEFECTO = typeof FONDO_IMAGEN === 'string' ? FONDO_IMAGEN : '';
+
 // Construye el panel lateral
 const PLEGAR_GRUPOS_LATERAL = true;   // true = los subapartados empiezan ocultos · false = todos desplegados
 const estadoLat = new Map();          // título del subapartado → ¿desplegado? (se recuerda aunque se busque y se borre la búsqueda)
 const bloquesLat = [];                // para el buscador: { gr, det, items: [{ b, texto }] }
 const normLat = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();   // buscar sin distinguir tildes ni mayúsculas
-GRUPOS.forEach((gr, gi) => {
+grupos.forEach((gr, gi) => {
   const det = document.createElement('details'); det.open = !PLEGAR_GRUPOS_LATERAL;
   det.innerHTML = '<summary></summary><div class="items"></div>';
   const resumen = det.firstChild, caja = det.lastChild, items = [];
@@ -399,15 +446,24 @@ function alternarGrupo(det, caja){
   }
 }
 
-function abrir(gi, ci){ g = gi; c = ci; s = 0; pintar(); }
+function abrir(gi, ci){ if (!grupos[gi]) return; g = gi; c = ci; s = 0; pintar(); }
 function ir(d){
-  const n = GRUPOS[g].comandos[c].diapositivas.length;
+  if (!grupos.length) return;
+  const n = grupos[g].comandos[c].diapositivas.length;
   s = Math.min(n - 1, Math.max(0, s + d)); pintar();
 }
 
 async function pintar(){
-  const cm = GRUPOS[g].comandos[c], dia = cm.diapositivas[s], mio = ++turno;
-  document.querySelectorAll('.item').forEach(b => b.classList.toggle('activo', +b.dataset.g === g && +b.dataset.c === c));
+  if (!grupos.length) return;
+  const cm = grupos[g].comandos[c], dia = cm.diapositivas[s], mio = ++turno;
+  let activo = null;
+  document.querySelectorAll('.item').forEach(b => {
+    const esActivo = +b.dataset.g === g && +b.dataset.c === c;
+    b.classList.toggle('activo', esActivo);
+    if (esActivo){ b.setAttribute('aria-current', 'true'); activo = b; }
+    else b.removeAttribute('aria-current');
+  });
+  if (activo) activo.scrollIntoView({ block: 'nearest' });
   $('titulo-ventana').textContent = 'usuario@linux: ~ — ' + cm.nombre;
   $('contador').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' · ' + (s + 1) + ' / ' + cm.diapositivas.length;
   $('ant').disabled = s === 0; $('sig').disabled = s === cm.diapositivas.length - 1;
@@ -420,18 +476,19 @@ async function pintar(){
   const instantaneo = reducido || ajustes.vel === 0;
   const p = $('pantalla'); let hecho = '', ruta = '~';
   for (const paso of pasos){
-    p.innerHTML = hecho + prompt(ruta) + '<span id="tec"></span><span class="cursor"></span>';
+    p.innerHTML = hecho + promptHtml(ruta) + '<span id="tec"></span><span class="cursor"></span>';
     const tec = $('tec');
     if (instantaneo) tec.textContent = paso.cmd;
     else for (const ch of paso.cmd){ if (mio !== turno) return; tec.textContent += ch; await espera(ajustes.vel); }
-    hecho += prompt(ruta) + esc(paso.cmd) + '\n' + (paso.out ? paso.out + '\n' : '');
+    hecho += promptHtml(ruta) + esc(paso.cmd) + '\n' + (paso.out ? paso.out + '\n' : '');
     if (paso.ruta) ruta = paso.ruta;
     p.innerHTML = hecho; p.scrollTop = p.scrollHeight;
     if (!instantaneo){ await espera(350); } // pausa entre comandos de la cadena
     if (mio !== turno) return;
   }
-  p.innerHTML = hecho + prompt(ruta) + '<span class="cursor"></span>';
+  p.innerHTML = hecho + promptHtml(ruta) + '<span class="cursor"></span>';
   p.scrollTop = p.scrollHeight;
+  if (mio === turno) $('anuncio').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' de ' + cm.nombre + ', diapositiva ' + (s + 1) + ' de ' + cm.diapositivas.length + '.';
 }
 
 $('ant').onclick = () => ir(-1);
@@ -466,25 +523,34 @@ const VEL_DEFECTO = 24; // milisegundos por letra
 const ajustes = { colores:{...TEMAS.Ubuntu}, vel:VEL_DEFECTO, fondo:'', animado:'' };
 const fondoAnimado = () => ajustes.animado === 'ninguno' ? '' : (ajustes.animado || (typeof FONDO_ANIMADO === 'string' ? FONDO_ANIMADO : ''));
 
-// Recupera lo guardado (si el navegador lo permite)
+// Recupera lo guardado (si el navegador lo permite) validando los datos para que uno corrupto no rompa la página
 try {
-  const guardado = JSON.parse(localStorage.getItem('ajustes-terminal'));
-  if (guardado){ Object.assign(ajustes.colores, guardado.colores); ajustes.vel = guardado.vel ?? VEL_DEFECTO; }
+  const guardado = JSON.parse(localStorage.getItem('ajustes-terminal')) || {};
+  const claves = AJUSTES_COLORES.map(o => o.v);
+  const esColor = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
+  if (guardado.colores && typeof guardado.colores === 'object')
+    for (const k of claves) if (esColor(guardado.colores[k])) ajustes.colores[k] = guardado.colores[k];
+  const vel = Number(guardado.vel);
+  if (Number.isFinite(vel)) ajustes.vel = Math.max(0, Math.min(120, Math.round(vel)));
   ajustes.fondo = localStorage.getItem('fondo-terminal') || '';
   ajustes.animado = localStorage.getItem('fondo-animado') || '';
 } catch (e) {}
-// La imagen se guarda aparte: si no cupiera, los colores y la velocidad se conservan igualmente
+// La imagen se guarda aparte: si no cupiera, los colores y la velocidad se conservan igualmente.
+// Devuelve false si el navegador no pudo guardar (por ejemplo, cuota llena).
 const guardar = () => {
-  try { localStorage.setItem('ajustes-terminal', JSON.stringify({ colores: ajustes.colores, vel: ajustes.vel })); } catch (e) {}
-  try { if (ajustes.fondo) localStorage.setItem('fondo-terminal', ajustes.fondo); else localStorage.removeItem('fondo-terminal'); } catch (e) {}
-  try { if (ajustes.animado) localStorage.setItem('fondo-animado', ajustes.animado); else localStorage.removeItem('fondo-animado'); } catch (e) {}
+  let ok = true;
+  try { localStorage.setItem('ajustes-terminal', JSON.stringify({ colores: ajustes.colores, vel: ajustes.vel })); } catch (e) { ok = false; }
+  try { if (ajustes.fondo) localStorage.setItem('fondo-terminal', ajustes.fondo); else localStorage.removeItem('fondo-terminal'); } catch (e) { ok = false; }
+  try { if (ajustes.animado) localStorage.setItem('fondo-animado', ajustes.animado); else localStorage.removeItem('fondo-animado'); } catch (e) { ok = false; }
+  return ok;
 };
 
 // Aplica los ajustes a la página y sincroniza los controles
 function aplicar(){
+  if (ajustes.animado && ajustes.animado !== 'ninguno' && !FONDOS_ANIMADOS[ajustes.animado]) ajustes.animado = '';
   for (const k in ajustes.colores) document.documentElement.style.setProperty(k, ajustes.colores[k]);
-  const imagen = ajustes.fondo === 'ninguna' ? '' : (ajustes.fondo || FONDO_IMAGEN);
-  document.documentElement.style.setProperty('--fondo-img', imagen ? 'url("' + imagen + '")' : 'none');
+  const imagen = ajustes.fondo === 'ninguna' ? '' : (ajustes.fondo || FONDO_POR_DEFECTO);
+  document.documentElement.style.setProperty('--fondo-img', imagen ? 'url("' + imagen.replace(/"/g, '%22') + '")' : 'none');
   const anim = FONDOS_ANIMADOS[fondoAnimado()] ? fondoAnimado() : '';
   if (anim !== fondoClave || (anim && lienzoFondo.hidden)) iniciarFondo(anim);
   $('fondo-anim-sel').value = anim || 'ninguno';
@@ -514,7 +580,11 @@ $('tema').onchange = () => {
 $('vel').oninput = () => { ajustes.vel = +$('vel').value; aplicar(); };
 $('vel').onchange = () => { guardar(); pintar(); };
 
-$('restablecer').onclick = () => { ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; ajustes.animado = ''; aplicar(); guardar(); pintar(); };
+$('restablecer').onclick = () => {
+  if (!confirm('¿Restablecer los colores, la velocidad, el fondo de pantalla y la animación?')) return;
+  ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; ajustes.animado = '';
+  aplicar(); guardar(); pintar(); avisar('Ajustes restablecidos');
+};
 
 // Abrir y cerrar el panel (botón, clic fuera o Escape)
 const btnAjustes = $('btn-ajustes'), panel = $('panel-ajustes');
@@ -523,23 +593,47 @@ btnAjustes.onclick = () => alternar(panel.hidden);
 addEventListener('keydown', e => { if (e.key === 'Escape') alternar(false); });
 addEventListener('click', e => { if (!panel.hidden && !panel.contains(e.target) && !btnAjustes.contains(e.target)) alternar(false); });
 
-// Fondo de pantalla: se reduce a 1920 px como máximo para que ocupe poco y se pueda guardar
+// "Ver el escritorio": oculta la ventana principal para poder ver el fondo de pantalla elegido.
+const ventanaPrincipal = document.querySelector('.ventana');
+function verEscritorio(si){
+  ventanaPrincipal.classList.toggle('minimizada', si);
+  ventanaPrincipal.inert = si;
+  $('btn-restaurar').hidden = !si;
+  if (si) $('btn-restaurar').focus(); else $('btn-min').focus();
+}
+$('btn-min').onclick = () => verEscritorio(true);
+$('btn-restaurar').onclick = () => verEscritorio(false);
+
+// Fondo de pantalla: se reduce a 1280 px como máximo para que ocupe poco y quepa en localStorage
 function cargarImagen(archivo){
   const img = new Image(), url = URL.createObjectURL(archivo);
   img.onload = () => {
-    const k = Math.min(1, 1920 / Math.max(img.width, img.height));
-    const lienzo = document.createElement('canvas');
-    lienzo.width = Math.round(img.width * k); lienzo.height = Math.round(img.height * k);
-    lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
-    ajustes.fondo = lienzo.toDataURL('image/jpeg', .85);
-    ajustes.animado = 'ninguno';   // al elegir una imagen se quita la animación para que se vea
-    URL.revokeObjectURL(url); aplicar(); guardar();
+    try {
+      const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+      const lienzo = document.createElement('canvas');
+      lienzo.width = Math.round(img.width * k); lienzo.height = Math.round(img.height * k);
+      lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
+      ajustes.fondo = lienzo.toDataURL('image/jpeg', .8);
+      ajustes.animado = 'ninguno';   // al elegir una imagen se quita la animación para que se vea
+      aplicar();
+      const guardada = guardar();
+      avisar(guardada ? 'Imagen de fondo aplicada' : 'Imagen aplicada, pero el navegador no pudo guardarla');
+      if (!guardada) console.warn('Fondo: no se pudo guardar la imagen (cuota de localStorage llena).');
+    } catch (e) {
+      avisar('No se pudo procesar la imagen');
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   };
+  img.onerror = () => { URL.revokeObjectURL(url); avisar('No se pudo leer la imagen'); };
   img.src = url;
 }
 $('fondo-elegir').onclick = () => $('fondo-archivo').click();
 $('fondo-archivo').onchange = e => { const f = e.target.files[0]; if (f) cargarImagen(f); e.target.value = ''; };
-$('fondo-quitar').onclick = () => { ajustes.fondo = 'ninguna'; ajustes.animado = 'ninguno'; aplicar(); guardar(); };
+$('fondo-quitar').onclick = () => {
+  ajustes.fondo = 'ninguna'; ajustes.animado = 'ninguno'; aplicar(); guardar();
+  avisar('Fondo de pantalla restablecido');
+};
 
 /* =====================================================================
    FONDOS ANIMADOS (panel de personalización › "Animado")
@@ -882,7 +976,12 @@ addEventListener('resize', () => { clearTimeout(esperaTamano); esperaTamano = se
 // Selector "Animado" del panel
 $('fondo-anim-sel').innerHTML = '<option value="ninguno">Sin animación</option>' +
   Object.entries(FONDOS_ANIMADOS).map(([clave, f]) => `<option value="${clave}">${f.nombre}</option>`).join('');
-$('fondo-anim-sel').onchange = () => { ajustes.animado = $('fondo-anim-sel').value; aplicar(); guardar(); };
+$('fondo-anim-sel').onchange = () => {
+  ajustes.animado = $('fondo-anim-sel').value;
+  aplicar(); guardar();
+  const fondo = FONDOS_ANIMADOS[ajustes.animado];
+  avisar(fondo ? 'Fondo animado: ' + fondo.nombre : 'Animación desactivada');
+};
 
 /* =====================================================================
    ACTIVIDADES · CÓMO FUNCIONA EL SCRIPT (para quien lo mantenga)
@@ -926,11 +1025,11 @@ const idsVistos = new Set();
 const DATOS_ACT = (window.ACTIVIDADES || []).filter((a, i) => {
   const nombre = '«' + ((a && (a.titulo || a.id)) || 'actividad nº ' + (i + 1)) + '»';
   if (!a || !a.id){ console.warn('Actividades: ' + nombre + ' no tiene "id" y se ignora.'); return false; }
-  if (idsVistos.has(a.id)) console.warn('Actividades: el id "' + a.id + '" está repetido (' + nombre + '). Cada actividad necesita un id único.');
-  idsVistos.add(a.id);
+  if (idsVistos.has(a.id)){ console.warn('Actividades: el id "' + a.id + '" está repetido (' + nombre + ') y se ignora. Cada actividad necesita un id único.'); return false; }
   if (!Array.isArray(a.pasos) || !a.pasos.length){ console.warn('Actividades: ' + nombre + ' no tiene "pasos" y se ignora.'); return false; }
   const mal = a.pasos.findIndex(p => !p || !Array.isArray(p.ok) || !p.ok.length);
   if (mal >= 0){ console.warn('Actividades: en ' + nombre + ' el paso ' + (mal + 1) + ' no tiene la lista "ok" y la actividad se ignora.'); return false; }
+  idsVistos.add(a.id);   // solo cuenta si la actividad es válida
   return true;
 });
 
@@ -943,12 +1042,16 @@ DATOS_ACT.forEach(a => {
   gr.items.push(a);
 });
 const ORDEN_ACT = GRUPOS_ACT.flatMap(gr => gr.items);
+const INDICE_ACT = new Map(ORDEN_ACT.map((a, i) => [a, i]));   // id/objeto → posición, para no recorrer la lista en cada elemento
 const escapar = t => Object.assign(document.createElement('div'), { textContent: t }).innerHTML;
 const normalizar = t => t.trim().replace(/\s+/g, ' ');
 
 // Actividades completadas (se recuerdan si el navegador lo permite)
 let hechas = [];
-try { hechas = JSON.parse(localStorage.getItem('actividades-hechas')) || []; } catch (e) {}
+try {
+  const guardado = JSON.parse(localStorage.getItem('actividades-hechas'));
+  if (Array.isArray(guardado)) hechas = guardado.filter(x => typeof x === 'string');
+} catch (e) { hechas = []; }
 const guardarHechas = () => { try { localStorage.setItem('actividades-hechas', JSON.stringify(hechas)); } catch (e) {} };
 
 // ESTADO de la actividad abierta (pintarAct() dibuja la pantalla a partir de estas variables)
@@ -992,7 +1095,7 @@ function construirLista(){
       if (!q) estadoGrupos.set(gr.titulo, abriendo);   // mientras se busca no se guarda: ese desplegado es temporal
     };
     items.forEach(a => {
-      const i = ORDEN_ACT.indexOf(a), ok = hechas.includes(a.id), b = document.createElement('button');
+      const i = INDICE_ACT.get(a), ok = hechas.includes(a.id), b = document.createElement('button');
       b.type = 'button'; b.className = 'act-item' + (ok ? ' hecha' : '');
       b.innerHTML = '<span class="act-num"></span><span class="act-txt"><b></b><small></small></span>';
       b.children[0].textContent = ok ? '✓' : i + 1;     // número global (posición en ORDEN_ACT) o ✓ si está completada
@@ -1016,6 +1119,12 @@ function alternarAct(abierto){
   else if (panelAct.contains(document.activeElement)) btnAct.focus();
 }
 
+// Mientras el diálogo está abierto, el resto de la página no recibe clics ni foco
+// (los avisos y los anuncios se quedan fuera: inert los ocultaría a los lectores de pantalla)
+const capaFondo = [...document.body.children].filter(el =>
+  el.id !== 'act-fondo' && el.id !== 'anuncio' && el.id !== 'aviso' && el.tagName !== 'SCRIPT' && el.tagName !== 'NOSCRIPT');
+function bloquearFondo(si){ capaFondo.forEach(el => { el.inert = si; }); }
+
 // Abre la actividad nº i de ORDEN_ACT: pone el título, cierra el panel, coloca la ventana y la muestra con fundido.
 // Si ya había una abierta (botón "Siguiente ▶") se limita a cambiar el contenido: el velo no se repite.
 function abrirAct(i){
@@ -1025,6 +1134,7 @@ function abrirAct(i){
   if (!geo) geo = geometriaInicial();   // la primera vez se centra; después conserva donde la dejó la persona
   clearTimeout(cierreAct);              // por si se reabre mientras todavía se está desvaneciendo
   fondoAct.hidden = false;
+  bloquearFondo(true);
   colocar();
   void fondoAct.offsetWidth;            // fuerza el primer dibujado para que el fundido de entrada se anime
   fondoAct.classList.add('visible');
@@ -1034,6 +1144,7 @@ let cierreAct = 0;
 // Cierra la ventana: quita la clase "visible" (el CSS hace el fundido) y oculta el contenedor al terminar la transición.
 function cerrarAct(){
   fondoAct.classList.remove('visible'); // el velo y la ventana se desvanecen y, al terminar, se oculta el contenedor
+  bloquearFondo(false);
   cierreAct = setTimeout(() => { fondoAct.hidden = true; }, reducido ? 0 : 300);
   btnAct.focus();
 }
@@ -1096,6 +1207,18 @@ ventAct.addEventListener('pointermove', e => {
 barraAct.addEventListener('dblclick', e => { if (!e.target.closest('button')) alternarMax(); });
 $('act-max').onclick = alternarMax;
 
+// Foco atrapado dentro de la ventana mientras el diálogo está abierto
+ventAct.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const foco = [...ventAct.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+  if (!foco.length) return;
+  const primero = foco[0], ultimo = foco[foco.length - 1];
+  if (!ventAct.contains(document.activeElement)){ e.preventDefault(); primero.focus(); return; }
+  if (e.shiftKey && document.activeElement === primero){ e.preventDefault(); ultimo.focus(); }
+  else if (!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primero.focus(); }
+});
+
 // Teclado: con la barra de título enfocada, flechas = mover y Mayús + flechas = redimensionar
 barraAct.addEventListener('keydown', e => {
   if (e.target !== barraAct || maxim) return;
@@ -1126,8 +1249,9 @@ function pintarAct(){
     (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + unir(act.final) + '</p>' + solucionHtml(act) : '');
   histoAct.innerHTML = histAct;
   $('act-linea').hidden = hechaAct;
-  $('act-prompt').innerHTML = prompt(rutaAct);
+  $('act-prompt').innerHTML = promptHtml(rutaAct);
   $('act-contador').textContent = hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total;
+  $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
   pantAct.scrollTop = pantAct.scrollHeight;
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
@@ -1153,7 +1277,11 @@ function pistaHtml(paso){
   pistaIdx = Math.min(pistaIdx + 1, l.length);
   return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
 }
-const aceptado = (paso, t) => paso.ok.some(o => o instanceof RegExp ? o.test(t) : o === t);
+const aceptado = (paso, t) => paso.ok.some(o => {
+  if (!(o instanceof RegExp)) return o === t;
+  o.lastIndex = 0;            // evita fallos si la expresión regular lleva el flag "g"
+  return o.test(t);
+});
 
 // Enter: valida el comando escrito contra el paso actual
 // Se ejecuta al pulsar Enter en la terminal de la actividad: valida el comando y actualiza el estado.
@@ -1161,7 +1289,7 @@ function enviarAct(){
   if (hechaAct) return;
   const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
   entradaAct.value = '';
-  histAct += prompt(rutaAct) + escapar(crudo) + '\n';
+  histAct += promptHtml(rutaAct) + escapar(crudo) + '\n';
   if (t){ mem.push(crudo.trim()); memI = mem.length; }
   if (!t){ /* línea vacía: solo avanza el prompt */ }
   else if (t === 'clear'){ histAct = ''; }
@@ -1183,6 +1311,9 @@ function enviarAct(){
       : 'bash: ' + escapar(primera) + ': orden no encontrada\n';
     if (fallosAct >= 2){ histAct += pistaHtml(paso); fallosAct = 0; }
   }
+  // La terminal de la actividad no crece sin límite durante una sesión larga
+  const lineas = histAct.split('\n');
+  if (lineas.length > 240) histAct = lineas.slice(-240).join('\n');
   pintarAct();
 }
 
@@ -1202,19 +1333,30 @@ $('act-cerrar').onclick = cerrarAct;
 
 // Botón de la barra, borrar progreso, clic fuera y Escape
 btnAct.onclick = () => alternarAct(!panelAct.classList.contains('abierto'));
-$('act-borrar').onclick = () => { hechas = []; guardarHechas(); construirLista(); };
+$('act-borrar').onclick = () => {
+  if (!hechas.length) return;
+  if (!confirm('¿Borrar el progreso de todas las actividades?')) return;
+  hechas = []; guardarHechas(); construirLista(); avisar('Progreso borrado');
+};
 addEventListener('click', e => {
   if (panelAct.classList.contains('abierto') && !panelAct.contains(e.target) && !btnAct.contains(e.target)) alternarAct(false);
 });
 addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!fondoAct.hidden && ventAct.contains(document.activeElement)) cerrarAct(); else alternarAct(false);
+  if (!fondoAct.hidden){ cerrarAct(); return; }
+  if (panelAct.classList.contains('abierto')){ alternarAct(false); return; }
+  if (ventanaPrincipal.classList.contains('minimizada')){ verEscritorio(false); return; }
+  alternar(false);
 });
 
 construirLista();
 
 aplicar();
-abrir(0, 0); // comando que se abre al cargar
+if (grupos.length) abrir(0, 0); // comando que se abre al cargar
+else {
+  $('pantalla').innerHTML = '<span class="c"># No hay comandos cargados. Revisa ejemplos.js.</span>\n';
+  $('explicacion').innerHTML = '<h3>No se han podido cargar los comandos</h3><p>Comprueba que <code>ejemplos.js</code> está en la misma carpeta que este HTML y que no tiene errores de sintaxis.</p>';
+}
 </script>
 
 <!-- DUELO (multijugador con Firebase). Va DESPUÉS del script principal. Configuración y explicación dentro de duelo.js -->
