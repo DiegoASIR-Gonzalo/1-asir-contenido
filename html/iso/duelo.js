@@ -67,6 +67,7 @@
   }
   function entrarSala(id){
     codigo = id; referencia = db.ref('salas/' + id); aviso = '';
+    referencia.child('jugadores/' + uid).onDisconnect().remove();
     referencia.on('value', s => { sala = s.val(); if (!sala) return salirLocal(); renderPanel(); if (sala.jugadores && sala.jugadores[uid]) { if (sala.estado !== 'espera') abrir(); pintarPartida(); } });
   }
   function iniciarSala(){
