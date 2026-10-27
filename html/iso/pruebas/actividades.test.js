@@ -63,6 +63,10 @@ assert(mapa.includes('data-path="/home/usuario/prueba/nota.txt"'), 'el mapa no m
 assert(mapa.includes('data-path="/home/usuario/prueba/acceso"'), 'el mapa no muestra el enlace creado');
 assert(mapa.includes('lrwxrwxrwx') && mapa.includes('mapa-flecha">→</span> ~/prueba/nota.txt'), 'el mapa no muestra correctamente el enlace');
 assert(mapa.includes('actual'), 'el mapa no marca la carpeta actual');
+const resumen = ctx.mapaResumenHtml(mapaPrueba, { meta:{ modo:{ '~/prueba/nota.txt':'600' } } });
+assert(resumen.includes('Ubicación actual') && resumen.includes('Objetivo del paso'), 'el panel no muestra el contexto importante');
+assert(resumen.includes('~/prueba/nota.txt'), 'el resumen no muestra la ruta del objetivo');
+assert(resumen.includes('mapa-completo'), 'el árbol completo debe quedar disponible de forma plegada');
 
 // validarPaso() usa aceptado() en los pasos del formato antiguo (ok / acepta).
 // En el HTML vive después del motor; aquí se replica para poder probarlos.
@@ -118,6 +122,16 @@ ACTIVIDADES.forEach(a => a.pasos.forEach(p => {
   assert(pistas.every(pista => pista.trim() !== (p.ejemplo || '').trim()), 'una pista no debe mostrar el ejemplo completo en ' + a.id);
 }));
 assert(!html.includes('pulsa «Ver solución»'), 'el flujo de fallos no debe dirigir a la solución completa');
+const paso42 = { meta:{ modo:{ '~/prueba/dir2':'555' } }, ejemplo:'chmod a-w prueba/dir2' };
+const estado42 = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir2':{ tipo:'dir', modo:'755' } } } });
+const numerico42 = ctx.validarPaso(paso42, estado42, 'chmod 555 prueba/dir2');
+assert(!numerico42.ok && /simbólica/i.test(numerico42.diagnostico), 'el ejercicio 42 debe explicar que pide notación simbólica');
+const pistas42 = ctx.pistasSeguras(paso42);
+assert(pistas42.some(pista => /simbólica|chmod/i.test(pista)), 'el ejercicio 42 debe dar una pista específica');
+assert(ctx.validarPaso(paso42, estado42, 'chmod a-w prueba/dir2').ok, 'la forma simbólica correcta debe superar el ejercicio 42');
+assert(html.includes("fallosPaso < 3"), 'la solución debe reservarse para quien se atasca');
+assert(html.includes('no se escribe automáticamente'), 'la solución debe explicar sin rellenar la terminal');
+assert(!html.includes('entradaAct.value = ej;'), 'la solución no debe escribir el comando automáticamente');
 
 /* ---------- 2) Utilidades de impresión ---------- */
 let errores = 0, avisos = 0, pasosTotal = 0;

@@ -261,6 +261,17 @@
   .mapa-fila.link .mapa-nombre{color:#c061cb;font-style:italic}
   .mapa-flecha{color:#888a85}
   .mapa-vacio{padding:14px 12px;color:#c0bfbc;font-size:12px;text-align:center}
+  .mapa-contexto{display:grid;gap:8px;padding:6px 4px 10px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  .mapa-tarjeta{padding:9px 10px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.045)}
+  .mapa-etiqueta{display:block;margin-bottom:4px;color:#aaa4b3;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .mapa-valor{color:#fff;font-size:13px;overflow-wrap:anywhere}
+  .mapa-objetivos{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+  .mapa-objetivo{display:flex;align-items:baseline;gap:6px;color:#e9e5ed;font:12px/1.35 "Ubuntu Mono","DejaVu Sans Mono",monospace;overflow-wrap:anywhere}
+  .mapa-objetivo::before{content:"•";color:var(--marca);font-family:system-ui,sans-serif}
+  .mapa-objetivo.no-encontrado{color:#f0b7b7}.mapa-objetivo.encontrado{color:#b9e6c1}
+  .mapa-completo{margin:2px 4px 0;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
+  .mapa-completo summary{color:#c0bfbc;cursor:pointer;font:11px system-ui,-apple-system,"Segoe UI",sans-serif}
+  .mapa-completo .mapa-arbol{margin-top:5px}
   @media (prefers-reduced-motion:reduce){.mapa-fila{transition:none}.mapa-fila:hover{transform:none}}
   .act-mapa.minimizada{width:34px;max-width:34px}
   .act-mapa.minimizada .act-mapa-ruta,.act-mapa.minimizada .act-mapa-cuerpo,.act-mapa.minimizada .act-mapa-res{display:none}
@@ -1370,6 +1381,31 @@ function mapaHtml(e){
     : '<p class="mapa-vacio">No hay datos del mundo virtual.</p>';
 }
 
+// El resumen prioriza lo que el alumno necesita para resolver el paso.
+// El árbol con permisos sigue disponible, pero no ocupa toda la pantalla de entrada.
+function mapaResumenHtml(e, paso){
+  const meta = (paso && paso.meta) || {}, objetivos = [];
+  const añadir = (raw, tipo) => { if (raw == null) return; const p = rutaAbs(String(raw), e.cwd); if (!objetivos.some(o => o.path === p)) objetivos.push({ path:p, tipo }); };
+  if (meta.cwd != null) añadir(meta.cwd, 'ubicación');
+  [].concat(meta.existe || []).forEach(raw => añadir(raw, 'debe existir'));
+  [].concat(meta.noExiste || []).forEach(raw => añadir(raw, 'debe desaparecer'));
+  Object.keys(meta.modo || {}).forEach(raw => añadir(raw, 'permisos'));
+  Object.keys(meta.contenido || {}).forEach(raw => añadir(raw, 'fichero'));
+  [].concat(meta.enlace || []).forEach(en => { if (en) { añadir(en.path, 'enlace'); añadir(en.destino, 'destino'); } });
+  const actual = rutaVisible(e.cwd);
+  const objetivo = objetivos.length
+    ? '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Objetivo del paso</span><ul class="mapa-objetivos">' + objetivos.map(o => {
+        const existe = !!e.fs[o.path], correcto = o.tipo === 'debe desaparecer' ? !existe : existe;
+        return '<li class="mapa-objetivo ' + (correcto ? 'encontrado' : 'no-encontrado') + '">' + (correcto ? '✓ ' : '○ ') + escaparHtml(rutaVisible(o.path)) + ' <small>(' + escaparHtml(o.tipo) + ')</small></li>';
+      }).join('') + '</ul></div>'
+    : '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Objetivo del paso</span><div class="mapa-valor">Consulta el enunciado y observa la salida de la terminal.</div></div>';
+  return '<div class="mapa-contexto">' +
+    '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Ubicación actual</span><div class="mapa-valor">📍 ' + escaparHtml(actual) + '</div></div>' +
+    objetivo +
+    '<details class="mapa-completo"><summary>Ver estructura completa y permisos</summary>' + mapaHtml(e) + '</details>' +
+    '</div>';
+}
+
 /* ---- Comandos ---- */
 function cmd_pwd(e){ return exito(e.cwd); }
 function cmd_cd(e, args){
@@ -2059,17 +2095,25 @@ function validarPaso(paso, estado, t){
   const candidato = estado ? clonarEstado(estado) : null;
   const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
   if (r.code !== 0){
-    const diagnostico = r.err || 'El comando no se pudo ejecutar.';
+    const diagnostico = enriquecerDiagnostico(paso, r.err || 'El comando no se pudo ejecutar.');
     return { ok:false, estado, salida:'', error: diagnostico, diagnostico };
   }
   const v = comprobarMeta(candidato, paso.meta, r.out);
   return v.ok
     ? { ok:true, estado: candidato, salida: r.out || '', error:'', diagnostico:'' }
-    : { ok:false, estado, salida:'', error: v.motivo, diagnostico: v.diagnostico || v.motivo };
+    : { ok:false, estado, salida:'', error: v.motivo, diagnostico: enriquecerDiagnostico(paso, v.diagnostico || v.motivo) };
 }
 
 function comprobarAprendizaje(paso, t){
   const req = paso.aprendizaje;
+  const ejemploTokens = tokenizar(paso.ejemplo || '');
+  const modoEjemplo = ejemploTokens.find(token => /^[ugoa]*[+-=][rwx]+$/.test(token));
+  if (!req && modoEjemplo && ejemploTokens[0] === 'chmod'){
+    const entrada = tokenizar(t);
+    const modo = entrada[1];
+    if (/^[0-7]{3,4}$/.test(modo)) return { ok:false, mensaje:'Este ejercicio pide notación simbólica de chmod: usa letras con +, - o =, no un modo octal.' };
+    return { ok:true, mensaje:'' };
+  }
   if (!req) return { ok:true, mensaje:'' };
   const tokens = tokenizar(t);
   if (req.comando && tokens[0] !== req.comando)
@@ -2085,12 +2129,24 @@ function comprobarAprendizaje(paso, t){
   return { ok:true, mensaje:'' };
 }
 
+function enriquecerDiagnostico(paso, mensaje){
+  let texto = String(mensaje || '');
+  const objetivo = paso.meta && (paso.meta.modo || paso.meta.existe || paso.meta.noExiste || paso.meta.contenido);
+  const ruta = objetivo && typeof objetivo === 'object' && !Array.isArray(objetivo) ? Object.keys(objetivo)[0] : [].concat(objetivo || [])[0];
+  if (/No such file or directory/i.test(texto) && ruta) texto += ' Revisa la ruta del objetivo: ' + ruta + '.';
+  if (/permisos/i.test(texto) && tokenizar(paso.ejemplo || '')[0] === 'chmod' && tokenizar(paso.ejemplo || '').some(token => /^[ugoa]*[+-=][rwx]+$/.test(token)))
+    texto += ' Este paso pide notación simbólica de chmod.';
+  return texto;
+}
+
 function pistasSeguras(paso){
   const base = paso.aprendizaje && paso.aprendizaje.pistas ? paso.aprendizaje.pistas : paso.pista;
   const normal = texto => String(texto || '').replace(/<[^>]*>/g, '').trim().replace(/\s+/g, ' ');
   const ejemplo = normal(paso.ejemplo);
   const l = [].concat(base || []).filter(Boolean).filter(p => !ejemplo || !normal(p).includes(ejemplo));
   const comando = tokenizar(paso.ejemplo || '')[0] || 'comando';
+  const simbolica = tokenizar(paso.ejemplo || '').some(token => /^[ugoa]*[+-=][rwx]+$/.test(token));
+  if (simbolica && !l.some(p => /simbólica/i.test(p))) l.push('Este ejercicio pide notación simbólica: usa letras con +, - o =.');
   if (l.length < 3) l.push('Revisa el comando ' + comando + ' y el objetivo concreto del paso.');
   if (l.length < 3) l.push('Piensa en la forma general: ' + comando + ' [opciones] [argumentos].');
   return l.slice(0, 3);
@@ -2458,7 +2514,7 @@ btnMapa.onclick = () => {
 function pintarMapaAct(){
   if (!estadoAct) return;
   const y = mapaArbol.scrollTop;   // conserva el desplazamiento al ejecutar comandos
-  mapaArbol.innerHTML = mapaHtml(estadoAct);
+  mapaArbol.innerHTML = mapaResumenHtml(estadoAct, hechaAct ? null : act.pasos[pasoAct]);
   mapaArbol.scrollTop = y;
   mapaRuta.textContent = rutaVisible(estadoAct.cwd);
 }
@@ -2538,7 +2594,8 @@ function pintarAct(){
   $('act-contador').textContent = (hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total) + (puntos ? ' · ⭐ ' + puntos : '');
   $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
-  $('act-solucion').hidden = true;
+  $('act-solucion').hidden = hechaAct || fallosPaso < 3 || ayudaAct;
+  $('act-solucion').textContent = 'Ver una solución explicada';
   pantAct.scrollTop = pantAct.scrollHeight;
   pintarMapaAct();
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
@@ -2564,6 +2621,7 @@ const pistasDe = paso => {
 };
 function pistaHtml(paso){
   const l = pistasDe(paso), n = Math.min(pistaIdx, l.length - 1), agotadas = pistaIdx >= l.length;
+  if (agotadas) return '<span class="c"># Ya no hay más pistas para este paso; revisa el diagnóstico anterior.</span>\n';
   pistaIdx = Math.min(pistaIdx + 1, l.length);
   return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
 }
@@ -2713,7 +2771,7 @@ entradaAct.onkeydown = e => {
 };
 pantAct.onclick = () => { if (!getSelection().toString()) entradaAct.focus(); };
 $('act-reiniciar').onclick = reiniciarAct;
-// "Ver solución" (aparece tras 3 fallos): deja el comando resuelto escrito en la línea, para pulsar Enter.
+// "Ver una solución" (aparece tras 3 fallos): orienta sin rellenar la terminal.
 $('act-solucion').onclick = () => {
   if (hechaAct) return;
   const paso = act.pasos[pasoAct], ej = paso.ejemplo;
@@ -2721,7 +2779,7 @@ $('act-solucion').onclick = () => {
   ayudaAct = true;   // este paso dará 5 puntos en vez de 10/15
   histAct += '<span class="c"># Solución del paso ' + (pasoAct + 1) + ': ' + escapar(ej) + '</span>\n';
   if (paso.explica) histAct += '<span class="c"># ' + escapar(quitarHtml([].concat(paso.explica).join(' '))) + '</span>\n';
-  entradaAct.value = ej;      // se escribe sola: solo queda pulsar Enter
+  histAct += '<span class="c"># La solución no se escribe automáticamente: intenta ahora el comando tú mismo.</span>\n';
   pintarAct(); entradaAct.focus();
 };
 $('act-pista').onclick = () => {
