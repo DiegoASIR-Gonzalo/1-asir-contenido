@@ -27,6 +27,7 @@ const assert = require('assert');
 const RAIZ = path.join(__dirname, '..');
 const HTML = path.join(RAIZ, 'linux-terminal.html');
 const DATOS = path.join(RAIZ, 'actividades.js');
+const fuenteDatos = fs.readFileSync(DATOS, 'utf8');
 
 const color = (n, t) => process.stdout.isTTY ? '\x1b[' + n + 'm' + t + '\x1b[0m' : t;
 const rojo = t => color(31, t), verde = t => color(32, t), amarillo = t => color(33, t), gris = t => color(90, t);
@@ -56,12 +57,19 @@ vm.createContext(ctx);
 vm.runInContext(html.slice(desde, hasta), ctx);
 
 /* El panel de estructura debe leer el mundo real de la actividad, no una lista fija. */
-const mapaPrueba = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/nota.txt':{ contenido:'x', modo:'600' }, '~/prueba/acceso':{ tipo:'link', destino:'~/prueba/nota.txt' } } } });
+const mapaPrueba = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/nota.txt':{ contenido:'x', modo:'600' }, '~/prueba/acceso':{ tipo:'link', destino:'~/prueba/nota.txt' }, '~/otra':'dir' } } });
 const mapa = ctx.mapaHtml(mapaPrueba);
 assert(mapa.includes('data-path="/home/usuario/prueba/nota.txt"'), 'el mapa no muestra el fichero creado');
 assert(mapa.includes('data-path="/home/usuario/prueba/acceso"'), 'el mapa no muestra el enlace creado');
 assert(mapa.includes('lrwxrwxrwx') && mapa.includes('mapa-flecha">→</span> ~/prueba/nota.txt'), 'el mapa no muestra correctamente el enlace');
 assert(mapa.includes('actual'), 'el mapa no marca la carpeta actual');
+const resumen = ctx.mapaResumenHtml(mapaPrueba, { meta:{ modo:{ '~/prueba/nota.txt':'600' } } });
+assert(resumen.includes('Ubicación actual') && resumen.includes('Objetivo del paso'), 'el panel no muestra el contexto importante');
+assert(resumen.includes('~/prueba/nota.txt'), 'el resumen no muestra la ruta del objetivo');
+const estructuraEjercicio = ctx.mapaEjercicioHtml(mapaPrueba, { meta:{ modo:{ '~/prueba/nota.txt':'600' } } });
+assert(estructuraEjercicio.includes('nota.txt') && estructuraEjercicio.includes('prueba/'), 'la estructura del ejercicio no muestra sus rutas');
+assert(!estructuraEjercicio.includes('otra/'), 'la estructura del ejercicio muestra carpetas irrelevantes');
+assert(!resumen.includes('mapa-completo'), 'el resumen no debe ofrecer el árbol completo');
 
 // validarPaso() usa aceptado() en los pasos del formato antiguo (ok / acepta).
 // En el HTML vive después del motor; aquí se replica para poder probarlos.
@@ -78,6 +86,68 @@ vm.runInContext(`
 
 vm.runInContext(fs.readFileSync(DATOS, 'utf8'), ctx);
 const ACTIVIDADES = ctx.ACTIVIDADES || [];
+
+for (const temporal of ['antiguasRafa', 'nuevas36a40', 'rebaseadas', 'fusionada55', 'reemplazarPasoRafa']){
+  assert(!fuenteDatos.includes(temporal), 'actividades.js no debe conservar la capa temporal ' + temporal);
+}
+
+/* Una opción incompleta no puede superar un ejercicio solo porque coincida
+   parte de la salida esperada. */
+const ejercicioFind = ACTIVIDADES.find(a => a.pasos.some(p => p.ejemplo === 'find / -type d'));
+assert(ejercicioFind, 'no se encuentra el ejercicio de find desde la raíz');
+for (const comando of ['find / -type', 'find / -name', 'find / -user', 'find / -group', 'find / -exec']){
+  const findIncompleto = ctx.validarPaso(ejercicioFind.pasos[0], ctx.crearEstado(ejercicioFind), comando);
+  assert(!findIncompleto.ok, comando + ' no debe completar un ejercicio con una opción incompleta');
+}
+for (const comando of ['mkdir -m', 'head -n', 'tail -n', 'sort -k', 'cut -d', 'cut -f']){
+  assert(ctx.ejecutarLinea(ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/texto':{ contenido:'uno\ndos\n' } } } }), comando).code !== 0, comando + ' debe fallar si falta el argumento de su opción');
+}
+const ejercicioFindF = ACTIVIDADES.find(a => a.pasos.some(p => p.ejemplo === 'find /usr/bin -type f'));
+const diagnosticoMeta = ctx.validarPaso(ejercicioFindF.pasos[0], ctx.crearEstado(ejercicioFindF), 'pwd');
+assert(!diagnosticoMeta.ok && diagnosticoMeta.diagnostico, 'un objetivo no alcanzado debe devolver un diagnóstico útil');
+const pasoAtomico = { meta:{ existe:'~/a' }, ejemplo:'mkdir a' };
+const estadoAtomico = ctx.crearEstado({ inicio:{ cwd:'~' } });
+const antesAtomico = JSON.stringify(estadoAtomico);
+const resultadoAtomico = ctx.validarPaso(pasoAtomico, estadoAtomico, 'mkdir a; mkdir -m');
+assert(!resultadoAtomico.ok && JSON.stringify(resultadoAtomico.estado) === antesAtomico, 'un fallo después de una mutación no debe cambiar el estado original');
+const pasoAprendizaje = {
+  meta:{ muestra:'/' }, ejemplo:'find / -type d',
+  aprendizaje:{ comando:'find', opciones:['-type'], valores:['d'], pistas:['Piensa en cómo filtrar por tipo.', 'Revisa la opción que usa find para distinguir entradas.', 'Usa la forma general: find [ruta] [filtro].'] }
+};
+const estadoAprendizaje = ctx.crearEstado({ inicio:{ cwd:'~' } });
+assert(!ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'ls -R /').ok, 'un comando alternativo no debe superar un concepto obligatorio');
+assert(ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'find / -type d').ok, 'el comando que usa el concepto obligatorio debe superar el paso');
+const pistasAprendizaje = ctx.pistasSeguras(pasoAprendizaje);
+assert(!pistasAprendizaje.some(p => p.includes(pasoAprendizaje.ejemplo)), 'las pistas no deben mostrar el comando completo');
+ACTIVIDADES.forEach(a => a.pasos.forEach(p => {
+  const pistas = ctx.pistasSeguras(p);
+  assert(pistas.length >= 3, 'cada paso debe ofrecer tres orientaciones útiles en ' + a.id);
+  assert(pistas.every(pista => pista.trim() !== (p.ejemplo || '').trim()), 'una pista no debe mostrar el ejemplo completo en ' + a.id);
+  const base = [].concat(p.pista || []).join(' ');
+  if (/Piensa en el comando|Puedes consultar la chuleta/i.test(base))
+    assert(!pistas.some(pista => /^Piensa en el comando|^Puedes consultar la chuleta/i.test(pista)), 'un paso con pistas genéricas debe recibir orientación contextual en ' + a.id);
+}));
+assert(!html.includes('pulsa «Ver solución»'), 'el flujo de fallos no debe dirigir a la solución completa');
+const paso42 = { meta:{ modo:{ '~/prueba/dir2':'555' } }, ejemplo:'chmod a-w prueba/dir2' };
+const estado42 = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir2':{ tipo:'dir', modo:'755' } } } });
+const numerico42 = ctx.validarPaso(paso42, estado42, 'chmod 555 prueba/dir2');
+assert(!numerico42.ok && /simbólica/i.test(numerico42.diagnostico), 'el ejercicio 42 debe explicar que pide notación simbólica');
+const pistas42 = ctx.pistasSeguras(paso42);
+assert(pistas42.some(pista => /simbólica|chmod/i.test(pista)), 'el ejercicio 42 debe dar una pista específica');
+assert(ctx.validarPaso(paso42, estado42, 'chmod a-w prueba/dir2').ok, 'la forma simbólica correcta debe superar el ejercicio 42');
+const paso83 = ACTIVIDADES.find(a => a.id === 'rafa-83').pasos[0];
+assert(!ctx.pistasSeguras(paso83).some(pista => /notación simbólica/i.test(pista)), 'el ejercicio 83 no debe recibir una pista de chmod');
+const paso74 = ACTIVIDADES.find(a => a.id === 'rafa-74').pasos[0];
+const pistas74 = ctx.pistasSeguras(paso74).join(' | ');
+assert(/who/.test(pistas74) && /sort/.test(pistas74) && /redirecci|fichero/.test(pistas74), 'el ejercicio 74 debe recibir pistas específicas de who, sort y la redirección');
+assert(!pistas74.includes(paso74.ejemplo), 'las pistas específicas del ejercicio 74 no deben mostrar la solución completa');
+const pistasMkdir = ctx.pistasSeguras({ ejemplo:'mkdir -p proyectos/web', pista:['Piensa en el comando que corresponde al objetivo.', 'Puedes consultar la chuleta de comandos de la terminal.', 'Prueba: mkdir -p proyectos/web'] }).join(' | ');
+assert(/-p/.test(pistasMkdir) && /proyectos\/web/.test(pistasMkdir), 'una pista de mkdir debe indicar la opción y la ruta necesarias');
+assert(!pistasMkdir.includes('mkdir -p proyectos/web'), 'la pista de mkdir no debe mostrar el comando completo');
+assert(html.includes("fallosPaso < 3"), 'la solución debe reservarse para quien se atasca');
+assert(html.includes('pistaIdx < 3'), 'la solución debe aparecer al mostrar la tercera pista');
+assert(!html.includes('no se escribe automáticamente'), 'la terminal no debe mostrar una explicación innecesaria al enseñar la solución');
+assert(!html.includes('entradaAct.value = ej;'), 'la solución no debe escribir el comando automáticamente');
 
 /* ---------- 2) Utilidades de impresión ---------- */
 let errores = 0, avisos = 0, pasosTotal = 0;

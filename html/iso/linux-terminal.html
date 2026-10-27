@@ -261,6 +261,16 @@
   .mapa-fila.link .mapa-nombre{color:#c061cb;font-style:italic}
   .mapa-flecha{color:#888a85}
   .mapa-vacio{padding:14px 12px;color:#c0bfbc;font-size:12px;text-align:center}
+  .mapa-contexto{display:grid;gap:8px;padding:6px 4px 10px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  .mapa-tarjeta{padding:9px 10px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.045)}
+  .mapa-etiqueta{display:block;margin-bottom:4px;color:#aaa4b3;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .mapa-valor{color:#fff;font-size:13px;overflow-wrap:anywhere}
+  .mapa-objetivos{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+  .mapa-objetivo{display:flex;align-items:baseline;gap:6px;color:#e9e5ed;font:12px/1.35 "Ubuntu Mono","DejaVu Sans Mono",monospace;overflow-wrap:anywhere}
+  .mapa-objetivo::before{content:"•";color:var(--marca);font-family:system-ui,sans-serif}
+  .mapa-objetivo.no-encontrado{color:#f0b7b7}.mapa-objetivo.encontrado{color:#b9e6c1}
+  .mapa-estructura{margin:2px 4px 0;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
+  .mapa-estructura-titulo{display:block;margin:0 0 5px;color:#c0bfbc;font:700 10px system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.08em;text-transform:uppercase}
   @media (prefers-reduced-motion:reduce){.mapa-fila{transition:none}.mapa-fila:hover{transform:none}}
   .act-mapa.minimizada{width:34px;max-width:34px}
   .act-mapa.minimizada .act-mapa-ruta,.act-mapa.minimizada .act-mapa-cuerpo,.act-mapa.minimizada .act-mapa-res{display:none}
@@ -1336,7 +1346,9 @@ function lineaLarga(e, p, it, verInodo){
 /* ---- Árbol del mundo virtual (panel de estructura de la actividad) ----
    Recorre estado.fs desde la raíz y devuelve una fila por carpeta o fichero
    con su tipo y permisos. No sigue enlaces: así no puede entrar en un ciclo. */
-function mapaHtml(e){
+function mapaHtml(e, opciones){
+  opciones = opciones || {};
+  const mostrarPermisos = opciones.mostrarPermisos !== false;
   const fs = (e && e.fs) || {}, hijos = new Map();
   const entradas = Object.keys(fs).filter(p => fs[p]);
   const carpetas = entradas.filter(p => fs[p].tipo === 'dir').length;
@@ -1355,19 +1367,67 @@ function mapaHtml(e){
     const it = fs[p];
     if (!it) return;
     const dir = it.tipo === 'dir', link = it.tipo === 'link';
-    const modo = link ? 'rwxrwxrwx' : permisosDe(it);
+    const modo = link ? 'rwxrwxrwx' : (mostrarPermisos ? permisosDe(it) : '');
     const ejecutable = it.tipo === 'file' && /[1357]/.test(modoDe(it)[2] || '0');
     const clase = dir ? 'dir' : link ? 'link' : (ejecutable ? 'exec' : 'file');
     const actual = p === e.cwd ? ' actual' : '';
     const destino = link ? ' <span class="mapa-flecha">→</span> ' + escaparHtml(rutaVisible(it.destino)) : '';
     filas.push('<div class="mapa-fila ' + clase + actual + '" role="treeitem" aria-level="' + (nivel + 1) + '" data-path="' + escaparHtml(p) + '" title="' + escaparHtml(rutaVisible(p)) + '" style="padding-left:' + (6 + nivel * 13) + 'px;--rama-x:' + (nivel * 13 + 5) + 'px">' +
-      '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> <span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
+      (mostrarPermisos ? '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> ' : '') + '<span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
     for (const h of hijos.get(p) || []) ver(h, nivel + 1);
   };
   ver('/', 0);
+  const resumen = opciones.resumen === false ? '' : '<div class="mapa-resumen" aria-label="Resumen de la estructura"><span>📁 ' + carpetas + '</span><span>📄 ' + ficheros + '</span><span>🔗 ' + enlaces + '</span></div>';
   return filas.length
-    ? '<div class="mapa-resumen" aria-label="Resumen de la estructura"><span>📁 ' + carpetas + '</span><span>📄 ' + ficheros + '</span><span>🔗 ' + enlaces + '</span></div><div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
+    ? resumen + '<div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
     : '<p class="mapa-vacio">No hay datos del mundo virtual.</p>';
+}
+
+// El resumen prioriza lo que el alumno necesita para resolver el paso.
+// El árbol con permisos sigue disponible, pero no ocupa toda la pantalla de entrada.
+function mapaResumenHtml(e, paso){
+  const meta = (paso && paso.meta) || {}, objetivos = [];
+  const añadir = (raw, tipo) => { if (raw == null) return; const p = rutaAbs(String(raw), e.cwd); if (!objetivos.some(o => o.path === p)) objetivos.push({ path:p, tipo }); };
+  if (meta.cwd != null) añadir(meta.cwd, 'ubicación');
+  [].concat(meta.existe || []).forEach(raw => añadir(raw, 'debe existir'));
+  [].concat(meta.noExiste || []).forEach(raw => añadir(raw, 'debe desaparecer'));
+  Object.keys(meta.modo || {}).forEach(raw => añadir(raw, 'permisos'));
+  Object.keys(meta.contenido || {}).forEach(raw => añadir(raw, 'fichero'));
+  [].concat(meta.enlace || []).forEach(en => { if (en) { añadir(en.path, 'enlace'); añadir(en.destino, 'destino'); } });
+  const actual = rutaVisible(e.cwd);
+  const objetivo = objetivos.length
+    ? '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Objetivo del paso</span><ul class="mapa-objetivos">' + objetivos.map(o => {
+        const existe = !!e.fs[o.path], correcto = o.tipo === 'debe desaparecer' ? !existe : existe;
+        return '<li class="mapa-objetivo ' + (correcto ? 'encontrado' : 'no-encontrado') + '">' + (correcto ? '✓ ' : '○ ') + escaparHtml(rutaVisible(o.path)) + ' <small>(' + escaparHtml(o.tipo) + ')</small></li>';
+      }).join('') + '</ul></div>'
+    : '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Objetivo del paso</span><div class="mapa-valor">Consulta el enunciado y observa la salida de la terminal.</div></div>';
+  return '<div class="mapa-contexto">' +
+    '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Ubicación actual</span><div class="mapa-valor">📍 ' + escaparHtml(actual) + '</div></div>' +
+    objetivo +
+    '</div>';
+}
+
+function mapaEjercicioHtml(e, paso){
+  const fs = e.fs || {}, relevantes = new Set(['/']), cwd = e.cwd || '/';
+  const añadirRuta = raw => {
+    if (raw == null) return;
+    let p = rutaAbs(String(raw), cwd);
+    while (p && !relevantes.has(p)){ relevantes.add(p); if (p === '/') break; p = padreDe(p); }
+  };
+  añadirRuta(cwd);
+  const meta = (paso && paso.meta) || {};
+  [].concat(meta.existe || [], meta.noExiste || []).forEach(añadirRuta);
+  Object.keys(meta.modo || {}).forEach(añadirRuta);
+  Object.keys(meta.contenido || {}).forEach(añadirRuta);
+  [].concat(meta.enlace || []).forEach(en => { if (en) { añadirRuta(en.path); añadirRuta(en.destino); } });
+  // Si el ejercicio solo consulta el directorio actual, enseña sus entradas directas.
+  // Cuando ya hay un objetivo concreto, no añadimos hermanos irrelevantes.
+  if (relevantes.size <= 2) Object.keys(fs).forEach(p => { if (p !== cwd && padreDe(p) === cwd) relevantes.add(p); });
+  const reducido = { ...e, fs:{} };
+  Object.keys(fs).forEach(p => { if (relevantes.has(p)) reducido.fs[p] = fs[p]; });
+  const ejemplo = paso && paso.ejemplo || '';
+  const usaPermisos = Object.keys(meta.modo || {}).length > 0 || /^chmod\b/.test(ejemplo) || /\bls\s+[^\n]*-l/.test(ejemplo);
+  return mapaHtml(reducido, { mostrarPermisos: usaPermisos, resumen:false });
 }
 
 /* ---- Comandos ---- */
@@ -1431,7 +1491,10 @@ function cmd_mkdir(e, args){
   for (let i = 0; i < args.length; i++){
     const a = args[i];
     if (a === '-p') padres = true;
-    else if (a === '-m') modo = String(args[++i] || '');
+    else if (a === '-m'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return fallo('mkdir: falta el modo después de -m');
+      modo = String(args[++i]);
+    }
     else if (!a.startsWith('-')) rutas.push(a);
   }
   if (!rutas.length) return fallo('mkdir: falta un operando');
@@ -1635,14 +1698,30 @@ function cmd_tree(e, args){
 function cmd_find(e, args){
   let inicio = '.', name = null, tipo = null, usuario = null, grupo = null;
   let execCmd = null, execArgs = [];
+  const falta = opcion => fallo("find: falta un argumento para '" + opcion + "'");
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-name') name = args[++i];
-    else if (args[i] === '-type') { tipo = args[++i]; }
-    else if (args[i] === '-user') usuario = args[++i];
-    else if (args[i] === '-group') grupo = args[++i];
+    if (args[i] === '-name'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-name');
+      name = args[++i];
+    }
+    else if (args[i] === '-type'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-type');
+      tipo = args[++i];
+      if (!/^[fd]$/.test(tipo)) return fallo("find: tipo '" + tipo + "' no válido (usa f o d)");
+    }
+    else if (args[i] === '-user'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-user');
+      usuario = args[++i];
+    }
+    else if (args[i] === '-group'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-group');
+      grupo = args[++i];
+    }
     else if (args[i] === '-exec'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-exec');
       execCmd = args[++i];
       while (i + 1 < args.length && args[i + 1] !== '+' && args[i + 1] !== ';') execArgs.push(args[++i]);
+      if (i + 1 >= args.length) return fallo("find: falta ';' o '+' después de -exec");
       if (args[i + 1] === '+' || args[i + 1] === ';') i++;
     }
     else if (!args[i].startsWith('-')) inicio = args[i];
@@ -1721,7 +1800,10 @@ function cmd_head(e, args, stdin){
   let n = 10;
   const files = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    if (args[i] === '-n'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('head: falta un número después de -n');
+      n = Number(args[++i]);
+    }
     else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
     else if (!args[i].startsWith('-')) files.push(args[i]);
   }
@@ -1732,7 +1814,10 @@ function cmd_tail(e, args, stdin){
   let n = 10;
   const files = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    if (args[i] === '-n'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('tail: falta un número después de -n');
+      n = Number(args[++i]);
+    }
     else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
     else if (!args[i].startsWith('-')) files.push(args[i]);
   }
@@ -1745,8 +1830,11 @@ function cmd_sort(e, args, stdin){
   const rev = args.includes('-r'), numeric = args.includes('-n');
   let campo = 0;
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-k') campo = Math.max(0, Number(args[i + 1]) - 1) || 0;
-    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1) || 0;
+    if (args[i] === '-k'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('sort: falta un campo válido después de -k');
+      campo = Math.max(0, Number(args[++i]) - 1);
+    }
+    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1);
   }
   const files = args.filter(a => !a.startsWith('-'));
   const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
@@ -1767,8 +1855,14 @@ function cmd_sort(e, args, stdin){
 function cmd_cut(e, args, stdin){
   let delimitador = '\t', campos = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-d') delimitador = args[++i] || '\t';
-    else if (args[i] === '-f') campos = String(args[++i] || '').split(',').map(Number).filter(Number.isFinite);
+    if (args[i] === '-d'){
+      if (i + 1 >= args.length) return fallo('cut: falta el delimitador después de -d');
+      delimitador = args[++i];
+    }
+    else if (args[i] === '-f'){
+      if (i + 1 >= args.length || !/^\d+(?:,\d+)*$/.test(args[i + 1])) return fallo('cut: falta un campo válido después de -f');
+      campos = String(args[++i]).split(',').map(Number);
+    }
   }
   const raw = args.find((a, i) => !a.startsWith('-') && args[i - 1] !== '-d' && args[i - 1] !== '-f');
   const p = raw ? rutaAbs(raw, e.cwd) : null, it = p && e.fs[p];
@@ -1951,7 +2045,7 @@ function ejecutarLinea(e, linea){
 /* ---- Objetivos de un paso ---- */
 function comprobarMeta(e, meta, salida){
   const texto = quitarHtml(salida || '');
-  const falla = motivo => ({ ok:false, motivo });
+  const falla = motivo => ({ ok:false, motivo, diagnostico: motivo });
   if (meta.cwd != null){
     const p = rutaAbs(meta.cwd, e.cwd);
     if (e.cwd !== p) return falla('Estás en ' + rutaVisible(e.cwd) + ', pero el objetivo es ' + rutaVisible(p) + '.');
@@ -2011,17 +2105,148 @@ function comprobarMeta(e, meta, salida){
 
 // API común para la actividad y el duelo. Devuelve el estado nuevo solo si el comando cumple el paso.
 function validarPaso(paso, estado, t){
-  if (typeof paso.ok === 'function') return { ok: paso.ok(t), estado, salida:'', error:'Ese comando no es el que pide el paso.' };
+  if (typeof paso.ok === 'function'){
+    const ok = paso.ok(t);
+    return { ok, estado, salida:'', error: ok ? '' : 'Ese comando no es el que pide el paso.', diagnostico: ok ? '' : 'Revisa el comando y el objetivo de este paso.' };
+  }
   // Formato antiguo (ok / acepta): se acepta el comando tal cual, sin ejecutarlo ni tocar el mundo.
   if (!paso.meta){
-    if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.' };
-    return { ok:true, estado, salida: paso.out || '', error:'' };
+    if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.', diagnostico:'Ese comando no coincide con el objetivo del paso.' };
+    return { ok:true, estado, salida: paso.out || '', error:'', diagnostico:'' };
   }
+  const aprendizaje = comprobarAprendizaje(paso, t);
+  if (!aprendizaje.ok) return { ok:false, estado, salida:'', error: aprendizaje.mensaje, diagnostico: aprendizaje.mensaje };
   const candidato = estado ? clonarEstado(estado) : null;
   const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
-  if (r.code !== 0) return { ok:false, estado, salida:'', error: r.err || 'El comando no se pudo ejecutar.' };
+  if (r.code !== 0){
+    const diagnostico = enriquecerDiagnostico(paso, r.err || 'El comando no se pudo ejecutar.');
+    return { ok:false, estado, salida:'', error: diagnostico, diagnostico };
+  }
   const v = comprobarMeta(candidato, paso.meta, r.out);
-  return v.ok ? { ok:true, estado: candidato, salida: r.out || '', error:'' } : { ok:false, estado, salida:'', error: v.motivo };
+  return v.ok
+    ? { ok:true, estado: candidato, salida: r.out || '', error:'', diagnostico:'' }
+    : { ok:false, estado, salida:'', error: v.motivo, diagnostico: enriquecerDiagnostico(paso, v.diagnostico || v.motivo) };
+}
+
+function comprobarAprendizaje(paso, t){
+  const req = paso.aprendizaje;
+  const ejemploTokens = tokenizar(paso.ejemplo || '');
+  const modoEjemplo = ejemploTokens.find(token => /^[ugoa]+[+-=][rwx]+$/.test(token));
+  if (!req && modoEjemplo && ejemploTokens[0] === 'chmod'){
+    const entrada = tokenizar(t);
+    const modo = entrada[1];
+    if (/^[0-7]{3,4}$/.test(modo)) return { ok:false, mensaje:'Este ejercicio pide notación simbólica de chmod: usa letras con +, - o =, no un modo octal.' };
+    return { ok:true, mensaje:'' };
+  }
+  if (!req) return { ok:true, mensaje:'' };
+  const tokens = tokenizar(t);
+  if (req.comando && tokens[0] !== req.comando)
+    return { ok:false, mensaje:'Este paso practica el comando ' + req.comando + '; revisa qué comando estás usando.' };
+  const opciones = [].concat(req.opciones || []);
+  const faltaOpcion = opciones.find(op => !tokens.includes(op));
+  if (faltaOpcion)
+    return { ok:false, mensaje:'El objetivo necesita el filtro ' + faltaOpcion + '; revisa cómo se aplica en este comando.' };
+  const valores = [].concat(req.valores || []);
+  const faltaValor = valores.find(valor => !tokens.includes(String(valor)));
+  if (faltaValor)
+    return { ok:false, mensaje:'El filtro está incompleto: falta indicar el tipo o valor que pide el ejercicio.' };
+  return { ok:true, mensaje:'' };
+}
+
+function enriquecerDiagnostico(paso, mensaje){
+  let texto = String(mensaje || '');
+  const objetivo = paso.meta && (paso.meta.modo || paso.meta.existe || paso.meta.noExiste || paso.meta.contenido);
+  const ruta = objetivo && typeof objetivo === 'object' && !Array.isArray(objetivo) ? Object.keys(objetivo)[0] : [].concat(objetivo || [])[0];
+  if (/No such file or directory/i.test(texto) && ruta) texto += ' Revisa la ruta del objetivo: ' + ruta + '.';
+  if (/permisos/i.test(texto) && tokenizar(paso.ejemplo || '')[0] === 'chmod' && tokenizar(paso.ejemplo || '').some(token => /^[ugoa]+[+-=][rwx]+$/.test(token)))
+    texto += ' Este paso pide notación simbólica de chmod.';
+  return texto;
+}
+
+function pistasInteligentes(paso){
+  const tokens = tokenizar(paso.ejemplo || ''), comandos = [], pistas = [];
+  const añadir = texto => { if (texto && !pistas.includes(texto)) pistas.push(texto); };
+  tokens.forEach(token => { if (CMD_SIM[token] && !comandos.includes(token)) comandos.push(token); });
+  const ayuda = {
+    who:'Usa who para obtener las líneas de usuarios conectados.',
+    users:'Usa users para obtener los nombres de los usuarios conectados.',
+    sort:'Usa sort para ordenar las líneas que recibas.',
+    wc:'Usa wc para contar el resultado; revisa si necesitas contar palabras o líneas.',
+    find:'Usa find indicando primero dónde buscar y después el filtro.',
+    grep:'Usa grep para quedarte solo con las líneas que cumplen el patrón.',
+    cut:'Usa cut para extraer campos de cada línea.',
+    chmod:'Usa chmod para cambiar los permisos del objetivo.',
+    ls:'Usa ls para listar la ruta que pide el enunciado.',
+    cat:'Usa cat para mostrar el contenido de un fichero.',
+    mkdir:'Usa mkdir para crear la carpeta indicada.',
+    touch:'Usa touch para crear el fichero.',
+    cd:'Usa cd para cambiar a la carpeta indicada.'
+  };
+  comandos.forEach(comando => añadir(ayuda[comando]));
+  const opciones = {
+    '-p':'Usa la opción -p para crear también las carpetas intermedias.',
+    '-a':'Usa -a para incluir los nombres ocultos.',
+    '-A':'Usa -A para incluir los ocultos, sin mostrar . ni ...',
+    '-l':'Usa -l para trabajar con el listado detallado o contar líneas, según el comando.',
+    '-R':'Usa -R para recorrer también los subdirectorios.',
+    '-r':'Usa -r para invertir el orden o recorrer en sentido inverso, según el comando.',
+    '-n':'Usa -n para tratar los números como valores numéricos.',
+    '-w':'Usa -w para contar palabras con wc.',
+    '-c':'Usa -c para contar bytes con wc.',
+    '-d':'Indica con -d el delimitador que separa los campos.',
+    '-f':'Indica con -f el campo o campos que quieres extraer.',
+    '-i':'Usa -i para ignorar diferencias entre mayúsculas y minúsculas.',
+    '-v':'Usa -v para invertir el filtro y excluir las coincidencias.',
+    '-type':'Después de -type indica el tipo buscado, por ejemplo d para directorios o f para ficheros.',
+    '-name':'Después de -name escribe el patrón del nombre que quieres buscar.',
+    '-user':'Después de -user indica el usuario propietario que pide el ejercicio.',
+    '-group':'Después de -group indica el grupo propietario.',
+    '-exec':'Después de -exec indica el comando que se ejecutará sobre cada resultado.',
+    '-s':'Usa -s para mostrar solo el resumen o el total, según el comando.',
+    '-h':'Usa -h para mostrar tamaños en un formato fácil de leer.'
+  };
+  const opcionesConValor = new Set(['-d','-f','-type','-name','-user','-group','-exec','-n','-k']);
+  for (let i = 0; i < tokens.length; i++){
+    const token = tokens[i];
+    if (!/^-[A-Za-z]/.test(token)) continue;
+    const texto = opciones[token] || ('La opción que necesitas es ' + token + '.');
+    if (opcionesConValor.has(token) && tokens[i + 1] && !/^[|;&>]/.test(tokens[i + 1]))
+      añadir(texto + ' En este paso, el valor es ' + tokens[i + 1] + '.');
+    else añadir(texto);
+  }
+  const redir = tokens.findIndex(t => ['>', '>>', '2>'].includes(t));
+  if (redir >= 0){
+    const destino = tokens[redir + 1];
+    añadir('Guarda ' + (tokens[redir] === '2>' ? 'los errores' : 'la salida') + ' con ' + tokens[redir] + (destino ? ' en el fichero ' + destino + '.' : '.'));
+  }
+  if (tokens.includes('|')) añadir('Conecta los comandos con una tubería: la salida del primero entra en el siguiente.');
+  const valores = tokens.filter((token, i) => {
+    if (!token || /^[|;&>]/.test(token) || /^-[A-Za-z]/.test(token) || comandos.includes(token)) return false;
+    const anterior = tokens[i - 1];
+    return !opcionesConValor.has(anterior);
+  }).filter(token => /[/.~*?[\]{}]|\w+\.\w+/.test(token));
+  if (valores.length) añadir('El argumento o ruta que pide este paso es ' + valores[valores.length - 1] + '.');
+  ['Relaciona el comando con el objetivo concreto del enunciado y completa sus argumentos.',
+    'Comprueba qué dato debe producir el comando antes de elegir sus opciones.',
+    'Usa la estructura del objetivo para decidir qué argumentos faltan.']
+    .forEach(texto => { if (pistas.length < 3) añadir(texto); });
+  while (pistas.length < 3) pistas.push('Revisa el objetivo y la forma general del comando.');
+  return pistas.slice(0, 3);
+}
+
+function pistasSeguras(paso){
+  const base = paso.aprendizaje && paso.aprendizaje.pistas ? paso.aprendizaje.pistas : paso.pista;
+  const normal = texto => String(texto || '').replace(/<[^>]*>/g, '').trim().replace(/\s+/g, ' ');
+  const ejemplo = normal(paso.ejemplo);
+  const baseNormal = [].concat(base || []).filter(Boolean).map(normal);
+  const genericas = baseNormal.some(p => /^Piensa en el comando/i.test(p)) && baseNormal.some(p => /Puedes consultar la chuleta/i.test(p));
+  const l = (genericas ? pistasInteligentes(paso) : baseNormal).filter(p => !ejemplo || !normal(p).includes(ejemplo));
+  const comando = tokenizar(paso.ejemplo || '')[0] || 'comando';
+  const simbolica = tokenizar(paso.ejemplo || '').some(token => /^[ugoa]+[+-=][rwx]+$/.test(token));
+  if (simbolica && !l.some(p => /simbólica/i.test(p))) l.push('Este ejercicio pide notación simbólica: usa letras con +, - o =.');
+  if (l.length < 3) l.push('Revisa el comando ' + comando + ' y el objetivo concreto del paso.');
+  if (l.length < 3) l.push('Piensa en la forma general: ' + comando + ' [opciones] [argumentos].');
+  return l.slice(0, 3);
 }
 
 // 1) Lectura y validación de las actividades que cargó actividades.js.
@@ -2386,7 +2611,8 @@ btnMapa.onclick = () => {
 function pintarMapaAct(){
   if (!estadoAct) return;
   const y = mapaArbol.scrollTop;   // conserva el desplazamiento al ejecutar comandos
-  mapaArbol.innerHTML = mapaHtml(estadoAct);
+  const paso = hechaAct ? null : act.pasos[pasoAct];
+  mapaArbol.innerHTML = mapaResumenHtml(estadoAct, paso) + '<div class="mapa-estructura"><span class="mapa-estructura-titulo">Estructura necesaria</span>' + mapaEjercicioHtml(estadoAct, paso) + '</div>';
   mapaArbol.scrollTop = y;
   mapaRuta.textContent = rutaVisible(estadoAct.cwd);
 }
@@ -2466,7 +2692,8 @@ function pintarAct(){
   $('act-contador').textContent = (hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total) + (puntos ? ' · ⭐ ' + puntos : '');
   $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
-  $('act-solucion').hidden = hechaAct || fallosAct < 3;
+  $('act-solucion').hidden = hechaAct || (fallosPaso < 3 && pistaIdx < 3) || ayudaAct;
+  $('act-solucion').textContent = 'Ver una solución explicada';
   pantAct.scrollTop = pantAct.scrollHeight;
   pintarMapaAct();
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
@@ -2486,9 +2713,14 @@ function solucionHtml(a){
 const unir = (x, parrafos) => [].concat(x || '').map(t => parrafos ? '<p>' + t + '</p>' : t).join('');   // texto o lista de textos → HTML
 // "pista" puede ser un texto o una LISTA con todas las pistas que quieras (de más suave a más directa).
 // Cada petición (botón o 2 fallos seguidos) enseña la siguiente; al acabarse se repite la última.
-const pistasDe = paso => { const l = [].concat(paso.pista || []).filter(Boolean); return l.length ? l : ['repasa el enunciado y prueba con el comando que se pide.']; };
+const pistasDe = paso => {
+  const l = pistasSeguras(paso);
+  return l.length ? l : ['repasa el concepto del enunciado y prueba con la forma general del comando.'];
+};
 function pistaHtml(paso){
   const l = pistasDe(paso), n = Math.min(pistaIdx, l.length - 1), agotadas = pistaIdx >= l.length;
+  if (pistaIdx > l.length) return '';
+  if (agotadas){ pistaIdx = l.length + 1; return '<span class="c"># Ya no hay más pistas para este paso; revisa el diagnóstico anterior.</span>\n'; }
   pistaIdx = Math.min(pistaIdx + 1, l.length);
   return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
 }
@@ -2539,9 +2771,9 @@ function enviarAct(){
     } else {
       fallosAct++;
       fallosPaso++;
-      histAct += '<span class="c"># ' + escapar(v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
+      histAct += '<span class="c"># ' + escapar(v.diagnostico || v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
       if (fallosAct === 2) histAct += pistaHtml(paso);
-      else if (fallosAct === 3) histAct += '<span class="c"># Si sigues atascado, pulsa «Ver solución».</span>\n';
+      else if (fallosAct === 3) histAct += '<span class="c"># Pide otra pista: te orientará sin darte el comando completo.</span>\n';
     }
   }
   // La terminal de la actividad no crece sin límite durante una sesión larga
@@ -2638,7 +2870,7 @@ entradaAct.onkeydown = e => {
 };
 pantAct.onclick = () => { if (!getSelection().toString()) entradaAct.focus(); };
 $('act-reiniciar').onclick = reiniciarAct;
-// "Ver solución" (aparece tras 3 fallos): deja el comando resuelto escrito en la línea, para pulsar Enter.
+// "Ver una solución" (aparece tras 3 fallos): orienta sin rellenar la terminal.
 $('act-solucion').onclick = () => {
   if (hechaAct) return;
   const paso = act.pasos[pasoAct], ej = paso.ejemplo;
@@ -2646,7 +2878,6 @@ $('act-solucion').onclick = () => {
   ayudaAct = true;   // este paso dará 5 puntos en vez de 10/15
   histAct += '<span class="c"># Solución del paso ' + (pasoAct + 1) + ': ' + escapar(ej) + '</span>\n';
   if (paso.explica) histAct += '<span class="c"># ' + escapar(quitarHtml([].concat(paso.explica).join(' '))) + '</span>\n';
-  entradaAct.value = ej;      // se escribe sola: solo queda pulsar Enter
   pintarAct(); entradaAct.focus();
 };
 $('act-pista').onclick = () => {
@@ -2689,6 +2920,7 @@ else {
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="duelo-core.js"></script>
 <script src="duelo.js"></script>
 </body>
 </html>

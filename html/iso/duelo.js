@@ -1,354 +1,166 @@
-/* =====================================================================
-   DUELO · multijugador (pestaña "Duelo" junto a "Actividades")
-   ---------------------------------------------------------------------
-   Se carga DESPUÉS del script principal del HTML (reutiliza sus funciones y estilos:
-   $, promptHtml, escapar, normalizar, unir, crearEstado, validarPaso, rutaVisible, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
-
-   Modos:
-     · "web"      (1vs1)    : se eligen N actividades al azar de actividades.js (5-12); gana quien las termina antes.
-     · "anonimo"  (1vs1vs1) : el anfitrión NO juega: escribe hasta 10 preguntas (enunciado + comandos correctos,
-                              cada uno con las respuestas alternativas válidas que quiera) y los otros dos compiten. Las soluciones se guardan como huella (hash),
-                              no en claro, para que no se lean mirando la base de datos.
-
-   Datos en Firebase Realtime Database:  salas/<CÓDIGO> = { modo, anfitrion, estado, ids | preguntas, sem, inicio,
-                                           ganador, jugadores:{ uid:{nombre, rol, prog, fin} } }
-   estado: "espera" (sala web) · "redactando" (sala anónima) · "jugando".
-   ===================================================================== */
+/* Arena Linux: salas públicas de Carrera y Práctica compartida. */
 (() => {
-'use strict';
+  'use strict';
 
-/* ---- 1) PEGA AQUÍ TU CONFIGURACIÓN (Firebase › Configuración del proyecto › Tus apps › Web) ---- */
-const FIREBASE_CONFIG = { apiKey:'AIzaSyCrXCFetCv1lcIh0-x0u0VDW13v8ggFrVs', authDomain:'asir-pruebas.firebaseapp.com', databaseURL:'https://asir-pruebas-default-rtdb.europe-west1.firebasedatabase.app', projectId:'asir-pruebas', appId:'1:925637498896:web:9bd353e2c034ad2ac81295' };
-const MIN_SEC = 5, MAX_SEC = 12, MAX_PREGUNTAS = 10, CUENTA_ATRAS_MS = 4000;
-const MODOS = { web:'Preguntas de la web (1vs1)', anonimo:'Preguntas anónimas (1vs1vs1)' };
+  const CONFIG = { apiKey:'AIzaSyCrXCFetCv1lcIh0-x0u0VDW13v8ggFrVs', authDomain:'asir-pruebas.firebaseapp.com', databaseURL:'https://asir-pruebas-default-rtdb.europe-west1.firebasedatabase.app', projectId:'asir-pruebas', appId:'1:925637498896:web:9bd353e2c034ad2ac81295' };
+  const MODOS = window.DUELO_CORE.MODOS, MIN_EJ = 5, MAX_EJ = 20, MAX_JUGADORES = 30, CUENTA_ATRAS = 4000;
+  const E = (tag, clase, html) => { const e = document.createElement(tag); if (clase) e.className = clase; if (html != null) e.innerHTML = html; return e; };
+  const boton = (texto, fn, disabled) => { const b = E('button', 'd-btn', texto); b.type = 'button'; b.disabled = !!disabled; b.onclick = fn; return b; };
+  const estilo = E('style', null, `
+    .d-cuerpo{flex:1;overflow:auto;padding:0 16px 16px}.d-cuerpo input,.d-cuerpo select{width:100%;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 10px;margin-top:8px}
+    .d-btn{display:block;width:100%;margin-top:8px;text-align:left;font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:9px 12px;cursor:pointer}.d-btn:hover:not(:disabled),.d-btn.sel{background:var(--acento)}.d-btn:disabled{opacity:.4;cursor:default}
+    .d-sala{margin:9px 0;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.05)}.d-sala h3{font-size:14px;margin:0 0 4px}.d-sala p{margin:3px 0;color:#c0bfbc;font-size:12px}.d-cod{font:700 30px "Ubuntu Mono",monospace;letter-spacing:.25em;text-align:center;background:#2e2c33;border-radius:10px;padding:8px;margin-top:10px}.d-jug{display:flex;justify-content:space-between;gap:8px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.06);font-size:13px}.d-jug small{color:#c0bfbc}.d-barra{height:6px;margin:3px 0 8px;border-radius:3px;background:rgba(0,0,0,.15);overflow:hidden}.d-barra i{display:block;height:100%;background:var(--acento);transition:width .3s ease}.d-pista{margin-top:8px;padding:7px 9px;border-left:3px solid var(--acento);background:rgba(255,255,255,.06);font-size:12px}.d-fin button{font:inherit;font-weight:700;padding:6px 10px;border:0;border-radius:6px;background:var(--acento);color:#fff;cursor:pointer}.act-term[hidden]{display:none}.enunciado.d-full{max-height:none;flex:1}
+    .d-conf{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(0,0,0,.55)}.d-conf-c{width:min(380px,calc(100% - 24px));background:var(--ventana);color:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.55)}.d-conf-c h3{font-size:17px;margin-bottom:6px}.d-conf-c p{margin-bottom:14px;color:#c0bfbc}.d-conf-c div{display:flex;justify-content:flex-end;gap:8px}.d-conf-c button{font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}.d-conf-c .d-si{background:#c01c28}
+  `);
+  document.head.append(estilo);
 
-/* ---- 2) Estilos propios (lo demás reutiliza los del HTML) ---- */
-document.head.append(Object.assign(document.createElement('style'), { textContent: `
-.d-cuerpo{flex:1;overflow:auto;padding:0 16px 16px}
-.d-cuerpo input,.d-cuerpo select{width:100%;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px;margin-top:8px}
-.d-btn{display:block;width:100%;margin-top:8px;text-align:left;font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;transition:background .2s ease}
-.d-btn:hover:not(:disabled),.d-btn.sel{background:var(--acento)}.d-btn:disabled{opacity:.4;cursor:default}
-.d-cod{font:700 30px "Ubuntu Mono",monospace;letter-spacing:.25em;text-align:center;background:#2e2c33;border-radius:10px;padding:8px;margin-top:10px}
-.d-jug{display:flex;justify-content:space-between;gap:8px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.06);font-size:13px}
-.d-jug small{color:#c0bfbc}
-.d-barra{height:6px;margin:3px 0 8px;border-radius:3px;background:rgba(0,0,0,.15);overflow:hidden}
-.d-barra i{display:block;height:100%;background:var(--acento);transition:width .3s ease}
-.d-q{margin-bottom:8px;padding:8px;border:1px solid rgba(0,0,0,.15);border-radius:8px}
-.d-q textarea{display:block;width:100%;margin-top:4px;padding:4px 8px;font:14px "Ubuntu Mono",monospace;border:1px solid rgba(0,0,0,.2);border-radius:6px}
-.d-q button,.d-fin button{font:inherit;font-weight:700;padding:4px 10px;border-radius:6px;border:1px solid rgba(0,0,0,.2);background:#e1dedb;cursor:pointer}
-.d-fin button{background:var(--acento);color:#fff;border:0}
-.d-lanzar{margin-left:8px;background:var(--acento)!important;color:#fff;border:0!important}.d-lanzar:disabled{opacity:.4}
-.act-term[hidden]{display:none}.enunciado.d-full{max-height:none;flex:1}
-.d-q input{display:block;width:100%;margin-top:4px;padding:4px 8px;font:14px "Ubuntu Mono",monospace;border:1px solid rgba(0,0,0,.2);border-radius:6px}
-.d-paso{margin-top:8px;padding-left:10px;border-left:3px solid var(--acento)}.d-paso small{font-weight:700}
-.d-paso button,.d-addp,.d-del{margin-top:4px}
-.d-conf{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(0,0,0,.55)}
-.d-conf-c{width:min(380px,calc(100% - 24px));background:var(--ventana);color:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.55)}
-.d-conf-c h3{font-size:17px;margin-bottom:6px}.d-conf-c p{margin-bottom:14px;color:#c0bfbc}
-.d-conf-c div{display:flex;justify-content:flex-end;gap:8px}
-.d-conf-c button{font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
-.d-conf-c .d-si{background:#c01c28}.d-conf-c button:hover{filter:brightness(1.15)}
-` }));
+  let db = null, uid = null, offset = 0, nombre = '', modo = 'carrera', numeroEjercicios = 8, capacidad = 20;
+  let codigo = null, referencia = null, sala = null, salas = {}, secuencias = null, jugador = null, aviso = '', ayudaReloj = null, ayudaClave = '';
+  try { nombre = localStorage.getItem('duelo-nombre') || ''; } catch (e) {}
 
-/* ---- 3) Utilidades ---- */
-const E = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
-// Huella de 53 bits (cyrb53): síncrona y igual en todos los navegadores. "sem" es una sal distinta en cada duelo.
-const huella = (s, sem) => { let a = 0xdeadbeef, b = 0x41c6ce57; for (let i = 0, c; i < s.length + sem.length; i++){ c = (s + sem).charCodeAt(i); a = Math.imul(a ^ c, 2654435761); b = Math.imul(b ^ c, 1597334677); }
-  a = Math.imul(a ^ (a >>> 16), 2246822507) ^ Math.imul(b ^ (b >>> 13), 3266489909); b = Math.imul(b ^ (b >>> 16), 2246822507) ^ Math.imul(a ^ (a >>> 13), 3266489909);
-  return (4294967296 * (2097151 & b) + (a >>> 0)).toString(36); };
+  const caja = E('div'); caja.style.cssText = 'display:flex;gap:4px'; btnAct.replaceWith(caja);
+  const btnDuelo = E('button', 'barra-btn', 'Duelo'); btnDuelo.type = 'button'; caja.append(btnAct, btnDuelo);
+  const panel = E('aside', 'act-panel', '<div class="act-cab"><h2>Duelo</h2><p>Compite o practica en grupo.</p></div><div class="d-cuerpo"></div>');
+  const cuerpo = panel.lastChild;
+  const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Arena Linux"><div class="act-int"><div class="titulo"><span id="d-tit">Arena Linux</span><button id="d-x" class="act-cerrar" type="button" aria-label="Salir">✕</button></div><div class="act-cuerpo"><article id="d-enun" class="enunciado"></article><div id="d-term" class="terminal act-term"><div id="d-pant" class="pantalla"><span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" spellcheck="false" aria-label="Escribe un comando"></div></div><div class="pie"><button id="d-salir" type="button">Salir</button><span id="d-contador" class="contador"></span></div></div></div></div></section>');
+  fondo.hidden = true;
+  document.body.append(panel, fondo);
+  const enunciado = $('d-enun'), terminal = $('d-term'), pantalla = $('d-pant'), entrada = $('d-in');
+  const abrir = () => { fondo.hidden = false; void fondo.offsetWidth; fondo.classList.add('visible'); };
+  const cerrar = () => { cancelarAyudas(); fondo.classList.remove('visible'); fondo.hidden = true; };
+  const avisar = texto => { aviso = texto; renderPanel(); };
+  btnDuelo.onclick = () => { panel.classList.toggle('abierto'); if (panel.classList.contains('abierto')) { alternarAct(false); iniciarFirebase(); renderPanel(); } };
+  btnAct.addEventListener('click', () => panel.classList.remove('abierto'));
+  $('d-x').onclick = $('d-salir').onclick = () => salirConConfirmacion();
 
-/* ---- 4) Estado ---- */
-let db, uid = null, off = 0, nombre = '', modoSel = '', nSec = 8, codigo = null, ref = null, sala = null,
-    secs = null, S = null, qs = [], editorListo = false, aviso = '';
-try { nombre = localStorage.getItem('duelo-nombre') || ''; } catch (e) {}
-
-/* ---- 5) Pestaña, panel lateral y ventana (se crean aquí para no tocar el HTML) ---- */
-const caja = E('div'); caja.style.cssText = 'display:flex;gap:4px';
-btnAct.replaceWith(caja);
-const btn = E('button', 'barra-btn', 'Duelo'); btn.type = 'button'; btn.setAttribute('aria-expanded', 'false');
-caja.append(btnAct, btn);
-
-const panelD = E('aside', 'act-panel', '<div class="act-cab"><h2>Duelo</h2><p>Compite en tiempo real con otras personas.</p></div><div class="d-cuerpo"></div>');
-const cuerpo = panelD.lastChild; panelD.setAttribute('aria-label', 'Duelo');
-const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Duelo"><div class="act-int">' +
-  '<div class="titulo" id="d-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño"><span id="d-tit"></span><button class="act-max" id="d-max" type="button" aria-label="Maximizar ventana">□</button><button class="act-cerrar" id="d-x" type="button" aria-label="Salir del duelo">✕</button></div>' +
-  '<div class="act-cuerpo"><article class="enunciado" id="d-enun"></article><div class="terminal act-term" id="d-term"><div class="pantalla" id="d-pant">' +
-  '<span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando" title="Tab completa · ↑ ↓ historial · Ctrl+L limpia"></div></div>' +
-  '<div class="pie"><button id="d-salir" type="button">Salir del duelo</button><span class="contador" id="d-cont"></span></div></div></div></div></section>');
-fondo.hidden = true;
-document.body.append(panelD, fondo);
-const vent = fondo.querySelector('.act-ventana'), enun = $('d-enun'), term = $('d-term'), inp = $('d-in');
-
-const alternarD = abierto => { panelD.classList.toggle('abierto', abierto); btn.setAttribute('aria-expanded', abierto); if (abierto){ alternarAct(false); iniciar(); vistaPanel(); } };
-btn.onclick = () => alternarD(!panelD.classList.contains('abierto'));
-btnAct.addEventListener('click', () => alternarD(false));
-// Clic fuera = cerrar. Se usa composedPath() porque vistaPanel() redibuja el panel al pulsar un botón: el botón ya no está
-// en el DOM cuando el clic llega aquí y contains() diría que se pulsó fuera.
-addEventListener('click', e => { const ruta = e.composedPath(); if (panelD.classList.contains('abierto') && !ruta.includes(panelD) && !ruta.includes(caja)) alternarD(false); });
-/* Mover: arrastrar la barra de título (o flechas). Redimensionar: bordes y esquinas (o Mayús + flechas).
-   Doble clic en la barra o botón □: maximizar. Es la misma lógica que la ventana de Actividades. */
-const barra = $('d-barra'), TOPE = 30, MIN_W = 420, MIN_H = 320;
-let geo = null, maxim = false, gesto = null;
-const minimos = () => ({ w: Math.min(MIN_W, innerWidth - 12), h: Math.min(MIN_H, innerHeight - TOPE) });
-const geometriaInicial = () => { const w = Math.min(900, innerWidth - 12), h = Math.min(680, innerHeight - TOPE - 12);
-  return { x: Math.round((innerWidth - w) / 2), y: TOPE + Math.max(6, Math.round((innerHeight - TOPE - h) / 2)), w, h }; };
-function limitar(){
-  const m = minimos();
-  geo.w = Math.max(m.w, Math.min(geo.w, innerWidth)); geo.h = Math.max(m.h, Math.min(geo.h, innerHeight - TOPE));
-  geo.x = Math.max(80 - geo.w, Math.min(geo.x, innerWidth - 80)); geo.y = Math.max(TOPE, Math.min(geo.y, innerHeight - 42));
-}
-function colocar(){
-  if (!geo) geo = geometriaInicial();
-  if (!maxim) limitar();
-  const r = maxim ? { x: 0, y: TOPE, w: innerWidth, h: innerHeight - TOPE } : geo;
-  Object.assign(vent.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
-  vent.classList.toggle('maximizada', maxim);
-  $('d-max').textContent = maxim ? '❐' : '□'; $('d-max').setAttribute('aria-label', maxim ? 'Restaurar ventana' : 'Maximizar ventana');
-}
-const alternarMax = () => { maxim = !maxim; colocar(); };
-['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(d => { const h = E('span', 'res ' + d); h.dataset.d = d; vent.append(h); });
-vent.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || maxim) return;
-  const tirador = e.target.closest('.res'), enBarra = barra.contains(e.target) && !e.target.closest('button');
-  if (!tirador && !enBarra) return;
-  gesto = { tipo: tirador ? tirador.dataset.d : 'mover', px: e.clientX, py: e.clientY, o: { ...geo } };
-  (tirador || barra).setPointerCapture(e.pointerId);
-});
-vent.addEventListener('pointermove', e => {
-  if (!gesto) return;
-  const dx = e.clientX - gesto.px, dy = e.clientY - gesto.py, o = gesto.o, t = gesto.tipo, m = minimos();
-  if (t === 'mover'){ geo.x = o.x + dx; geo.y = o.y + dy; }
-  else {
-    if (t.includes('e')) geo.w = Math.max(m.w, Math.min(o.w + dx, innerWidth - o.x));
-    if (t.includes('s')) geo.h = Math.max(m.h, Math.min(o.h + dy, innerHeight - o.y));
-    if (t.includes('w')){ const x = Math.max(0, Math.min(o.x + dx, o.x + o.w - m.w)); geo.w = o.x + o.w - x; geo.x = x; }
-    if (t.includes('n')){ const y = Math.max(TOPE, Math.min(o.y + dy, o.y + o.h - m.h)); geo.h = o.y + o.h - y; geo.y = y; }
+  function iniciarFirebase(){
+    if (db) return;
+    if (!window.firebase) return avisar('No se cargó Firebase. Sirve la carpeta por HTTP para usar el multijugador.');
+    try {
+      firebase.initializeApp(CONFIG); db = firebase.database();
+      db.ref('.info/serverTimeOffset').on('value', s => offset = s.val() || 0);
+      db.ref('salas').on('value', s => { salas = s.val() || {}; renderPanel(); if (sala && !fondo.hidden) pintarPartida(); });
+      firebase.auth().signInAnonymously().then(x => { uid = x.user.uid; renderPanel(); }).catch(e => avisar('No se pudo iniciar sesión: ' + e.code));
+    } catch (e) { avisar('Error de Firebase: ' + e.message); }
   }
-  colocar();
-});
-['pointerup', 'pointercancel'].forEach(ev => vent.addEventListener(ev, () => { gesto = null; }));
-barra.addEventListener('dblclick', e => { if (!e.target.closest('button')) alternarMax(); });
-$('d-max').onclick = alternarMax;
-barra.addEventListener('keydown', e => {
-  if (e.target !== barra || maxim) return;
-  const d = 24, v = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[e.key];
-  if (!v) return;
-  e.preventDefault();
-  if (e.shiftKey){ geo.w += v[0]; geo.h += v[1]; } else { geo.x += v[0]; geo.y += v[1]; }
-  colocar();
-});
-addEventListener('resize', () => { if (!fondo.hidden) colocar(); });
-const abrirVentana = () => { fondo.hidden = false; colocar(); void fondo.offsetWidth; fondo.classList.add('visible'); };   // conserva donde la dejó la persona
 
-/* ---- 6) Firebase ---- */
-function iniciar(){
-  if (db || !FIREBASE_CONFIG.apiKey) return;
-  if (!window.firebase){ aviso = 'No se cargó el SDK de Firebase (revisa los <script> del HTML).'; return; }
-  try {
-    firebase.initializeApp(FIREBASE_CONFIG); db = firebase.database();
-    db.ref('.info/serverTimeOffset').on('value', s => off = s.val() || 0);
-    firebase.auth().signInAnonymously().then(u => { uid = u.user.uid; vistaPanel(); })
-      .catch(e => { aviso = 'No se pudo iniciar sesión (' + e.code + '). Con file:// no funciona: sirve la carpeta por http.'; vistaPanel(); });
-  } catch (e) { aviso = 'Error de Firebase: ' + e.message; }
-}
-
-async function crear(modo){
-  if (!nombre) return avisar('Escribe tu nombre.');
-  const L = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  for (let k = 0; k < 8; k++){
-    const c = Array.from({ length: 4 }, () => L[Math.random() * L.length | 0]).join('');
-    const base = { modo, anfitrion: uid, estado: modo === 'web' ? 'espera' : 'redactando', jugadores: { [uid]: { nombre, rol: modo === 'web' ? 'jugador' : 'creador', prog: 0 } } };
-    if (modo === 'web') base.ids = ORDEN_ACT.map(a => a.id).sort(() => Math.random() - .5).slice(0, nSec);   // N actividades al azar
-    const r = await db.ref('salas/' + c).transaction(x => x === null ? base : undefined);
-    if (r.committed) return entrar(c);
-  }
-}
-async function unirse(c){
-  c = c.trim().toUpperCase();
-  if (!nombre) return avisar('Escribe tu nombre.');
-  const v = (await db.ref('salas/' + c).get()).val();
-  if (!v) return avisar('Esa sala no existe.');
-  const yaEsta = v.jugadores && v.jugadores[uid], jugadores = Object.values(v.jugadores || {}).filter(j => j.rol === 'jugador').length;
-  if (!yaEsta && (v.estado === 'jugando' || jugadores >= 2)) return avisar('La sala está llena o ya ha empezado.');
-  await db.ref('salas/' + c + '/jugadores/' + uid).set({ nombre, rol: 'jugador', prog: 0 });
-  entrar(c);
-}
-function entrar(c){
-  codigo = c; ref = db.ref('salas/' + c); aviso = '';
-  ref.on('value', s => { sala = s.val(); if (!sala) return salirLocal(); vistaPanel(); if (sala.jugadores[uid]) onSala(); });
-}
-function salir(){
-  if (!ref) return;
-  const r = ref, soyAnfitrion = sala && sala.anfitrion === uid;
-  r.off(); if (soyAnfitrion) r.remove(); else r.child('jugadores/' + uid).remove();   // si se va el anfitrión, la sala se borra
-  salirLocal();
-}
-function salirLocal(){ if (ref) ref.off(); ref = sala = secs = S = null; codigo = null; qs = []; editorListo = false; fondo.classList.remove('visible'); fondo.hidden = true; vistaPanel(); }
-// Confirmación antes de abandonar (por si se pulsa sin querer). Si la partida ya terminó, se sale directamente.
-function pedirSalir(){
-  if (!sala || sala.ganador) return salir();
-  if (document.querySelector('.d-conf')) return;
-  const d = E('div', 'd-conf', '<div class="d-conf-c" role="alertdialog" aria-modal="true" aria-labelledby="d-conf-t"><h3 id="d-conf-t">¿Abandonar el duelo?</h3><p></p><div><button type="button" class="d-no">Seguir en el duelo</button><button type="button" class="d-si">Abandonar</button></div></div>');
-  d.querySelector('p').textContent = sala.anfitrion === uid ? 'Eres el anfitrión: si sales, la sala se cerrará para todos los jugadores.'
-    : sala.estado === 'jugando' ? 'Si abandonas perderás tu progreso y no podrás volver a entrar en esta partida.' : 'Saldrás de la sala.';
-  const cerrar = () => { d.remove(); removeEventListener('keydown', tecla, true); },
-        tecla = e => { if (e.key === 'Escape'){ e.stopPropagation(); cerrar(); } };
-  d.querySelector('.d-no').onclick = cerrar;
-  d.querySelector('.d-si').onclick = () => { cerrar(); salir(); };
-  addEventListener('keydown', tecla, true);
-  document.body.append(d); d.querySelector('.d-no').focus();   // el foco va a "Seguir": un Enter accidental no abandona
-}
-// Cerrar o recargar la página en plena partida también avisa
-addEventListener('beforeunload', e => { if (sala && sala.estado === 'jugando' && !sala.ganador){ e.preventDefault(); e.returnValue = ''; } });
-const avisar = t => { aviso = t; vistaPanel(); };
-
-/* ---- 7) Panel lateral ---- */
-const boton = (t, fn, off, sel) => { const b = E('button', 'd-btn' + (sel ? ' sel' : ''), t); b.type = 'button'; b.disabled = !!off; b.onclick = fn; return b; };
-function vistaPanel(){
-  cuerpo.innerHTML = ''; const add = (...n) => cuerpo.append(...n);
-  if (!FIREBASE_CONFIG.apiKey) return add(E('p', 'act-vacio', 'Falta configurar Firebase: pega tu configuración en <b>FIREBASE_CONFIG</b> al principio de duelo.js.'));
-  if (!uid) return add(E('p', 'act-vacio', escapar(aviso || 'Conectando…')));
-  if (!sala){
-    const n = E('input'); n.placeholder = 'Tu nombre en el duelo'; n.maxLength = 16; n.value = nombre;
-    n.oninput = () => { nombre = n.value.trim(); try { localStorage.setItem('duelo-nombre', nombre); } catch (e) {} };
-    add(n);
-    for (const m in MODOS) add(boton(MODOS[m], () => { modoSel = m; vistaPanel(); }, false, modoSel === m));
-    if (modoSel === 'web'){
-      const s = E('select'); for (let i = MIN_SEC; i <= MAX_SEC; i++) s.append(new Option(i + ' secuencias', i, false, i === nSec));
-      s.onchange = () => nSec = +s.value; add(s);
+  function idsParaSala(){ return ORDEN_ACT.map(a => a.id).sort(() => Math.random() - .5).slice(0, numeroEjercicios); }
+  async function crearSala(){
+    if (!nombre) return avisar('Escribe tu nombre.');
+    const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    for (let intento = 0; intento < 8; intento++){
+      const id = Array.from({ length:4 }, () => letras[Math.random() * letras.length | 0]).join('');
+      const base = { ...window.DUELO_CORE.crearConfiguracionSala(modo, idsParaSala(), capacidad), anfitrion:uid, creador:nombre, jugadores:{ [uid]:{ nombre, prog:0, paso:0, fallos:0, pistas:0, solucion:0 } } };
+      const resultado = await db.ref('salas/' + id).transaction(actual => actual === null ? base : undefined);
+      if (resultado.committed) return entrarSala(id);
     }
-    if (modoSel) add(boton('＋ Crear sala' + (modoSel === 'anonimo' ? ' (yo escribo las preguntas)' : ''), () => crear(modoSel)));
-    const c = E('input'); c.placeholder = 'Código de sala (4 letras)'; c.maxLength = 4; c.style.textTransform = 'uppercase';
-    add(c, boton('→ Unirme a una sala', () => unirse(c.value)));
-    if (aviso) add(E('p', 'act-vacio', escapar(aviso)));
-    return;
+    avisar('No se pudo crear la sala. Inténtalo de nuevo.');
   }
-  add(E('div', 'd-cod', codigo), E('p', 'act-vacio', MODOS[sala.modo] + ' · comparte el código con los otros jugadores.'));
-  Object.values(sala.jugadores || {}).forEach(j => add(E('div', 'd-jug', '<span>' + escapar(j.nombre) + '</span><small>' + (j.rol === 'creador' ? 'creador de preguntas' : 'jugador') + '</small>')));
-  const nJug = Object.values(sala.jugadores || {}).filter(j => j.rol === 'jugador').length;
-  if (sala.modo === 'web' && sala.estado === 'espera' && sala.anfitrion === uid) add(boton('▶ Empezar duelo', () => ref.update({ estado: 'jugando', inicio: Date.now() + off + CUENTA_ATRAS_MS }), nJug < 2));
-  if (sala.modo === 'web' && sala.estado === 'espera' && sala.anfitrion !== uid) add(E('p', 'act-vacio', 'Esperando a que el anfitrión empiece…'));
-  if (sala.estado !== 'espera' && fondo.hidden) add(boton('Volver al duelo', abrirVentana));
-  add(boton('Salir de la sala', pedirSalir));
-}
-
-/* ---- 8) Secuencias a resolver (mismo formato para los dos modos) ---- */
-function secuencias(){
-  if (sala.modo === 'web') return (sala.ids || []).map(id => ORDEN_ACT.find(a => a.id === id)).filter(Boolean).map(a => ({
-    titulo: a.titulo, enun: unir(a.enunciado),
-    estado: crearEstado(a),
-    pasos: a.pasos.map(p => ({ tarea: p.tarea, paso: p })) }));
-  return (sala.preguntas || []).map((q, i) => ({ titulo: 'Pregunta anónima ' + (i + 1), enun: '<p>' + escapar(q.enun).replace(/\n/g, '<br>') + '</p>', estado: null,
-    pasos: Object.values(q.h).map((hs, j, todos) => ({ tarea: 'Comando ' + (j + 1) + ' de ' + todos.length, valida: t => Object.values(hs).includes(huella(t, sala.sem)) })) }));
-}
-
-/* ---- 9) Ventana del duelo ---- */
-function onSala(){ if (sala.estado !== 'espera' && fondo.hidden) abrirVentana(); if (!fondo.hidden) pintar(); }
-
-function editor(){   // formulario del creador (se construye una sola vez para no borrar lo escrito)
-  enun.innerHTML = '<h3>Escribe tus preguntas (máx. ' + MAX_PREGUNTAS + ')</h3><p>Cada pregunta lleva un enunciado y uno o varios comandos. En cada comando puedes añadir <b>otras respuestas válidas</b> (p. ej. <code>ls -l</code> y <code>ls -la</code>). Los jugadores no verán tus respuestas.</p><div id="d-qs"></div>' +
-    '<button type="button" id="d-mas">＋ Añadir pregunta</button><button type="button" class="d-lanzar" id="d-lanzar">▶ Lanzar duelo</button> <small id="d-est"></small>';
-  const lista = $('d-qs');
-  const numerar = () => qs.forEach((q, i) => q.d.querySelector('b').textContent = 'Pregunta ' + (i + 1));
-  const nuevoPaso = q => {   // un comando = una lista de respuestas válidas (inputs)
-    const p = E('div', 'd-paso', '<small></small><div></div><button type="button">＋ Otra respuesta válida</button>'), alts = [];
-    const alt = () => { const i = E('input'); i.placeholder = alts.length ? 'Respuesta alternativa' : 'Comando correcto'; i.spellcheck = false; alts.push(i); p.children[1].append(i); return i; };
-    p.children[0].textContent = 'Comando ' + (q.pasos.length + 1);
-    p.lastChild.onclick = () => alt().focus();
-    alt(); q.pasos.push(alts); q.d.querySelector('.d-pasos').append(p);
-  };
-  const nueva = () => { if (qs.length >= MAX_PREGUNTAS) return;
-    const d = E('div', 'd-q', '<b></b> <button type="button" class="d-del">✕ Quitar pregunta</button><textarea rows="2" placeholder="Enunciado: p. ej. Crea la carpeta datos y entra en ella"></textarea><div class="d-pasos"></div><button type="button" class="d-addp">＋ Añadir comando</button>');
-    const q = { d, e: d.querySelector('textarea'), pasos: [] };
-    d.querySelector('.d-addp').onclick = () => { nuevoPaso(q); estado(); };
-    d.querySelector('.d-del').onclick = () => { qs.splice(qs.indexOf(q), 1); d.remove(); if (!qs.length) nueva(); numerar(); estado(); };
-    nuevoPaso(q); qs.push(q); lista.append(d); numerar(); estado(); };
-  $('d-mas').onclick = nueva;
-  $('d-lanzar').onclick = () => {   // las respuestas se guardan como huellas; las vacías se ignoran
-    const sem = Math.random().toString(36).slice(2, 8);
-    const preguntas = qs.map(q => ({ enun: q.e.value.trim(),
-      h: q.pasos.map(alts => alts.map(i => normalizar(i.value)).filter(Boolean).map(x => huella(x, sem))).filter(a => a.length) })).filter(q => q.enun && q.h.length);
-    if (preguntas.length) ref.update({ preguntas, sem, estado: 'jugando', inicio: Date.now() + off + CUENTA_ATRAS_MS });
-  };
-  enun.oninput = estado; nueva(); editorListo = true;
-}
-function estado(){   // habilita "Lanzar" solo con 2 jugadores y al menos una pregunta completa
-  if (!$('d-lanzar') || !sala) return;
-  const jug = Object.values(sala.jugadores || {}).filter(j => j.rol === 'jugador').length;
-  const ok = qs.some(q => q.e.value.trim() && q.pasos.some(a => a.some(i => i.value.trim())));
-  $('d-lanzar').disabled = jug < 2 || !ok; $('d-mas').disabled = qs.length >= MAX_PREGUNTAS;
-  $('d-est').textContent = jug + '/2 jugadores conectados' + (ok ? '' : ' · falta al menos una pregunta completa');
-}
-
-function pintar(){
-  const yo = sala.jugadores[uid], creador = yo.rol === 'creador', jugando = sala.estado === 'jugando';
-  $('d-tit').textContent = 'Duelo · ' + MODOS[sala.modo] + ' · sala ' + codigo;
-  const nada = html => { enun.classList.add('d-full'); term.hidden = true; enun.innerHTML = html; };
-  if (!jugando){
-    if (creador){ enun.classList.add('d-full'); term.hidden = true; if (!editorListo) editor(); estado(); }
-    else nada('<h3>Preguntas anónimas</h3><p>Un jugador está escribiendo las preguntas… ¡prepárate!</p>');
-    return;
+  async function unirSala(id){
+    id = String(id || '').trim().toUpperCase(); if (!id) return avisar('Escribe un código o elige una sala.');
+    if (!nombre) return avisar('Escribe tu nombre.');
+    const actual = (await db.ref('salas/' + id).get()).val();
+    if (!actual) return avisar('Esa sala no existe.');
+    const normal = window.DUELO_CORE.normalizarSala(actual);
+    if (!normal.jugadores[uid] && !window.DUELO_CORE.esSalaUnible(normal)) return avisar('La sala está llena o ya ha empezado.');
+    if (!normal.jugadores[uid]) await db.ref('salas/' + id + '/jugadores/' + uid).set({ nombre, prog:0, paso:0, fallos:0, pistas:0, solucion:0 });
+    entrarSala(id);
   }
-  if (!secs) secs = secuencias();
-  const total = secs.reduce((a, s) => a + s.pasos.length, 0);
-  const barras = Object.values(sala.jugadores).filter(j => j.rol === 'jugador').map(j => '<div><b>' + escapar(j.nombre) + (j === yo ? ' (tú)' : '') + '</b> <small>' + (j.prog || 0) + ' / ' + total + '</small>' +
-    '<div class="d-barra"><i style="width:' + (total ? 100 * (j.prog || 0) / total : 0) + '%"></i></div></div>').join('');
-  if (sala.ganador){
-    const g = sala.jugadores[sala.ganador], t = g && g.fin ? ((g.fin - sala.inicio) / 1000).toFixed(1) + ' s' : '';
-    return nada('<div class="d-fin"><h3>🏆 ' + (sala.ganador === uid ? '¡Has ganado!' : 'Gana ' + escapar(g ? g.nombre : 'tu rival')) + '</h3><p>Tiempo del ganador: ' + t + '</p>' + barras + '<button type="button" onclick="this.closest(\'.act-fondo\').querySelector(\'#d-salir\').click()">Salir del duelo</button></div>');
+  function entrarSala(id){
+    codigo = id; referencia = db.ref('salas/' + id); aviso = '';
+    referencia.child('jugadores/' + uid).onDisconnect().remove();
+    referencia.on('value', s => { sala = s.val(); if (!sala) return salirLocal(); renderPanel(); if (sala.jugadores && sala.jugadores[uid]) { if (sala.estado !== 'espera') abrir(); pintarPartida(); } });
   }
-  const falta = sala.inicio - (Date.now() + off);
-  if (falta > 0){ setTimeout(() => { if (sala && !fondo.hidden) pintar(); }, 200); return nada('<h3>¡Prepárate!</h3><p>Empieza en ' + Math.ceil(falta / 1000) + '…</p>' + barras); }
-  if (creador) return nada('<h3>Estás observando el duelo</h3>' + barras);
-  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: secs[0].estado ? rutaVisible(secs[0].estado.cwd) : '~', mem: [], memI: 0, hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
-  if (S.q >= secs.length) return nada('<h3>¡Has terminado!</h3><p>Comprobando el resultado…</p>' + barras);
-  const q = secs[S.q]; enun.classList.remove('d-full'); term.hidden = false;
-  enun.innerHTML = barras + '<h3>Secuencia ' + (S.q + 1) + ' / ' + secs.length + ' · ' + escapar(q.titulo) + '</h3>' + q.enun +
-    '<ol class="tareas">' + q.pasos.map((p, i) => '<li class="' + (i < S.p ? 'hecha' : i === S.p ? 'actual' : '') + '">' + p.tarea + '</li>').join('') + '</ol>';
-  $('d-hist').innerHTML = S.hist; $('d-prompt').innerHTML = promptHtml(S.ruta);
-  $('d-cont').textContent = 'Comando ' + (S.hecho + 1) + ' / ' + total; $('d-pant').scrollTop = $('d-pant').scrollHeight;
-  if (document.activeElement !== inp) inp.focus();
-}
+  function iniciarSala(){
+    if (!sala || sala.anfitrion !== uid || sala.estado !== 'espera') return;
+    referencia.update({ estado:'cuenta-atras', inicio:Date.now() + offset + CUENTA_ATRAS });
+    setTimeout(() => { if (sala && sala.estado === 'cuenta-atras' && referencia) referencia.update({ estado:'jugando' }); }, CUENTA_ATRAS + 150);
+  }
+  function salirLocal(){ cancelarAyudas(); if (referencia) referencia.off(); referencia = sala = secuencias = jugador = null; codigo = null; cerrar(); renderPanel(); }
+  function salir(){
+    if (!referencia) return salirLocal();
+    const eraAnfitrion = sala && sala.anfitrion === uid;
+    cancelarAyudas(); referencia.off();
+    if (eraAnfitrion && sala.estado === 'espera') referencia.update({ estado:'cerrada', visible:false });
+    else referencia.child('jugadores/' + uid).remove();
+    salirLocal();
+  }
+  function salirConConfirmacion(){
+    if (!sala || sala.estado === 'terminada') return salir();
+    if (document.querySelector('.d-conf')) return;
+    const modal = E('div', 'd-conf', '<div class="d-conf-c" role="alertdialog" aria-modal="true"><h3>¿Salir de la sala?</h3><p></p><div><button class="d-no" type="button">Seguir</button><button class="d-si" type="button">Salir</button></div></div>');
+    modal.querySelector('p').textContent = sala.anfitrion === uid ? 'La sala se cerrará para todos.' : 'Tu progreso dejará de aparecer en la sala.';
+    modal.querySelector('.d-no').onclick = () => modal.remove(); modal.querySelector('.d-si').onclick = () => { modal.remove(); salir(); }; document.body.append(modal); modal.querySelector('.d-no').focus();
+  }
 
-function enviar(){
-  if (!S || S.q >= secs.length || sala.ganador) return;
-  const crudo = inp.value, t = normalizar(crudo), sec = secs[S.q], paso = sec.pasos[S.p]; inp.value = '';
-  S.hist += promptHtml(S.ruta) + escapar(crudo) + '\n';
-  if (t){ S.mem.push(crudo.trim()); S.memI = S.mem.length; }
-  if (t === 'clear') S.hist = '';
-  else if (t){
-    const res = sec.estado ? validarPaso(paso.paso, sec.estado, t) : { ok: paso.valida(t), salida: '' };
-    if (res.ok){
-      if (sec.estado){ sec.estado = res.estado; S.ruta = rutaVisible(sec.estado.cwd); }
-      if (res.salida) S.hist += res.salida + '\n';
-      S.hecho++; S.p++;
-      if (S.p >= sec.pasos.length){   // siguiente secuencia: terminal limpia y mundo nuevo
-        S.q++; S.p = 0;
-        S.ruta = secs[S.q] && secs[S.q].estado ? rutaVisible(secs[S.q].estado.cwd) : '~';
-        S.hist = '';
-      }
-      ref.child('jugadores/' + uid + '/prog').set(S.hecho);
-      if (S.q >= secs.length){   // ¡terminó! El primero en escribir "ganador" gana (transacción)
-        ref.child('jugadores/' + uid + '/fin').set(firebase.database.ServerValue.TIMESTAMP);
-        ref.child('ganador').transaction(g => g || uid);
-      }
-    } else S.hist += '<span class="c"># ' + escapar(res.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
+  function renderPanel(){
+    cuerpo.innerHTML = '';
+    if (!CONFIG.apiKey) return cuerpo.append(E('p', 'act-vacio', 'Falta la configuración de Firebase.'));
+    if (!uid) return cuerpo.append(E('p', 'act-vacio', escapar(aviso || 'Conectando…')));
+    if (sala) return renderSalaPanel();
+    const nombreInput = E('input'); nombreInput.placeholder = 'Tu nombre'; nombreInput.maxLength = 16; nombreInput.value = nombre; nombreInput.oninput = () => { nombre = nombreInput.value.trim(); try { localStorage.setItem('duelo-nombre', nombre); } catch (e) {} };
+    cuerpo.append(nombreInput, E('p', 'act-vacio', 'Crea una sala para toda la clase o únete a una abierta.'));
+    Object.entries(MODOS).forEach(([id, texto]) => cuerpo.append(boton(texto, () => { modo = id; renderPanel(); }, false)));
+    const ejercicios = E('select'); for (let i = MIN_EJ; i <= MAX_EJ; i++) ejercicios.append(new Option(i + ' ejercicios', i, false, i === numeroEjercicios)); ejercicios.onchange = () => numeroEjercicios = +ejercicios.value;
+    const maximo = E('select'); for (let i = 5; i <= MAX_JUGADORES; i += 5) maximo.append(new Option(i + ' jugadores máximo', i, false, i === capacidad)); maximo.onchange = () => capacidad = +maximo.value;
+    cuerpo.append(ejercicios, maximo, boton('＋ Crear sala', crearSala));
+    const codigoInput = E('input'); codigoInput.placeholder = 'Código privado (opcional)'; codigoInput.maxLength = 4; codigoInput.style.textTransform = 'uppercase'; cuerpo.append(codigoInput, boton('→ Unirme con código', () => unirSala(codigoInput.value)));
+    cuerpo.append(E('h3', null, 'Salas abiertas'));
+    const abiertas = Object.entries(salas).map(([id, raw]) => ({ id, ...window.DUELO_CORE.normalizarSala(raw) })).filter(window.DUELO_CORE.esSalaUnible);
+    if (!abiertas.length) cuerpo.append(E('p', 'act-vacio', 'No hay salas abiertas todavía.'));
+    abiertas.forEach(s => { const n = Object.keys(s.jugadores || {}).length; const card = E('div', 'd-sala', '<h3>' + escapar(MODOS[s.modo]) + '</h3><p>' + escapar(s.creador || 'Sala') + ' · ' + n + '/' + s.capacidad + ' jugadores · ' + s.ids.length + ' ejercicios</p>'); card.append(boton('Unirme', () => unirSala(s.id))); cuerpo.append(card); });
+    if (aviso) cuerpo.append(E('p', 'act-vacio', escapar(aviso)));
   }
-  pintar();
-}
-inp.onkeydown = e => {
-  if (e.key === 'Enter'){ e.preventDefault(); enviar(); return; }
-  if (!S) return;
-  if (e.key === 'Tab'){   // mismo autocompletado que en las actividades
-    e.preventDefault();
-    const sec = secs && secs[S.q];
-    completarInput(inp, sec && sec.estado, html => { S.hist += html; pintar(); });
-    return;
+  function renderSalaPanel(){
+    const jugadores = Object.values(sala.jugadores || {}); cuerpo.append(E('div', 'd-cod', codigo), E('p', 'act-vacio', MODOS[sala.modo] + ' · ' + jugadores.length + '/' + sala.capacidad + ' jugadores'));
+    jugadores.forEach(j => cuerpo.append(E('div', 'd-jug', '<span>' + escapar(j.nombre) + '</span><small>' + (j.prog || 0) + ' ejercicios</small>')));
+    if (sala.estado === 'espera' && sala.anfitrion === uid) cuerpo.append(boton('▶ Empezar sala', iniciarSala));
+    else if (sala.estado === 'espera') cuerpo.append(E('p', 'act-vacio', 'Esperando a que empiece el creador…'));
+    if (sala.estado !== 'espera') cuerpo.append(boton('Volver a la partida', abrir));
+    cuerpo.append(boton('Salir de la sala', salirConConfirmacion));
   }
-  if (e.ctrlKey && e.key.toLowerCase() === 'l'){ e.preventDefault(); S.hist = ''; pintar(); return; }
-  if (e.key === 'ArrowUp' && S.mem.length){ e.preventDefault(); S.memI = Math.max(0, S.memI - 1); inp.value = S.mem[S.memI]; }
-  else if (e.key === 'ArrowDown'){ e.preventDefault(); S.memI = Math.min(S.mem.length, S.memI + 1); inp.value = S.mem[S.memI] ?? ''; }
-};
-$('d-pant').onclick = () => { if (!getSelection().toString()) inp.focus(); };
-$('d-salir').onclick = $('d-x').onclick = pedirSalir;
+
+  function secuenciaActual(){
+    if (!secuencias) secuencias = (sala.ids || []).map(id => ORDEN_ACT.find(a => a.id === id)).filter(Boolean).map(a => ({ titulo:a.titulo, enun:unir(a.enunciado), estado:crearEstado(a), pasos:a.pasos.map(p => ({ tarea:p.tarea, paso:p })) }));
+    return secuencias;
+  }
+  function cancelarAyudas(){ if (ayudaReloj) ayudaReloj.cancelar(); ayudaReloj = null; ayudaClave = ''; }
+  function guardarJugador(cambios){ if (referencia && uid) referencia.child('jugadores/' + uid).update(cambios); }
+  function programarAyudas(paso){
+    if (!jugador || !sala || sala.estado !== 'jugando') return;
+    const clave = codigo + ':' + jugador.paso, plan = window.DUELO_CORE.crearPlanAyudas(paso); if (ayudaClave === clave) return;
+    cancelarAyudas(); ayudaClave = clave;
+    ayudaReloj = window.DUELO_CORE.crearRelojAyudas(plan, {
+      onPista:i => { if (ayudaClave !== clave) return; jugador.pistas++; jugador.hist += '<span class="c"># Pista ' + (i + 1) + '/3: ' + escapar(plan.pistas[i]) + '</span>\n'; guardarJugador({ pistas:jugador.pistas }); pintarPartida(); },
+      onSolucion:() => { if (ayudaClave !== clave) return; jugador.solucion++; jugador.hist += '<span class="c"># Solución: ' + escapar(plan.solucion) + '</span>\n'; guardarJugador({ solucion:jugador.solucion }); pintarPartida(); }
+    });
+    ayudaReloj.iniciar();
+  }
+  function posicionesHtml(total){ return window.DUELO_CORE.calcularPosiciones(sala.jugadores || {}).map((j, i) => '<div><b>' + (i + 1) + '. ' + escapar(j.nombre) + (j.uid === uid ? ' (tú)' : '') + '</b> <small>' + (j.prog || 0) + '/' + total + '</small><div class="d-barra"><i style="width:' + (total ? 100 * (j.prog || 0) / total : 0) + '%"></i></div></div>').join(''); }
+  function pintarPartida(){
+    if (!sala || !sala.jugadores || !sala.jugadores[uid]) return;
+    const anterior = jugador || {};
+    jugador = { ...sala.jugadores[uid], estado:anterior.estado, estadoActividad:anterior.estadoActividad, hist:anterior.hist };
+    if (!secuencias && sala.ids) secuenciaActual();
+    const seq = secuenciaActual(), total = seq.reduce((n, s) => n + s.pasos.length, 0), ranking = posicionesHtml(total);
+    if (sala.estado === 'espera') { terminal.hidden = true; enunciado.className = 'enunciado d-full'; enunciado.innerHTML = '<h3>Esperando al inicio</h3><p>Ya hay ' + Object.keys(sala.jugadores).length + ' personas en la sala.</p><div>' + ranking + '</div>'; return; }
+    if (sala.estado === 'cuenta-atras') { terminal.hidden = true; enunciado.className = 'enunciado d-full'; const falta = Math.max(0, Number(sala.inicio || 0) - (Date.now() + offset)); enunciado.innerHTML = '<h3>¡Preparados!</h3><p>La partida empieza en ' + Math.ceil(falta / 1000) + '…</p><div>' + ranking + '</div>'; if (falta > 0) setTimeout(pintarPartida, 200); return; }
+    if (sala.estado === 'terminada') { cancelarAyudas(); terminal.hidden = true; enunciado.className = 'enunciado d-full'; enunciado.innerHTML = '<div class="d-fin"><h3>' + (sala.modo === 'carrera' ? '🏆 Carrera terminada' : 'Práctica terminada') + '</h3><div>' + ranking + '</div><p>Has usado ' + (jugador.pistas || 0) + ' pistas y cometido ' + (jugador.fallos || 0) + ' fallos.</p><button type="button" onclick="this.closest(\'.act-fondo\').querySelector(\'#d-salir\').click()">Salir</button></div>'; return; }
+    if ((jugador.paso || 0) >= total) { terminal.hidden = true; enunciado.className = 'enunciado d-full'; enunciado.innerHTML = '<h3>Has terminado</h3><p>Esperando al resto de participantes…</p><div>' + ranking + '</div>'; return; }
+    const ubicacion = (() => { let n = 0; for (let i = 0; i < seq.length; i++) for (let j = 0; j < seq[i].pasos.length; j++, n++) if (n === jugador.paso) return { q:i, p:j }; return { q:0, p:0 }; })();
+    const actual = seq[ubicacion.q], paso = actual.pasos[ubicacion.p], idActividad = sala.ids[ubicacion.q];
+    if (jugador.estadoActividad !== idActividad){ jugador.estadoActividad = idActividad; jugador.estado = crearEstado(ORDEN_ACT.find(a => a.id === idActividad)); }
+    const local = jugador.estado; terminal.hidden = false; enunciado.className = 'enunciado'; enunciado.innerHTML = '<div aria-label="Progreso de participantes">' + ranking + '</div><h3>' + (sala.modo === 'carrera' ? 'Carrera' : 'Práctica') + ' · ejercicio ' + (ubicacion.q + 1) + '/' + seq.length + '</h3>' + actual.enun + '<ol class="tareas">' + actual.pasos.map((p, i) => '<li class="' + (i < ubicacion.p ? 'hecha' : i === ubicacion.p ? 'actual' : '') + '">' + p.tarea + '</li>').join('') + '</ol>';
+    pantalla.querySelector('#d-hist').innerHTML = jugador.hist || '<span class="c"># Escribe el comando y pulsa Enter.</span>\n'; pantalla.querySelector('#d-prompt').innerHTML = promptHtml(rutaVisible(local.cwd)); $('d-contador').textContent = 'Progreso ' + (jugador.paso || 0) + '/' + total; programarAyudas(paso.paso); if (document.activeElement !== entrada) entrada.focus();
+  }
+  function enviar(){
+    if (!sala || sala.estado !== 'jugando' || !jugador || (jugador.paso || 0) >= (secuenciaActual().reduce((n, s) => n + s.pasos.length, 0))) return;
+    const seq = secuenciaActual(), crudo = entrada.value, t = normalizar(crudo); entrada.value = ''; if (!t) return; const ubicacion = (() => { let n = 0; for (let i = 0; i < seq.length; i++) for (let j = 0; j < seq[i].pasos.length; j++, n++) if (n === jugador.paso) return { q:i, p:j }; })(); const act = seq[ubicacion.q], paso = act.pasos[ubicacion.p]; if (jugador.estadoActividad !== sala.ids[ubicacion.q]){ jugador.estadoActividad = sala.ids[ubicacion.q]; jugador.estado = crearEstado(ORDEN_ACT.find(a => a.id === sala.ids[ubicacion.q])); } jugador.hist = (jugador.hist || '') + promptHtml(rutaVisible(jugador.estado.cwd)) + escapar(crudo) + '\n'; const resultado = validarPaso(paso.paso, jugador.estado, t);
+    if (resultado.ok){ cancelarAyudas(); jugador.estado = resultado.estado; jugador.paso++; jugador.prog = jugador.paso; jugador.hist += resultado.salida ? resultado.salida + '\n' : ''; guardarJugador({ paso:jugador.paso, prog:jugador.prog, fallos:jugador.fallos || 0, pistas:jugador.pistas || 0, solucion:jugador.solucion || 0 }); if (jugador.paso >= seq.reduce((n, s) => n + s.pasos.length, 0)){ jugador.fin = Date.now() + offset; guardarJugador({ fin:firebase.database.ServerValue.TIMESTAMP }); if (sala.modo === 'carrera') referencia.child('ganador').transaction(g => g || uid).then(() => referencia.update({ estado:'terminada' })); } }
+    else { jugador.fallos = (jugador.fallos || 0) + 1; jugador.hist += '<span class="c"># ' + escapar(resultado.diagnostico || resultado.error || 'Revisa el comando y el objetivo.') + '</span>\n'; guardarJugador({ fallos:jugador.fallos }); }
+    pintarPartida();
+  }
+  entrada.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); enviar(); } else if (e.key === 'Tab'){ e.preventDefault(); completarInput(entrada, jugador && jugador.estado, html => { jugador.hist += html; pintarPartida(); }); } else if (e.ctrlKey && e.key.toLowerCase() === 'l'){ e.preventDefault(); jugador.hist = ''; pintarPartida(); } };
+  pantalla.onclick = () => entrada.focus();
+  addEventListener('beforeunload', e => { if (sala && sala.estado === 'jugando'){ e.preventDefault(); e.returnValue = ''; } });
 })();
