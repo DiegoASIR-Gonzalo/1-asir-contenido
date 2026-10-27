@@ -226,6 +226,8 @@
   .solucion code{background:#eceae8}
   @keyframes aparece{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .exito{margin-top:6px;padding:6px 12px;border-radius:8px;background:#d7f0e0;color:#14532d;font-weight:700}
+  .tareas .fallos-paso{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;
+    font-size:11px;font-weight:700;color:#fff;background:#e57373;border-radius:10px;cursor:help}
   .act-term{flex:1 1 0;min-height:140px}
   .act-term .pantalla{padding:8px 16px;line-height:1.3}
   .act-term .pie{padding:6px 14px}             /* sustituye el 52 % de la terminal principal */
@@ -2019,6 +2021,7 @@ let act = null,          // actividad abierta (objeto de ORDEN_ACT)
     pasoAct = 0,         // paso que toca resolver (0 = el primero)
     histAct = '',        // HTML de lo ya escrito en la terminal (comandos y salidas)
     fallosAct = 0,       // fallos seguidos en el paso actual (2 → pista, 3 → Ver solución)
+    fallosPaso = 0,      // total de intentos fallidos en el paso actual (se muestra en la lista)
     pistaIdx = 0,        // pistas del paso actual ya enseñadas (cada petición muestra la siguiente)
     ayudaAct = false,    // true si en este paso se pidió "Ver solución" (da menos puntos)
     hechaAct = false,    // true cuando se ha superado el último paso
@@ -2356,7 +2359,7 @@ aplicarMapa();
 
 // Abre la actividad retomando el paso guardado (si lo hay) y su mundo virtual.
 function cargarAct(){
-  pasoAct = 0; fallosAct = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
   estadoAct = crearEstado(act);
   const g = progreso[act.id];
   if (progresoValido(g) && g.paso > 0){
@@ -2374,7 +2377,7 @@ function cargarAct(){
 
 // Vuelve al paso 1 con la terminal limpia y borra el progreso guardado de esta actividad.
 function reiniciarAct(){
-  pasoAct = 0; fallosAct = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
   estadoAct = crearEstado(act);
   delete progreso[act.id]; guardarProgreso(); construirLista();
   histAct = AYUDA_ACT;
@@ -2390,6 +2393,7 @@ function pintarAct(){
   $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + unir(act.enunciado) +
     '<ol class="tareas">' + act.pasos.map((p, i) =>
       '<li class="' + (i < pasoAct ? 'hecha' : (i === pasoAct && !hechaAct ? 'actual' : '')) + '">' + p.tarea +
+      (i === pasoAct && !hechaAct && fallosPaso > 0 ? ' <span class="fallos-paso" title="Intentos fallidos en este paso">' + fallosPaso + '</span>' : '') +
       (i < pasoAct && p.explica ? '<div class="nota">' + unir(p.explica, true) + '</div>' : '') + '</li>').join('') + '</ol>' +
     (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + unir(act.final) + '</p>' + solucionHtml(act) : '');
   histoAct.innerHTML = histAct;
@@ -2455,7 +2459,7 @@ function enviarAct(){
       // Puntos: 15 si sale a la primera, 10 si hubo fallos, 5 si se pidió la solución. Terminar: +25.
       const gana = ayudaAct ? 5 : fallosAct === 0 ? 15 : 10;
       ayudaAct = false;
-      pasoAct++; fallosAct = 0; pistaIdx = 0;
+      pasoAct++; fallosAct = 0; fallosPaso = 0; pistaIdx = 0;
       if (pasoAct === act.pasos.length){
         hechaAct = true;
         sumarPuntos(25, true);
@@ -2470,6 +2474,7 @@ function enviarAct(){
       construirLista();
     } else {
       fallosAct++;
+      fallosPaso++;
       histAct += '<span class="c"># ' + escapar(v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
       if (fallosAct === 2) histAct += pistaHtml(paso);
       else if (fallosAct === 3) histAct += '<span class="c"># Si sigues atascado, pulsa «Ver solución».</span>\n';

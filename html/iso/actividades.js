@@ -665,6 +665,66 @@ ACTIVIDADES.push(
         pista:['Puedes encadenar el borrado y la copia con punto y coma.','El enlace que se copia está en dir2.','rm prueba/dir1/fich1; cp prueba/dir2/enlace prueba/dir3'],
         explica:'El enlace duro sigue existiendo aunque se borre <code>fich1</code>; después se copia en <code>dir3</code>.',
         ejemplo:'rm prueba/dir1/fich1; cp prueba/dir2/enlace prueba/dir3' }
+    ]},
+
+  { id:"rafa-36", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 36", resumen:"Copiar mediante un enlace simbólico",
+    enunciado:'<p>Utiliza el enlace simbólico creado para copiar en <code>dir311</code> el fichero <code>fich1</code> de <code>dir2</code>.</p>',
+    final:'El enlace se puede usar como cualquier otra ruta.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'contenido de fich1\n', '~/prueba/dir3':'dir', '~/prueba/dir3/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir3/dir311':'dir' } },
+    pasos:[
+      { tarea:'Copia <code>prueba/dir2/enlace</code> en <code>prueba/dir3/dir311</code> usando el enlace <code>prueba/dir3/enlafich1</code>.',
+        meta:{ existe:['prueba/dir3/dir311/enlafich1'] },
+        pista:['Un enlace simbólico se utiliza escribiendo su ruta.','El destino es el directorio dir311.','cp prueba/dir3/enlafich1 prueba/dir3/dir311'],
+        explica:'<code>cp</code> sigue el enlace simbólico y copia el contenido del fichero apuntado.',
+        ejemplo:'cp prueba/dir3/enlafich1 prueba/dir3/dir311' }
+    ]},
+
+  { id:"rafa-37", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 37", resumen:"Enlaces duros y wc",
+    enunciado:'<p>Conserva dos enlaces duros al mismo fichero y cuenta sus líneas mediante <code>wc</code>.</p>',
+    final:'Los enlaces duros comparten el mismo contenido.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir1/enlace':'línea uno\nlínea dos\n', '~/prueba/dir2/enlace':'línea uno\nlínea dos\n' } },
+    pasos:[
+      { tarea:'Muestra cuántas líneas tiene <code>prueba/dir2/enlace</code>.',
+        meta:{ muestra:'2' },
+        pista:['wc cuenta líneas, palabras y caracteres.','La opción -l pide solo líneas.','wc -l prueba/dir2/enlace'],
+        explica:'<code>wc -l</code> cuenta los saltos de línea del fichero.',
+        ejemplo:'wc -l prueba/dir2/enlace' }
+    ]},
+
+  { id:"rafa-38", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 38", resumen:"Leer un fichero a través del enlace",
+    enunciado:'<p>Usa el enlace simbólico para mostrar por pantalla el contenido del fichero.</p>',
+    final:'Una ruta simbólica también sirve para leer el fichero.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'línea uno\nlínea dos\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' } } },
+    pasos:[
+      { tarea:'Muestra el contenido de <code>prueba/dir2/enlace</code> mediante <code>prueba/dir1/enlafich1</code>.',
+        meta:{ salida:'línea uno\nlínea dos' },
+        pista:['cat muestra el contenido de un fichero.','Escribe la ruta del enlace, no la del destino.','cat prueba/dir1/enlafich1'],
+        explica:'<code>cat</code> sigue el enlace y muestra el contenido del fichero original.',
+        ejemplo:'cat prueba/dir1/enlafich1' }
+    ]},
+
+  { id:"rafa-39", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 39", resumen:"Borrar el enlace original",
+    enunciado:'<p>Borra el nombre original <code>fich1</code>; el enlace duro debe seguir disponible.</p>',
+    final:'Borrar un nombre no elimina el contenido mientras quede otro enlace duro.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir1/fich1':'contenido de fich1\n', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'contenido de fich1\n' } },
+    pasos:[
+      { tarea:'Borra <code>prueba/dir1/fich1</code> y conserva <code>prueba/dir2/enlace</code>.',
+        meta:{ noExiste:'prueba/dir1/fich1', existe:['prueba/dir2/enlace'], contenido:{ 'prueba/dir2/enlace':'contenido de fich1\n' } },
+        pista:['rm elimina una entrada de directorio.','El enlace duro de dir2 no debe borrarse.','rm prueba/dir1/fich1'],
+        explica:'Los enlaces duros son nombres distintos para el mismo contenido.',
+        ejemplo:'rm prueba/dir1/fich1' }
+    ]},
+
+  { id:"rafa-40", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 40", resumen:"Limpieza final",
+    enunciado:'<p>Borra todos los ficheros y directorios creados durante los ejercicios dentro de <code>prueba</code>.</p>',
+    final:'Actividad terminada: el entorno ha quedado limpio.',
+    inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir1/enlace':'x', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'x', '~/prueba/dir3':'dir', '~/prueba/dir3/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir3/dir311':'dir', '~/prueba/dir3/dir311/fich1':'x' } },
+    pasos:[
+      { tarea:'Elimina el directorio <code>prueba</code> completo y todo su contenido.',
+        meta:{ noExiste:'prueba' },
+        pista:['rm puede borrar directorios de forma recursiva.','La opción -r incluye todo su contenido.','rm -r prueba'],
+        explica:'<code>rm -r</code> elimina el árbol indicado; úsalo con cuidado en un sistema real.',
+        ejemplo:'rm -r prueba' }
     ]}
 
 );
