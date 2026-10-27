@@ -2131,7 +2131,7 @@ function validarPaso(paso, estado, t){
 function comprobarAprendizaje(paso, t){
   const req = paso.aprendizaje;
   const ejemploTokens = tokenizar(paso.ejemplo || '');
-  const modoEjemplo = ejemploTokens.find(token => /^[ugoa]*[+-=][rwx]+$/.test(token));
+  const modoEjemplo = ejemploTokens.find(token => /^[ugoa]+[+-=][rwx]+$/.test(token));
   if (!req && modoEjemplo && ejemploTokens[0] === 'chmod'){
     const entrada = tokenizar(t);
     const modo = entrada[1];
@@ -2158,7 +2158,7 @@ function enriquecerDiagnostico(paso, mensaje){
   const objetivo = paso.meta && (paso.meta.modo || paso.meta.existe || paso.meta.noExiste || paso.meta.contenido);
   const ruta = objetivo && typeof objetivo === 'object' && !Array.isArray(objetivo) ? Object.keys(objetivo)[0] : [].concat(objetivo || [])[0];
   if (/No such file or directory/i.test(texto) && ruta) texto += ' Revisa la ruta del objetivo: ' + ruta + '.';
-  if (/permisos/i.test(texto) && tokenizar(paso.ejemplo || '')[0] === 'chmod' && tokenizar(paso.ejemplo || '').some(token => /^[ugoa]*[+-=][rwx]+$/.test(token)))
+  if (/permisos/i.test(texto) && tokenizar(paso.ejemplo || '')[0] === 'chmod' && tokenizar(paso.ejemplo || '').some(token => /^[ugoa]+[+-=][rwx]+$/.test(token)))
     texto += ' Este paso pide notación simbólica de chmod.';
   return texto;
 }
@@ -2169,7 +2169,7 @@ function pistasSeguras(paso){
   const ejemplo = normal(paso.ejemplo);
   const l = [].concat(base || []).filter(Boolean).filter(p => !ejemplo || !normal(p).includes(ejemplo));
   const comando = tokenizar(paso.ejemplo || '')[0] || 'comando';
-  const simbolica = tokenizar(paso.ejemplo || '').some(token => /^[ugoa]*[+-=][rwx]+$/.test(token));
+  const simbolica = tokenizar(paso.ejemplo || '').some(token => /^[ugoa]+[+-=][rwx]+$/.test(token));
   if (simbolica && !l.some(p => /simbólica/i.test(p))) l.push('Este ejercicio pide notación simbólica: usa letras con +, - o =.');
   if (l.length < 3) l.push('Revisa el comando ' + comando + ' y el objetivo concreto del paso.');
   if (l.length < 3) l.push('Piensa en la forma general: ' + comando + ' [opciones] [argumentos].');
@@ -2646,7 +2646,8 @@ const pistasDe = paso => {
 };
 function pistaHtml(paso){
   const l = pistasDe(paso), n = Math.min(pistaIdx, l.length - 1), agotadas = pistaIdx >= l.length;
-  if (agotadas) return '<span class="c"># Ya no hay más pistas para este paso; revisa el diagnóstico anterior.</span>\n';
+  if (pistaIdx > l.length) return '';
+  if (agotadas){ pistaIdx = l.length + 1; return '<span class="c"># Ya no hay más pistas para este paso; revisa el diagnóstico anterior.</span>\n'; }
   pistaIdx = Math.min(pistaIdx + 1, l.length);
   return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
 }

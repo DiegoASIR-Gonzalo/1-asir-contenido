@@ -132,6 +132,8 @@ assert(!numerico42.ok && /simbólica/i.test(numerico42.diagnostico), 'el ejercic
 const pistas42 = ctx.pistasSeguras(paso42);
 assert(pistas42.some(pista => /simbólica|chmod/i.test(pista)), 'el ejercicio 42 debe dar una pista específica');
 assert(ctx.validarPaso(paso42, estado42, 'chmod a-w prueba/dir2').ok, 'la forma simbólica correcta debe superar el ejercicio 42');
+const paso83 = ACTIVIDADES.find(a => a.id === 'rafa-83').pasos[0];
+assert(!ctx.pistasSeguras(paso83).some(pista => /notación simbólica/i.test(pista)), 'el ejercicio 83 no debe recibir una pista de chmod');
 assert(html.includes("fallosPaso < 3"), 'la solución debe reservarse para quien se atasca');
 assert(html.includes('no se escribe automáticamente'), 'la solución debe explicar sin rellenar la terminal');
 assert(!html.includes('entradaAct.value = ej;'), 'la solución no debe escribir el comando automáticamente');
