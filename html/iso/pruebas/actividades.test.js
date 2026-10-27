@@ -22,6 +22,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const assert = require('assert');
 
 const RAIZ = path.join(__dirname, '..');
 const HTML = path.join(RAIZ, 'linux-terminal.html');
@@ -53,6 +54,14 @@ const ctx = { console, document: { createElement: caja } };
 ctx.window = ctx;
 vm.createContext(ctx);
 vm.runInContext(html.slice(desde, hasta), ctx);
+
+/* El panel de estructura debe leer el mundo real de la actividad, no una lista fija. */
+const mapaPrueba = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/nota.txt':{ contenido:'x', modo:'600' }, '~/prueba/acceso':{ tipo:'link', destino:'~/prueba/nota.txt' } } } });
+const mapa = ctx.mapaHtml(mapaPrueba);
+assert(mapa.includes('data-path="/home/usuario/prueba/nota.txt"'), 'el mapa no muestra el fichero creado');
+assert(mapa.includes('data-path="/home/usuario/prueba/acceso"'), 'el mapa no muestra el enlace creado');
+assert(mapa.includes('lrwxrwxrwx') && mapa.includes('mapa-flecha">→</span> ~/prueba/nota.txt'), 'el mapa no muestra correctamente el enlace');
+assert(mapa.includes('actual'), 'el mapa no marca la carpeta actual');
 
 // validarPaso() usa aceptado() en los pasos del formato antiguo (ok / acepta).
 // En el HTML vive después del motor; aquí se replica para poder probarlos.
