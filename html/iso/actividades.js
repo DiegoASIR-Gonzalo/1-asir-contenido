@@ -793,3 +793,91 @@ ACTIVIDADES.push(
   actividadRafa(90, 'Extraer usuarios', { cwd:'~', fs:{ '/tmp/passwd':'usuario:x:1:/bin/bash\notro:x:2:/bin/sh\n' } }, pasoRafa('Extrae el primer campo de los usuarios.', { muestra:['usuario','otro'] }, 'cut -d : -f 1 /tmp/passwd', '<code>cut -d :</code> separa campos usando dos puntos.'), 2),
   actividadRafa(91, 'Extraer usuario y shell', { cwd:'~', fs:{ '/tmp/passwd':'usuario:x:1:/bin/bash\notro:x:2:/bin/sh\n' } }, pasoRafa('Extrae el usuario y el shell.', { muestra:['/bin/bash','/bin/sh'] }, 'cut -d : -f 1,4 /tmp/passwd', 'Se pueden seleccionar varios campos con <code>-f</code>.'), 2)
 );
+
+// El ODT contiene 88 ejercicios numerados. Desde el 36, el texto visible debe
+// coincidir con el documento; las actividades generales no forman parte de esta serie.
+const tareasRafa = {
+  36:'Crear un enlace simbólico (llamado enlafich1) al fichero enlace de dir2 en dir1.',
+  37:'Posicionarse en dir1 y, mediante el enlace creado, copiar el archivo fich1 dentro de dir311.',
+  38:'Seguir en dir1 y, mediante el enlace creado, sacar por pantalla las líneas que tiene el archivo fich1.',
+  39:'Borrar el fichero fich1 de dir2.',
+  40:'Borrar todos los archivos y directorios creados durante los ejercicios.',
+  41:'Crear el directorio dir2 y dir3 en el directorio prueba ¿Cuáles son los actuales permisos del directorio dir2?',
+  42:'Utilizando la notación simbólica, eliminar todos los permisos de escritura (propietario, grupo, otros) del directorio dir2.',
+  43:'Utilizando la notación octal, eliminar el permiso de lectura del directorio dir2, al resto de los usuarios.',
+  44:'¿Cuáles son ahora los permisos asociados a dir2?',
+  45:'Crear bajo dir2, un directorio llamado dir2l.',
+  46:'Concederse a sí mismo permiso de escritura en el directorio dir2 e intentar de nuevo el paso anterior.',
+  47:'¿Cuáles son los valores por omisión asignados a los archivos?',
+  48:'Cambiar el directorio actual al directorio dir3. Imprimir su trayectoria completa para verificar el cambio.',
+  49:'¿Cuáles son los permisos asignados en su momento a este directorio?',
+  50:'Establecer mediante el comando umask los siguientes valores por omisión: rwxr--r-- para los directorios y rw-r--r-- para los archivos ordinarios.',
+  51:'Crear cuatro nuevos directorios llamados dira, dirb, dirc, y dird bajo el directorio actual.',
+  52:'Comprobar los permisos de acceso de los directorios recién creados para comprobar el funcionamiento del comando umask.',
+  53:'Crear el fichero uno. Quitarle todos los permisos de lectura. Comprobarlo. Intentar borrar dicho fichero.',
+  54:'Quitarle todos los permisos de paso al directorio dir2 y otorgarle todos los demás.',
+  55:'Crear en el directorio propio el directorio carpeta1 y el directorio carpeta2.',
+  56:'Dentro de carpeta1 crear fich1 y fich2, y dentro de carpeta2 crear file1 y file2 con los permisos indicados en el ODT.',
+  57:'Desde otro usuario probar todas las operaciones que se pueden hacer en los ficheros y directorios creados.',
+  58:'Visualizar la trayectoria completa del directorio actual. Crear dos directorios llamados correo y fuentes debajo del directorio actual.',
+  59:'Posicionarse en el directorio fuentes y crear los directorios dir1, dir2, dir3.',
+  60:'Crear el directorio menus bajo correo sin moverse del directorio actual.',
+  61:'Posicionarse en el directorio prueba. Borrar los directorios que cuelgan de fuentes que acaben en un número que no sea el 1.',
+  62:'Ver si existe el archivo tty2 en el directorio dev. En caso de que exista, ver su fecha de creación o actualización.',
+  63:'Ver los permisos que tienen los archivos que empiecen por tt del directorio /dev.',
+  64:'Visualizar la lista de los archivos ordinarios que están en el directorio /usr/bin.',
+  65:'Visualizar la lista de todos los directorios que cuelgan del raíz.',
+  66:'Visualizar la lista de todos los ficheros que pertenezcan a root.',
+  67:'Visualizar la lista de todos los ficheros .h del directorio /usr/include.',
+  68:'Ejecutar todos los comandos que empiecen por ls del directorio /bin.',
+  69:'Visualizar de qué tipo son todos y cada uno de ficheros de todo el árbol del sistema propiedad de un usuario conocido.',
+  70:'Crear el directorio uno en el directorio prueba con permiso de escritura y paso para el propietario, de lectura y paso para los usuarios de su mismo grupo y ningún permiso para el resto de usuarios.',
+  71:'Crear el directorio uno1 dentro del directorio creado en el ejercicio anterior con todos lo permisos para el usuario, ninguno para los usuarios del grupo y permiso de escritura para el resto de usuarios.',
+  72:'Copiar todos los ficheros propiedad de un usuario conocido que acaben en un número en el directorio menus.',
+  73:'Visualiza con la orden who la relación de usuarios conectados y sus terminales.',
+  74:'Crea un archivo de tamaño 0.',
+  75:'Utilizando de entrada la información de los usuarios conectados al sistema, guardar, ordenadas por el campo hora, las líneas correspondientes al usuario que se desee en el archivo persona.',
+  76:'Crear el directorio carpeta debajo del directorio PRUEBA. Quitarle todos los permisos de lectura. A continuación, buscar todos los directorios que cuelguen del directorio propio y guardarlos en el archivo direc.',
+  77:'Volver a realizar la segunda parte del ejercicio anterior, pero redireccionando los errores al fichero malos. Comprobar la información del fichero malos.',
+  78:'Añadir al fichero direc la lista de todos los ficheros ordinarios que cuelguen de /etc.',
+  79:'Añadir al archivo nuevalista el/los nombre/s de el/los fichero/s del directorio PRUEBA que contengan en su nombre la cadena "ai", añadiendo el posible error al fichero malos.',
+  80:'Sacar por pantalla únicamente el tiempo que tarda en ejecutarse el comando who.',
+  81:'Sacar por pantalla el listado de todos los usuarios conectados ordenados por número de proceso asignado.',
+  82:'Mostrar cuantos usuarios tiene registrados el sistema.',
+  83:'Mostrar cuántos usuarios tiene registrados el sistema y que utilizan el intérprete bash.',
+  84:'Mostrar cuantos usuarios hay conectados.',
+  85:'Mostrar las líneas de un archivo de texto que empiecen por L (mayúscula o minúscula).',
+  86:'Contar las líneas del ejemplo anterior.',
+  87:'Extraer los nombres de usuario (primer campo) del sistema.',
+  88:'Extraer los nombres de usuario y el shell que utilizan (último campo).'
+};
+
+const antiguasRafa = ACTIVIDADES.filter(a => /^rafa-\d+$/.test(a.id) && Number(a.id.slice(5)) >= 44 && Number(a.id.slice(5)) <= 91);
+for (let i = ACTIVIDADES.length - 1; i >= 0; i--) if (/^rafa-\d+$/.test(ACTIVIDADES[i].id) && Number(ACTIVIDADES[i].id.slice(5)) >= 36) ACTIVIDADES.splice(i, 1);
+
+const nuevas36a40 = [
+  actividadRafa(36, 'Enlace simbólico al fichero', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'fich1\n' } }, pasoRafa(tareasRafa[36], { enlace:[{ path:'~/prueba/dir1/enlafich1', destino:'~/prueba/dir2/enlace' }] }, 'ln -s prueba/dir2/enlace prueba/dir1/enlafich1', 'Un enlace simbólico guarda la ruta del fichero de destino.'), 3),
+  actividadRafa(37, 'Copiar mediante el enlace', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'fich1\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir311':'dir' } }, pasoRafa(tareasRafa[37], { existe:'~/prueba/dir311/enlafich1' }, 'cp prueba/dir1/enlafich1 prueba/dir311', 'La copia utiliza el enlace como ruta de origen.'), 3),
+  actividadRafa(38, 'Leer mediante el enlace', { cwd:'~/prueba/dir1', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'línea uno\nlínea dos\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' } } }, pasoRafa(tareasRafa[38], { muestra:'línea uno' }, 'cat enlafich1', 'La ruta simbólica permite leer el fichero original.'), 3),
+  actividadRafa(39, 'Borrar fich1 de dir2', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/fich1':'fich1\n' } }, pasoRafa(tareasRafa[39], { noExiste:'~/prueba/dir2/fich1' }, 'rm prueba/dir2/fich1', 'Se elimina la entrada indicada con <code>rm</code>.'), 2),
+  actividadRafa(40, 'Limpieza final', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir3':'dir' } }, pasoRafa(tareasRafa[40], { noExiste:'~/prueba' }, 'rm -r prueba', 'La opción recursiva borra todo el árbol.'), 2)
+];
+
+const antigua55 = antiguasRafa.find(a => Number(a.id.slice(5)) === 58);
+const antigua56 = antiguasRafa.find(a => Number(a.id.slice(5)) === 59);
+const fusionada55 = antigua55 ? {
+  ...antigua55,
+  id:'rafa-55', titulo:'Ejercicio 55', enunciado:'<p>' + tareasRafa[55] + ' ' + tareasRafa[56] + '</p>',
+  pasos:[{ ...antigua55.pasos[0], tarea:'Crea carpeta1 y carpeta2 en tu directorio propio.' }, { ...antigua56.pasos[0], tarea:tareasRafa[55] + ' ' + tareasRafa[56] }]
+} : null;
+const rebaseadas = antiguasRafa.filter(a => Number(a.id.slice(5)) !== 58 && Number(a.id.slice(5)) !== 59).map(a => {
+  const antiguo = Number(a.id.slice(5));
+  const numero = antiguo <= 57 ? antiguo - 3 : antiguo - 4;
+  const tarea = numero === 55 ? tareasRafa[55] + ' ' + tareasRafa[56] : tareasRafa[numero + (numero >= 56 ? 1 : 0)];
+  a.id = 'rafa-' + String(numero).padStart(2, '0');
+  a.titulo = 'Ejercicio ' + numero;
+  a.enunciado = '<p>' + tarea + '</p>';
+  a.pasos[0].tarea = tarea;
+  return a;
+});
+ACTIVIDADES.push(...nuevas36a40, ...(fusionada55 ? [fusionada55] : []), ...rebaseadas);
