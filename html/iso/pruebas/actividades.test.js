@@ -79,6 +79,26 @@ vm.runInContext(`
 vm.runInContext(fs.readFileSync(DATOS, 'utf8'), ctx);
 const ACTIVIDADES = ctx.ACTIVIDADES || [];
 
+/* Una opción incompleta no puede superar un ejercicio solo porque coincida
+   parte de la salida esperada. */
+const ejercicioFind = ACTIVIDADES.find(a => a.pasos.some(p => p.ejemplo === 'find / -type d'));
+assert(ejercicioFind, 'no se encuentra el ejercicio de find desde la raíz');
+for (const comando of ['find / -type', 'find / -name', 'find / -user', 'find / -group', 'find / -exec']){
+  const findIncompleto = ctx.validarPaso(ejercicioFind.pasos[0], ctx.crearEstado(ejercicioFind), comando);
+  assert(!findIncompleto.ok, comando + ' no debe completar un ejercicio con una opción incompleta');
+}
+for (const comando of ['mkdir -m', 'head -n', 'tail -n', 'sort -k', 'cut -d', 'cut -f']){
+  assert(ctx.ejecutarLinea(ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/texto':{ contenido:'uno\ndos\n' } } } }), comando).code !== 0, comando + ' debe fallar si falta el argumento de su opción');
+}
+const ejercicioFindF = ACTIVIDADES.find(a => a.pasos.some(p => p.ejemplo === 'find /usr/bin -type f'));
+const diagnosticoMeta = ctx.validarPaso(ejercicioFindF.pasos[0], ctx.crearEstado(ejercicioFindF), 'pwd');
+assert(!diagnosticoMeta.ok && diagnosticoMeta.diagnostico, 'un objetivo no alcanzado debe devolver un diagnóstico útil');
+const pasoAtomico = { meta:{ existe:'~/a' }, ejemplo:'mkdir a' };
+const estadoAtomico = ctx.crearEstado({ inicio:{ cwd:'~' } });
+const antesAtomico = JSON.stringify(estadoAtomico);
+const resultadoAtomico = ctx.validarPaso(pasoAtomico, estadoAtomico, 'mkdir a; mkdir -m');
+assert(!resultadoAtomico.ok && JSON.stringify(resultadoAtomico.estado) === antesAtomico, 'un fallo después de una mutación no debe cambiar el estado original');
+
 /* ---------- 2) Utilidades de impresión ---------- */
 let errores = 0, avisos = 0, pasosTotal = 0;
 const error = (donde, texto) => { errores++; console.log('   ' + rojo('✗') + ' ' + donde + ': ' + texto); };

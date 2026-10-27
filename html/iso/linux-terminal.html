@@ -1431,7 +1431,10 @@ function cmd_mkdir(e, args){
   for (let i = 0; i < args.length; i++){
     const a = args[i];
     if (a === '-p') padres = true;
-    else if (a === '-m') modo = String(args[++i] || '');
+    else if (a === '-m'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return fallo('mkdir: falta el modo después de -m');
+      modo = String(args[++i]);
+    }
     else if (!a.startsWith('-')) rutas.push(a);
   }
   if (!rutas.length) return fallo('mkdir: falta un operando');
@@ -1635,14 +1638,30 @@ function cmd_tree(e, args){
 function cmd_find(e, args){
   let inicio = '.', name = null, tipo = null, usuario = null, grupo = null;
   let execCmd = null, execArgs = [];
+  const falta = opcion => fallo("find: falta un argumento para '" + opcion + "'");
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-name') name = args[++i];
-    else if (args[i] === '-type') { tipo = args[++i]; }
-    else if (args[i] === '-user') usuario = args[++i];
-    else if (args[i] === '-group') grupo = args[++i];
+    if (args[i] === '-name'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-name');
+      name = args[++i];
+    }
+    else if (args[i] === '-type'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-type');
+      tipo = args[++i];
+      if (!/^[fd]$/.test(tipo)) return fallo("find: tipo '" + tipo + "' no válido (usa f o d)");
+    }
+    else if (args[i] === '-user'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-user');
+      usuario = args[++i];
+    }
+    else if (args[i] === '-group'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-group');
+      grupo = args[++i];
+    }
     else if (args[i] === '-exec'){
+      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-exec');
       execCmd = args[++i];
       while (i + 1 < args.length && args[i + 1] !== '+' && args[i + 1] !== ';') execArgs.push(args[++i]);
+      if (i + 1 >= args.length) return fallo("find: falta ';' o '+' después de -exec");
       if (args[i + 1] === '+' || args[i + 1] === ';') i++;
     }
     else if (!args[i].startsWith('-')) inicio = args[i];
@@ -1721,7 +1740,10 @@ function cmd_head(e, args, stdin){
   let n = 10;
   const files = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    if (args[i] === '-n'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('head: falta un número después de -n');
+      n = Number(args[++i]);
+    }
     else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
     else if (!args[i].startsWith('-')) files.push(args[i]);
   }
@@ -1732,7 +1754,10 @@ function cmd_tail(e, args, stdin){
   let n = 10;
   const files = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    if (args[i] === '-n'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('tail: falta un número después de -n');
+      n = Number(args[++i]);
+    }
     else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
     else if (!args[i].startsWith('-')) files.push(args[i]);
   }
@@ -1745,8 +1770,11 @@ function cmd_sort(e, args, stdin){
   const rev = args.includes('-r'), numeric = args.includes('-n');
   let campo = 0;
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-k') campo = Math.max(0, Number(args[i + 1]) - 1) || 0;
-    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1) || 0;
+    if (args[i] === '-k'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('sort: falta un campo válido después de -k');
+      campo = Math.max(0, Number(args[++i]) - 1);
+    }
+    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1);
   }
   const files = args.filter(a => !a.startsWith('-'));
   const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
@@ -1767,8 +1795,14 @@ function cmd_sort(e, args, stdin){
 function cmd_cut(e, args, stdin){
   let delimitador = '\t', campos = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-d') delimitador = args[++i] || '\t';
-    else if (args[i] === '-f') campos = String(args[++i] || '').split(',').map(Number).filter(Number.isFinite);
+    if (args[i] === '-d'){
+      if (i + 1 >= args.length) return fallo('cut: falta el delimitador después de -d');
+      delimitador = args[++i];
+    }
+    else if (args[i] === '-f'){
+      if (i + 1 >= args.length || !/^\d+(?:,\d+)*$/.test(args[i + 1])) return fallo('cut: falta un campo válido después de -f');
+      campos = String(args[++i]).split(',').map(Number);
+    }
   }
   const raw = args.find((a, i) => !a.startsWith('-') && args[i - 1] !== '-d' && args[i - 1] !== '-f');
   const p = raw ? rutaAbs(raw, e.cwd) : null, it = p && e.fs[p];
@@ -1951,7 +1985,7 @@ function ejecutarLinea(e, linea){
 /* ---- Objetivos de un paso ---- */
 function comprobarMeta(e, meta, salida){
   const texto = quitarHtml(salida || '');
-  const falla = motivo => ({ ok:false, motivo });
+  const falla = motivo => ({ ok:false, motivo, diagnostico: motivo });
   if (meta.cwd != null){
     const p = rutaAbs(meta.cwd, e.cwd);
     if (e.cwd !== p) return falla('Estás en ' + rutaVisible(e.cwd) + ', pero el objetivo es ' + rutaVisible(p) + '.');
@@ -2011,17 +2045,25 @@ function comprobarMeta(e, meta, salida){
 
 // API común para la actividad y el duelo. Devuelve el estado nuevo solo si el comando cumple el paso.
 function validarPaso(paso, estado, t){
-  if (typeof paso.ok === 'function') return { ok: paso.ok(t), estado, salida:'', error:'Ese comando no es el que pide el paso.' };
+  if (typeof paso.ok === 'function'){
+    const ok = paso.ok(t);
+    return { ok, estado, salida:'', error: ok ? '' : 'Ese comando no es el que pide el paso.', diagnostico: ok ? '' : 'Revisa el comando y el objetivo de este paso.' };
+  }
   // Formato antiguo (ok / acepta): se acepta el comando tal cual, sin ejecutarlo ni tocar el mundo.
   if (!paso.meta){
-    if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.' };
-    return { ok:true, estado, salida: paso.out || '', error:'' };
+    if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.', diagnostico:'Ese comando no coincide con el objetivo del paso.' };
+    return { ok:true, estado, salida: paso.out || '', error:'', diagnostico:'' };
   }
   const candidato = estado ? clonarEstado(estado) : null;
   const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
-  if (r.code !== 0) return { ok:false, estado, salida:'', error: r.err || 'El comando no se pudo ejecutar.' };
+  if (r.code !== 0){
+    const diagnostico = r.err || 'El comando no se pudo ejecutar.';
+    return { ok:false, estado, salida:'', error: diagnostico, diagnostico };
+  }
   const v = comprobarMeta(candidato, paso.meta, r.out);
-  return v.ok ? { ok:true, estado: candidato, salida: r.out || '', error:'' } : { ok:false, estado, salida:'', error: v.motivo };
+  return v.ok
+    ? { ok:true, estado: candidato, salida: r.out || '', error:'', diagnostico:'' }
+    : { ok:false, estado, salida:'', error: v.motivo, diagnostico: v.diagnostico || v.motivo };
 }
 
 // 1) Lectura y validación de las actividades que cargó actividades.js.
@@ -2539,7 +2581,7 @@ function enviarAct(){
     } else {
       fallosAct++;
       fallosPaso++;
-      histAct += '<span class="c"># ' + escapar(v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
+      histAct += '<span class="c"># ' + escapar(v.diagnostico || v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
       if (fallosAct === 2) histAct += pistaHtml(paso);
       else if (fallosAct === 3) histAct += '<span class="c"># Si sigues atascado, pulsa «Ver solución».</span>\n';
     }
