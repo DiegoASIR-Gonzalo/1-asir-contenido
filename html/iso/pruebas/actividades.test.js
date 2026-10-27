@@ -113,8 +113,11 @@ assert(ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'find / -type d').ok,
 const pistasAprendizaje = ctx.pistasSeguras(pasoAprendizaje);
 assert(!pistasAprendizaje.some(p => p.includes(pasoAprendizaje.ejemplo)), 'las pistas no deben mostrar el comando completo');
 ACTIVIDADES.forEach(a => a.pasos.forEach(p => {
-  assert(ctx.pistasSeguras(p).every(pista => !pista.includes(p.ejemplo || '')), 'una pista no debe revelar el ejemplo completo en ' + a.id);
+  const pistas = ctx.pistasSeguras(p);
+  assert(pistas.length >= 3, 'cada paso debe ofrecer tres orientaciones útiles en ' + a.id);
+  assert(pistas.every(pista => pista.trim() !== (p.ejemplo || '').trim()), 'una pista no debe mostrar el ejemplo completo en ' + a.id);
 }));
+assert(!html.includes('pulsa «Ver solución»'), 'el flujo de fallos no debe dirigir a la solución completa');
 
 /* ---------- 2) Utilidades de impresión ---------- */
 let errores = 0, avisos = 0, pasosTotal = 0;

@@ -2089,7 +2089,11 @@ function pistasSeguras(paso){
   const base = paso.aprendizaje && paso.aprendizaje.pistas ? paso.aprendizaje.pistas : paso.pista;
   const normal = texto => String(texto || '').replace(/<[^>]*>/g, '').trim().replace(/\s+/g, ' ');
   const ejemplo = normal(paso.ejemplo);
-  return [].concat(base || []).filter(Boolean).filter(p => !ejemplo || !normal(p).includes(ejemplo));
+  const l = [].concat(base || []).filter(Boolean).filter(p => !ejemplo || !normal(p).includes(ejemplo));
+  const comando = tokenizar(paso.ejemplo || '')[0] || 'comando';
+  if (l.length < 3) l.push('Revisa el comando ' + comando + ' y el objetivo concreto del paso.');
+  if (l.length < 3) l.push('Piensa en la forma general: ' + comando + ' [opciones] [argumentos].');
+  return l.slice(0, 3);
 }
 
 // 1) Lectura y validación de las actividades que cargó actividades.js.
@@ -2534,7 +2538,7 @@ function pintarAct(){
   $('act-contador').textContent = (hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total) + (puntos ? ' · ⭐ ' + puntos : '');
   $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
-  $('act-solucion').hidden = hechaAct || fallosAct < 3;
+  $('act-solucion').hidden = true;
   pantAct.scrollTop = pantAct.scrollHeight;
   pintarMapaAct();
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
@@ -2612,7 +2616,7 @@ function enviarAct(){
       fallosPaso++;
       histAct += '<span class="c"># ' + escapar(v.diagnostico || v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
       if (fallosAct === 2) histAct += pistaHtml(paso);
-      else if (fallosAct === 3) histAct += '<span class="c"># Si sigues atascado, pulsa «Ver solución».</span>\n';
+      else if (fallosAct === 3) histAct += '<span class="c"># Pide otra pista: te orientará sin darte el comando completo.</span>\n';
     }
   }
   // La terminal de la actividad no crece sin límite durante una sesión larga
