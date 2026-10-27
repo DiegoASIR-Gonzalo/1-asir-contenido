@@ -27,6 +27,7 @@ const assert = require('assert');
 const RAIZ = path.join(__dirname, '..');
 const HTML = path.join(RAIZ, 'linux-terminal.html');
 const DATOS = path.join(RAIZ, 'actividades.js');
+const fuenteDatos = fs.readFileSync(DATOS, 'utf8');
 
 const color = (n, t) => process.stdout.isTTY ? '\x1b[' + n + 'm' + t + '\x1b[0m' : t;
 const rojo = t => color(31, t), verde = t => color(32, t), amarillo = t => color(33, t), gris = t => color(90, t);
@@ -79,6 +80,10 @@ vm.runInContext(`
 vm.runInContext(fs.readFileSync(DATOS, 'utf8'), ctx);
 const ACTIVIDADES = ctx.ACTIVIDADES || [];
 
+for (const temporal of ['antiguasRafa', 'nuevas36a40', 'rebaseadas', 'fusionada55', 'reemplazarPasoRafa']){
+  assert(!fuenteDatos.includes(temporal), 'actividades.js no debe conservar la capa temporal ' + temporal);
+}
+
 /* Una opción incompleta no puede superar un ejercicio solo porque coincida
    parte de la salida esperada. */
 const ejercicioFind = ACTIVIDADES.find(a => a.pasos.some(p => p.ejemplo === 'find / -type d'));
@@ -107,6 +112,9 @@ assert(!ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'ls -R /').ok, 'un c
 assert(ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'find / -type d').ok, 'el comando que usa el concepto obligatorio debe superar el paso');
 const pistasAprendizaje = ctx.pistasSeguras(pasoAprendizaje);
 assert(!pistasAprendizaje.some(p => p.includes(pasoAprendizaje.ejemplo)), 'las pistas no deben mostrar el comando completo');
+ACTIVIDADES.forEach(a => a.pasos.forEach(p => {
+  assert(ctx.pistasSeguras(p).every(pista => !pista.includes(p.ejemplo || '')), 'una pista no debe revelar el ejemplo completo en ' + a.id);
+}));
 
 /* ---------- 2) Utilidades de impresión ---------- */
 let errores = 0, avisos = 0, pasosTotal = 0;
