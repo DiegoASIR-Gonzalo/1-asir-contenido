@@ -227,7 +227,10 @@
   @keyframes aparece{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .exito{margin-top:6px;padding:6px 12px;border-radius:8px;background:#d7f0e0;color:#14532d;font-weight:700}
   .tareas .fallos-paso{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;
-    font-size:11px;font-weight:700;color:#fff;background:#e57373;border-radius:10px;cursor:help}
+    position:relative;font-size:11px;font-weight:700;color:#fff;background:#e57373;border-radius:10px;cursor:help}
+  .tareas .fallos-paso::after{content:attr(title);position:absolute;left:50%;bottom:calc(100% + 7px);z-index:8;width:max-content;max-width:220px;padding:6px 8px;border-radius:6px;
+    background:#17131f;color:#fff;font-size:12px;font-weight:500;line-height:1.3;white-space:normal;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .15s,transform .15s}
+  .tareas .fallos-paso:hover::after,.tareas .fallos-paso:focus-visible::after{opacity:1;transform:translate(-50%,0)}
   .act-term{flex:1 1 0;min-height:140px}
   .act-term .pantalla{padding:8px 16px;line-height:1.3}
   .act-term .pie{padding:6px 14px}             /* sustituye el 52 % de la terminal principal */
@@ -243,16 +246,21 @@
   .act-mapa-cab button{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font:inherit;font-size:14px;line-height:22px;text-align:center;cursor:pointer}
   .act-mapa-cab button:hover{background:var(--acento)}
   .act-mapa-ruta{flex:none;padding:4px 12px 6px;font:12px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--ruta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .act-mapa-cuerpo{flex:1;min-height:0;overflow:auto;padding:2px 6px 10px;font:12px/1.45 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#d6d3d1;overscroll-behavior:contain}
-  .mapa-fila{display:flex;align-items:baseline;gap:6px;padding:1px 6px;border-radius:4px;white-space:nowrap}
-  .mapa-fila.actual{background:rgba(229,165,10,.18)}
+  .act-mapa-cuerpo{flex:1;min-height:0;overflow:auto;padding:4px 7px 12px;font:12px/1.5 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#d6d3d1;overscroll-behavior:contain;scrollbar-color:#65577d transparent}
+  .mapa-resumen{display:flex;gap:6px;flex-wrap:wrap;padding:5px 6px 8px;color:#aaa4b3;font:11px/1.2 "Ubuntu Mono","DejaVu Sans Mono",monospace}
+  .mapa-resumen span{padding:3px 6px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.04)}
+  .mapa-fila{position:relative;display:flex;align-items:baseline;gap:6px;min-height:23px;padding:2px 6px;border-radius:6px;white-space:nowrap;transition:background .15s ease,transform .15s ease}
+  .mapa-fila::before{content:"";position:absolute;left:var(--rama-x,0);top:0;bottom:0;border-left:1px solid rgba(255,255,255,.08)}
+  .mapa-fila:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
+  .mapa-fila.actual{background:rgba(229,165,10,.2);box-shadow:inset 3px 0 var(--marca)}
   .mapa-modo{flex:none;color:#9a9996;font-size:11px}
-  .mapa-nombre{overflow:hidden;text-overflow:ellipsis}
+  .mapa-nombre{overflow:hidden;text-overflow:ellipsis;color:#f0edf3}
   .mapa-fila.dir .mapa-nombre{color:var(--carpeta);font-weight:700}
   .mapa-fila.exec .mapa-nombre{color:var(--exec)}
   .mapa-fila.link .mapa-nombre{color:#c061cb;font-style:italic}
   .mapa-flecha{color:#888a85}
-  .mapa-vacio{padding:10px 12px;color:#c0bfbc;font-size:12px}
+  .mapa-vacio{padding:14px 12px;color:#c0bfbc;font-size:12px;text-align:center}
+  @media (prefers-reduced-motion:reduce){.mapa-fila{transition:none}.mapa-fila:hover{transform:none}}
   .act-mapa.minimizada{width:34px;max-width:34px}
   .act-mapa.minimizada .act-mapa-ruta,.act-mapa.minimizada .act-mapa-cuerpo,.act-mapa.minimizada .act-mapa-res{display:none}
   .act-mapa.minimizada .act-mapa-cab{flex-direction:column;padding:8px 0;gap:8px;border-bottom:0}
@@ -1187,7 +1195,7 @@ function mundoBase(){
   dir('/tmp'); dir('/tmp/cache');
   dir('/dev');
   ['null','random','zero','tty','tty0','tty1','tty2','tty3','tty4','ttyS0'].forEach(d => file('/dev/' + d, '', ['null','random','zero'].includes(d) ? '666' : '620'));
-  dir('/usr'); dir('/usr/bin'); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
+  dir('/usr'); dir('/usr/bin'); ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/usr/bin/' + c, '', '755')); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
   dir('/home/rafa'); dir('/home/rafa/Documentos'); dir('/home/rafa/Descargas');
   file('/home/rafa/Documentos/nota.txt', 'Notas de Rafa\n');
   file('/home/rafa/Descargas/apuntes.txt', 'Apuntes\n');
@@ -1328,6 +1336,10 @@ function lineaLarga(e, p, it, verInodo){
    con su tipo y permisos. No sigue enlaces: así no puede entrar en un ciclo. */
 function mapaHtml(e){
   const fs = (e && e.fs) || {}, hijos = new Map();
+  const entradas = Object.keys(fs).filter(p => fs[p]);
+  const carpetas = entradas.filter(p => fs[p].tipo === 'dir').length;
+  const enlaces = entradas.filter(p => fs[p].tipo === 'link').length;
+  const ficheros = entradas.length - carpetas - enlaces;
   for (const p of Object.keys(fs)){
     if (p === '/' || !fs[p]) continue;
     const corte = p.lastIndexOf('/');
@@ -1346,13 +1358,13 @@ function mapaHtml(e){
     const clase = dir ? 'dir' : link ? 'link' : (ejecutable ? 'exec' : 'file');
     const actual = p === e.cwd ? ' actual' : '';
     const destino = link ? ' <span class="mapa-flecha">→</span> ' + escaparHtml(rutaVisible(it.destino)) : '';
-    filas.push('<div class="mapa-fila ' + clase + actual + '" role="treeitem" aria-level="' + (nivel + 1) + '" style="padding-left:' + (6 + nivel * 13) + 'px">' +
+    filas.push('<div class="mapa-fila ' + clase + actual + '" role="treeitem" aria-level="' + (nivel + 1) + '" data-path="' + escaparHtml(p) + '" title="' + escaparHtml(rutaVisible(p)) + '" style="padding-left:' + (6 + nivel * 13) + 'px;--rama-x:' + (nivel * 13 + 5) + 'px">' +
       '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> <span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
     for (const h of hijos.get(p) || []) ver(h, nivel + 1);
   };
   ver('/', 0);
   return filas.length
-    ? '<div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
+    ? '<div class="mapa-resumen" aria-label="Resumen de la estructura"><span>📁 ' + carpetas + '</span><span>📄 ' + ficheros + '</span><span>🔗 ' + enlaces + '</span></div><div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
     : '<p class="mapa-vacio">No hay datos del mundo virtual.</p>';
 }
 
@@ -1616,7 +1628,7 @@ function cmd_find(e, args){
   let inicio = '.', name = null, tipo = null;
   for (let i = 0; i < args.length; i++){
     if (args[i] === '-name') name = args[++i];
-    else if (args[i] === '-type') tipo = args[++i];
+    else if (args[i] === '-type') { tipo = args[++i]; }
     else if (!args[i].startsWith('-')) inicio = args[i];
   }
   const p = rutaAbs(inicio, e.cwd);
@@ -1719,6 +1731,24 @@ function cmd_sort(e, args, stdin){
   if (rev) ls.reverse();
   return exito(ls.join('\n'));
 }
+function cmd_cut(e, args, stdin){
+  let delimitador = '\t', campos = [];
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-d') delimitador = args[++i] || '\t';
+    else if (args[i] === '-f') campos = String(args[++i] || '').split(',').map(Number).filter(Number.isFinite);
+  }
+  const raw = args.find((a, i) => !a.startsWith('-') && args[i - 1] !== '-d' && args[i - 1] !== '-f');
+  const p = raw ? rutaAbs(raw, e.cwd) : null, it = p && e.fs[p];
+  const texto = it && it.tipo === 'file' ? it.contenido || '' : (stdin || '');
+  return exito(texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1).map(linea => {
+    const partes = linea.split(delimitador);
+    return (campos.length ? campos : [1]).map(n => partes[n - 1] || '').join(delimitador);
+  }).join('\n'));
+}
+function cmd_who(){ return exito('usuario tty1 2026-10-27 09:00'); }
+function cmd_users(){ return exito('usuario'); }
+function cmd_ps(){ return exito('  PID TTY          TIME CMD\n    1 tty1     00:00:00 bash\n  42 tty1     00:00:00 ps'); }
+function cmd_time(e, args, stdin){ const r = ejecutarPipeline(e, args, stdin); return { out:'real 0m0.001s\n' + (r.out || ''), err:r.err, code:r.code }; }
 function cmd_du(e, args){
   const h = args.includes('-h'), s = args.includes('-s');
   const raw = args.find(a => !a.startsWith('-')) || '.';
@@ -1742,7 +1772,7 @@ function cmd_du(e, args){
   return exito(lineas.join('\n'));
 }
 const TIPO_INTERNO = new Set(['pwd','cd','echo','type','alias','source','.','exit','history','umask']);
-const TIPO_EXTERNO = new Set(['bash','cat','chmod','cp','date','file','find','grep','head','ln','ls','mkdir','mv','nano','ping','rm','sort','ssh','tail','tar','touch','tree','vi','vim','wc','wget','whoami']);
+const TIPO_EXTERNO = new Set(['bash','cat','chmod','cp','cut','date','file','find','grep','head','ln','ls','mkdir','mv','nano','ping','ps','rm','sort','ssh','tail','tar','time','touch','tree','users','vi','vim','wc','wget','who','whoami']);
 function cmd_type(e, args){
   args = args.filter(a => !a.startsWith('-'));   // -a, -t, -p... no cambian la respuesta en el simulador
   if (!args.length) return fallo('type: falta un operando');
@@ -1790,7 +1820,7 @@ const CMD_SIM = {
   cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
-  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), date: cmd_date, umask: cmd_umask
+  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), who: cmd_who, users: cmd_users, ps: cmd_ps, cut: cmd_cut, time: cmd_time, date: cmd_date, umask: cmd_umask
 };
 
 /* ---- Intérprete de una línea ---- */
@@ -1813,6 +1843,7 @@ function tokenizar(linea){
     if (ch === '|' && linea[i + 1] === '|'){ empujar(); out.push('||'); i++; continue; }
     if (ch === '|'){ empujar(); out.push('|'); continue; }
     if (ch === ';'){ empujar(); out.push(';'); continue; }
+    if (ch === '2' && linea[i + 1] === '>'){ empujar(); out.push('2>'); i++; continue; }
     if (ch === '>' && linea[i + 1] === '>'){ empujar(); out.push('>>'); i++; continue; }
     if (ch === '>'){ empujar(); out.push('>'); continue; }
     actual += ch;
@@ -1827,7 +1858,7 @@ function ejecutarSimple(e, tokens, stdin = ''){
   // Los comodines se expanden como en bash para los comandos que reciben ficheros.
   // find y grep quedan fuera porque sus patrones no son rutas.
   if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd))
-    args = args.flatMap(a => a.startsWith('-') ? [a] : expandirGlob(e, a));
+    args = args.flatMap((a, i) => cmd === 'chmod' && i === 0 ? [a] : (a.startsWith('-') ? [a] : expandirGlob(e, a)));
   if (cmd === 'mkcd' && e.funciones.includes('mkcd')) return cmd_mkcd(e, args);
   const fn = CMD_SIM[cmd];
   if (!fn) return fallo('bash: ' + cmd + ': orden no encontrada');
@@ -1835,7 +1866,7 @@ function ejecutarSimple(e, tokens, stdin = ''){
 }
 function ejecutarPipeline(e, tokens, stdin = ''){
   let redir = null, idx = -1;
-  for (let i = 0; i < tokens.length; i++) if (tokens[i] === '>' || tokens[i] === '>>'){ redir = tokens[i]; idx = i; break; }
+  for (let i = 0; i < tokens.length; i++) if (tokens[i] === '>' || tokens[i] === '>>' || tokens[i] === '2>'){ redir = tokens[i]; idx = i; break; }
   let destino = null;
   if (redir){
     destino = tokens[idx + 1];
@@ -1854,13 +1885,13 @@ function ejecutarPipeline(e, tokens, stdin = ''){
     if (code !== 0) break;
     entrada = quitarHtml(out);
   }
-  if (redir && code === 0){
+  if (redir && (code === 0 || redir === '2>')){
     const p = rutaAbs(destino, e.cwd), padre = padreDe(p);
     if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino + ': No such file or directory', code:1 };
-    const texto = quitarHtml(out);
+    const texto = redir === '2>' ? quitarHtml(err) : quitarHtml(out);
     const anterior = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
-    e.fs[p] = { tipo:'file', contenido: (redir === '>>' ? anterior : '') + texto + (texto.endsWith('\n') ? '' : '\n'), modo:'644' };
-    out = '';
+    e.fs[p] = { tipo:'file', contenido: (redir === '>>' ? anterior : '') + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
+    if (redir === '2>') err = ''; else out = '';
   }
   return { out, err, code };
 }
@@ -2393,7 +2424,7 @@ function pintarAct(){
   $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + unir(act.enunciado) +
     '<ol class="tareas">' + act.pasos.map((p, i) =>
       '<li class="' + (i < pasoAct ? 'hecha' : (i === pasoAct && !hechaAct ? 'actual' : '')) + '">' + p.tarea +
-      (i === pasoAct && !hechaAct && fallosPaso > 0 ? ' <span class="fallos-paso" title="Intentos fallidos en este paso">' + fallosPaso + '</span>' : '') +
+      (i === pasoAct && !hechaAct && fallosPaso > 0 ? ' <span class="fallos-paso" tabindex="0" role="img" aria-label="Intentos fallidos en este paso: ' + fallosPaso + '" title="Intentos fallidos en este paso: ' + fallosPaso + '">' + fallosPaso + '</span>' : '') +
       (i < pasoAct && p.explica ? '<div class="nota">' + unir(p.explica, true) + '</div>' : '') + '</li>').join('') + '</ol>' +
     (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + unir(act.final) + '</p>' + solucionHtml(act) : '');
   histoAct.innerHTML = histAct;
