@@ -180,3 +180,4 @@
   pantalla.onclick = () => entrada.focus();
   addEventListener('beforeunload', e => { if (sala && sala.estado === 'jugando'){ e.preventDefault(); e.returnValue = ''; } });
 })();
+
