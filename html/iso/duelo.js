@@ -18,7 +18,7 @@
 'use strict';
 
 /* ---- 1) PEGA AQUÍ TU CONFIGURACIÓN (Firebase › Configuración del proyecto › Tus apps › Web) ---- */
-const FIREBASE_CONFIG = { apiKey:'AIzaSyCrXCFetCv1lcIh0-x0u0VDW13v8ggFrVs', authDomain:'asir-pruebas.firebaseapp.com', databaseURL:'https://asir-pruebas-default-rtdb.europe-west1.firebasedatabase.app/', projectId:'asir-pruebas', appId:'1:925637498896:web:9bd353e2c034ad2ac81295' };
+const FIREBASE_CONFIG = { apiKey:'AIzaSyCrXCFetCv1lcIh0-x0u0VDW13v8ggFrVs', authDomain:'asir-pruebas.firebaseapp.com', databaseURL:'https://asir-pruebas-default-rtdb.europe-west1.firebasedatabase.app', projectId:'asir-pruebas', appId:'1:925637498896:web:9bd353e2c034ad2ac81295' };
 const MIN_SEC = 5, MAX_SEC = 12, MAX_PREGUNTAS = 10, CUENTA_ATRAS_MS = 4000;
 const MODOS = { web:'Preguntas de la web (1vs1)', anonimo:'Preguntas anónimas (1vs1vs1)' };
 
@@ -82,7 +82,9 @@ const vent = fondo.querySelector('.act-ventana'), enun = $('d-enun'), term = $('
 const alternarD = abierto => { panelD.classList.toggle('abierto', abierto); btn.setAttribute('aria-expanded', abierto); if (abierto){ alternarAct(false); iniciar(); vistaPanel(); } };
 btn.onclick = () => alternarD(!panelD.classList.contains('abierto'));
 btnAct.addEventListener('click', () => alternarD(false));
-addEventListener('click', e => { if (panelD.classList.contains('abierto') && !panelD.contains(e.target) && !caja.contains(e.target)) alternarD(false); });
+// Clic fuera = cerrar. Se usa composedPath() porque vistaPanel() redibuja el panel al pulsar un botón: el botón ya no está
+// en el DOM cuando el clic llega aquí y contains() diría que se pulsó fuera.
+addEventListener('click', e => { const ruta = e.composedPath(); if (panelD.classList.contains('abierto') && !ruta.includes(panelD) && !ruta.includes(caja)) alternarD(false); });
 /* Mover: arrastrar la barra de título (o flechas). Redimensionar: bordes y esquinas (o Mayús + flechas).
    Doble clic en la barra o botón □: maximizar. Es la misma lógica que la ventana de Actividades. */
 const barra = $('d-barra'), TOPE = 30, MIN_W = 420, MIN_H = 320;

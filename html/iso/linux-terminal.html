@@ -54,6 +54,14 @@
   .item.activo small{color:#fff}
   .item code{font-family:"Ubuntu Mono","DejaVu Sans Mono",monospace;font-size:14px}
 
+  /* Buscador del panel lateral: se queda fijo arriba mientras la lista se desplaza */
+  .lateral{padding-top:0}
+  .lat-cab{position:sticky;top:0;z-index:2;background:var(--lateral);padding:10px 0 8px}
+  .lat-cab input{width:100%;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .lat-cab input::placeholder{color:#c0bfbc}
+  .lat-vacio{padding:6px 10px;font-size:13px;color:#c0bfbc}
+  .item[hidden],.lat-vacio[hidden]{display:none}  /* .item usa display:flex, que anularía el atributo hidden */
+
   /* Zona principal: terminal + explicación */
   .principal{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
   .terminal{background:var(--term);color:var(--term-txt);display:flex;flex-direction:column;flex:0 0 52%;min-height:210px}
@@ -243,7 +251,10 @@
   </div>
   <div class="cuerpo">
     <!-- El panel lateral se genera solo a partir de GRUPOS (ver más abajo) -->
-    <nav class="lateral" id="lateral" aria-label="Comandos"></nav>
+    <nav class="lateral" id="lateral" aria-label="Comandos">
+      <div class="lat-cab"><input type="search" id="lat-buscar" placeholder="Buscar comando…" aria-label="Buscar comando" autocomplete="off"></div>
+      <p class="lat-vacio" id="lat-vacio" hidden></p>
+    </nav>
 
     <section class="principal">
       <div class="terminal">
@@ -330,12 +341,21 @@ const espera = ms => new Promise(r => setTimeout(r, ms));
 let g = 0, c = 0, s = 0, turno = 0;
 
 // Construye el panel lateral
+const PLEGAR_GRUPOS_LATERAL = true;   // true = los subapartados empiezan ocultos · false = todos desplegados
+const estadoLat = new Map();          // título del subapartado → ¿desplegado? (se recuerda aunque se busque y se borre la búsqueda)
+const bloquesLat = [];                // para el buscador: { gr, det, items: [{ b, texto }] }
+const normLat = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();   // buscar sin distinguir tildes ni mayúsculas
 GRUPOS.forEach((gr, gi) => {
-  const det = document.createElement('details'); det.open = true;
+  const det = document.createElement('details'); det.open = !PLEGAR_GRUPOS_LATERAL;
   det.innerHTML = '<summary></summary><div class="items"></div>';
-  const resumen = det.firstChild, caja = det.lastChild;
+  const resumen = det.firstChild, caja = det.lastChild, items = [];
   resumen.textContent = gr.titulo;
-  resumen.onclick = e => { e.preventDefault(); alternarGrupo(det, caja); }; // plegar/desplegar con desvanecimiento
+  resumen.onclick = e => {   // plegar/desplegar con desvanecimiento
+    e.preventDefault();
+    const abriendo = !det.open;
+    alternarGrupo(det, caja);
+    if (!$('lat-buscar').value.trim()) estadoLat.set(gr.titulo, abriendo);   // mientras se busca, el desplegado es temporal
+  };
   gr.comandos.forEach((cm, ci) => {
     const b = document.createElement('button');
     b.className = 'item'; b.dataset.g = gi; b.dataset.c = ci;
@@ -343,9 +363,27 @@ GRUPOS.forEach((gr, gi) => {
     b.children[0].textContent = cm.nombre; b.children[1].textContent = cm.resumen;
     b.onclick = () => abrir(gi, ci);
     caja.appendChild(b);
+    items.push({ b, texto: normLat(gr.titulo + ' ' + cm.nombre + ' ' + cm.resumen) });   // buscar el nombre de un subapartado muestra todos sus comandos
   });
+  bloquesLat.push({ gr, det, items });
   $('lateral').appendChild(det);
 });
+
+// Buscador: con texto, solo se ven los comandos que coinciden (y sus subapartados, desplegados); sin texto, todo vuelve a como estaba
+function filtrarLateral(){
+  const bruto = $('lat-buscar').value.trim(), q = normLat(bruto); let total = 0;
+  bloquesLat.forEach(({ gr, det, items }) => {
+    const coinciden = items.filter(i => !q || i.texto.includes(q));
+    items.forEach(i => { i.b.hidden = !!q && !i.texto.includes(q); });
+    det.hidden = !coinciden.length;
+    det.open = q ? true : (estadoLat.has(gr.titulo) ? estadoLat.get(gr.titulo) : !PLEGAR_GRUPOS_LATERAL);
+    total += coinciden.length;
+  });
+  $('lat-vacio').hidden = !!total;
+  $('lat-vacio').textContent = 'Ningún comando coincide con «' + bruto + '».';
+}
+$('lat-buscar').oninput = filtrarLateral;
+$('lat-buscar').onkeydown = e => { if (e.key === 'Escape' && e.target.value){ e.target.value = ''; filtrarLateral(); } };   // Escape borra la búsqueda
 
 // Pliega o despliega un grupo del panel lateral: los subapartados se desvanecen y encogen (220 ms)
 function alternarGrupo(det, caja){
