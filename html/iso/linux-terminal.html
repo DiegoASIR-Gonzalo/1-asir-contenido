@@ -260,6 +260,7 @@
   .act-mapa-res:hover::after,.act-mapa-res:focus-visible::after{width:2px;background:var(--marca)}
   @media (max-width:720px){
     .act-mapa{position:absolute;right:0;top:0;bottom:0;z-index:5;width:min(82%,320px);max-width:82%;box-shadow:-8px 0 24px rgba(0,0,0,.45)}
+    .act-mapa-res{display:none}   /* en el cajón móvil el ancho es fijo: no hay tirador que arrastrar */
     .act-mapa.minimizada{width:34px;max-width:34px;box-shadow:none}
   }
   .entrada{display:flex;align-items:baseline}
