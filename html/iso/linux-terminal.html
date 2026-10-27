@@ -1103,6 +1103,12 @@ const modoDe = it => {
   const m = String((it && it.modo) || (it && it.tipo === 'dir' ? '755' : '644')).replace(/\D/g, '').slice(-3);
   return (m || '644').padStart(3, '0');
 };
+const inodoDe = (p, it) => {
+  if (it && it.inodo != null) return String(it.inodo);
+  let h = 0;
+  for (let i = 0; i < p.length; i++) h = ((h * 31) + p.charCodeAt(i)) >>> 0;
+  return String(100000 + (h % 900000));
+};
 const permisosDe = it => {
   const m = modoDe(it), r = ['---','--x','-w-','-wx','r--','r-x','rw-','rwx'];
   return r[Number(m[0]) || 0] + r[Number(m[1]) || 0] + r[Number(m[2]) || 0];
@@ -1119,17 +1125,26 @@ function mundoBase(){
   file(MUNDO_HOME + '/Descargas/BinarioFH.pdf', 'PDF');
   file(MUNDO_HOME + '/Descargas/Conceptos UD 1.pdf', 'PDF');
   dir('/bin');
-  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','wc','whoami'].forEach(c => file('/bin/' + c, '', '755'));
+  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/bin/' + c, '', '755'));
   dir('/etc');
   file('/etc/hostname', 'usuario');
   file('/etc/hosts', '127.0.0.1 localhost');
+  file('/etc/motd', 'Bienvenido a Linux\n');
   file('/etc/passwd', 'root:x:0:0:root:/root:/bin/bash\nusuario:x:1000:1000:Usuario:/home/usuario:/bin/bash');
   file('/etc/timezone', 'Europe/Madrid');
+  dir('/etc/rc2.d');
+  file('/etc/rc2.d/S01cron', '#!/bin/sh\n');
+  file('/etc/rc2.d/S20ssh', '#!/bin/sh\n');
+  file('/etc/rc2.d/README', 'Enlaces a los servicios del arranque.\n');
   dir('/etc/terminfo'); dir('/etc/tmpfiles.d');
+  file('/.dockerenv', '');
   dir('/tmp'); dir('/tmp/cache');
   dir('/dev');
   ['null','random','zero','tty','tty0','tty1','tty2','tty3','tty4','ttyS0'].forEach(d => file('/dev/' + d, '', ['null','random','zero'].includes(d) ? '666' : '620'));
   dir('/usr'); dir('/usr/bin'); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
+  dir('/home/rafa'); dir('/home/rafa/Documentos'); dir('/home/rafa/Descargas');
+  file('/home/rafa/Documentos/nota.txt', 'Notas de Rafa\n');
+  file('/home/rafa/Descargas/apuntes.txt', 'Apuntes\n');
   return e;
 }
 
@@ -1189,7 +1204,12 @@ function patronRegex(pat){
     else if (c === '?') r += '[^/]';
     else if (c === '['){
       const fin = pat.indexOf(']', i + 1);
-      if (fin > i){ r += '[' + pat.slice(i + 1, fin).replace(/\\/g, '\\\\') + ']'; i = fin; }
+      if (fin > i){
+        let dentro = pat.slice(i + 1, fin).replace(/\\/g, '\\\\');
+        if (dentro.startsWith('!')) dentro = '^' + dentro.slice(1);
+        r += '[' + dentro + ']';
+        i = fin;
+      }
       else r += '\\[';
     } else r += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
@@ -1227,8 +1247,13 @@ function nombreHtml(e, p, it){
   if (it.tipo === 'dir' || it.tipo === 'link') return '<b class="d">' + n + '</b>';
   return /[1357]/.test(modoDe(it)[2] || '0') ? '<b class="x">' + n + '</b>' : n;
 }
-function columnas(e, hijos){
-  const nombres = hijos.map(h => nombreHtml(e, h, e.fs[h]));
+const conNumeroInodo = (p, it, texto) => String(inodoDe(p, it)).padStart(7) + ' ' + texto;
+function nombreConInodo(e, p, it, flags){
+  const n = nombreHtml(e, p, it);
+  return flags.has('i') ? conNumeroInodo(p, it, n) : n;
+}
+function columnas(e, hijos, flags){
+  const nombres = hijos.map(h => nombreConInodo(e, h, e.fs[h], flags));
   const largos = nombres.map(n => quitarHtml(n).length);
   const ancho = Math.max(1, ...largos) + 2;
   const cols = Math.max(1, Math.floor(80 / ancho));
@@ -1244,11 +1269,12 @@ function columnas(e, hijos){
   }
   return lineas.join('\n');
 }
-function lineaLarga(e, p, it){
+function lineaLarga(e, p, it, verInodo){
   const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : '-';
   const tam = it.tipo === 'file' ? String((it.contenido || '').length) : '4096';
   const extra = it.tipo === 'link' ? ' -> ' + escaparHtml(it.destino) : '';
-  return tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
+  const linea = tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
+  return verInodo ? conNumeroInodo(p, it, linea) : linea;
 }
 
 /* ---- Comandos ---- */
@@ -1282,10 +1308,10 @@ function cmd_ls(e, args){
     it = e.fs[p];
     if (!it){ errores.push("ls: no se puede acceder a '" + p0 + "': No such file or directory"); continue; }
     if (it.tipo !== 'dir'){
-      salidas.push(larga ? lineaLarga(e, p, it) : nombreHtml(e, p, it));
+      salidas.push(larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags));
       continue;
     }
-    if (flags.has('d')){ salidas.push(larga ? lineaLarga(e, p, it) : nombreHtml(e, p, it)); continue; }
+    if (flags.has('d')){ salidas.push(larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags)); continue; }
     if (total > 1 && !flags.has('R')) salidas.push(escaparHtml(p0) + ':');
     if (flags.has('R')){
       const recorrer = (dir, nivel) => {
@@ -1293,7 +1319,7 @@ function cmd_ls(e, args){
         salidas.push(escaparHtml(nivel ? rutaVisible(dir) : p0) + ':');
         const hs = listarHijos(e, dir, ocultos);
         if (flags.has('r')) hs.reverse();
-        for (const h of hs) salidas.push('  '.repeat(nivel) + (larga ? lineaLarga(e, h, e.fs[h]) : nombreHtml(e, h, e.fs[h])));
+        for (const h of hs) salidas.push('  '.repeat(nivel) + (larga ? lineaLarga(e, h, e.fs[h], flags.has('i')) : nombreConInodo(e, h, e.fs[h], flags)));
         for (const h of hs) if (e.fs[h].tipo === 'dir') recorrer(h, nivel + 1);
       };
       recorrer(p, 0);
@@ -1301,8 +1327,8 @@ function cmd_ls(e, args){
     }
     const hijos = listarHijos(e, p, ocultos);
     if (flags.has('r')) hijos.reverse();
-    if (larga) for (const h of hijos) salidas.push(lineaLarga(e, h, e.fs[h]));
-    else if (hijos.length) salidas.push(columnas(e, hijos));
+    if (larga) for (const h of hijos) salidas.push(lineaLarga(e, h, e.fs[h], flags.has('i')));
+    else if (hijos.length) salidas.push(columnas(e, hijos, flags));
   }
   return { out: salidas.join('\n'), err: errores.join('\n'), code: errores.length && !salidas.length ? 1 : 0 };
 }
@@ -1375,14 +1401,20 @@ function cmd_cp(e, args){
   const ops = [];
   for (const a of args){ if (a === '-r' || a === '-R') rec = true; else if (!a.startsWith('-')) ops.push(a); }
   if (ops.length < 2) return fallo('cp: faltan operandos');
-  const src = rutaAbs(ops[0], e.cwd), it = e.fs[src];
-  if (!it) return fallo("cp: no se puede acceder a '" + ops[0] + "': No such file or directory");
-  if (it.tipo === 'dir' && !rec) return fallo("cp: -r no especificado; se omite el directorio '" + ops[0] + "'");
-  let dst = rutaAbs(ops[1], e.cwd);
-  if (e.fs[dst] && e.fs[dst].tipo === 'dir') dst += '/' + nombreDe(src);
-  if (!esDir(e, padreDe(dst))) return fallo("cp: no se puede crear '" + ops[1] + "': No such file or directory");
-  for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')) e.fs[dst + k.slice(src.length)] = JSON.parse(JSON.stringify(e.fs[k]));
-  return exito();
+  const destinos = ops[ops.length - 1], fuentes = ops.slice(0, -1);
+  const dstBase = rutaAbs(destinos, e.cwd);
+  const dstEsDir = e.fs[dstBase] && e.fs[dstBase].tipo === 'dir';
+  if (fuentes.length > 1 && !dstEsDir) return fallo("cp: el destino '" + destinos + "' no es un directorio");
+  let err = '';
+  for (const raw of fuentes){
+    const src = rutaAbs(raw, e.cwd), it = e.fs[src];
+    if (!it){ err += (err ? '\n' : '') + "cp: no se puede acceder a '" + raw + "': No such file or directory"; continue; }
+    if (it.tipo === 'dir' && !rec){ err += (err ? '\n' : '') + "cp: -r no especificado; se omite el directorio '" + raw + "'"; continue; }
+    const dst = dstEsDir ? dstBase + '/' + nombreDe(src) : dstBase;
+    if (!esDir(e, padreDe(dst))){ err += (err ? '\n' : '') + "cp: no se puede crear '" + destinos + "': No such file or directory"; continue; }
+    for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')) e.fs[dst + k.slice(src.length)] = JSON.parse(JSON.stringify(e.fs[k]));
+  }
+  return { out:'', err, code: err ? 1 : 0 };
 }
 function cmd_mv(e, args){
   const ops = args.filter(a => !a.startsWith('-'));
@@ -1411,6 +1443,16 @@ function cmd_cat(e, args, stdin){
   return { out, err, code: err ? 1 : 0 };
 }
 function cmd_echo(e, args){ return exito(args.join(' ')); }
+function cmd_date(e, args){
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const formato = args[0] || '';
+  if (formato === '+%F') return exito(d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()));
+  if (formato === '+%d%m%y') return exito(p(d.getDate()) + p(d.getMonth() + 1) + p(d.getFullYear() % 100));
+  if (formato === '+%B') return exito(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][d.getMonth()]);
+  return exito(dias[d.getDay()] + ' ' + p(d.getDate()) + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' UTC');
+}
 function cmd_ln(e, args){
   let simbolico = false;
   const ops = [];
@@ -1420,7 +1462,11 @@ function cmd_ln(e, args){
   if (e.fs[enlace]) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': El fichero ya existe");
   if (!e.fs[destino]) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': No such file or directory");
   if (!esDir(e, padreDe(enlace))) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': No such file or directory");
-  e.fs[enlace] = simbolico ? { tipo:'link', destino } : JSON.parse(JSON.stringify(e.fs[destino]));
+  if (simbolico) e.fs[enlace] = { tipo:'link', destino };
+  else {
+    e.fs[enlace] = JSON.parse(JSON.stringify(e.fs[destino]));
+    e.fs[enlace].inodo = inodoDe(destino, e.fs[destino]);
+  }
   return exito();
 }
 function cmd_chmod(e, args){
@@ -1665,7 +1711,7 @@ const CMD_SIM = {
   cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
-  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), umask: cmd_umask
+  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), date: cmd_date, umask: cmd_umask
 };
 
 /* ---- Intérprete de una línea ---- */
@@ -1698,7 +1744,11 @@ function tokenizar(linea){
 function ejecutarSimple(e, tokens, stdin = ''){
   const cmd = tokens[0];
   if (!cmd) return exito('');
-  const args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
+  let args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
+  // Los comodines se expanden como en bash para los comandos que reciben ficheros.
+  // find y grep quedan fuera porque sus patrones no son rutas.
+  if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd))
+    args = args.flatMap(a => a.startsWith('-') ? [a] : expandirGlob(e, a));
   if (cmd === 'mkcd' && e.funciones.includes('mkcd')) return cmd_mkcd(e, args);
   const fn = CMD_SIM[cmd];
   if (!fn) return fallo('bash: ' + cmd + ': orden no encontrada');
@@ -1736,6 +1786,8 @@ function ejecutarPipeline(e, tokens, stdin = ''){
   return { out, err, code };
 }
 function ejecutarLinea(e, linea){
+  linea = String(linea).replace(/\$(?:\{)?(HOME|PWD|USER)(?:\})?/g, (m, v) =>
+    v === 'HOME' ? MUNDO_HOME : (v === 'PWD' ? e.cwd : 'usuario'));
   const tokens = tokenizar(linea);
   let out = '', err = '', code = 0, i = 0, ejecutar = true;
   while (i < tokens.length){
@@ -2285,7 +2337,7 @@ function enviarAct(){
 
 /* ---- Tab: completa comandos, opciones y rutas, como bash ---- */
 const OPCIONES_CMD = {
-  ls:'-a -A -l -h -r -R -1 -t', cd:'-P', mkdir:'-p', rm:'-r -f', cp:'-r', ln:'-s', chmod:'-R',
+  ls:'-a -A -l -h -r -R -1 -t -i', cd:'-P', mkdir:'-p', rm:'-r -f', cp:'-r', ln:'-s', chmod:'-R',
   grep:'-i -r -n -v', find:'-name -type -maxdepth', head:'-n', tail:'-n', sort:'-r -n',
   du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t'
 };
