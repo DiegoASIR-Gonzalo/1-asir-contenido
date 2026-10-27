@@ -7,9 +7,13 @@
   const E = (tag, clase, html) => { const e = document.createElement(tag); if (clase) e.className = clase; if (html != null) e.innerHTML = html; return e; };
   const boton = (texto, fn, disabled) => { const b = E('button', 'd-btn', texto); b.type = 'button'; b.disabled = !!disabled; b.onclick = fn; return b; };
   const estilo = E('style', null, `
-    .d-cuerpo{flex:1;overflow:auto;padding:0 16px 16px}.d-cuerpo input,.d-cuerpo select{width:100%;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 10px;margin-top:8px}
-    .d-btn{display:block;width:100%;margin-top:8px;text-align:left;font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:9px 12px;cursor:pointer}.d-btn:hover:not(:disabled),.d-btn.sel{background:var(--acento)}.d-btn:disabled{opacity:.4;cursor:default}
-    .d-sala{margin:9px 0;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.05)}.d-sala h3{font-size:14px;margin:0 0 4px}.d-sala p{margin:3px 0;color:#c0bfbc;font-size:12px}.d-cod{font:700 30px "Ubuntu Mono",monospace;letter-spacing:.25em;text-align:center;background:#2e2c33;border-radius:10px;padding:8px;margin-top:10px}.d-jug{display:flex;justify-content:space-between;gap:8px;margin-top:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.06);font-size:13px}.d-jug small{color:#c0bfbc}.d-barra{height:6px;margin:3px 0 8px;border-radius:3px;background:rgba(0,0,0,.15);overflow:hidden}.d-barra i{display:block;height:100%;background:var(--acento);transition:width .3s ease}.d-pista{margin-top:8px;padding:7px 9px;border-left:3px solid var(--acento);background:rgba(255,255,255,.06);font-size:12px}.d-fin button{font:inherit;font-weight:700;padding:6px 10px;border:0;border-radius:6px;background:var(--acento);color:#fff;cursor:pointer}.act-term[hidden]{display:none}.enunciado.d-full{max-height:none;flex:1}
+    .d-cuerpo{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:6px 16px 16px}
+    .d-cuerpo>*{flex:none;margin:0}
+    .d-cuerpo input,.d-cuerpo select{width:100%;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 10px}
+    .d-cuerpo select{cursor:pointer}.d-cuerpo .act-vacio{padding:0}
+    .d-cuerpo>h3{margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:14px}
+    .d-btn{display:block;width:100%;text-align:left;font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:9px 12px;cursor:pointer}.d-btn:hover:not(:disabled),.d-btn.sel{background:var(--acento)}.d-btn:disabled{opacity:.4;cursor:default}
+    .d-sala{padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.05)}.d-sala h3{font-size:14px;margin:0 0 4px}.d-sala p{margin:3px 0;color:#c0bfbc;font-size:12px}.d-sala .d-btn{margin-top:8px}.d-cod{font:700 30px "Ubuntu Mono",monospace;letter-spacing:.25em;text-align:center;background:#2e2c33;border-radius:10px;padding:8px}.d-jug{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.06);font-size:13px}.d-jug small{color:#c0bfbc}.d-barra{height:6px;margin:3px 0 8px;border-radius:3px;background:rgba(0,0,0,.15);overflow:hidden}.d-barra i{display:block;height:100%;background:var(--acento);transition:width .3s ease}.d-pista{margin-top:8px;padding:7px 9px;border-left:3px solid var(--acento);background:rgba(255,255,255,.06);font-size:12px}.d-fin button{font:inherit;font-weight:700;padding:6px 10px;border:0;border-radius:6px;background:var(--acento);color:#fff;cursor:pointer}.act-term[hidden]{display:none}.enunciado.d-full{max-height:none;flex:1}
     .d-conf{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(0,0,0,.55)}.d-conf-c{width:min(380px,calc(100% - 24px));background:var(--ventana);color:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.55)}.d-conf-c h3{font-size:17px;margin-bottom:6px}.d-conf-c p{margin-bottom:14px;color:#c0bfbc}.d-conf-c div{display:flex;justify-content:flex-end;gap:8px}.d-conf-c button{font:inherit;font-weight:700;color:#fff;background:#4a4752;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}.d-conf-c .d-si{background:#c01c28}
   `);
   document.head.append(estilo);
@@ -22,11 +26,74 @@
   const btnDuelo = E('button', 'barra-btn', 'Duelo'); btnDuelo.type = 'button'; caja.append(btnAct, btnDuelo);
   const panel = E('aside', 'act-panel', '<div class="act-cab"><h2>Duelo</h2><p>Compite o practica en grupo.</p></div><div class="d-cuerpo"></div>');
   const cuerpo = panel.lastChild;
-  const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Arena Linux"><div class="act-int"><div class="titulo"><span id="d-tit">Arena Linux</span><button id="d-x" class="act-cerrar" type="button" aria-label="Salir">✕</button></div><div class="act-cuerpo"><article id="d-enun" class="enunciado"></article><div id="d-term" class="terminal act-term"><div id="d-pant" class="pantalla"><span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" spellcheck="false" aria-label="Escribe un comando"></div></div><div class="pie"><button id="d-salir" type="button">Salir</button><span id="d-contador" class="contador"></span></div></div></div></div></section>');
+  const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Arena Linux"><div class="act-int"><div class="titulo" id="d-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño"><span id="d-tit">Arena Linux</span><button id="d-max" class="act-max" type="button" aria-label="Maximizar ventana">□</button><button id="d-x" class="act-cerrar" type="button" aria-label="Salir">✕</button></div><div class="act-cuerpo"><article id="d-enun" class="enunciado"></article><div id="d-term" class="terminal act-term"><div id="d-pant" class="pantalla"><span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" spellcheck="false" aria-label="Escribe un comando"></div></div><div class="pie"><button id="d-salir" type="button">Salir</button><span id="d-contador" class="contador"></span></div></div></div></div></section>');
   fondo.hidden = true;
   document.body.append(panel, fondo);
   const enunciado = $('d-enun'), terminal = $('d-term'), pantalla = $('d-pant'), entrada = $('d-in');
-  const abrir = () => { fondo.hidden = false; void fondo.offsetWidth; fondo.classList.add('visible'); };
+
+  /* ---- Mover y redimensionar la ventana (mismo comportamiento que la de Actividades) ----
+     Mover: arrastrar la barra de título (o flechas con la barra enfocada).
+     Redimensionar: arrastrar bordes y esquinas (o Mayús + flechas). Doble clic en la barra o botón □: maximizar.
+     La posición y el tamaño se conservan mientras no se recargue la página. */
+  const ventana = fondo.querySelector('.act-ventana'), barra = $('d-barra'), btnMax = $('d-max');
+  const TOPE = 30, MIN_W = 420, MIN_H = 320;   // TOPE = alto de la barra superior; mínimos de tamaño
+  let geo = null, maxim = false, gesto = null;
+  const minimos = () => ({ w:Math.min(MIN_W, innerWidth - 12), h:Math.min(MIN_H, innerHeight - TOPE) });
+  function geometriaInicial(){
+    const w = Math.min(900, innerWidth - 12), h = Math.min(680, innerHeight - TOPE - 12);
+    return { x:Math.round((innerWidth - w) / 2), y:TOPE + Math.max(6, Math.round((innerHeight - TOPE - h) / 2)), w, h };
+  }
+  function limitar(){   // la ventana nunca queda fuera de la pantalla ni más pequeña que el mínimo
+    const m = minimos();
+    geo.w = Math.max(m.w, Math.min(geo.w, innerWidth));
+    geo.h = Math.max(m.h, Math.min(geo.h, innerHeight - TOPE));
+    geo.x = Math.max(80 - geo.w, Math.min(geo.x, innerWidth - 80));  // siempre quedan 80 px visibles para poder agarrarla
+    geo.y = Math.max(TOPE, Math.min(geo.y, innerHeight - 42));       // la barra de título nunca baja del borde inferior
+  }
+  function colocar(){
+    if (!geo) geo = geometriaInicial();   // la primera vez se centra; después conserva donde la dejó la persona
+    if (!maxim) limitar();
+    const r = maxim ? { x:0, y:TOPE, w:innerWidth, h:innerHeight - TOPE } : geo;
+    Object.assign(ventana.style, { left:r.x + 'px', top:r.y + 'px', width:r.w + 'px', height:r.h + 'px' });
+    ventana.classList.toggle('maximizada', maxim);
+    btnMax.textContent = maxim ? '❐' : '□';
+    btnMax.setAttribute('aria-label', maxim ? 'Restaurar ventana' : 'Maximizar ventana');
+  }
+  const alternarMax = () => { maxim = !maxim; colocar(); };
+  // Tiradores de los ocho bordes/esquinas (el CSS de .res ya está en el HTML)
+  ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(d => { const h = E('span', 'res ' + d); h.dataset.d = d; ventana.append(h); });
+  ventana.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || maxim) return;
+    const tirador = e.target.closest('.res'), enBarra = barra.contains(e.target) && !e.target.closest('button');
+    if (!tirador && !enBarra) return;
+    gesto = { tipo:tirador ? tirador.dataset.d : 'mover', px:e.clientX, py:e.clientY, o:{ ...geo } };
+    (tirador || barra).setPointerCapture(e.pointerId);
+  });
+  ventana.addEventListener('pointermove', e => {
+    if (!gesto) return;
+    const dx = e.clientX - gesto.px, dy = e.clientY - gesto.py, o = gesto.o, t = gesto.tipo, m = minimos();
+    if (t === 'mover'){ geo.x = o.x + dx; geo.y = o.y + dy; }
+    else {
+      if (t.includes('e')) geo.w = Math.max(m.w, Math.min(o.w + dx, innerWidth - o.x));
+      if (t.includes('s')) geo.h = Math.max(m.h, Math.min(o.h + dy, innerHeight - o.y));
+      if (t.includes('w')){ const x = Math.max(0, Math.min(o.x + dx, o.x + o.w - m.w)); geo.w = o.x + o.w - x; geo.x = x; }
+      if (t.includes('n')){ const y = Math.max(TOPE, Math.min(o.y + dy, o.y + o.h - m.h)); geo.h = o.y + o.h - y; geo.y = y; }
+    }
+    colocar();
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => ventana.addEventListener(ev, () => { gesto = null; }));
+  barra.addEventListener('dblclick', e => { if (!e.target.closest('button')) alternarMax(); });
+  btnMax.onclick = alternarMax;
+  barra.addEventListener('keydown', e => {   // con la barra enfocada: flechas = mover, Mayús + flechas = redimensionar
+    if (e.target !== barra || maxim) return;
+    const d = 24, v = { ArrowLeft:[-d, 0], ArrowRight:[d, 0], ArrowUp:[0, -d], ArrowDown:[0, d] }[e.key];
+    if (!v) return;
+    e.preventDefault();
+    if (e.shiftKey){ geo.w += v[0]; geo.h += v[1]; } else { geo.x += v[0]; geo.y += v[1]; }
+    colocar();
+  });
+  addEventListener('resize', () => { if (!fondo.hidden) colocar(); });
+  const abrir = () => { fondo.hidden = false; colocar(); void fondo.offsetWidth; fondo.classList.add('visible'); };
   const cerrar = () => { cancelarAyudas(); fondo.classList.remove('visible'); fondo.hidden = true; };
   const avisar = texto => { aviso = texto; renderPanel(); };
   btnDuelo.onclick = () => { panel.classList.toggle('abierto'); if (panel.classList.contains('abierto')) { alternarAct(false); iniciarFirebase(); renderPanel(); } };
