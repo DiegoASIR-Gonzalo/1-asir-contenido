@@ -98,6 +98,15 @@ const estadoAtomico = ctx.crearEstado({ inicio:{ cwd:'~' } });
 const antesAtomico = JSON.stringify(estadoAtomico);
 const resultadoAtomico = ctx.validarPaso(pasoAtomico, estadoAtomico, 'mkdir a; mkdir -m');
 assert(!resultadoAtomico.ok && JSON.stringify(resultadoAtomico.estado) === antesAtomico, 'un fallo después de una mutación no debe cambiar el estado original');
+const pasoAprendizaje = {
+  meta:{ muestra:'/' }, ejemplo:'find / -type d',
+  aprendizaje:{ comando:'find', opciones:['-type'], valores:['d'], pistas:['Piensa en cómo filtrar por tipo.', 'Revisa la opción que usa find para distinguir entradas.', 'Usa la forma general: find [ruta] [filtro].'] }
+};
+const estadoAprendizaje = ctx.crearEstado({ inicio:{ cwd:'~' } });
+assert(!ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'ls -R /').ok, 'un comando alternativo no debe superar un concepto obligatorio');
+assert(ctx.validarPaso(pasoAprendizaje, estadoAprendizaje, 'find / -type d').ok, 'el comando que usa el concepto obligatorio debe superar el paso');
+const pistasAprendizaje = ctx.pistasSeguras(pasoAprendizaje);
+assert(!pistasAprendizaje.some(p => p.includes(pasoAprendizaje.ejemplo)), 'las pistas no deben mostrar el comando completo');
 
 /* ---------- 2) Utilidades de impresión ---------- */
 let errores = 0, avisos = 0, pasosTotal = 0;

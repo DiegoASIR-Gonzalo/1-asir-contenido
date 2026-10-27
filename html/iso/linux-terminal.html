@@ -2054,6 +2054,8 @@ function validarPaso(paso, estado, t){
     if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.', diagnostico:'Ese comando no coincide con el objetivo del paso.' };
     return { ok:true, estado, salida: paso.out || '', error:'', diagnostico:'' };
   }
+  const aprendizaje = comprobarAprendizaje(paso, t);
+  if (!aprendizaje.ok) return { ok:false, estado, salida:'', error: aprendizaje.mensaje, diagnostico: aprendizaje.mensaje };
   const candidato = estado ? clonarEstado(estado) : null;
   const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
   if (r.code !== 0){
@@ -2064,6 +2066,30 @@ function validarPaso(paso, estado, t){
   return v.ok
     ? { ok:true, estado: candidato, salida: r.out || '', error:'', diagnostico:'' }
     : { ok:false, estado, salida:'', error: v.motivo, diagnostico: v.diagnostico || v.motivo };
+}
+
+function comprobarAprendizaje(paso, t){
+  const req = paso.aprendizaje;
+  if (!req) return { ok:true, mensaje:'' };
+  const tokens = tokenizar(t);
+  if (req.comando && tokens[0] !== req.comando)
+    return { ok:false, mensaje:'Este paso practica el comando ' + req.comando + '; revisa qué comando estás usando.' };
+  const opciones = [].concat(req.opciones || []);
+  const faltaOpcion = opciones.find(op => !tokens.includes(op));
+  if (faltaOpcion)
+    return { ok:false, mensaje:'El objetivo necesita el filtro ' + faltaOpcion + '; revisa cómo se aplica en este comando.' };
+  const valores = [].concat(req.valores || []);
+  const faltaValor = valores.find(valor => !tokens.includes(String(valor)));
+  if (faltaValor)
+    return { ok:false, mensaje:'El filtro está incompleto: falta indicar el tipo o valor que pide el ejercicio.' };
+  return { ok:true, mensaje:'' };
+}
+
+function pistasSeguras(paso){
+  const base = paso.aprendizaje && paso.aprendizaje.pistas ? paso.aprendizaje.pistas : paso.pista;
+  const normal = texto => String(texto || '').replace(/<[^>]*>/g, '').trim().replace(/\s+/g, ' ');
+  const ejemplo = normal(paso.ejemplo);
+  return [].concat(base || []).filter(Boolean).filter(p => !ejemplo || !normal(p).includes(ejemplo));
 }
 
 // 1) Lectura y validación de las actividades que cargó actividades.js.
@@ -2528,7 +2554,10 @@ function solucionHtml(a){
 const unir = (x, parrafos) => [].concat(x || '').map(t => parrafos ? '<p>' + t + '</p>' : t).join('');   // texto o lista de textos → HTML
 // "pista" puede ser un texto o una LISTA con todas las pistas que quieras (de más suave a más directa).
 // Cada petición (botón o 2 fallos seguidos) enseña la siguiente; al acabarse se repite la última.
-const pistasDe = paso => { const l = [].concat(paso.pista || []).filter(Boolean); return l.length ? l : ['repasa el enunciado y prueba con el comando que se pide.']; };
+const pistasDe = paso => {
+  const l = pistasSeguras(paso);
+  return l.length ? l : ['repasa el concepto del enunciado y prueba con la forma general del comando.'];
+};
 function pistaHtml(paso){
   const l = pistasDe(paso), n = Math.min(pistaIdx, l.length - 1), agotadas = pistaIdx >= l.length;
   pistaIdx = Math.min(pistaIdx + 1, l.length);

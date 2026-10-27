@@ -1017,3 +1017,14 @@ reemplazarPasoRafa(87,
   'cut -d : -f 1,7 /etc/passwd',
   'El primer campo es el usuario y el séptimo, el intérprete que utiliza.'
 );
+
+const aprendizajesTerminal = {
+  'find /usr/bin -type f': { comando:'find', opciones:['-type'], valores:['f'], pistas:['Piensa en cómo limitar la búsqueda a una ruta.', 'Revisa el filtro que distingue ficheros y directorios.', 'Usa la forma general: find [ruta] [filtro].'] },
+  'find / -type d': { comando:'find', opciones:['-type'], valores:['d'], pistas:['Piensa en cómo distinguir directorios de ficheros.', 'Revisa la opción que filtra por tipo.', 'Usa la forma general: find [ruta] [filtro].'] },
+  'find /etc -type f': { comando:'find', opciones:['-type'], valores:['f'], pistas:['La búsqueda debe recorrer solo la ruta indicada.', 'Revisa el filtro para seleccionar ficheros ordinarios.', 'Usa la forma general: find [ruta] [filtro].'] },
+  'find / -type f -user root': { comando:'find', opciones:['-type','-user'], valores:['f','root'], pistas:['Necesitas combinar un filtro de tipo con uno de propietario.', 'Revisa las opciones que limitan por tipo y usuario.', 'Usa la forma general: find [ruta] [filtros].'] },
+  'find / -type f -user usuario -exec file {} +': { comando:'find', opciones:['-type','-user','-exec'], valores:['f','usuario','file'], pistas:['Primero selecciona los ficheros del usuario indicado.', 'Después necesitas ejecutar otro comando sobre cada resultado.', 'Usa la forma general: find [ruta] [filtros] -exec [comando] {} +.'] }
+};
+ACTIVIDADES.forEach(a => a.pasos.forEach(p => {
+  if (aprendizajesTerminal[p.ejemplo]) p.aprendizaje = aprendizajesTerminal[p.ejemplo];
+}));
