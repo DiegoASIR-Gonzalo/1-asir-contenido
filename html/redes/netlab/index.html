@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NetLab Studio · Simulador de topologías de red</title>
+<meta name="description" content="Entorno tipo GNS3 para estudiar redes: topologías arrastrables, calculadora de subredes, tablas de enrutamiento y simulación de ping.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect width='48' height='48' rx='12' fill='%230ea5e9'/><circle cx='24' cy='24' r='13' fill='none' stroke='%23fff' stroke-width='3'/></svg>">
+</head>
+<body>
+
+<!-- ══════════════════════════ PANTALLA DE INICIO ══════════════════════════ -->
+<section id="startScreen" class="screen active">
+  <div class="start-wrap">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="26" height="26" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+          <circle cx="24" cy="24" r="15"/><path d="M16 20h16M18 16l-3 4 3 4M30 28H14M30 28l3-4-3-4"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Net<span>Lab</span> Studio</h1>
+        <div class="tiny" style="letter-spacing:1.6px;font-weight:700;color:var(--txt-3)">SIMULADOR DE TOPOLOGÍAS · SUBREDES · ENRUTAMIENTO</div>
+      </div>
+    </div>
+    <p class="tagline">Laboratorio de redes para CFGM (SMR) y CFGS (ASIR): arrastra equipos, cablea, direcciona y comprueba la conectividad.</p>
+
+    <h2 class="hero-title">¿Qué quieres hacer?</h2>
+    <div class="choice-grid">
+      <button class="choice" id="choiceCreate">
+        <span class="choice-num">OPCIÓN 1</span>
+        <h3>Crear una topología</h3>
+        <p>Lienzo libre tipo GNS3: arrastra routers, switches y equipos, únelos y configura todo el direccionamiento.</p>
+        <ul>
+          <li>Equipos arrastrables + plantillas (estrella, anillo, malla, bus)</li>
+          <li>Calculadora de subredes, VLSM y máscaras</li>
+          <li>Tablas de enrutamiento con rutas estáticas</li>
+          <li>Ping y traceroute simulados con validación</li>
+        </ul>
+        <span class="choice-cta">Empezar en blanco →</span>
+        <svg class="art" width="150" height="150" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="8" r="3"/><circle cx="24" cy="40" r="3"/><circle cx="8" cy="24" r="3"/><circle cx="40" cy="24" r="3"/><path d="M24 11v10M24 27v10M11 24h10M27 24h10"/></svg>
+      </button>
+
+      <button class="choice" id="choiceActivities">
+        <span class="choice-num">OPCIÓN 2</span>
+        <h3>Entrar en una actividad</h3>
+        <p>Ejercicios guiados con enunciado, topología de partida y corrección automática paso a paso.</p>
+        <ul>
+          <li>5 actividades de nivel SMR / ASIR</li>
+          <li>Estrella, anillo, rutas estáticas, VLSM e Internet</li>
+          <li>Verificación automática de cada requisito</li>
+          <li>Teoría y pistas dentro de cada ejercicio</li>
+        </ul>
+        <span class="choice-cta">Ver actividades →</span>
+        <svg class="art" width="150" height="150" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="6" y="10" width="36" height="28" rx="4"/><path d="M6 18h36M12 24h10M12 30h16"/></svg>
+      </button>
+    </div>
+
+    <div class="start-foot">
+      <button class="btn" id="startOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v1H3z"/><path d="M3 10h18l-2 8a2 2 0 0 1-2 1.6H5.6A2 2 0 0 1 3.7 18z"/></svg> Abrir proyecto guardado</button>
+      <button class="btn" id="startImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> Importar JSON</button>
+      <button class="btn ghost" id="startHelp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5A2.5 2.5 0 1 1 12 12v1.2"/><path d="M12 17h.01"/></svg> Guía rápida</button>
+      <span class="muted">Todo se guarda en tu navegador · sin instalación · funciona offline</span>
+    </div>
+    <input type="file" id="fileImportStart" accept=".json,application/json" class="hidden">
+  </div>
+</section>
+
+<!-- ══════════════════════════ LISTADO DE ACTIVIDADES ══════════════════════════ -->
+<section id="activitiesScreen" class="screen">
+  <div class="start-wrap">
+    <div class="act-head">
+      <button class="btn icon" id="backToStart" title="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div>
+        <h2>Actividades guiadas</h2>
+        <div class="tiny">Elige un ejercicio · la topología de partida ya está preparada, tú configuras la red</div>
+      </div>
+    </div>
+    <div class="act-grid" id="actGrid"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ ÁREA DE TRABAJO ══════════════════════════ -->
+<section id="workspace">
+  <header class="topbar">
+    <div class="logo">
+      <div class="mark"><svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="24" cy="24" r="15"/><path d="M16 20h16M18 16l-3 4 3 4M30 28H14M30 28l3-4-3-4"/></svg></div>
+      <div>NetLab<small>STUDIO</small></div>
+    </div>
+    <input class="project-name" id="projectName" value="Topología sin título" spellcheck="false">
+    <button class="btn icon" id="btnNew" title="Nueva topología"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></button>
+    <button class="btn icon" id="btnSave" title="Guardar proyecto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><rect x="8" y="13" width="8" height="6"/></svg></button>
+    <button class="btn icon" id="btnOpen" title="Abrir proyecto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v1H3z"/><path d="M3 10h18l-2 8a2 2 0 0 1-2 1.6H5.6A2 2 0 0 1 3.7 18z"/></svg></button>
+    <button class="btn icon" id="btnExport" title="Exportar JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="M8 12l4 4 4-4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></button>
+    <button class="btn icon" id="btnImport" title="Importar JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></button>
+    <div class="tb-sep"></div>
+    <button class="btn sm" id="btnPing" title="Simular ping (ida y vuelta)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"/></svg> Ping</button>
+    <button class="btn sm" id="btnTrace" title="Traceroute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h6l4-12h6"/><path d="M17 3l3 3-3 3M7 15l-3 3 3 3"/></svg> Traceroute</button>
+    <button class="btn sm" id="btnValidate" title="Validar direccionamiento y rutas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6"/></svg> Validar</button>
+    <button class="btn sm" id="btnConsole" title="Consola CLI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg> Consola</button>
+    <div class="tb-spacer"></div>
+    <button class="btn sm ghost" id="btnHome" title="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg> Inicio</button>
+    <div class="save-state" id="saveState"><span class="dot"></span><span>Guardado</span></div>
+  </header>
+
+  <div class="workspace-body" id="wsBody">
+    <!-- ─────────── PANEL IZQUIERDO ─────────── -->
+    <aside class="side left">
+      <nav class="side-tabs" id="leftTabs">
+        <button data-tab="devices" class="on" title="Equipos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>
+          Equipos</button>
+        <button data-tab="subnets" title="Subredes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Subredes</button>
+        <button data-tab="routes" title="Enrutamiento">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18h6l4-12h6"/><path d="M17 3l3 3-3 3M7 15l-3 3 3 3"/></svg>
+          Rutas</button>
+        <button data-tab="diag" title="Diagnóstico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16h.01"/></svg>
+          Validar</button>
+        <button data-tab="activity" id="tabActivity" class="hidden" title="Actividad">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+          Tarea</button>
+      </nav>
+
+      <div class="side-body">
+        <!-- EQUIPOS -->
+        <div class="panel on" id="panel-devices">
+          <h3>Equipos</h3>
+          <div class="palette-grid" id="palette"></div>
+          <p class="hint">Arrastra al lienzo o haz clic para añadir. Doble clic en un puerto ⚪ para crear cables.</p>
+          <h3>Plantillas de topología</h3>
+          <div class="palette-grid" id="templates"></div>
+          <p class="hint">Se colocan equipos ya cableados, listos para direccionar.</p>
+          <h3>Red de ejemplo</h3>
+          <button class="btn sm" id="btnDemo" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.7 6.3.9-4.6 4.4 1.1 6.2-5.5-3-5.5 3 1.1-6.2L3 9.6l6.3-.9z"/></svg> Cargar topología de demostración</button>
+        </div>
+
+        <!-- SUBREDES -->
+        <div class="panel" id="panel-subnets">
+          <h3>Calculadora IP</h3>
+          <div class="field">
+            <label>Dirección IP</label>
+            <input class="input" id="subIp" value="192.168.1.10" spellcheck="false" placeholder="192.168.1.10">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>Máscara</label>
+              <select class="input" id="subMask">
+                <option>/24 — 255.255.255.0</option>
+                <option>/30 — 255.255.255.252</option>
+                <option>/29 — 255.255.255.248</option>
+                <option>/28 — 255.255.255.240</option>
+                <option>/27 — 255.255.255.224</option>
+                <option>/26 — 255.255.255.192</option>
+                <option>/25 — 255.255.255.128</option>
+                <option>/23 — 255.255.254.0</option>
+                <option>/22 — 255.255.252.0</option>
+                <option>/21 — 255.255.248.0</option>
+                <option>/20 — 255.255.240.0</option>
+                <option>/16 — 255.255.0.0</option>
+                <option>/12 — 255.240.0.0</option>
+                <option>/8 — 255.0.0.0</option>
+                <option>/31 — 255.255.255.254</option>
+                <option>/32 — 255.255.255.255</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Prefijo</label>
+              <input class="input" id="subPrefix" type="number" min="0" max="32" value="24">
+            </div>
+          </div>
+          <button class="btn primary sm" id="btnCalc" style="width:100%">Calcular</button>
+          <div id="subResult" class="mt14"></div>
+
+          <h3>Dividir en subredes</h3>
+          <div class="inline mb8">
+            <select class="input" id="splitPrefix"></select>
+            <button class="btn sm" id="btnSplit">Dividir</button>
+          </div>
+          <div id="splitResult"></div>
+
+          <h3>VLSM</h3>
+          <p class="hint">Reparte una red según el nº de hosts necesarios (de mayor a menor).</p>
+          <div id="vlsmRows"></div>
+          <div class="inline mt8">
+            <input class="input" id="vlsmName" placeholder="Nombre" style="flex:1.1">
+            <input class="input" id="vlsmHosts" placeholder="Hosts" type="number" min="1" style="flex:.8">
+            <button class="btn sm" id="vlsmAdd">+</button>
+          </div>
+          <button class="btn sm mt8" id="btnVlsm" style="width:100%">Calcular VLSM</button>
+          <div id="vlsmResult" class="mt8"></div>
+        </div>
+
+        <!-- RUTAS -->
+        <div class="panel" id="panel-routes">
+          <h3>Tabla de enrutamiento</h3>
+          <div class="field">
+            <label>Equipo</label>
+            <select class="input" id="routeDevice"></select>
+          </div>
+          <div id="routeTable"></div>
+          <h3>Añadir ruta estática</h3>
+          <div class="field"><label>Red destino (CIDR)</label><input class="input" id="newDest" placeholder="192.168.2.0/24"></div>
+          <div class="row2">
+            <div class="field"><label>Next hop</label><input class="input" id="newHop" placeholder="10.0.0.2"></div>
+            <div class="field"><label>Interfaz</label><select class="input" id="newIface"></select></div>
+          </div>
+          <button class="btn primary sm" id="btnAddRoute" style="width:100%">Añadir ruta</button>
+          <h3>Traza de una ruta</h3>
+          <div class="inline mb8">
+            <input class="input" id="lookupIp" placeholder="IP destino 8.8.8.8">
+            <button class="btn sm" id="btnLookup">Ver</button>
+          </div>
+          <div id="lookupResult"></div>
+        </div>
+
+        <!-- DIAGNÓSTICO -->
+        <div class="panel" id="panel-diag">
+          <h3>Validación de la red</h3>
+          <button class="btn primary sm" id="btnDiag" style="width:100%">Analizar topología</button>
+          <div id="diagResult" class="mt14"><p class="hint">Comprueba IPs duplicadas, direcciones de red/broadcast asignadas, gateways inalcanzables, rutas inválidas y equipos aislados.</p></div>
+        </div>
+
+        <!-- ACTIVIDAD -->
+        <div class="panel" id="panel-activity">
+          <div id="actSide"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─────────── LIENZO ─────────── -->
+    <div class="canvas-area" id="canvasArea">
+      <svg id="world" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="gridPattern" width="26" height="26" patternUnits="userSpaceOnUse">
+            <path d="M26 0H0V26" fill="none" stroke="#121c2f" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect id="gridRect" x="-4000" y="-4000" width="9000" height="9000" fill="url(#gridPattern)"></rect>
+        <g id="viewport">
+          <g id="layerLinks"></g>
+          <g id="layerNodes"></g>
+          <path id="rubber" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 5" style="display:none"></path>
+        </g>
+      </svg>
+
+      <div class="canvas-empty" id="canvasEmpty">
+        <div class="box">
+          <h4>Lienzo vacío</h4>
+          <p>Arrastra equipos desde la izquierda o usa una <b>plantilla</b> (estrella, anillo, malla…).</p>
+          <div class="flex gap8" style="justify-content:center;margin-top:14px;flex-wrap:wrap">
+            <button class="btn sm primary" data-quick="switch">+ Switch</button>
+            <button class="btn sm" data-quick="router">+ Router</button>
+            <button class="btn sm" data-quick="pc">+ PC</button>
+            <button class="btn sm ghost" data-quick="estrella">Plantilla estrella</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-info" id="canvasInfo">
+        <span>Equipos <b id="cntNodes">0</b></span>
+        <span style="color:#2b3c5e">|</span>
+        <span>Enlaces <b id="cntLinks">0</b></span>
+        <span style="color:#2b3c5e">|</span>
+        <span>Redes <b id="cntNets">0</b></span>
+      </div>
+
+      <div class="act-ribbon hidden" id="actRibbon">
+        <span class="badge cy">Actividad</span>
+        <span class="ttl" id="ribbonTitle">—</span>
+        <span class="score" id="ribbonScore">0/0</span>
+        <button class="btn sm" id="btnBriefing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4"/><path d="M9 12h6M9 16h4"/></svg> Enunciado</button>
+        <button class="btn sm primary" id="btnCheck">Comprobar</button>
+      </div>
+
+      <div class="canvas-hud">
+        <button class="hud-btn" id="zoomIn" title="Acercar">+</button>
+        <button class="hud-btn" id="zoomOut" title="Alejar">−</button>
+        <button class="hud-btn" id="zoomFit" title="Ajustar a pantalla" style="font-size:12px">⤢</button>
+      </div>
+
+      <!-- TERMINAL -->
+      <div class="terminal" id="terminal">
+        <div class="term-head">
+          <div class="dots"><i style="background:#ef4444"></i><i style="background:#f59e0b"></i><i style="background:#a3e635"></i></div>
+          <span class="t">Consola de simulación</span>
+          <span class="term-hint">escribe <b>help</b> para ver los comandos</span>
+          <div class="tb-spacer"></div>
+          <button class="x-btn" id="termClose" title="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div class="term-out" id="termOut"></div>
+        <div class="term-in">
+          <span class="ps">netlab&gt;</span>
+          <input id="termInput" spellcheck="false" autocomplete="off" placeholder="ping PC1 192.168.2.10">
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────── INSPECTOR ─────────── -->
+    <aside class="side right">
+      <div class="side-body" id="inspector"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- menú contextual -->
+<div class="ctx-menu" id="ctxMenu"></div>
+
+<!-- modal -->
+<div class="modal-back" id="modalBack">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Título</h3>
+      <button class="x-btn" id="modalClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<input type="file" id="fileImport" accept=".json,application/json" class="hidden">
+
+<script src="js/ipcalc.js"></script>
+<script src="js/model.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/activities.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
