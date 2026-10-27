@@ -36,7 +36,7 @@
           <li>Equipos arrastrables + plantillas (estrella, anillo, malla, bus)</li>
           <li>Calculadora de subredes, VLSM y máscaras</li>
           <li>Tablas de enrutamiento con rutas estáticas</li>
-          <li>Ping y traceroute simulados con validación</li>
+          <li>Servidores con roles: DHCP, web y correo POP3</li>\n          <li>Ping y traceroute simulados con validación</li>
         </ul>
         <span class="choice-cta">Empezar en blanco →</span>
         <svg class="art" width="150" height="150" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="8" r="3"/><circle cx="24" cy="40" r="3"/><circle cx="8" cy="24" r="3"/><circle cx="40" cy="24" r="3"/><path d="M24 11v10M24 27v10M11 24h10M27 24h10"/></svg>
@@ -47,8 +47,8 @@
         <h3>Entrar en una actividad</h3>
         <p>Ejercicios guiados con enunciado, topología de partida y corrección automática paso a paso.</p>
         <ul>
-          <li>5 actividades de nivel SMR / ASIR</li>
-          <li>Estrella, anillo, rutas estáticas, VLSM e Internet</li>
+          <li>7 actividades de nivel SMR / ASIR</li>
+          <li>Estrella, anillo, rutas estáticas, VLSM, Internet y servicios</li>
           <li>Verificación automática de cada requisito</li>
           <li>Teoría y pistas dentro de cada ejercicio</li>
         </ul>
@@ -97,6 +97,7 @@
     <div class="tb-sep"></div>
     <button class="btn sm" id="btnPing" title="Simular ping (ida y vuelta)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l13 8-13 8z"/></svg> Ping</button>
     <button class="btn sm" id="btnTrace" title="Traceroute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h6l4-12h6"/><path d="M17 3l3 3-3 3M7 15l-3 3 3 3"/></svg> Traceroute</button>
+    <button class="btn sm" id="btnServices" title="Servicios: DHCP, web y correo">Servicios</button>
     <button class="btn sm" id="btnValidate" title="Validar direccionamiento y rutas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6"/></svg> Validar</button>
     <button class="btn sm" id="btnConsole" title="Consola CLI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg> Consola</button>
     <div class="tb-spacer"></div>
@@ -117,6 +118,9 @@
         <button data-tab="routes" title="Enrutamiento">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18h6l4-12h6"/><path d="M17 3l3 3-3 3M7 15l-3 3 3 3"/></svg>
           Rutas</button>
+        <button data-tab="services" title="Servicios">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></svg>
+          Servicios</button>
         <button data-tab="diag" title="Diagnóstico">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16h.01"/></svg>
           Validar</button>
@@ -215,6 +219,16 @@
             <button class="btn sm" id="btnLookup">Ver</button>
           </div>
           <div id="lookupResult"></div>
+        </div>
+
+        <!-- SERVICIOS -->
+        <div class="panel" id="panel-services">
+          <h3>Servicios de red</h3>
+          <div class="flex gap8 mb8" style="flex-wrap:wrap">
+            <button class="btn sm primary" id="btnRenewAll">Renovar DHCP</button>
+            <button class="btn sm" id="btnLeases">Concesiones</button>
+          </div>
+          <div id="svcPanel"></div>
         </div>
 
         <!-- DIAGNÓSTICO -->
@@ -327,6 +341,7 @@
 <script src="js/ipcalc.js"></script>
 <script src="js/model.js"></script>
 <script src="js/sim.js"></script>
+<script src="js/services.js"></script>
 <script src="js/activities.js"></script>
 <script src="js/app.js"></script>
 </body>

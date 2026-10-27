@@ -8,17 +8,18 @@
   const IP = (typeof IPCalc !== 'undefined') ? IPCalc : require('./ipcalc.js');
   const M = (typeof Model !== 'undefined') ? Model : require('./model.js');
   const S = (typeof Sim !== 'undefined') ? Sim : require('./sim.js');
+  const SV = (typeof Services !== 'undefined') ? Services : require('./services.js');
 
   /* ---------------- helpers de construcción ---------------- */
-  function mk(type, name, x, y, ifaces, routes) {
-    return { type, name, x, y, ifaces: ifaces || [], routes: routes || [] };
+  function mk(type, name, x, y, ifaces, routes, extra) {
+    return Object.assign({ type, name, x, y, ifaces: ifaces || [], routes: routes || [] }, extra || {});
   }
 
   function build(name, nodes, links) {
     const state = M.newState(name);
     const map = {};
     nodes.forEach(n => {
-      const node = M.createNode(state, n.type, n.x, n.y, { name: n.name });
+      const node = M.createNode(state, n.type, n.x, n.y, { name: n.name, mac: n.mac });
       if (n.ifaces) {
         if (node.ifaces.length) {
           // ajustar número de interfaces
@@ -26,12 +27,14 @@
           node.ifaces = n.ifaces.map((cfg, i) => ({
             name: cfg.name || (node.ifaces[i] ? node.ifaces[i].name : 'g0/' + i),
             ip: cfg.ip || '', prefix: IP.clampPrefix(cfg.prefix || 24),
-            gateway: cfg.gateway || '', up: cfg.up !== false
+            gateway: cfg.gateway || '', dns: cfg.dns || [],
+            dhcp: !!cfg.dhcp, lease: null, up: cfg.up !== false
           }));
           node.ports = node.ifaces.map(i => i.name);
         }
       }
       if (n.routes) node.routes = n.routes.map(r => ({ dest: r.dest, nextHop: r.nextHop || '', iface: r.iface || '', metric: r.metric || 1, note: r.note || '' }));
+      if (n.services && node.services) node.services = JSON.parse(JSON.stringify(n.services));
       map[n.name] = node;
     });
     (links || []).forEach(l => {
@@ -650,6 +653,336 @@ ip route 0.0.0.0 0.0.0.0 g0/1</pre>
     }
   };
 
+
+  /* =========================================================
+     ACTIVIDAD 6 · Servicios de red (DHCP + Web + Correo)
+     ========================================================= */
+  const SRV_POOL_OK = {
+    id: 'pool_aula', name: 'LAN-ALUMNOS', network: '192.168.50.0/24',
+    rangeStart: '192.168.50.100', rangeEnd: '192.168.50.150',
+    gateway: '192.168.50.1', dns: ['192.168.50.10'], domain: 'aula.local',
+    leaseMin: 1440, excluded: [], reservations: [], note: ''
+  };
+
+  function serv1(ps, web, mail) {
+    return {
+      dhcp: { enabled: true, pools: ps ? [Object.assign({}, SRV_POOL_OK)] : [] },
+      web: { enabled: true, sites: web ? [{ id: 'site_intra', name: 'intranet.aula.local', alias: 'intranet', title: 'Intranet del aula', body: '<h1>Intranet del aula</h1><p>Servidor web simulado de NetLab Studio.</p><p>Si lees esto, hay conectividad IP hasta el servidor.</p>' }] : [] },
+      mail: { enabled: true, domain: mail ? 'aula.local' : 'lab.local', pop3: 110, smtp: 25, users: mail ? [{ user: 'alumno', password: 'asir2024', box: [] }, { user: 'profesor', password: 'asir2024', box: [] }] : [] }
+    };
+  }
+
+  function sol6() {
+    return build('Solución · Servicios de red', [
+      mk('switch', 'SW1', 430, 200),
+      mk('router', 'R1', 430, 400, [{ name: 'g0/0', ip: '192.168.50.1', prefix: 24 }]),
+      mk('server', 'SRV1', 150, 90, [{ name: 'eth0', ip: '192.168.50.10', prefix: 24 }], [], { services: serv1(true, true, true) }),
+      mk('pc', 'PC1', 640, 90, [{ name: 'eth0', dhcp: true }]),
+      mk('pc', 'PC2', 640, 330, [{ name: 'eth0', dhcp: true }])
+    ], [['SRV1', 'SW1', 'eth0', 'Fa0/1'], ['PC1', 'SW1', 'eth0', 'Fa0/2'], ['PC2', 'SW1', 'eth0', 'Fa0/3'], ['R1', 'SW1', 'g0/0', 'Fa0/4']]);
+  }
+
+  const act6 = {
+    id: 'servicios-red',
+    level: 'CFGS · ASIR',
+    title: 'Servicios de red: DHCP, web y correo',
+    tagline: 'Servidor con 3 roles y clientes que obtienen IP automáticamente',
+    mins: 50,
+    tags: ['DHCP', 'DORA', 'HTTP', 'POP3'],
+    goals: [
+      'Configurar un servidor DHCP con ámbito, rango, puerta de enlace y DNS.',
+      'Hacer que los clientes obtengan IP dinámica (proceso DORA).',
+      'Publicar un sitio web y crear buzones de correo en el servidor.'
+    ],
+    briefing: `
+      <p>El aula necesita un servidor que dé servicio a los puestos de trabajo.</p>
+      <table class="mini">
+        <tr><th>Elemento</th><th>Configuración</th></tr>
+        <tr><td>Servidor SRV1</td><td><code>192.168.50.10/24</code> (estática)</td></tr>
+        <tr><td>Router R1</td><td><code>192.168.50.1/24</code> = puerta de enlace</td></tr>
+        <tr><td>Ámbito DHCP</td><td>red <code>192.168.50.0/24</code> · rango <code>.100 – .150</code></td></tr>
+        <tr><td>Opciones DHCP</td><td>router (3) = <code>.1</code> · DNS (6) = <code>.10</code> · concesión 1440 min</td></tr>
+        <tr><td>Web</td><td>sitio <code>intranet.aula.local</code></td></tr>
+        <tr><td>Correo</td><td>dominio <code>aula.local</code> · usuarios <code>alumno</code> y <code>profesor</code> (clave <code>asir2024</code>)</td></tr>
+      </table>
+      <ol>
+        <li>Direcciona SRV1 y R1 como en la tabla.</li>
+        <li>Abre SRV1 → pestaña <b>DHCP</b>: activa el servicio y corrige el ámbito (red, rango, puerta de enlace, DNS, dominio y tiempo de concesión).</li>
+        <li>Comprueba que PC1 y PC2 están en modo <b>DHCP</b> en su interfaz y pulsa <b>Renovar DHCP</b>.</li>
+        <li>En la pestaña <b>Web</b> publica el sitio <code>intranet.aula.local</code>.</li>
+        <li>En la pestaña <b>Correo</b> crea los dos buzones y envía un mensaje entre ellos.</li>
+      </ol>
+      <p class="tip">💡 Los PCs no tienen IP escrita: la reciben del servidor. Si el ámbito está mal, el DHCPACK no llega.</p>`,
+    theory: `
+      <h4>Proceso DORA</h4>
+      <ol>
+        <li><b>DISCOVER</b> – el cliente emite un broadcast «¿hay algún DHCP?» (0.0.0.0 → 255.255.255.255).</li>
+        <li><b>OFFER</b> – el servidor ofrece una IP del ámbito.</li>
+        <li><b>REQUEST</b> – el cliente pide formalmente esa IP.</li>
+        <li><b>ACK</b> – el servidor confirma y entrega máscara, puerta de enlace, DNS y duración de la concesión.</li>
+      </ol>
+      <p>Mientras el cliente no tiene IP usa la MAC como identificador: por eso las <b>reservas por MAC</b> funcionan antes de que exista dirección IP.</p>
+      <h4>Opciones DHCP habituales</h4>
+      <table class="mini">
+        <tr><th>Opción</th><th>Significado</th></tr>
+        <tr><td>1</td><td>Máscara de subred</td></tr>
+        <tr><td>3</td><td>Puerta de enlace (router)</td></tr>
+        <tr><td>6</td><td>Servidores DNS</td></tr>
+        <tr><td>15</td><td>Nombre de dominio</td></tr>
+        <tr><td>51</td><td>Tiempo de concesión (lease)</td></tr>
+      </table>
+      <h4>DHCP y broadcast</h4>
+      <p>DISCOVER es broadcast: no cruza routers. Si el servidor está en otra red hace falta <b>DHCP relay</b> (<code>ip helper-address</code>). Aquí el servidor debe estar en el mismo segmento que los clientes.</p>
+      <h4>Servicios</h4>
+      <p>HTTP usa TCP/80, correo saliente SMTP TCP/25 y recepción POP3 TCP/110. Todos necesitan conectividad IP previa: primero se resuelve la red y después se abre la conexión TCP.</p>`,
+    solution: sol6,
+    initial() {
+      return build('Servicios de red (actividad)', [
+        mk('switch', 'SW1', 430, 200),
+        mk('router', 'R1', 430, 400, [{ name: 'g0/0', ip: '', prefix: 24 }]),
+        mk('server', 'SRV1', 150, 90, [{ name: 'eth0', ip: '', prefix: 24 }], [], {
+          services: {
+            dhcp: { enabled: true, pools: [Object.assign({}, SRV_POOL_OK, {
+              name: 'LAN1', network: '192.168.1.0/24', rangeStart: '192.168.1.100',
+              rangeEnd: '192.168.1.200', gateway: '192.168.1.1', dns: ['8.8.8.8'], domain: 'lab.local', leaseMin: 720
+            })] },
+            web: { enabled: true, sites: [] },
+            mail: { enabled: true, domain: 'lab.local', pop3: 110, smtp: 25, users: [] }
+          }
+        }),
+        mk('pc', 'PC1', 640, 90, [{ name: 'eth0', dhcp: true }]),
+        mk('pc', 'PC2', 640, 330, [{ name: 'eth0', dhcp: true }])
+      ], [['SRV1', 'SW1', 'eth0', 'Fa0/1'], ['PC1', 'SW1', 'eth0', 'Fa0/2'], ['PC2', 'SW1', 'eth0', 'Fa0/3'], ['R1', 'SW1', 'g0/0', 'Fa0/4']]);
+    },
+    check(state) {
+      const c = [];
+      const srv = state.nodes.find(n => n.name === 'SRV1') || state.nodes.find(n => n.type === 'server');
+      const r1 = state.nodes.find(n => n.type === 'router');
+      const pcs = state.nodes.filter(n => n.type === 'pc' || n.type === 'laptop');
+
+      c.push({
+        id: 'srvip', text: 'SRV1 con IP estática 192.168.50.10/24',
+        ok: !!(srv && srv.ifaces.some(i => i.ip === '192.168.50.10' && IP.clampPrefix(i.prefix) === 24)),
+        msg: srv ? (srv.ifaces.some(i => i.ip === '192.168.50.10') ? 'Correcto' : 'Asigna 192.168.50.10/24 a la interfaz de SRV1') : 'No hay servidor'
+      });
+      c.push({
+        id: 'gw', text: 'R1 con puerta de enlace 192.168.50.1/24',
+        ok: !!(r1 && r1.ifaces.some(i => i.ip === '192.168.50.1' && IP.clampPrefix(i.prefix) === 24)),
+        msg: r1 ? 'Comprueba la IP del router' : 'No hay router'
+      });
+
+      const pool = srv && srv.services && srv.services.dhcp.pools[0];
+      const poolOk = pool &&
+        IP.parseCidr(pool.network || '') && IP.parseCidr(pool.network).cidr === '192.168.50.0/24' &&
+        pool.rangeStart === '192.168.50.100' && pool.rangeEnd === '192.168.50.150' &&
+        pool.gateway === '192.168.50.1' && (pool.dns || []).includes('192.168.50.10') &&
+        Number(pool.leaseMin) === 1440;
+      c.push({
+        id: 'pool', text: 'Ámbito DHCP: red, rango, gateway, DNS y lease',
+        ok: !!poolOk,
+        msg: poolOk ? 'Ámbito completo correcto' :
+          `Revisa el ámbito: red ${pool ? pool.network : '—'} · rango ${pool ? pool.rangeStart + '-' + pool.rangeEnd : '—'} · gw ${pool ? pool.gateway : '—'} · DNS ${pool ? (pool.dns || []).join(',') : '—'} · lease ${pool ? pool.leaseMin : '—'}`
+      });
+
+      const inDhcp = pcs.filter(p => p.ifaces.some(i => i.dhcp));
+      c.push({
+        id: 'mode', text: 'PC1 y PC2 en modo DHCP',
+        ok: inDhcp.length >= 2, msg: `${inDhcp.length} equipo(s) pidiendo IP automática`
+      });
+
+      const rr = SV.renewAll(state);
+      const leased = pcs.filter(p => p.ifaces.some(i => i.ip && i.lease));
+      const rangeOk = leased.every(p => {
+        const i = p.ifaces.find(x => x.ip && x.lease);
+        const v = IP.ipToInt(i.ip);
+        return v >= IP.ipToInt('192.168.50.100') && v <= IP.ipToInt('192.168.50.150');
+      });
+      c.push({
+        id: 'lease', text: 'Los clientes reciben IP del rango .100–.150',
+        ok: leased.length >= 2 && rangeOk,
+        msg: leased.length >= 2 && rangeOk
+          ? 'IPs concedidas: ' + leased.map(p => p.ifaces.find(i => i.ip && i.lease).ip).join(', ')
+          : 'El servidor no está entregando concesiones válidas (revisa ámbito y segmento)'
+      });
+
+      const gwOk = leased.every(p => { const i = p.ifaces.find(x => x.ip && x.lease); return i.gateway === '192.168.50.1'; });
+      c.push({
+        id: 'options', text: 'Los clientes reciben gateway y DNS por DHCP',
+        ok: leased.length >= 2 && gwOk,
+        msg: gwOk && leased.length >= 2 ? 'Opciones 3 y 6 entregadas' : 'Falta la puerta de enlace o el DNS en el ámbito'
+      });
+
+      const pingOk2 = leased.length >= 2 && leased[0] && leased[1] && SV.reachableIp && (() => {
+        const i2 = leased[1].ifaces.find(x => x.ip);
+        return S.ping(state, leased[0].id, i2.ip).ok;
+      })();
+      c.push({ id: 'ping', text: 'Ping entre PC1 y PC2', ok: !!pingOk2, msg: pingOk2 ? 'Conectividad correcta' : 'Sin conectividad entre los dos puestos' });
+
+      const web = srv && srv.services && srv.services.web;
+      const site = web && web.enabled && (web.sites || []).find(x => SV.normHost(x.name) === 'intranet.aula.local' || SV.normHost(x.name) === 'intranet');
+      c.push({
+        id: 'web', text: 'Sitio intranet.aula.local publicado',
+        ok: !!site, msg: site ? 'Sitio publicado en ' + srv.name : 'Crea el sitio web en la pestaña Web de SRV1'
+      });
+
+      const mail = srv && srv.services && srv.services.mail;
+      const mailOk = mail && mail.enabled && mail.domain === 'aula.local' &&
+        ['alumno', 'profesor'].every(u => (mail.users || []).some(x => x.user === u));
+      c.push({
+        id: 'mail', text: 'Buzones alumno@aula.local y profesor@aula.local',
+        ok: !!mailOk, msg: mailOk ? 'Servicio de correo configurado' :
+          `Dominio actual: ${mail ? mail.domain : '—'} · usuarios: ${mail ? (mail.users || []).map(u => u.user).join(', ') || 'ninguno' : '—'}`
+      });
+
+      let httpOk = false, httpLog = [];
+      if (leased[0] && site) {
+        const r = SV.httpGet(state, leased[0], 'intranet.aula.local');
+        httpOk = r.ok; httpLog = r.log;
+      }
+      c.push({
+        id: 'http', text: 'PC1 carga la página del servidor web',
+        ok: httpOk, msg: httpOk ? 'HTTP 200 OK desde ' + srv.name : 'La petición HTTP no se completa (web o conectividad)'
+      });
+
+      return c;
+    }
+  };
+
+  /* =========================================================
+     ACTIVIDAD 7 · DHCP con exclusiones y reservas
+     ========================================================= */
+  function sol7Base(rangeStart, rangeEnd, excluded, reservations) {
+    return {
+      dhcp: {
+        enabled: true, pools: [{
+          id: 'pool_avz', name: 'LAN-OFICINA', network: '172.20.0.0/24',
+          rangeStart, rangeEnd, gateway: '172.20.0.1', dns: ['172.20.0.10'],
+          domain: 'oficina.local', leaseMin: 480, excluded, reservations
+        }]
+      },
+      web: { enabled: false, sites: [] },
+      mail: { enabled: false, domain: 'oficina.local', pop3: 110, smtp: 25, users: [] }
+    };
+  }
+
+  const ACT7_PC2_MAC = '00:1A:2B:0F:22:77';
+
+  function sol7() {
+    return build('Solución · DHCP con reservas', [
+      mk('switch', 'SW1', 430, 210),
+      mk('server', 'SRV1', 170, 90, [{ name: 'eth0', ip: '172.20.0.10', prefix: 24 }], [],
+        { services: sol7Base('172.20.0.20', '172.20.0.60', ['172.20.0.21', '172.20.0.22', '172.20.0.23', '172.20.0.24', '172.20.0.25'],
+          [{ mac: ACT7_PC2_MAC, ip: '172.20.0.50', note: 'PC2 · reserva fija' }]) }),
+      mk('router', 'R1', 430, 400, [{ name: 'g0/0', ip: '172.20.0.1', prefix: 24 }]),
+      mk('pc', 'PC1', 680, 90, [{ name: 'eth0', dhcp: true }]),
+      mk('pc', 'PC2', 680, 330, [{ name: 'eth0', dhcp: true }], [], { mac: ACT7_PC2_MAC })
+    ], [['SRV1', 'SW1', 'eth0', 'Fa0/1'], ['PC1', 'SW1', 'eth0', 'Fa0/2'], ['PC2', 'SW1', 'eth0', 'Fa0/3'], ['R1', 'SW1', 'g0/0', 'Fa0/4']]);
+  }
+
+  const act7 = {
+    id: 'dhcp-avanzado',
+    level: 'CFGS · ASIR',
+    title: 'DHCP: exclusiones y reservas por MAC',
+    tagline: 'Rango útil, direcciones reservadas y una IP fija por hardware',
+    mins: 35,
+    tags: ['DHCP', 'reservas', 'MAC'],
+    goals: [
+      'Delimitar un rango DHCP dentro del ámbito.',
+      'Excluir direcciones para equipos con IP fija.',
+      'Reservar una IP concreta a un equipo por su dirección MAC.'
+    ],
+    briefing: `
+      <p>En la oficina conviven equipos con IP fija (impresoras, NAS) y puestos que toman IP por DHCP. El servidor ya está direccionado (<code>172.20.0.10/24</code>) y la puerta de enlace es <code>172.20.0.1</code>.</p>
+      <ol>
+        <li>Ajusta el ámbito a la red <code>172.20.0.0/24</code> con rango <b><code>172.20.0.20 – 172.20.0.60</code></b>.</li>
+        <li>Añade las <b>exclusiones</b> <code>172.20.0.21</code>, <code>.22</code>, <code>.23</code>, <code>.24</code> y <code>.25</code> (equipos con IP fija).</li>
+        <li>Crea una <b>reserva</b> para PC2: su MAC está en el inspector del equipo. Debe recibir siempre <code>172.20.0.50</code>.</li>
+        <li>Pon PC1 y PC2 en modo DHCP, renueva y comprueba: PC1 debe recibir una IP libre del rango (nunca una excluida ni la .50) y PC2 exactamente <code>.50</code>.</li>
+      </ol>
+      <p class="tip">💡 El cliente pide por broadcast con su MAC: por eso la reserva funciona aunque todavía no tenga IP.</p>`,
+    theory: `
+      <h4>Rango, exclusiones y reservas</h4>
+      <ul>
+        <li><b>Ámbito (scope):</b> la red completa que administra el servidor.</li>
+        <li><b>Rango (pool):</b> direcciones que el servidor puede repartir.</li>
+        <li><b>Exclusiones:</b> direcciones dentro del rango que <i>nunca</i> se entregan (impresoras, NAS, servidores con IP fija).</li>
+        <li><b>Reservas:</b> IP fija asignada a una MAC concreta. El equipo sigue usando DHCP, pero siempre recibe la misma dirección.</li>
+      </ul>
+      <pre>ip dhcp excluded-address 172.20.0.21 172.20.0.25
+!
+ip dhcp pool LAN-OFICINA
+ network 172.20.0.0 255.255.255.0
+ default-router 172.20.0.1
+ dns-server 172.20.0.10
+ lease 0 8
+!
+ip dhcp pool RESERVA-PC2
+ host 172.20.0.50 255.255.255.0
+ hardware-address 001a.2b0f.2277
+ default-router 172.20.0.1</pre>
+      <h4>Buena praxis</h4>
+      <p>Deja las direcciones bajas del ámbito para infraestructura (fuera del rango dinámico) y usa reservas para los equipos que necesitan IP estable sin configurarla a mano.</p>`,
+    solution: sol7,
+    initial() {
+      const st = sol7();
+      const srv = st.nodes.find(n => n.type === 'server');
+      // ámbito con valores incorrectos: el alumno debe corregirlo
+      srv.services.dhcp.pools = [{
+        id: 'pool_avz', name: 'LAN1', network: '192.168.1.0/24',
+        rangeStart: '192.168.1.100', rangeEnd: '192.168.1.150',
+        gateway: '192.168.1.1', dns: ['8.8.8.8'], domain: 'oficina.local',
+        leaseMin: 480, excluded: [], reservations: []
+      }];
+      st.nodes.forEach(n => { if (n.type === 'pc') n.ifaces.forEach(i => { i.ip = ''; i.gateway = ''; }); });
+      return st;
+    },
+    check(state) {
+      const c = [];
+      const srv = state.nodes.find(n => n.type === 'server');
+      const pool = srv && srv.services && srv.services.dhcp.pools[0];
+      const pc2 = state.nodes.find(n => n.name === 'PC2') || state.nodes.filter(n => n.type === 'pc')[1];
+      const pc1 = state.nodes.find(n => n.name === 'PC1') || state.nodes.filter(n => n.type === 'pc')[0];
+
+      const netOk = pool && IP.parseCidr(pool.network || '') && IP.parseCidr(pool.network).cidr === '172.20.0.0/24';
+      c.push({ id: 'net', text: 'Ámbito en la red 172.20.0.0/24', ok: !!netOk, msg: pool ? 'Red actual: ' + pool.network : 'Sin ámbito' });
+      c.push({
+        id: 'range', text: 'Rango dinámico .20 – .60',
+        ok: !!(pool && pool.rangeStart === '172.20.0.20' && pool.rangeEnd === '172.20.0.60'),
+        msg: pool ? `${pool.rangeStart} – ${pool.rangeEnd}` : '—'
+      });
+      const needEx = ['172.20.0.21', '172.20.0.22', '172.20.0.23', '172.20.0.24', '172.20.0.25'];
+      const exOk = pool && needEx.every(x => (pool.excluded || []).includes(x));
+      c.push({
+        id: 'excl', text: 'Exclusiones .21 a .25',
+        ok: !!exOk, msg: exOk ? 'Exclusiones correctas' : `Excluidas: ${pool ? (pool.excluded || []).join(', ') || 'ninguna' : '—'}`
+      });
+      const resOk = pool && (pool.reservations || []).some(r =>
+        String(r.mac || '').toUpperCase() === ACT7_PC2_MAC.toUpperCase() && r.ip === '172.20.0.50');
+      c.push({
+        id: 'res', text: `Reserva MAC ${ACT7_PC2_MAC} → 172.20.0.50`,
+        ok: !!resOk, msg: resOk ? 'Reserva creada' : 'Añade la reserva con la MAC de PC2 y la IP .50'
+      });
+
+      SV.renewAll(state);
+      const ipc1 = pc1 && pc1.ifaces.find(i => i.ip);
+      const ipc2 = pc2 && pc2.ifaces.find(i => i.ip);
+      const inRange = (ip) => { const v = IP.ipToInt(ip); return v >= IP.ipToInt('172.20.0.20') && v <= IP.ipToInt('172.20.0.60'); };
+      const dynOk = !!ipc1 && inRange(ipc1.ip) && !needEx.includes(ipc1.ip) && ipc1.ip !== '172.20.0.50';
+      c.push({
+        id: 'dyn', text: 'PC1 recibe una IP dinámica válida',
+        ok: dynOk, msg: ipc1 ? `PC1 → ${ipc1.ip}${ipc1.lease ? ' (' + ipc1.lease.type + ')' : ''}` : 'PC1 no tiene IP'
+      });
+      c.push({
+        id: 'fixed', text: 'PC2 recibe exactamente 172.20.0.50',
+        ok: !!(ipc2 && ipc2.ip === '172.20.0.50'),
+        msg: ipc2 ? `PC2 → ${ipc2.ip}` : 'PC2 no tiene IP'
+      });
+      const ping = ipc1 && ipc2 && S.ping(state, pc1.id, ipc2.ip).ok;
+      c.push({ id: 'ping', text: 'Ping entre PC1 y PC2', ok: !!ping, msg: ping ? 'Conectividad correcta' : 'Revisa el direccionamiento' });
+      return c;
+    }
+  };
+
   /* =========================================================
      Topologías iniciales (sin configurar) para el alumnado
      ========================================================= */
@@ -669,7 +1002,7 @@ ip route 0.0.0.0 0.0.0.0 g0/1</pre>
   act4.initial = function () { return stripAll(sol4()); };
   act5.initial = function () { return stripAll(sol5(), ['R-ISP', 'WEB']); };
 
-  const ACTIVITIES = [act1, act2, act3, act4, act5];
+  const ACTIVITIES = [act1, act2, act3, act4, act5, act6, act7];
 
   function byId(id) { return ACTIVITIES.find(a => a.id === id) || null; }
 

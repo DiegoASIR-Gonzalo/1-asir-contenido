@@ -59,6 +59,55 @@
   const PREFIXES = ['PC', 'SRV', 'SW', 'R', 'FW', 'AP', 'HUB', 'NET'];
 
   /* ---------- estado ---------- */
+  function randomMac() {
+    const b = () => Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+    return '00:1A:2B:' + b() + ':' + b() + ':' + b();
+  }
+
+  function newPool(data) {
+    return Object.assign({
+      id: 'pool_' + Math.random().toString(36).slice(2, 8),
+      name: 'LAN1',
+      network: '192.168.1.0/24',
+      rangeStart: '192.168.1.100',
+      rangeEnd: '192.168.1.200',
+      gateway: '192.168.1.1',
+      dns: ['8.8.8.8'],
+      domain: 'lab.local',
+      leaseMin: 1440,
+      excluded: [],
+      reservations: [],
+      note: ''
+    }, data || {});
+  }
+
+  function defaultServices(type) {
+    if (type !== 'server') return null;
+    return {
+      dhcp: { enabled: false, pools: [] },
+      web: { enabled: false, sites: [] },
+      mail: { enabled: false, domain: 'lab.local', pop3: 110, smtp: 25, users: [] }
+    };
+  }
+
+  function newSite(data) {
+    return Object.assign({
+      id: 'site_' + Math.random().toString(36).slice(2, 7),
+      name: 'intranet.local',
+      title: 'Intranet del centro',
+      body: 'Bienvenido a la intranet. Este contenido es simulado: no se sirve ninguna web real.',
+      alias: ''
+    }, data || {});
+  }
+
+  function newMailUser(data) {
+    return Object.assign({
+      user: 'alumno',
+      password: 'asir2024',
+      box: []
+    }, data || {});
+  }
+
   function newState(name) {
     return {
       version: VERSION,
@@ -101,20 +150,26 @@
       id: uid(state, 'n'),
       type,
       name: opts.name || nextName(state, type),
+      mac: opts.mac || randomMac(),
       x: Math.round(x || 0),
       y: Math.round(y || 0),
       ifaces: [],
       ports: [],
       routes: [],
+      services: defaultServices(type),
       notes: ''
     };
     if (def.ifaces) {
       def.ifaces.forEach((name, idx) => {
+        const cfg = (opts.ifaces && opts.ifaces[idx]) || {};
         node.ifaces.push({
           name,
-          ip: (opts.ifaces && opts.ifaces[idx] && opts.ifaces[idx].ip) || '',
-          prefix: (opts.ifaces && opts.ifaces[idx] && opts.ifaces[idx].prefix) || 24,
-          gateway: (opts.ifaces && opts.ifaces[idx] && opts.ifaces[idx].gateway) || '',
+          ip: cfg.ip || '',
+          prefix: cfg.prefix || 24,
+          gateway: cfg.gateway || '',
+          dns: cfg.dns || [],
+          dhcp: !!cfg.dhcp,
+          lease: cfg.lease || null,
           up: true
         });
       });
@@ -194,7 +249,7 @@
     if (!node) return null;
     const nm = name || 'g0/' + node.ifaces.length;
     if (node.ifaces.some(i => i.name === nm)) return null;
-    const iface = { name: nm, ip: '', prefix: 24, gateway: '', up: true };
+    const iface = { name: nm, ip: '', prefix: 24, gateway: '', dns: [], dhcp: false, lease: null, up: true };
     node.ifaces.push(iface);
     node.ports.push(nm);
     return iface;
@@ -254,23 +309,49 @@
     catch (e) { return { error: 'JSON no válido.' }; }
     if (!data || !Array.isArray(data.nodes)) return { error: 'El archivo no contiene una topología válida.' };
     const state = newState(data.name);
-    state.nodes = data.nodes.map(n => ({
-      id: n.id,
-      type: TYPES[n.type] ? n.type : 'pc',
-      name: n.name || 'Equipo',
-      x: Number(n.x) || 0,
-      y: Number(n.y) || 0,
-      ifaces: (n.ifaces || []).map(i => ({
-        name: i.name, ip: i.ip || '', prefix: IPCalc.clampPrefix(i.prefix),
-        gateway: i.gateway || '', up: i.up !== false
-      })),
-      ports: Array.isArray(n.ports) ? n.ports : nodePorts(n),
-      routes: (n.routes || []).map(r => ({
-        dest: r.dest || '', nextHop: r.nextHop || '', iface: r.iface || '',
-        metric: Number(r.metric) || 1, note: r.note || ''
-      })),
-      notes: n.notes || ''
-    }));
+    state.nodes = data.nodes.map(n => {
+      const type = TYPES[n.type] ? n.type : 'pc';
+      const svc = defaultServices(type);
+      if (svc && n.services) {
+        if (n.services.dhcp) {
+          svc.dhcp.enabled = !!n.services.dhcp.enabled;
+          svc.dhcp.pools = (n.services.dhcp.pools || []).map(p => newPool(p));
+        }
+        if (n.services.web) {
+          svc.web.enabled = !!n.services.web.enabled;
+          svc.web.sites = (n.services.web.sites || []).map(x => newSite(x));
+        }
+        if (n.services.mail) {
+          svc.mail.enabled = !!n.services.mail.enabled;
+          svc.mail.domain = n.services.mail.domain || 'lab.local';
+          svc.mail.pop3 = Number(n.services.mail.pop3) || 110;
+          svc.mail.smtp = Number(n.services.mail.smtp) || 25;
+          svc.mail.users = (n.services.mail.users || []).map(u => ({
+            user: u.user || 'user', password: u.password || '', box: Array.isArray(u.box) ? u.box : []
+          }));
+        }
+      }
+      return {
+        id: n.id,
+        type,
+        name: n.name || 'Equipo',
+        mac: n.mac || randomMac(),
+        x: Number(n.x) || 0,
+        y: Number(n.y) || 0,
+        ifaces: (n.ifaces || []).map(i => ({
+          name: i.name, ip: i.ip || '', prefix: IPCalc.clampPrefix(i.prefix),
+          gateway: i.gateway || '', dns: Array.isArray(i.dns) ? i.dns : [],
+          dhcp: !!i.dhcp, lease: i.lease || null, up: i.up !== false
+        })),
+        ports: Array.isArray(n.ports) ? n.ports : nodePorts(n),
+        routes: (n.routes || []).map(r => ({
+          dest: r.dest || '', nextHop: r.nextHop || '', iface: r.iface || '',
+          metric: Number(r.metric) || 1, note: r.note || ''
+        })),
+        services: svc,
+        notes: n.notes || ''
+      };
+    });
     state.links = (data.links || []).filter(l => l && l.a && l.b).map(l => ({
       id: l.id, a: { node: l.a.node, port: l.a.port }, b: { node: l.b.node, port: l.b.port }
     }));
@@ -298,6 +379,7 @@
 
   const Model = {
     VERSION, TYPES, ICONS, PREFIXES,
+    randomMac, newPool, newSite, newMailUser, defaultServices,
     newState, createNode, getNode, byName, nodePorts, usedPorts, freePort,
     addLink, addLinkPorts, removeLink, removeNode, linkExists,
     addIface, removeIface, ifaceList, addRoute,

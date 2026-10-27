@@ -26,7 +26,10 @@
     home: SVG('<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>'),
     grid: SVG('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'),
     fit: SVG('<path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"/>'),
-    plusCirc: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>')
+    plusCirc: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>'),
+    globe: SVG('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/>'),
+    mailIco: SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
+    server: SVG('<rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/>')
   };
   const LS_CURRENT = 'netlab.current';
   const LS_PROJECTS = 'netlab.projects';
@@ -440,7 +443,7 @@
   ------------------------------------------------------------ */
   function ipLabel(node) {
     const withIp = node.ifaces.filter(i => IP.isValidIp(i.ip));
-    if (withIp.length === 1) return withIp[0].ip + '/' + IP.clampPrefix(withIp[0].prefix);
+    if (withIp.length === 1) return withIp[0].ip + '/' + IP.clampPrefix(withIp[0].prefix) + (withIp[0].dhcp ? ' ⇄' : '');
     if (withIp.length > 1) return withIp.length + ' redes';
     if (Model.isL2(node)) return node.ports.length + ' puertos';
     return 'sin IP';
@@ -458,11 +461,20 @@
         return `<circle class="port ${used.has(p) ? 'used' : ''}" data-port="${escAttr(p)}" cx="${x.toFixed(1)}" cy="${NH}" r="5"></circle>`;
       }).join('');
       const sel = App.sel.nodes.has(n.id) ? 'selected' : '';
+      let svcDots = '';
+      if (n.type === 'server' && n.services) {
+        const act = [['dhcp', 'DHCP'], ['web', 'HTTP'], ['mail', 'POP3']];
+        svcDots = act.map(([k, label], i) => {
+          const on = n.services[k] && n.services[k].enabled;
+          return `<circle cx="${NW - 12 - i * 9}" cy="11" r="3" fill="${on ? '#a3e635' : '#24304d'}" stroke="${on ? '#a3e635' : '#2b3c5e'}" stroke-width="1"><title>${label}: ${on ? 'activo' : 'inactivo'}</title></circle>`;
+        }).join('');
+      }
       return `<g class="node ${sel}" data-id="${n.id}" data-type="${n.type}" transform="translate(${n.x},${n.y})">
         <rect class="node-box" width="${NW}" height="${NH}" rx="12"></rect>
         <g class="node-icon" transform="translate(23,9) scale(1.05)">${Model.ICONS[n.type] || ''}</g>
+        ${svcDots}
         <text class="node-name" x="${NW / 2}" y="68" text-anchor="middle">${esc(n.name)}</text>
-        <text class="node-ip" x="${NW / 2}" y="80" text-anchor="middle">${esc(ipLabel(n))}</text>
+        <text class="node-ip ${n.ifaces.some(i => i.dhcp && i.ip) ? 'dyn' : ''}" x="${NW / 2}" y="80" text-anchor="middle">${esc(ipLabel(n))}</text>
         <g class="ports">${circles}</g>
       </g>`;
     }).join('');
@@ -913,11 +925,23 @@
         const valid = IP.isValidIp(i.ip);
         const info = valid ? IP.netInfo(i.ip, i.prefix) : null;
         const peer = peersOf(n, i.name);
+        const dyn = !!i.dhcp;
+        const leaseTxt = (i.lease && i.ip)
+          ? `<div class="lease-box">
+               <div><b>Concesión DHCP</b> · ${esc(i.lease.type || 'dinámica')} · pool ${esc(i.lease.pool || '—')}</div>
+               <div class="tiny">Servidor: ${esc(i.lease.serverName || '—')} · caduca en ${num(Math.max(0, Math.round(((i.lease.at || Date.now()) + (i.lease.minutes || 0) * 60000 - Date.now()) / 60000)))} min${i.dns && i.dns.length ? ' · DNS ' + esc(i.dns.join(', ')) : ''}</div>
+             </div>`
+          : `<div class="lease-box empty">Sin concesión: pulsa <b>Renovar DHCP</b> para solicitar dirección al servidor.</div>`;
         return `<div class="iface-card" data-iface="${escAttr(i.name)}" data-idx="${idx}">
           <div class="top">
-            <span class="pn">${esc(i.name)} <span class="iface-st ${valid ? '' : 'none'}" data-st>${valid ? 'UP' : 'SIN IP'}</span></span>
+            <span class="pn">${esc(i.name)} <span class="iface-st ${valid ? '' : 'none'}" data-st>${valid ? 'UP' : 'SIN IP'}</span>${dyn ? '<span class="iface-st dhcp">DHCP</span>' : ''}</span>
             <span class="linkd">${peer.length ? '→ ' + esc(peer[0]) : 'sin enlace'}</span>
           </div>
+          <div class="tab-inline" style="margin-bottom:8px">
+            <button data-mode="static" class="${dyn ? '' : 'on'}">IP estática</button>
+            <button data-mode="dhcp" class="${dyn ? 'on' : ''}">DHCP</button>
+          </div>
+          ${dyn ? leaseTxt : `
           <div class="row2">
             <div class="field" style="margin:0"><label>Dirección IP</label>
               <input class="input ${valid ? '' : (i.ip ? 'bad' : '')}" data-f="ip" value="${escAttr(i.ip)}" placeholder="192.168.1.1"></div>
@@ -926,14 +950,19 @@
           </div>
           ${isRouter ? '' : `<div class="field" style="margin:8px 0 0"><label>Puerta de enlace</label>
             <input class="input" data-f="gateway" value="${escAttr(i.gateway)}" placeholder="192.168.1.1"></div>`}
-          <div class="tiny mt8" data-netof>${info ? `Red <b style="color:var(--cyan)">${esc(info.cidr)}</b> · ${esc(IP.hostCountLabel(info.prefix))}` : 'Sin dirección asignada'}</div>
-          <div class="flex gap8 mt8">
-            <button class="btn sm ghost" data-act="copy-ip" data-val="${escAttr(i.ip)}">${ICO.copy} Copiar</button>
+          <div class="tiny mt8" data-netof>${info ? `Red <b style="color:var(--cyan)">${esc(info.cidr)}</b> · ${esc(IP.hostCountLabel(info.prefix))}` : 'Sin dirección asignada'}</div>`}
+          <div class="flex gap8 mt8 wrap">
+            ${dyn ? `<button class="btn sm primary" data-act="renew">${ICO.play} Renovar DHCP</button>
+                     <button class="btn sm ghost" data-act="release">Liberar</button>`
+                  : `<button class="btn sm ghost" data-act="copy-ip" data-val="${escAttr(i.ip)}">${ICO.copy} Copiar</button>`}
             ${n.ifaces.length > 1 ? `<button class="btn sm danger" data-act="rm-iface">Quitar</button>` : ''}
           </div>
         </div>`;
       }).join('');
     }
+
+    if (n.type === 'server') html += servicesSectionHTML(n);
+    if (!isL2 && n.type !== 'server') html += clientServicesHTML(n);
 
     html += `<div class="sec-title">Rutas estáticas ${isRouter ? '' : '<span class="tiny">(opcional)</span>'}</div>
       <div id="routeList"></div>
@@ -954,6 +983,8 @@
 
     box.innerHTML = html;
     bindInspector(n, isL2, isRouter);
+    if (n.type === 'server') bindServicesSection(n);
+    else if (!isL2) bindClientServices(n);
     renderInspRouteList(n);
   }
 
@@ -1015,7 +1046,35 @@
         inp.onchange = () => upd(inp.dataset.f, inp.value);
         if (inp.dataset.f === 'ip') inp.oninput = () => upd('ip', inp.value);
       });
+      $$('[data-mode]', card).forEach(b => b.onclick = () => {
+        const mode = b.dataset.mode;
+        if (mode === 'dhcp' && !iface.dhcp) {
+          pushHistory();
+          iface.dhcp = true; iface.ip = ''; iface.gateway = ''; iface.lease = null;
+          renderInspector(); renderAll(); refreshPanels(); autosave();
+          toast('Interfaz en modo DHCP: pulsa <b>Renovar DHCP</b>', 'ok');
+        } else if (mode === 'static' && iface.dhcp) {
+          pushHistory();
+          iface.dhcp = false; iface.lease = null;
+          renderInspector(); renderAll(); refreshPanels(); autosave();
+        }
+      });
       $$('[data-act]', card).forEach(b => b.onclick = () => {
+        if (b.dataset.act === 'renew') {
+          const r = Services.renew(state(), n, iface.name);
+          renderInspector(); renderAll(); refreshPanels(); autosave();
+          termLog([`dhcp renew ${n.name} ${iface.name}`], 'cmd');
+          termLog(r.log);
+          showServiceLogModal('DHCP · ' + n.name + ':' + iface.name, r.log, r.ok);
+          return;
+        }
+        if (b.dataset.act === 'release') {
+          pushHistory();
+          Services.release(n, iface.name);
+          renderInspector(); renderAll(); refreshPanels(); autosave();
+          toast('Concesión liberada', 'ok');
+          return;
+        }
         if (b.dataset.act === 'copy-ip') copyText(b.dataset.val || iface.ip);
         if (b.dataset.act === 'rm-iface') {
           const res = Model.removeIface(App.state, n, iface.name);
@@ -1065,6 +1124,7 @@
     // interfaces del formulario de ruta
     const dev = Model.getNode(App.state, rd.value);
     $('#newIface').innerHTML = '<option value="">—</option>' + (dev ? dev.ifaces.map(i => `<option value="${escAttr(i.name)}">${esc(i.name)}</option>`).join('') : '');
+    if ($('#panel-services') && $('#panel-services').classList.contains('on')) renderServicesPanel();
     updateInfo();
   }
 
@@ -1279,14 +1339,545 @@
     return d;
   }
 
+
+  /* ------------------------------------------------------------
+     SERVICIOS DEL SERVIDOR (DHCP / WEB / CORREO)
+  ------------------------------------------------------------ */
+  function state() { return App.state; }
+
+  function rerenderInspector() {
+    const box = $('#inspector');
+    const top = box.scrollTop;
+    renderInspector();
+    box.scrollTop = top;
+  }
+
+  function showServiceLogModal(title, log, ok) {
+    openModal({
+      title: esc(title),
+      wide: true,
+      body: `<div class="result-card" style="max-height:340px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.7">
+        ${logLines(log)}
+      </div>
+      <p class="hint">${ok ? '✓ Operación completada' : '✗ La operación no se ha podido completar'}</p>`,
+      buttons: [{ label: 'Cerrar', cls: 'primary' }]
+    });
+  }
+
+  function svcDot(on) { return on ? '<span class="on-dot"></span>' : ''; }
+
+  function servicesSectionHTML(n) {
+    const sv = n.services || (n.services = Model.defaultServices('server'));
+    const tab = App.svcTab || 'dhcp';
+    return `<div class="sec-title">Servicios del servidor</div>
+      <div class="tab-inline" id="svcTabs">
+        <button data-svc="dhcp" class="${tab === 'dhcp' ? 'on' : ''}">DHCP${svcDot(sv.dhcp.enabled)}</button>
+        <button data-svc="web" class="${tab === 'web' ? 'on' : ''}">Web${svcDot(sv.web.enabled)}</button>
+        <button data-svc="mail" class="${tab === 'mail' ? 'on' : ''}">Correo${svcDot(sv.mail.enabled)}</button>
+      </div>
+      <div id="svcBody">${svcBodyHTML(n, tab)}</div>`;
+  }
+
+  function svcBodyHTML(n, tab) {
+    const sv = n.services;
+    if (tab === 'dhcp') return dhcpBodyHTML(n);
+    if (tab === 'web') return webBodyHTML(n);
+    return mailBodyHTML(n);
+  }
+
+  function ifaceOptions(n, sel) {
+    return '<option value="">— automática —</option>' + (n.ifaces || []).map(i =>
+      `<option value="${escAttr(i.name)}" ${sel === i.name ? 'selected' : ''}>${esc(i.name)}${i.ip ? ' · ' + esc(i.ip) : ''}</option>`).join('');
+  }
+
+  function dhcpBodyHTML(n) {
+    const d = n.services.dhcp;
+    let h = `<label class="switch-row"><input type="checkbox" id="svcDhcpOn" ${d.enabled ? 'checked' : ''}><span>Servicio DHCP activo</span></label>`;
+    if (!d.enabled) {
+      return h + `<p class="hint">Actívalo para repartir direcciones IP a los equipos del mismo segmento. El servidor debe tener una interfaz en la red que anuncia.</p>`;
+    }
+    if (!d.pools.length) h += `<p class="hint">Sin ámbitos configurados: no se puede asignar ninguna dirección.</p>`;
+
+    d.pools.forEach((pool, idx) => {
+      const c = IP.parseCidr(pool.network || '');
+      const onSeg = c ? (n.ifaces || []).find(i => IP.isValidIp(i.ip) && IP.networkInt(i.ip, i.prefix) === c.ip && IP.clampPrefix(i.prefix) === c.prefix) : null;
+      h += `<div class="pool-card">
+        <div class="pool-head">
+          <span class="pname">${esc(pool.name || 'Ámbito ' + (idx + 1))}</span>
+          <button class="x" data-pool-del="${idx}" title="Eliminar ámbito">✕</button>
+        </div>
+        <div class="field"><label>Nombre del ámbito</label><input class="input" data-pool="${idx}" data-pk="name" value="${escAttr(pool.name)}"></div>
+        <div class="field"><label>Red / máscara</label><input class="input ${c ? '' : 'bad'}" data-pool="${idx}" data-pk="network" value="${escAttr(pool.network)}" placeholder="192.168.1.0/24"></div>
+        <div class="row2">
+          <div class="field"><label>Rango · inicio</label><input class="input" data-pool="${idx}" data-pk="rangeStart" value="${escAttr(pool.rangeStart)}" placeholder=".100"></div>
+          <div class="field"><label>Rango · fin</label><input class="input" data-pool="${idx}" data-pk="rangeEnd" value="${escAttr(pool.rangeEnd)}" placeholder=".200"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Puerta de enlace (opc. 3)</label><input class="input" data-pool="${idx}" data-pk="gateway" value="${escAttr(pool.gateway)}"></div>
+          <div class="field"><label>DNS (opc. 6)</label><input class="input" data-pool="${idx}" data-pk="dns" value="${escAttr((pool.dns || []).join(','))}" placeholder="8.8.8.8"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Dominio (opc. 15)</label><input class="input" data-pool="${idx}" data-pk="domain" value="${escAttr(pool.domain || '')}"></div>
+          <div class="field"><label>Concesión (min)</label><input class="input" type="number" min="1" data-pool="${idx}" data-pk="leaseMin" value="${Number(pool.leaseMin) || 1440}"></div>
+        </div>
+        <div class="field"><label>Interfaz de servicio</label><select class="input" data-pool="${idx}" data-pk="iface">${ifaceOptions(n, pool.iface)}</select></div>
+        <div class="tiny ${onSeg ? '' : 'warn-txt'}">${onSeg ? `✓ Anuncia la red ${esc(pool.network)} por ${esc(onSeg.name)} (${esc(onSeg.ip)})` : `⚠ Ninguna interfaz del servidor está en la red ${esc(pool.network || '—')}: los clientes de ese segmento no recibirán oferta.`}</div>
+
+        <div class="sub-block">
+          <div class="sub-title">Exclusiones <span class="tiny">(nunca se entregan)</span></div>
+          <div class="chips">
+            ${(pool.excluded || []).map(x => `<span class="chip" data-exdel="${idx}|${escAttr(x)}">${esc(x)} <b>✕</b></span>`).join('') || '<span class="tiny">ninguna</span>'}
+          </div>
+          <div class="inline mt8">
+            <input class="input" data-exin="${idx}" placeholder="192.168.1.21">
+            <button class="btn sm" data-exadd="${idx}">Añadir</button>
+          </div>
+        </div>
+
+        <div class="sub-block">
+          <div class="sub-title">Reservas por MAC</div>
+          ${(pool.reservations || []).map((r, ri) => `
+            <div class="res-row">
+              <input class="input" data-res="${idx}|${ri}" data-rk="mac" value="${escAttr(r.mac)}" placeholder="00:1A:2B:..">
+              <input class="input" data-res="${idx}|${ri}" data-rk="ip" value="${escAttr(r.ip)}" placeholder="IP fija">
+              <button class="x" data-resdel="${idx}|${ri}">✕</button>
+            </div>`).join('')}
+          <button class="btn sm mt8" data-resadd="${idx}" style="width:100%">+ Nueva reserva</button>
+        </div>
+      </div>`;
+    });
+
+    h += `<button class="btn sm" id="addPool" style="width:100%;margin-bottom:10px">+ Añadir ámbito</button>`;
+
+    const ls = Services.leases(App.state, n.id);
+    h += `<div class="sec-title">Concesiones de este servidor <span class="tiny">${ls.length}</span></div>`;
+    if (!ls.length) h += `<p class="hint" style="margin:0">Todavía no ha entregado ninguna dirección.</p>`;
+    else h += `<div class="lease-table">${ls.map(l => `<div class="lease-row">
+        <span class="ip">${esc(l.ip)}</span>
+        <span class="who">${esc(l.node.name)}<br><span class="tiny">${esc(l.mac)}</span></span>
+        <span class="tag ${l.type === 'reserva por MAC' ? 'res' : ''}">${esc(l.type === 'reserva por MAC' ? 'reserva' : 'dinámica')}</span>
+      </div>`).join('')}</div>`;
+    h += `<button class="btn sm primary mt8" id="renewSrv" style="width:100%">${ICO.play} Renovar clientes DHCP</button>`;
+    return h;
+  }
+
+  function webBodyHTML(n) {
+    const w = n.services.web;
+    let h = `<label class="switch-row"><input type="checkbox" id="svcWebOn" ${w.enabled ? 'checked' : ''}><span>Servidor HTTP activo (TCP/80)</span></label>`;
+    if (!w.enabled) return h + `<p class="hint">Actívalo y publica al menos un sitio para que los clientes puedan abrirlo con el navegador.</p>`;
+    if (!w.sites.length) h += `<p class="hint">Sin sitios publicados.</p>`;
+    w.sites.forEach((site, idx) => {
+      h += `<div class="pool-card">
+        <div class="pool-head"><span class="pname">${esc(site.name || 'sitio')}</span><button class="x" data-site-del="${idx}">✕</button></div>
+        <div class="field"><label>Nombre / dominio</label><input class="input" data-site="${idx}" data-sk="name" value="${escAttr(site.name)}" placeholder="intranet.aula.local"></div>
+        <div class="row2">
+          <div class="field"><label>Alias</label><input class="input" data-site="${idx}" data-sk="alias" value="${escAttr(site.alias || '')}" placeholder="intranet"></div>
+          <div class="field"><label>Título</label><input class="input" data-site="${idx}" data-sk="title" value="${escAttr(site.title || '')}"></div>
+        </div>
+        <div class="field"><label>Contenido (HTML simulado)</label><textarea class="input" rows="3" data-site="${idx}" data-sk="body" style="font-family:var(--mono);font-size:11px">${esc(site.body || '')}</textarea></div>
+      </div>`;
+    });
+    h += `<button class="btn sm" id="addSite" style="width:100%">+ Publicar sitio</button>
+      <p class="hint">Los clientes abren el sitio con el botón <b>Navegar</b> o en la consola: <code>http PC1 intranet</code>.</p>`;
+    return h;
+  }
+
+  function mailBodyHTML(n) {
+    const m = n.services.mail;
+    let h = `<label class="switch-row"><input type="checkbox" id="svcMailOn" ${m.enabled ? 'checked' : ''}><span>Servicio de correo activo</span></label>`;
+    if (!m.enabled) return h + `<p class="hint">Actívalo, define el dominio y crea los buzones. Se simulan SMTP (25) y POP3 (110).</p>`;
+    h += `<div class="row2">
+        <div class="field"><label>Dominio</label><input class="input" data-mail="domain" value="${escAttr(m.domain || '')}" placeholder="aula.local"></div>
+        <div class="field"><label>Puertos SMTP/POP3</label>
+          <div class="inline"><input class="input" type="number" data-mail="smtp" value="${Number(m.smtp) || 25}"><input class="input" type="number" data-mail="pop3" value="${Number(m.pop3) || 110}"></div>
+        </div>
+      </div>`;
+    h += `<div class="sec-title">Buzones <span class="tiny">${(m.users || []).length}</span></div>`;
+    if (!(m.users || []).length) h += `<p class="hint" style="margin:0">Sin buzones: crea al menos uno para poder enviar y recibir correo.</p>`;
+    (m.users || []).forEach((u, idx) => {
+      h += `<div class="mail-user">
+        <div class="mu-head">
+          <span class="addr">${esc(u.user)}@${esc(m.domain || '')}</span>
+          <span class="tiny">${(u.box || []).length} mensaje(s)</span>
+        </div>
+        <div class="row2">
+          <div class="field" style="margin:0"><label>Usuario</label><input class="input" data-user="${idx}" data-uk="user" value="${escAttr(u.user)}"></div>
+          <div class="field" style="margin:0"><label>Contraseña</label><input class="input" data-user="${idx}" data-uk="password" value="${escAttr(u.password || '')}"></div>
+        </div>
+        <div class="flex gap8 mt8">
+          <button class="btn sm ghost" data-inbox="${idx}">Ver buzón</button>
+          <button class="btn sm danger" data-userdel="${idx}">Eliminar</button>
+        </div>
+      </div>`;
+    });
+    h += `<button class="btn sm" id="addUser" style="width:100%;margin-top:8px">+ Nuevo buzón</button>`;
+    return h;
+  }
+
+  function bindServicesSection(n) {
+    const sv = n.services;
+    $$('#svcTabs button').forEach(b => b.onclick = () => {
+      App.svcTab = b.dataset.svc;
+      rerenderInspector();
+    });
+
+    const chk = (id, fn) => { const el = $(id); if (el) el.onchange = () => { pushHistory(); fn(el.checked); rerenderInspector(); autosave(); }; };
+
+    chk('#svcDhcpOn', v => { sv.dhcp.enabled = v; if (v && !sv.dhcp.pools.length) sv.dhcp.pools.push(Model.newPool()); });
+    chk('#svcWebOn', v => { sv.web.enabled = v; });
+    chk('#svcMailOn', v => { sv.mail.enabled = v; });
+
+    /* --- DHCP --- */
+    $$('#svcBody [data-pool]').forEach(inp => {
+      inp.onchange = () => {
+        const pool = sv.dhcp.pools[Number(inp.dataset.pool)];
+        if (!pool) return;
+        const k = inp.dataset.pk;
+        if (k === 'dns') pool.dns = inp.value.split(',').map(x => x.trim()).filter(Boolean);
+        else if (k === 'leaseMin') pool.leaseMin = Number(inp.value) || 1440;
+        else pool[k] = inp.value.trim();
+        autosave(); rerenderInspector();
+      };
+    });
+    $$('#svcBody [data-pool-del]').forEach(b => b.onclick = () => {
+      pushHistory();
+      sv.dhcp.pools.splice(Number(b.dataset.poolDel), 1);
+      rerenderInspector(); autosave();
+    });
+    const addPool = $('#addPool');
+    if (addPool) addPool.onclick = () => {
+      pushHistory();
+      const last = sv.dhcp.pools[sv.dhcp.pools.length - 1];
+      sv.dhcp.pools.push(Model.newPool(last ? { network: last.network } : {}));
+      rerenderInspector(); autosave();
+    };
+    $$('#svcBody [data-exadd]').forEach(b => b.onclick = () => {
+      const pool = sv.dhcp.pools[Number(b.dataset.exadd)];
+      const inp = $(`#svcBody [data-exin="${b.dataset.exadd}"]`);
+      const v = (inp.value || '').trim();
+      if (!IP.isValidIp(v)) return toast('Dirección a excluir no válida', 'err');
+      pool.excluded = pool.excluded || [];
+      if (!pool.excluded.includes(v)) pool.excluded.push(v);
+      pushHistory(); rerenderInspector(); autosave();
+    });
+    $$('#svcBody [data-exdel]').forEach(el => el.onclick = () => {
+      const [i, val] = el.dataset.exdel.split('|');
+      const pool = sv.dhcp.pools[Number(i)];
+      pool.excluded = (pool.excluded || []).filter(x => x !== val);
+      pushHistory(); rerenderInspector(); autosave();
+    });
+    $$('#svcBody [data-resadd]').forEach(b => b.onclick = () => {
+      const pool = sv.dhcp.pools[Number(b.dataset.resadd)];
+      pool.reservations = pool.reservations || [];
+      pool.reservations.push({ mac: '', ip: '', note: '' });
+      rerenderInspector();
+    });
+    $$('#svcBody [data-res]').forEach(inp => {
+      inp.onchange = () => {
+        const [i, ri] = inp.dataset.res.split('|').map(Number);
+        const pool = sv.dhcp.pools[i];
+        if (!pool || !pool.reservations[ri]) return;
+        pool.reservations[ri][inp.dataset.rk] = inp.value.trim();
+        autosave(); rerenderInspector();
+      };
+    });
+    $$('#svcBody [data-resdel]').forEach(b => b.onclick = () => {
+      const [i, ri] = b.dataset.resdel.split('|').map(Number);
+      sv.dhcp.pools[i].reservations.splice(ri, 1);
+      pushHistory(); rerenderInspector(); autosave();
+    });
+    const rs = $('#renewSrv');
+    if (rs) rs.onclick = () => {
+      const res = Services.renewAll(App.state);
+      renderAll(); refreshPanels(); rerenderInspector(); autosave();
+      termLog(['dhcp renew-all'], 'cmd'); termLog(res.log);
+      showServiceLogModal('Renovación DHCP', res.log, res.ko === 0 && res.ok > 0);
+    };
+
+    /* --- WEB --- */
+    $$('#svcBody [data-site]').forEach(inp => {
+      inp.onchange = () => {
+        const site = sv.web.sites[Number(inp.dataset.site)];
+        if (!site) return;
+        site[inp.dataset.sk] = inp.value;
+        autosave();
+      };
+    });
+    $$('#svcBody [data-site-del]').forEach(b => b.onclick = () => {
+      sv.web.sites.splice(Number(b.dataset.siteDel), 1);
+      pushHistory(); rerenderInspector(); autosave();
+    });
+    const addSite = $('#addSite');
+    if (addSite) addSite.onclick = () => {
+      pushHistory();
+      sv.web.sites.push(Model.newSite({ name: 'nuevo.' + (sv.mail.domain || 'local') }));
+      rerenderInspector(); autosave();
+    };
+
+    /* --- CORREO --- */
+    $$('#svcBody [data-mail]').forEach(inp => {
+      inp.onchange = () => {
+        const k = inp.dataset.mail;
+        sv.mail[k] = (k === 'pop3' || k === 'smtp') ? (Number(inp.value) || (k === 'pop3' ? 110 : 25)) : inp.value.trim();
+        autosave(); rerenderInspector();
+      };
+    });
+    $$('#svcBody [data-user]').forEach(inp => {
+      inp.onchange = () => {
+        const u = sv.mail.users[Number(inp.dataset.user)];
+        if (!u) return;
+        u[inp.dataset.uk] = inp.value.trim();
+        autosave();
+      };
+    });
+    $$('#svcBody [data-userdel]').forEach(b => b.onclick = () => {
+      sv.mail.users.splice(Number(b.dataset.userdel), 1);
+      pushHistory(); rerenderInspector(); autosave();
+    });
+    const addUser = $('#addUser');
+    if (addUser) addUser.onclick = () => {
+      pushHistory();
+      sv.mail.users.push(Model.newMailUser({ user: 'usuario' + ((sv.mail.users || []).length + 1) }));
+      rerenderInspector(); autosave();
+    };
+    $$('#svcBody [data-inbox]').forEach(b => b.onclick = () => {
+      const u = sv.mail.users[Number(b.dataset.inbox)];
+      openModal({
+        title: 'Buzón · ' + esc(u.user + '@' + sv.mail.domain),
+        body: (u.box || []).length
+          ? (u.box || []).map(m => `<div class="result-card">
+              <div class="kv"><span class="k">De</span><span class="v">${esc(m.from)}</span></div>
+              <div class="kv"><span class="k">Para</span><span class="v">${esc(m.to)}</span></div>
+              <div class="kv"><span class="k">Asunto</span><span class="v">${esc(m.subject)}</span></div>
+              <div class="kv"><span class="k">Fecha</span><span class="v">${esc(m.date)}</span></div>
+              <p style="font-size:12.5px;color:var(--txt-2);margin:8px 0 0">${esc(m.body)}</p>
+            </div>`).join('')
+          : '<p class="hint">Buzón vacío.</p>',
+        buttons: [{ label: 'Cerrar' }]
+      });
+    });
+  }
+
+  function clientServicesHTML(n) {
+    const web = App.state.nodes.some(x => x.services && x.services.web && x.services.web.enabled && (x.services.web.sites || []).length);
+    const mail = App.state.nodes.some(x => x.services && x.services.mail && x.services.mail.enabled && (x.services.mail.users || []).length);
+    if (!web && !mail) return '';
+    return `<div class="sec-title">Servicios de cliente</div>
+      <div class="flex gap8 wrap">
+        ${web ? `<button class="btn sm" id="cliWeb">${ICO.globe || ''} Navegar web</button>` : ''}
+        ${mail ? `<button class="btn sm" id="cliMail">${ICO.mailIco || ''} Correo POP3</button>` : ''}
+      </div>`;
+  }
+
+  function bindClientServices(n) {
+    const w = $('#cliWeb'), m = $('#cliMail');
+    if (w) w.onclick = () => openWebBrowser(n.id);
+    if (m) m.onclick = () => openMailClient(n.id);
+  }
+
+  /* ---------------- navegador simulado ---------------- */
+  function openWebBrowser(clientId) {
+    const sites = [];
+    App.state.nodes.forEach(srv => {
+      const web = srv.services && srv.services.web;
+      if (!web || !web.enabled) return;
+      (web.sites || []).forEach(s => sites.push({ server: srv, site: s }));
+    });
+    if (!sites.length) return toast('Ningún servidor web tiene sitios publicados', 'err');
+    const client = Model.getNode(App.state, clientId);
+    openModal({
+      title: 'Navegador · ' + esc(client.name),
+      wide: true,
+      body: `<div class="inline mb8">
+          <input class="input" id="urlBar" value="${escAttr(sites[0].site.name)}" list="siteList" placeholder="intranet.aula.local">
+          <datalist id="siteList">${sites.map(x => `<option value="${escAttr(x.site.name)}">${esc(x.server.name)}</option>`).join('')}</datalist>
+          <button class="btn sm primary" id="goUrl">Ir</button>
+        </div>
+        <div id="webOut"></div>`,
+      buttons: [{ label: 'Cerrar' }],
+      onMount() {
+        const go = () => {
+          const res = Services.httpGet(App.state, client, $('#urlBar').value);
+          $('#webOut').innerHTML = `<div class="result-card" style="font-family:var(--mono);font-size:11.5px;line-height:1.65;margin-bottom:10px">${logLines(res.log)}</div>` +
+            (res.ok ? `<div class="browser-frame"><div class="bf-bar">🔒 ${esc(res.site.name)}</div><div class="bf-body">${res.site.body || ''}</div></div>` : '');
+          termLog([`http ${client.name} ${$('#urlBar').value}`], 'cmd');
+          termLog(res.log);
+        };
+        $('#goUrl').onclick = go;
+        $('#urlBar').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+        go();
+      }
+    });
+  }
+
+  /* ---------------- cliente de correo ---------------- */
+  function openMailClient(clientId) {
+    const client = Model.getNode(App.state, clientId);
+    const servers = Services.mailServers(App.state);
+    if (!servers.length) return toast('No hay servidores de correo activos', 'err');
+    const opts = [];
+    servers.forEach(sv => (sv.services.mail.users || []).forEach(u => opts.push({ sv, u, addr: u.user + '@' + sv.services.mail.domain })));
+    if (!opts.length) return toast('Los servidores de correo no tienen buzones creados', 'err');
+
+    openModal({
+      title: 'Cliente de correo · ' + esc(client.name),
+      wide: true,
+      body: `
+        <div class="row2">
+          <div class="field"><label>Cuenta (POP3)</label>
+            <select class="input" id="mailAcc">${opts.map((o, i) => `<option value="${i}">${esc(o.addr)} · ${esc(o.sv.name)}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Contraseña</label><input class="input" id="mailPass" value="${escAttr(opts[0].u.password || '')}"></div>
+        </div>
+        <div class="flex gap8 mb8"><button class="btn sm primary" id="mailLogin">Conectar y ver buzón</button></div>
+        <div id="mailOut"></div>
+        <div id="mailSendOut"></div>
+        <div class="sec-title">Enviar mensaje (SMTP)</div>
+        <div class="row2">
+          <div class="field"><label>Para</label><input class="input" id="mailTo" list="accList" placeholder="profesor@aula.local">
+            <datalist id="accList">${opts.map(o => `<option value="${escAttr(o.addr)}">`).join('')}</datalist></div>
+          <div class="field"><label>Asunto</label><input class="input" id="mailSubj" value="Prueba desde NetLab"></div>
+        </div>
+        <div class="field"><label>Mensaje</label><textarea class="input" id="mailBody" rows="3" style="font-family:var(--font)">Hola, este correo viaja por la topología simulada.</textarea></div>
+        <button class="btn sm primary" id="mailSend" style="width:100%">Enviar correo</button>`,
+      buttons: [{ label: 'Cerrar' }],
+      onMount() {
+        const cfg = () => opts[Number($('#mailAcc').value)];
+        const doLogin = () => {
+          const c = cfg();
+          const res = Services.login(App.state, client, c.sv.id, c.u.user, $('#mailPass').value);
+          $('#mailOut').innerHTML = `<div class="result-card" style="font-family:var(--mono);font-size:11.5px;line-height:1.65">${logLines(res.log)}</div>`;
+          if (res.ok) {
+            const box = res.account.box || [];
+            $('#mailOut').innerHTML += `<div class="sec-title">Bandeja de entrada <span class="tiny">${box.length}</span></div>` +
+              (box.length ? box.map(m => `<div class="result-card">
+                  <div class="kv"><span class="k">De</span><span class="v">${esc(m.from)}</span></div>
+                  <div class="kv"><span class="k">Asunto</span><span class="v">${esc(m.subject)}</span></div>
+                  <div class="kv"><span class="k">Fecha</span><span class="v">${esc(m.date)}</span></div>
+                  <p style="font-size:12.5px;color:var(--txt-2);margin:8px 0 0">${esc(m.body)}</p></div>`).join('')
+                : '<p class="hint">Buzón vacío.</p>');
+          }
+          termLog([`pop3 ${client.name} ${c.addr}`], 'cmd'); termLog(res.log);
+        };
+        $('#mailLogin').onclick = doLogin;
+        $('#mailSend').onclick = () => {
+          const c = cfg();
+          const res = Services.send(App.state, client, c.addr, $('#mailTo').value, $('#mailSubj').value, $('#mailBody').value);
+          $('#mailSendOut').innerHTML = `<div class="result-card" style="font-family:var(--mono);font-size:11.5px;line-height:1.65">${logLines(res.log)}</div>`;
+          termLog([`smtp ${client.name} → ${$('#mailTo').value}`], 'cmd'); termLog(res.log);
+          autosave(); renderInspector(); refreshPanels();
+          if (res.ok) {
+            toast('Correo entregado en el buzón de ' + esc($('#mailTo').value), 'ok');
+            // al ser un POP3 simulado, se recarga la bandeja para ver el mensaje recibido
+            const cfgNow = cfg();
+            const dest = Services.findAccount(App.state, $('#mailTo').value);
+            if (dest && dest.server.id === cfgNow.sv.id && String(dest.account.user).toLowerCase() === String(cfgNow.u.user).toLowerCase()) {
+              const rr = Services.login(App.state, client, cfgNow.sv.id, cfgNow.u.user, $('#mailPass').value);
+              if (rr.ok) {
+                const box = rr.account.box || [];
+                $('#mailOut').innerHTML = `<div class="result-card" style="font-family:var(--mono);font-size:11.5px;line-height:1.65">${logLines(rr.log)}</div>
+                  <div class="sec-title">Bandeja de entrada <span class="tiny">${box.length}</span></div>` +
+                  box.map(m => `<div class="result-card">
+                      <div class="kv"><span class="k">De</span><span class="v">${esc(m.from)}</span></div>
+                      <div class="kv"><span class="k">Asunto</span><span class="v">${esc(m.subject)}</span></div>
+                      <div class="kv"><span class="k">Fecha</span><span class="v">${esc(m.date)}</span></div>
+                      <p style="font-size:12.5px;color:var(--txt-2);margin:8px 0 0">${esc(m.body)}</p></div>`).join('');
+              }
+            }
+          }
+        };
+        doLogin();
+      }
+    });
+  }
+
   /* ------------------------------------------------------------
      TABS DE LA BARRA LATERAL
   ------------------------------------------------------------ */
+  function renderServicesPanel() {
+    const box = $('#svcPanel');
+    if (!box) return;
+    const servers = App.state.nodes.filter(n => n.type === 'server');
+    let h = '';
+    if (!servers.length) {
+      h += `<p class="hint">No hay servidores en la topología. Añade uno desde la pestaña <b>Equipos</b> y actívales servicios en el panel derecho.</p>`;
+    }
+    servers.forEach(srv => {
+      const sv = srv.services || {};
+      const d = sv.dhcp || {}, w = sv.web || {}, m = sv.mail || {};
+      const leasesN = Services.leases(App.state, srv.id).length;
+      h += `<div class="svc-list" data-srv="${srv.id}">
+        <div class="nm"><span>${esc(srv.name)}</span><span class="tiny">${srv.ifaces.filter(i => IP.isValidIp(i.ip)).length} IP</span></div>
+        <div class="det">
+          <span class="svc-badge ${d.enabled ? '' : 'off'}">DHCP ${d.enabled ? (d.pools || []).length + ' ámbito(s)' : 'off'}</span>
+          <span class="svc-badge ${w.enabled ? '' : 'off'}">HTTP ${w.enabled ? (w.sites || []).length + ' sitio(s)' : 'off'}</span>
+          <span class="svc-badge ${m.enabled ? '' : 'off'}">POP3 ${m.enabled ? (m.users || []).length + ' buzón(es)' : 'off'}</span>
+          ${leasesN ? `<span class="svc-badge">${leasesN} concesión(es)</span>` : ''}
+        </div>
+        <div class="det">${srv.ifaces.map(i => i.ip ? `${esc(i.name)}: ${esc(i.ip)}/${IP.clampPrefix(i.prefix)}` : `${esc(i.name)}: sin IP`).join(' · ')}</div>
+      </div>`;
+    });
+
+    const allLeases = [];
+    App.state.nodes.forEach(n => (n.ifaces || []).forEach(i => {
+      if (i.lease && i.ip) allLeases.push({ node: n, iface: i });
+    }));
+    h += `<h3>Clientes DHCP</h3>`;
+    const dhcpClients = App.state.nodes.filter(n => !Model.isL2(n) && n.ifaces.some(i => i.dhcp));
+    if (!dhcpClients.length) h += `<p class="hint">Ningún equipo está en modo DHCP. En el inspector de un PC elige la pestaña <b>DHCP</b>.</p>`;
+    else h += dhcpClients.map(n => {
+      const i = n.ifaces.find(x => x.dhcp);
+      return `<div class="lease-row" style="border:1px solid var(--line);border-radius:8px;margin-bottom:5px">
+        <span class="ip">${esc(i.ip || '— sin IP —')}</span>
+        <span class="who">${esc(n.name)}<br><span class="tiny">${esc(n.mac || '')}</span></span>
+        <span class="tag ${i.lease && i.lease.type === 'reserva por MAC' ? 'res' : ''}">${i.lease ? esc(i.lease.type) : 'pendiente'}</span>
+      </div>`;
+    }).join('');
+
+    h += `<p class="hint">El botón <b>Renovar DHCP</b> lanza el proceso DORA de todos los clientes y deja las concesiones en sus interfaces.</p>`;
+    box.innerHTML = h;
+    $$('#svcPanel [data-srv]').forEach(el => el.onclick = () => {
+      selectNode(el.dataset.srv, false);
+      const n = Model.getNode(App.state, el.dataset.srv);
+      if (n) {
+        App.view.x = $('#canvasArea').clientWidth / 2 - (n.x + NW / 2) * App.view.z;
+        App.view.y = $('#canvasArea').clientHeight / 2 - (n.y + NH / 2) * App.view.z;
+        applyView();
+      }
+    });
+  }
+
+  function showLeasesModal() {
+    const rows = [];
+    App.state.nodes.forEach(n => (n.ifaces || []).forEach(i => {
+      if (i.lease && i.ip) rows.push({ n, i });
+    }));
+    openModal({
+      title: 'Concesiones DHCP activas',
+      wide: true,
+      body: rows.length ? `<table class="tbl"><thead><tr><th>Cliente</th><th>IP</th><th>MAC</th><th>Servidor</th><th>Tipo</th><th>Concesión</th></tr></thead><tbody>
+        ${rows.map(r => `<tr><td>${esc(r.n.name)}</td><td style="color:var(--cyan)">${esc(r.i.ip)}</td><td>${esc(r.n.mac || '')}</td>
+          <td>${esc(r.i.lease.serverName || '')}</td><td>${esc(r.i.lease.type || '')}</td><td>${r.i.lease.minutes} min</td></tr>`).join('')}
+      </tbody></table>` : '<p class="hint">No hay concesiones activas. Pulsa «Renovar DHCP».</p>',
+      buttons: [{ label: 'Cerrar' }]
+    });
+  }
+
+  function renewAllDhcp(silent) {
+    const res = Services.renewAll(App.state);
+    renderAll(); renderInspector(); refreshPanels(); autosave();
+    termLog(['dhcp renew-all'], 'cmd');
+    termLog(res.log);
+    if (!silent) showServiceLogModal('Renovación DHCP · ' + res.ok + ' concesión(es)', res.log, res.ok > 0);
+    return res;
+  }
+
   function switchTab(tab) {
     $$('#leftTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     $$('.side-body .panel').forEach(p => p.classList.toggle('on', p.id === 'panel-' + tab));
     if (tab === 'diag') runDiagnose();
     if (tab === 'routes') refreshPanels();
+    if (tab === 'services') renderServicesPanel();
   }
 
   /* ------------------------------------------------------------
@@ -1330,6 +1921,7 @@
   function showRibbon() {
     const r = $('#actRibbon');
     r.classList.toggle('hidden', !App.activity);
+    $('#canvasArea').classList.toggle('has-ribbon', !!App.activity);
     $('#tabActivity').classList.toggle('hidden', !App.activity);
     if (App.activity) $('#ribbonTitle').textContent = App.activity.title;
   }
@@ -1617,6 +2209,10 @@
   <span class="info">show interfaces &lt;equipo&gt;</span>    interfaces e IPs
   <span class="info">ping &lt;equipo&gt; &lt;ip|equipo&gt;</span>  ping simulado
   <span class="info">tracert &lt;equipo&gt; &lt;ip|equipo&gt;</span> traza de ruta
+  <span class="info">dhcp renew [equipo]</span>         renovar IP por DHCP
+  <span class="info">ipconfig &lt;equipo&gt;</span>             IP, MAC y estado DHCP
+  <span class="info">http &lt;equipo&gt; &lt;sitio&gt;</span>       abrir sitio web
+  <span class="info">mail</span> / <span class="info">services</span>             buzones y servicios activos
   <span class="info">check</span>                       validación de la red
   <span class="info">clear</span>                       limpiar consola`;
 
@@ -1678,6 +2274,60 @@
       termLog(res.log);
       highlightPath(res.hops);
       return;
+    }
+
+    if (cmd === 'dhcp') {
+      const sub = (parts[1] || '').toLowerCase();
+      if (sub === 'renew' || sub === 'all') {
+        const target = parts[2] ? Model.byName(App.state, parts[2]) : null;
+        if (target) {
+          const r = Services.renew(App.state, target);
+          renderAll(); refreshPanels(); autosave();
+          return termLog(r.log);
+        }
+        const r = Services.renewAll(App.state);
+        renderAll(); refreshPanels(); autosave();
+        return termLog(r.log);
+      }
+      return termLog(['<span class="err">Uso: dhcp renew [equipo]</span>']);
+    }
+
+    if (cmd === 'ipconfig') {
+      const n = Model.byName(App.state, parts[1]) || Model.getNode(App.state, $('#routeDevice').value);
+      if (!n) return termLog(['<span class="err">Uso: ipconfig &lt;equipo&gt;</span>']);
+      if (Model.isL2(n)) return termLog([`${n.name}: ${n.ports.length} puertos (dispositivo de capa 2, sin IP necesaria)`]);
+      return termLog(n.ifaces.map(i => {
+        const st = i.dhcp ? (i.lease ? 'DHCP · ' + i.lease.type + ' · ' + i.lease.minutes + ' min' : 'DHCP · sin concesión') : 'estática';
+        return `  ${i.name.padEnd(6)} ${(i.ip ? i.ip + '/' + i.prefix : 'sin IP').padEnd(20)} gw ${(i.gateway || '—').padEnd(15)} ${st}${i.dns && i.dns.length ? ' · dns ' + i.dns.join(',') : ''}`;
+      }).concat([`  MAC ${n.mac || '—'}`]));
+    }
+
+    if (cmd === 'http' || cmd === 'curl') {
+      const n = Model.byName(App.state, parts[1]);
+      if (!n) return termLog(['<span class="err">Uso: http &lt;equipo&gt; &lt;sitio|ip&gt;</span>']);
+      const r = Services.httpGet(App.state, n, parts[2] || '');
+      renderAll(); autosave();
+      return termLog(r.log.concat(r.ok ? ['', `  ${(r.site.body || '').replace(/<[^>]+>/g, ' ').trim()}`] : []));
+    }
+
+    if (cmd === 'mail' || cmd === 'correo') {
+      const servers = Services.mailServers(App.state);
+      if (!servers.length) return termLog(['No hay servidores de correo activos.']);
+      return termLog(servers.flatMap(sv => [
+        `${sv.name} · dominio ${sv.services.mail.domain} · POP3/${sv.services.mail.pop3} SMTP/${sv.services.mail.smtp}`,
+        ...(sv.services.mail.users || []).map(u => `   ${u.user}@${sv.services.mail.domain}  (${(u.box || []).length} mensajes)`)
+      ]));
+    }
+
+    if (cmd === 'services') {
+      const servers = App.state.nodes.filter(n => n.type === 'server' && n.services);
+      if (!servers.length) return termLog(['No hay servidores en la topología.']);
+      return termLog(servers.flatMap(sv => [
+        `${sv.name}:`,
+        `   DHCP ${sv.services.dhcp.enabled ? 'activo (' + (sv.services.dhcp.pools || []).length + ' ámbitos)' : 'inactivo'}`,
+        `   HTTP ${sv.services.web.enabled ? 'activo (' + (sv.services.web.sites || []).length + ' sitios)' : 'inactivo'}`,
+        `   POP3 ${sv.services.mail.enabled ? 'activo (' + (sv.services.mail.users || []).length + ' buzones)' : 'inactivo'}`
+      ]));
     }
 
     if (cmd === 'check') {
@@ -1794,6 +2444,9 @@
     $('#btnPing').onclick = () => openPingDialog(null, 'ping');
     $('#btnTrace').onclick = () => openPingDialog(null, 'trace');
     $('#btnValidate').onclick = () => { switchTab('diag'); openPanels(); };
+    $('#btnServices').onclick = () => { switchTab('services'); openPanels(); };
+    $('#btnRenewAll').onclick = () => renewAllDhcp(false);
+    $('#btnLeases').onclick = showLeasesModal;
     $('#projectName').onchange = () => {
       App.state.name = $('#projectName').value.trim() || 'Topología sin título';
       autosave();
@@ -1883,6 +2536,14 @@
           <li><b>Ping</b> y <b>Traceroute</b> simulan el recorrido real: consultan la tabla de rutas, resuelven ARP en cada segmento y verifican la <b>ruta de vuelta</b>.</li>
           <li><b>Validar</b> detecta IPs duplicadas, direcciones de red/broadcast mal usadas, gateways inalcanzables y rutas inválidas.</li>
           <li>La <b>consola</b> acepta comandos: <code>ping PC1 192.168.2.10</code>, <code>show ip route R1</code>, <code>help</code>.</li>
+        </ul>
+        <h4>4 · Servicios de red</h4>
+        <ul>
+          <li>Un <b>servidor</b> puede ser DHCP, Web y servidor de correo a la vez: activa cada rol en el panel derecho (pestañas DHCP / Web / Correo).</li>
+          <li><b>DHCP técnico</b>: ámbito (red/máscara), rango dinámico, exclusiones, reservas por MAC, puerta de enlace, DNS, dominio y tiempo de concesión.</li>
+          <li>Los <b>clientes</b> se ponen en modo DHCP por interfaz y con <b>Renovar DHCP</b> ejecutan el proceso DORA completo.</li>
+          <li>El <b>navegador</b> y el <b>cliente de correo</b> de un PC comprueban primero la conectividad IP y después abren la conexión TCP simulada.</li>
+          <li>Pestaña <b>Servicios</b>: estado de cada servidor, clientes DHCP y concesiones activas.</li>
         </ul>
         <h4>Atajos</h4>
         <ul>

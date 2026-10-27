@@ -38,6 +38,30 @@ Lienzo libre tipo GNS3:
 **Equipos:** Router, Switch, Hub, PC, Portátil, Servidor, Firewall e Internet (nube).
 **Plantillas ya cableadas:** estrella, anillo, malla, bus y "dos sedes".
 
+### Servidores con roles y clientes DHCP
+
+Un **servidor** puede desempeñar los tres roles a la vez (se activan en su panel derecho,
+con puntos verdes de estado en el propio nodo del lienzo):
+
+| Rol | Configuración |
+|---|---|
+| **DHCP** | Ámbito (red/máscara CIDR), rango dinámico inicio–fin, **exclusiones**, **reservas por MAC**, puerta de enlace (opc. 3), DNS (opc. 6), dominio (opc. 15), tiempo de concesión, interfaz de servicio y varios ámbitos por servidor |
+| **Web (HTTP)** | Sitios con nombre/alias, título y contenido HTML. El navegador del cliente resuelve el nombre, comprueba la conectividad IP y muestra la página |
+| **Correo (POP3/SMTP)** | Dominio, puertos SMTP/POP3, buzones con usuario/contraseña y bandeja. Envío entre buzones del mismo servidor o con *relay* a otro servidor si hay ruta IP |
+
+Cada interfaz de un cliente (PC/portátil/servidor) puede estar en **IP estática** o en **DHCP**.
+En modo DHCP el cliente ejecuta el proceso **DORA** real contra el servidor del mismo segmento:
+
+```
+→ DHCPDISCOVER · PC1 (00:1A:2B:E4:46:34) · broadcast FF:FF:FF:FF:FF:FF
+→ DHCPREQUEST · PC1 solicita 192.168.50.100 a SRV1
+← DHCPACK · SRV1: 192.168.50.100/24 · gw 192.168.50.1 · DNS 192.168.50.10 · concesión 1440 min
+```
+
+El motor tiene en cuenta lo importante: DISCOVER es broadcast y **no cruza routers**, el pool debe
+corresponder a una red que el servidor tenga configurada en ese segmento, se respetan exclusiones y
+reservas, y no se entrega una IP que ya esté en uso en la topología.
+
 ### 2 · Entrar en una actividad
 Cinco ejercicios con enunciado, teoría, topología inicial preparada y **corrección automática**:
 
@@ -48,6 +72,8 @@ Cinco ejercicios con enunciado, teoría, topología inicial preparada y **correc
 | Dos LANs y rutas estáticas | CFGS · ASIR | 2 routers, enlace `/30`, rutas de ida y vuelta |
 | Subnetting VLSM | CFGS · ASIR | Reparto de una `/24` en 100/40/12 hosts |
 | Sucursal con Internet | CFGS · ASIR | Ruta por defecto `0.0.0.0/0`, WAN y NAT |
+| Servicios de red: DHCP, web y correo | CFGS · ASIR | Servidor con 3 roles + clientes DHCP + navegador + POP3 |
+| DHCP: exclusiones y reservas por MAC | CFGS · ASIR | Ámbito, rango, exclusiones y reserva fija por hardware |
 
 Cada actividad incluye botón **Comprobar** con checklist detallada, **Ver solución** y **Reiniciar**.
 
@@ -64,6 +90,10 @@ Cada actividad incluye botón **Comprobar** con checklist detallada, **Ver soluc
 - **Tabla de enrutamiento** del equipo seleccionado (conectadas `C` y estáticas `S`).
 - **Añadir ruta estática** (destino CIDR + next hop o interfaz).
 - **Traza**: consulta qué ruta usaría un equipo hacia una IP (longest prefix match).
+
+### Servicios
+Estado de cada servidor (DHCP / HTTP / POP3), lista de clientes en modo DHCP con su MAC y
+concesiones activas. Botones **Renovar DHCP** (lanza DORA en todos los clientes) y **Concesiones**.
 
 ### Validar
 Diagnóstico completo: IPs duplicadas, direcciones de red/broadcast asignadas a interfaces,
@@ -94,6 +124,11 @@ show ip route R1
 show interfaces PC1
 ping PC1 192.168.2.10
 tracert PC1 8.8.8.8
+dhcp renew [equipo]        renovación DORA
+ipconfig PC1              IP, MAC y estado de la concesión
+http PC1 intranet         abrir un sitio web del servidor
+mail                      buzones y dominios
+services                  roles activos de cada servidor
 check
 ```
 
@@ -114,11 +149,13 @@ check
 netlab/
 ├── index.html          interfaz (inicio, actividades, workspace)
 ├── server.py           servidor estático de desarrollo
+├── tests.js            pruebas del motor (node tests.js)
 ├── css/style.css       tema oscuro tipo NOC
 └── js/
     ├── ipcalc.js       cálculos IP: máscaras, subredes, VLSM, binario
     ├── model.js        modelo de datos: equipos, interfaces, enlaces, rutas
     ├── sim.js          motor L2/L3: ARP, rutas, ping, traceroute, diagnóstico
+    ├── services.js     DHCP (DORA), HTTP y correo POP3/SMTP simulados
     ├── activities.js   las 5 actividades + topologías inicial/solución + checker
     └── app.js          interfaz: lienzo SVG, inspector, paneles, consola
 ```
@@ -144,6 +181,22 @@ const act6 = {
     return [{ id: 'x', text: 'Requisito', ok: true, msg: 'detalle' }];
   }
 };
+```
+
+Para actividades con servidores, los servicios se declaran en el 7º argumento de `mk(...)`:
+
+```js
+mk('server', 'SRV1', 150, 90, [{ name: 'eth0', ip: '192.168.50.10', prefix: 24 }], [], {
+  services: {
+    dhcp: { enabled: true, pools: [{ network: '192.168.50.0/24', rangeStart: '192.168.50.100',
+              rangeEnd: '192.168.50.150', gateway: '192.168.50.1', dns: ['192.168.50.10'],
+              domain: 'aula.local', leaseMin: 1440, excluded: [], reservations: [
+                { mac: '00:1A:2B:0F:22:77', ip: '192.168.50.50' } ] }] },
+    web:  { enabled: true, sites: [{ name: 'intranet.aula.local', title: 'Intranet', body: '<h1>Hola</h1>' }] },
+    mail: { enabled: true, domain: 'aula.local', pop3: 110, smtp: 25,
+            users: [{ user: 'alumno', password: 'asir2024', box: [] }] }
+  }
+})
 ```
 
 ---
