@@ -1109,7 +1109,7 @@ const permisosDe = it => {
 };
 
 function mundoBase(){
-  const e = { cwd: MUNDO_HOME, fs: {}, funciones: [] };
+  const e = { cwd: MUNDO_HOME, fs: {}, funciones: [], umask: '022' };
   const dir = p => { e.fs[p] = { tipo:'dir', modo:'755' }; };
   const file = (p, c = '', modo = '644') => { e.fs[p] = { tipo:'file', contenido:c, modo }; };
   dir('/'); dir('/home'); dir(MUNDO_HOME);
@@ -1144,10 +1144,12 @@ function crearEstado(act = {}){
     crearPadres(padreDe(p));
     e.fs[p] = { tipo:'dir', modo:'755' };
   };
+  e.umask = /^[0-7]{1,4}$/.test(String(ini.umask || '')) ? String(ini.umask).slice(-3).padStart(3, '0') : '022';
   Object.entries(ini.fs || {}).forEach(([raw, v]) => {
     const p = rutaAbs(raw, MUNDO_HOME);
     if (v === null){ delete e.fs[p]; return; }
-    if (v === 'dir' || (v && v.tipo === 'dir')){ crearPadres(p); return; }
+    if (v === 'dir'){ crearPadres(p); return; }
+    if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; return; }
     if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = { tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }; return; }
     const contenido = typeof v === 'string' ? v : (v && v.contenido) || '';
     const modo = (v && v.modo) || '644';
@@ -1158,7 +1160,9 @@ function crearEstado(act = {}){
   return e;
 }
 
-const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones }));
+const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones, umask: e.umask || '022' }));
+// Permisos con los que nace un fichero o carpeta según la umask actual (por defecto 022 → 644 y 755).
+const modoConUmask = (base, e) => ((base & ~parseInt(e.umask || '022', 8)) & 0o777).toString(8).padStart(3, '0');
 
 const obtener = (e, p) => e.fs[p];
 const esDir = (e, p) => { const it = e.fs[p]; return !!it && it.tipo === 'dir'; };
@@ -1281,7 +1285,7 @@ function cmd_ls(e, args){
       salidas.push(larga ? lineaLarga(e, p, it) : nombreHtml(e, p, it));
       continue;
     }
-    if (flags.has('d')){ salidas.push(nombreHtml(e, p, it)); continue; }
+    if (flags.has('d')){ salidas.push(larga ? lineaLarga(e, p, it) : nombreHtml(e, p, it)); continue; }
     if (total > 1 && !flags.has('R')) salidas.push(escaparHtml(p0) + ':');
     if (flags.has('R')){
       const recorrer = (dir, nivel) => {
@@ -1318,11 +1322,11 @@ function cmd_mkdir(e, args){
     if (padres){
       const partes = p.split('/').filter(Boolean);
       let actual = '';
-      for (const parte of partes){ actual += '/' + parte; if (!e.fs[actual]) e.fs[actual] = { tipo:'dir', modo:'755' }; }
+      for (const parte of partes){ actual += '/' + parte; if (!e.fs[actual]) e.fs[actual] = { tipo:'dir', modo: modoConUmask(0o777, e) }; }
     } else {
       const padre = padreDe(p);
       if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "mkdir: no se puede crear el directorio '" + raw + "': No such file or directory"; continue; }
-      e.fs[p] = { tipo:'dir', modo:'755' };
+      e.fs[p] = { tipo:'dir', modo: modoConUmask(0o777, e) };
     }
   }
   return { out:'', err, code: err ? 1 : 0 };
@@ -1338,7 +1342,7 @@ function cmd_touch(e, args){
     }
     const padre = padreDe(p);
     if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "touch: no se puede crear '" + raw + "': No such file or directory"; continue; }
-    e.fs[p] = { tipo:'file', contenido:'', modo:'644' };
+    e.fs[p] = { tipo:'file', contenido:'', modo: modoConUmask(0o666, e) };
   }
   return { out:'', err, code: err ? 1 : 0 };
 }
@@ -1445,6 +1449,13 @@ function cmd_chmod(e, args){
     }
   }
   return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_umask(e, args){
+  if (!args.length) return exito(String(e.umask || '022').padStart(4, '0'));
+  const raw = String(args[0]).replace(/^0+/, '') || '0';
+  if (!/^[0-7]{1,3}$/.test(raw)) return fallo("bash: umask: " + args[0] + ": máscara no válida");
+  e.umask = raw.padStart(3, '0');
+  return exito();
 }
 function cmd_file(e, args){
   if (!args.length) return fallo('file: falta un operando');
@@ -1654,7 +1665,7 @@ const CMD_SIM = {
   cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
-  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario')
+  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), umask: cmd_umask
 };
 
 /* ---- Intérprete de una línea ---- */
@@ -1779,6 +1790,10 @@ function comprobarMeta(e, meta, salida){
     if (it.destino !== destino) return falla('El enlace ' + rutaVisible(p) + ' no apunta a ' + rutaVisible(destino) + '.');
   }
   if (meta.funcion && !e.funciones.includes(meta.funcion)) return falla('La función ' + meta.funcion + ' no está cargada.');
+  if (meta.umask != null){
+    const esperada = String(meta.umask).replace(/^0+/, '').padStart(3, '0');
+    if ((e.umask || '022') !== esperada) return falla('La umask es ' + (e.umask || '022') + ', pero debería ser ' + esperada + '.');
+  }
   for (const x of [].concat(meta.muestra || [])){
     const coincide = x instanceof RegExp ? (x.lastIndex = 0, x.test(texto)) : texto.includes(x);
     if (!coincide) return falla('La salida no contiene ' + (x instanceof RegExp ? String(x) : x) + '.');

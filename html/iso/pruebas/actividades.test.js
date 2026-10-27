@@ -75,9 +75,9 @@ let errores = 0, avisos = 0, pasosTotal = 0;
 const error = (donde, texto) => { errores++; console.log('   ' + rojo('✗') + ' ' + donde + ': ' + texto); };
 const aviso = (donde, texto) => { avisos++; console.log('   ' + amarillo('!') + ' ' + donde + ': ' + texto); };
 
-const CLAVES_META = new Set(['cwd', 'existe', 'noExiste', 'contenido', 'modo', 'enlace', 'funcion', 'muestra', 'noMuestra', 'orden', 'salida']);
+const CLAVES_META = new Set(['cwd', 'existe', 'noExiste', 'contenido', 'modo', 'enlace', 'funcion', 'muestra', 'noMuestra', 'orden', 'salida', 'umask']);
 const NOMBRE_META = { cwd:'cwd', existe:'existe', noExiste:'noExiste', contenido:'contenido', modo:'modo', enlace:'enlace',
-  funcion:'funcion', muestra:'muestra', noMuestra:'noMuestra', orden:'orden', salida:'salida' };
+  funcion:'funcion', muestra:'muestra', noMuestra:'noMuestra', orden:'orden', salida:'salida', umask:'umask' };
 
 /* ---------- 3) Revisión ---------- */
 console.log('\n' + color(1, 'Actividades') + gris(' · ' + ACTIVIDADES.length + ' cargadas\n'));
