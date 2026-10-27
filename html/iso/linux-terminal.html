@@ -269,9 +269,8 @@
   .mapa-objetivo{display:flex;align-items:baseline;gap:6px;color:#e9e5ed;font:12px/1.35 "Ubuntu Mono","DejaVu Sans Mono",monospace;overflow-wrap:anywhere}
   .mapa-objetivo::before{content:"•";color:var(--marca);font-family:system-ui,sans-serif}
   .mapa-objetivo.no-encontrado{color:#f0b7b7}.mapa-objetivo.encontrado{color:#b9e6c1}
-  .mapa-completo{margin:2px 4px 0;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
-  .mapa-completo summary{color:#c0bfbc;cursor:pointer;font:11px system-ui,-apple-system,"Segoe UI",sans-serif}
-  .mapa-completo .mapa-arbol{margin-top:5px}
+  .mapa-estructura{margin:2px 4px 0;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
+  .mapa-estructura-titulo{display:block;margin:0 0 5px;color:#c0bfbc;font:700 10px system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.08em;text-transform:uppercase}
   @media (prefers-reduced-motion:reduce){.mapa-fila{transition:none}.mapa-fila:hover{transform:none}}
   .act-mapa.minimizada{width:34px;max-width:34px}
   .act-mapa.minimizada .act-mapa-ruta,.act-mapa.minimizada .act-mapa-cuerpo,.act-mapa.minimizada .act-mapa-res{display:none}
@@ -1347,7 +1346,9 @@ function lineaLarga(e, p, it, verInodo){
 /* ---- Árbol del mundo virtual (panel de estructura de la actividad) ----
    Recorre estado.fs desde la raíz y devuelve una fila por carpeta o fichero
    con su tipo y permisos. No sigue enlaces: así no puede entrar en un ciclo. */
-function mapaHtml(e){
+function mapaHtml(e, opciones){
+  opciones = opciones || {};
+  const mostrarPermisos = opciones.mostrarPermisos !== false;
   const fs = (e && e.fs) || {}, hijos = new Map();
   const entradas = Object.keys(fs).filter(p => fs[p]);
   const carpetas = entradas.filter(p => fs[p].tipo === 'dir').length;
@@ -1366,18 +1367,19 @@ function mapaHtml(e){
     const it = fs[p];
     if (!it) return;
     const dir = it.tipo === 'dir', link = it.tipo === 'link';
-    const modo = link ? 'rwxrwxrwx' : permisosDe(it);
+    const modo = link ? 'rwxrwxrwx' : (mostrarPermisos ? permisosDe(it) : '');
     const ejecutable = it.tipo === 'file' && /[1357]/.test(modoDe(it)[2] || '0');
     const clase = dir ? 'dir' : link ? 'link' : (ejecutable ? 'exec' : 'file');
     const actual = p === e.cwd ? ' actual' : '';
     const destino = link ? ' <span class="mapa-flecha">→</span> ' + escaparHtml(rutaVisible(it.destino)) : '';
     filas.push('<div class="mapa-fila ' + clase + actual + '" role="treeitem" aria-level="' + (nivel + 1) + '" data-path="' + escaparHtml(p) + '" title="' + escaparHtml(rutaVisible(p)) + '" style="padding-left:' + (6 + nivel * 13) + 'px;--rama-x:' + (nivel * 13 + 5) + 'px">' +
-      '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> <span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
+      (mostrarPermisos ? '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> ' : '') + '<span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
     for (const h of hijos.get(p) || []) ver(h, nivel + 1);
   };
   ver('/', 0);
+  const resumen = opciones.resumen === false ? '' : '<div class="mapa-resumen" aria-label="Resumen de la estructura"><span>📁 ' + carpetas + '</span><span>📄 ' + ficheros + '</span><span>🔗 ' + enlaces + '</span></div>';
   return filas.length
-    ? '<div class="mapa-resumen" aria-label="Resumen de la estructura"><span>📁 ' + carpetas + '</span><span>📄 ' + ficheros + '</span><span>🔗 ' + enlaces + '</span></div><div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
+    ? resumen + '<div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
     : '<p class="mapa-vacio">No hay datos del mundo virtual.</p>';
 }
 
@@ -1402,8 +1404,30 @@ function mapaResumenHtml(e, paso){
   return '<div class="mapa-contexto">' +
     '<div class="mapa-tarjeta"><span class="mapa-etiqueta">Ubicación actual</span><div class="mapa-valor">📍 ' + escaparHtml(actual) + '</div></div>' +
     objetivo +
-    '<details class="mapa-completo"><summary>Ver estructura completa y permisos</summary>' + mapaHtml(e) + '</details>' +
     '</div>';
+}
+
+function mapaEjercicioHtml(e, paso){
+  const fs = e.fs || {}, relevantes = new Set(['/']), cwd = e.cwd || '/';
+  const añadirRuta = raw => {
+    if (raw == null) return;
+    let p = rutaAbs(String(raw), cwd);
+    while (p && !relevantes.has(p)){ relevantes.add(p); if (p === '/') break; p = padreDe(p); }
+  };
+  añadirRuta(cwd);
+  const meta = (paso && paso.meta) || {};
+  [].concat(meta.existe || [], meta.noExiste || []).forEach(añadirRuta);
+  Object.keys(meta.modo || {}).forEach(añadirRuta);
+  Object.keys(meta.contenido || {}).forEach(añadirRuta);
+  [].concat(meta.enlace || []).forEach(en => { if (en) { añadirRuta(en.path); añadirRuta(en.destino); } });
+  // Si el ejercicio solo consulta el directorio actual, enseña sus entradas directas.
+  // Cuando ya hay un objetivo concreto, no añadimos hermanos irrelevantes.
+  if (relevantes.size <= 2) Object.keys(fs).forEach(p => { if (p !== cwd && padreDe(p) === cwd) relevantes.add(p); });
+  const reducido = { ...e, fs:{} };
+  Object.keys(fs).forEach(p => { if (relevantes.has(p)) reducido.fs[p] = fs[p]; });
+  const ejemplo = paso && paso.ejemplo || '';
+  const usaPermisos = Object.keys(meta.modo || {}).length > 0 || /^chmod\b/.test(ejemplo) || /\bls\s+[^\n]*-l/.test(ejemplo);
+  return mapaHtml(reducido, { mostrarPermisos: usaPermisos, resumen:false });
 }
 
 /* ---- Comandos ---- */
@@ -2514,7 +2538,8 @@ btnMapa.onclick = () => {
 function pintarMapaAct(){
   if (!estadoAct) return;
   const y = mapaArbol.scrollTop;   // conserva el desplazamiento al ejecutar comandos
-  mapaArbol.innerHTML = mapaResumenHtml(estadoAct, hechaAct ? null : act.pasos[pasoAct]);
+  const paso = hechaAct ? null : act.pasos[pasoAct];
+  mapaArbol.innerHTML = mapaResumenHtml(estadoAct, paso) + '<div class="mapa-estructura"><span class="mapa-estructura-titulo">Estructura necesaria</span>' + mapaEjercicioHtml(estadoAct, paso) + '</div>';
   mapaArbol.scrollTop = y;
   mapaRuta.textContent = rutaVisible(estadoAct.cwd);
 }

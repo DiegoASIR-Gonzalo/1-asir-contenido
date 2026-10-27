@@ -57,7 +57,7 @@ vm.createContext(ctx);
 vm.runInContext(html.slice(desde, hasta), ctx);
 
 /* El panel de estructura debe leer el mundo real de la actividad, no una lista fija. */
-const mapaPrueba = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/nota.txt':{ contenido:'x', modo:'600' }, '~/prueba/acceso':{ tipo:'link', destino:'~/prueba/nota.txt' } } } });
+const mapaPrueba = ctx.crearEstado({ inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/nota.txt':{ contenido:'x', modo:'600' }, '~/prueba/acceso':{ tipo:'link', destino:'~/prueba/nota.txt' }, '~/otra':'dir' } } });
 const mapa = ctx.mapaHtml(mapaPrueba);
 assert(mapa.includes('data-path="/home/usuario/prueba/nota.txt"'), 'el mapa no muestra el fichero creado');
 assert(mapa.includes('data-path="/home/usuario/prueba/acceso"'), 'el mapa no muestra el enlace creado');
@@ -66,7 +66,10 @@ assert(mapa.includes('actual'), 'el mapa no marca la carpeta actual');
 const resumen = ctx.mapaResumenHtml(mapaPrueba, { meta:{ modo:{ '~/prueba/nota.txt':'600' } } });
 assert(resumen.includes('Ubicación actual') && resumen.includes('Objetivo del paso'), 'el panel no muestra el contexto importante');
 assert(resumen.includes('~/prueba/nota.txt'), 'el resumen no muestra la ruta del objetivo');
-assert(resumen.includes('mapa-completo'), 'el árbol completo debe quedar disponible de forma plegada');
+const estructuraEjercicio = ctx.mapaEjercicioHtml(mapaPrueba, { meta:{ modo:{ '~/prueba/nota.txt':'600' } } });
+assert(estructuraEjercicio.includes('nota.txt') && estructuraEjercicio.includes('prueba/'), 'la estructura del ejercicio no muestra sus rutas');
+assert(!estructuraEjercicio.includes('otra/'), 'la estructura del ejercicio muestra carpetas irrelevantes');
+assert(!resumen.includes('mapa-completo'), 'el resumen no debe ofrecer el árbol completo');
 
 // validarPaso() usa aceptado() en los pasos del formato antiguo (ok / acepta).
 // En el HTML vive después del motor; aquí se replica para poder probarlos.
