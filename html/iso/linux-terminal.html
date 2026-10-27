@@ -246,7 +246,7 @@
   .act-mapa-cab button{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font:inherit;font-size:14px;line-height:22px;text-align:center;cursor:pointer}
   .act-mapa-cab button:hover{background:var(--acento)}
   .act-mapa-ruta{flex:none;padding:4px 12px 6px;font:12px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--ruta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .act-mapa-cuerpo{flex:1;min-height:0;overflow:auto;padding:4px 7px 12px;font:12px/1.5 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#d6d3d1;overscroll-behavior:contain;scrollbar-color:#65577d transparent}
+  .act-mapa-cuerpo{flex:1;min-height:0;overflow:auto;padding:4px 7px 12px;font:12px/1.5 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#d6d3d1;background:inherit;overscroll-behavior:contain;scrollbar-color:#65577d transparent}
   .mapa-resumen{display:flex;gap:6px;flex-wrap:wrap;padding:5px 6px 8px;color:#aaa4b3;font:11px/1.2 "Ubuntu Mono","DejaVu Sans Mono",monospace}
   .mapa-resumen span{padding:3px 6px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.04)}
   .mapa-fila{position:relative;display:flex;align-items:baseline;gap:6px;min-height:23px;padding:2px 6px;border-radius:6px;white-space:nowrap;transition:background .15s ease,transform .15s ease}
@@ -255,7 +255,8 @@
   .mapa-fila.actual{background:rgba(229,165,10,.2);box-shadow:inset 3px 0 var(--marca)}
   .mapa-modo{flex:none;color:#9a9996;font-size:11px}
   .mapa-nombre{overflow:hidden;text-overflow:ellipsis;color:#f0edf3}
-  .mapa-fila.dir .mapa-nombre{color:var(--carpeta);font-weight:700}
+  .mapa-fila.dir{background:inherit;color:inherit}
+  .mapa-fila.dir .mapa-nombre{color:inherit;font-weight:700}
   .mapa-fila.exec .mapa-nombre{color:var(--exec)}
   .mapa-fila.link .mapa-nombre{color:#c061cb;font-style:italic}
   .mapa-flecha{color:#888a85}
