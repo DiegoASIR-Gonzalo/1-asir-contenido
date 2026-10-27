@@ -79,6 +79,9 @@
        * un TEXTO: tiene que coincidir exactamente (distingue mayúsculas).
        * una EXPRESIÓN REGULAR para aceptar varias formas: /^mkdir -p (\.\/)?web\/?$/
    - La terminal acepta siempre "clear", las flechas arriba/abajo (historial) y Enter vacío.
+     Además, Tab completa comandos, opciones y rutas (como bash) y Ctrl+L limpia la
+     pantalla. Al superar un paso se suman puntos y se celebra con partículas; al
+     terminar la actividad, confeti. No hay que configurar nada de eso en los datos.
 
    PLANTILLA PARA COPIAR Y PEGAR (ojo con las comas entre actividades):
 
@@ -107,6 +110,14 @@
    Después, en linux-terminal.html, añade un <script src="..."> por archivo,
    uno detrás de otro y siempre antes del script principal. El ORDEN de esas
    líneas decide el orden de los subapartados (y de las actividades).
+
+   COMPROBAR QUE TODO ESTÁ BIEN (antes de dar una actividad por terminada)
+   Desde la carpeta del repositorio, ejecuta:
+       node html/iso/pruebas/actividades.test.js
+   Recorre todas las actividades, escribe el "ejemplo" de cada paso y avisa si
+   alguno no lo supera, si falta una pista, si un "meta" tiene una clave mal
+   escrita o si un comando inventado consigue avanzar. Solo necesita Node; no
+   hay que instalar nada.
 
    SI ALGO NO FUNCIONA
    Abre la consola del navegador (F12). El script avisa si falta el archivo, si

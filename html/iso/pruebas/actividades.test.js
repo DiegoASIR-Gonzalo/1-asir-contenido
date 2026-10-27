@@ -1,0 +1,159 @@
+#!/usr/bin/env node
+/* =====================================================================
+   pruebas/actividades.test.js · revisa que las actividades están bien
+   ---------------------------------------------------------------------
+   Uso (desde la carpeta del repositorio):
+       node html/iso/pruebas/actividades.test.js
+
+   Qué comprueba, sin abrir el navegador:
+     1. Que cada actividad tiene id único, título, nivel y pasos.
+     2. Que cada paso tiene "meta" (o el formato antiguo "ok"/"acepta"),
+        3 pistas, explicación y ejemplo.
+     3. Que las claves de "meta" existen (así se cazan erratas como
+        "muestras" en vez de "muestra", que se ignorarían sin avisar).
+     4. Que el "ejemplo" de cada paso lo supera de verdad, en orden.
+     5. Que un comando inventado NO supera el paso ni cambia el mundo.
+
+   No necesita dependencias: solo Node. Sale con código 1 si algo falla,
+   para poder usarlo en un hook o en una tarea automática.
+   ===================================================================== */
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const RAIZ = path.join(__dirname, '..');
+const HTML = path.join(RAIZ, 'linux-terminal.html');
+const DATOS = path.join(RAIZ, 'actividades.js');
+
+const color = (n, t) => process.stdout.isTTY ? '\x1b[' + n + 'm' + t + '\x1b[0m' : t;
+const rojo = t => color(31, t), verde = t => color(32, t), amarillo = t => color(33, t), gris = t => color(90, t);
+
+/* ---------- 1) Cargar el motor del simulador y las actividades ---------- */
+const html = fs.readFileSync(HTML, 'utf8');
+const desde = html.indexOf('const MUNDO_HOME');
+const hasta = html.indexOf('// 1) Lectura y validación');
+if (desde < 0 || hasta < 0 || hasta < desde){
+  console.error(rojo('No se encuentra el motor dentro de linux-terminal.html.'));
+  console.error('Busca las marcas "const MUNDO_HOME" y "// 1) Lectura y validación".');
+  process.exit(1);
+}
+
+// El motor solo usa el DOM para quitar el HTML de una salida; con este doble basta.
+const caja = () => {
+  let h = '';
+  return {
+    set innerHTML(v){ h = String(v); },
+    get innerHTML(){ return h; },
+    get textContent(){ return h.replace(/<[^>]*>/g, ''); }
+  };
+};
+const ctx = { console, document: { createElement: caja } };
+ctx.window = ctx;
+vm.createContext(ctx);
+vm.runInContext(html.slice(desde, hasta), ctx);
+
+// validarPaso() usa aceptado() en los pasos del formato antiguo (ok / acepta).
+// En el HTML vive después del motor; aquí se replica para poder probarlos.
+vm.runInContext(`
+  function normalizar(t){ return String(t).trim().replace(/\\s+/g, ' '); }
+  function aceptado(paso, t){
+    return [].concat(paso.acepta || paso.ok || []).some(o => {
+      if (!(o instanceof RegExp)) return normalizar(o) === t;
+      o.lastIndex = 0;
+      return o.test(t);
+    });
+  }
+`, ctx);
+
+vm.runInContext(fs.readFileSync(DATOS, 'utf8'), ctx);
+const ACTIVIDADES = ctx.ACTIVIDADES || [];
+
+/* ---------- 2) Utilidades de impresión ---------- */
+let errores = 0, avisos = 0, pasosTotal = 0;
+const error = (donde, texto) => { errores++; console.log('   ' + rojo('✗') + ' ' + donde + ': ' + texto); };
+const aviso = (donde, texto) => { avisos++; console.log('   ' + amarillo('!') + ' ' + donde + ': ' + texto); };
+
+const CLAVES_META = new Set(['cwd', 'existe', 'noExiste', 'contenido', 'modo', 'enlace', 'funcion', 'muestra', 'noMuestra', 'orden', 'salida']);
+const NOMBRE_META = { cwd:'cwd', existe:'existe', noExiste:'noExiste', contenido:'contenido', modo:'modo', enlace:'enlace',
+  funcion:'funcion', muestra:'muestra', noMuestra:'noMuestra', orden:'orden', salida:'salida' };
+
+/* ---------- 3) Revisión ---------- */
+console.log('\n' + color(1, 'Actividades') + gris(' · ' + ACTIVIDADES.length + ' cargadas\n'));
+
+if (!ACTIVIDADES.length){
+  console.log(rojo('No hay actividades. ¿Está bien el archivo actividades.js?'));
+  process.exit(1);
+}
+
+const ids = new Map();
+ACTIVIDADES.forEach((a, n) => {
+  const nombre = a && a.titulo ? a.titulo : 'actividad ' + (n + 1);
+  const donde = '«' + nombre + '»';
+  if (!a || typeof a !== 'object') return error('actividad ' + (n + 1), 'no es un objeto');
+  if (!a.id || typeof a.id !== 'string') error(donde, 'falta el id');
+  else if (ids.has(a.id)) error(donde, 'el id «' + a.id + '» está repetido (también en «' + ids.get(a.id) + '»)');
+  else if (/\s/.test(a.id)) aviso(donde, 'el id «' + a.id + '» tiene espacios; mejor sin ellos');
+  else ids.set(a.id, nombre);
+
+  if (!a.titulo) error(donde, 'falta el título');
+  if (!a.grupo) aviso(donde, 'no tiene "grupo": saldrá en «General»');
+  if (![1, 2, 3].includes(a.nivel)) aviso(donde, 'el nivel debería ser 1, 2 o 3');
+  if (!Array.isArray(a.pasos) || !a.pasos.length) return error(donde, 'no tiene pasos');
+
+  console.log('  ' + (a.nivel || '?') + '  ' + nombre + gris(' (' + a.pasos.length + (a.pasos.length === 1 ? ' paso)' : ' pasos)')));
+
+  let estado;
+  try { estado = ctx.crearEstado(a); }
+  catch (e) { return error(donde, 'no se puede crear su mundo virtual: ' + e.message); }
+
+  a.pasos.forEach((p, i) => {
+    pasosTotal++;
+    const d = 'paso ' + (i + 1);
+    if (!p || typeof p !== 'object') return error(donde + ', ' + d, 'no es un objeto');
+    if (!p.tarea) error(donde + ', ' + d, 'falta la tarea');
+    if (!p.meta && !p.ok && !p.acepta) return error(donde + ', ' + d, 'no tiene "meta", "ok" ni "acepta"');
+    if (!p.ejemplo) error(donde + ', ' + d, 'falta el "ejemplo"');
+    if (!p.explica) aviso(donde + ', ' + d, 'no tiene "explica" (la tarea no se explicará al superarla)');
+    if (!Array.isArray(p.pista) || !p.pista.length) error(donde + ', ' + d, 'no tiene pistas');
+    else if (p.pista.length < 3) aviso(donde + ', ' + d, 'tiene ' + p.pista.length + ' pista(s); lo recomendable son 3');
+
+    if (p.meta){
+      if (typeof p.meta !== 'object' || Array.isArray(p.meta)) return error(donde + ', ' + d, '"meta" debe ser un objeto');
+      const claves = Object.keys(p.meta);
+      if (!claves.length) error(donde + ', ' + d, '"meta" está vacío: cualquier comando lo superaría');
+      claves.filter(k => !CLAVES_META.has(k)).forEach(k =>
+        error(donde + ', ' + d, 'la clave "' + k + '" de "meta" no existe (¿querías "' + (NOMBRE_META[k.replace(/s$/, '')] || '?') + '"?)'));
+    }
+
+    if (!p.ejemplo) return;
+    const antes = JSON.stringify(estado);
+    let r;
+    try { r = ctx.validarPaso(p, estado, p.ejemplo); }
+    catch (e) { return error(donde + ', ' + d, 'el ejemplo «' + p.ejemplo + '» lanza un error: ' + e.message); }
+    if (!r.ok){
+      error(donde + ', ' + d, 'el ejemplo «' + p.ejemplo + '» no supera el paso: ' + (r.error || 'sin motivo'));
+      return;
+    }
+    const despues = JSON.stringify(r.estado);
+    estado = r.estado;
+
+    // Un comando que no existe no puede dar el paso por bueno ni tocar el mundo.
+    let mal;
+    try { mal = ctx.validarPaso(p, estado, 'comandoInventado --x'); }
+    catch (e) { return error(donde + ', ' + d, 'un comando inventado lanza un error: ' + e.message); }
+    if (mal.ok) error(donde + ', ' + d, 'acepta un comando inventado: el objetivo es demasiado blando');
+    if (JSON.stringify(mal.estado) !== despues) error(donde + ', ' + d, 'un fallo modifica el mundo virtual (el paso no es atómico)');
+
+    if (despues === antes) console.log('     ' + gris('· ' + d + ' solo consulta (no cambia el mundo)'));
+  });
+});
+
+/* ---------- 4) Resumen ---------- */
+console.log('');
+if (errores) console.log(rojo('✗ ' + errores + ' error(es)') + gris(' · ' + pasosTotal + ' pasos revisados') + (avisos ? ' · ' + amarillo(avisos + ' aviso(s)') : ''));
+else console.log(verde('✓ ' + ACTIVIDADES.length + ' actividades, ' + pasosTotal + ' pasos, 0 errores') + (avisos ? ' · ' + amarillo(avisos + ' aviso(s)') : ''));
+console.log('');
+
+process.exit(errores ? 1 : 0);

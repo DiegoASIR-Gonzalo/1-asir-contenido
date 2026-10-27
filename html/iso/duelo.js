@@ -73,7 +73,7 @@ const cuerpo = panelD.lastChild; panelD.setAttribute('aria-label', 'Duelo');
 const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Duelo"><div class="act-int">' +
   '<div class="titulo" id="d-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño"><span id="d-tit"></span><button class="act-max" id="d-max" type="button" aria-label="Maximizar ventana">□</button><button class="act-cerrar" id="d-x" type="button" aria-label="Salir del duelo">✕</button></div>' +
   '<div class="act-cuerpo"><article class="enunciado" id="d-enun"></article><div class="terminal act-term" id="d-term"><div class="pantalla" id="d-pant">' +
-  '<span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando"></div></div>' +
+  '<span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando" title="Tab completa · ↑ ↓ historial · Ctrl+L limpia"></div></div>' +
   '<div class="pie"><button id="d-salir" type="button">Salir del duelo</button><span class="contador" id="d-cont"></span></div></div></div></div></section>');
 fondo.hidden = true;
 document.body.append(panelD, fondo);
@@ -300,7 +300,7 @@ function pintar(){
   const falta = sala.inicio - (Date.now() + off);
   if (falta > 0){ setTimeout(() => { if (sala && !fondo.hidden) pintar(); }, 200); return nada('<h3>¡Prepárate!</h3><p>Empieza en ' + Math.ceil(falta / 1000) + '…</p>' + barras); }
   if (creador) return nada('<h3>Estás observando el duelo</h3>' + barras);
-  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: secs[0].estado ? rutaVisible(secs[0].estado.cwd) : '~', hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
+  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: secs[0].estado ? rutaVisible(secs[0].estado.cwd) : '~', mem: [], memI: 0, hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
   if (S.q >= secs.length) return nada('<h3>¡Has terminado!</h3><p>Comprobando el resultado…</p>' + barras);
   const q = secs[S.q]; enun.classList.remove('d-full'); term.hidden = false;
   enun.innerHTML = barras + '<h3>Secuencia ' + (S.q + 1) + ' / ' + secs.length + ' · ' + escapar(q.titulo) + '</h3>' + q.enun +
@@ -314,6 +314,7 @@ function enviar(){
   if (!S || S.q >= secs.length || sala.ganador) return;
   const crudo = inp.value, t = normalizar(crudo), sec = secs[S.q], paso = sec.pasos[S.p]; inp.value = '';
   S.hist += promptHtml(S.ruta) + escapar(crudo) + '\n';
+  if (t){ S.mem.push(crudo.trim()); S.memI = S.mem.length; }
   if (t === 'clear') S.hist = '';
   else if (t){
     const res = sec.estado ? validarPaso(paso.paso, sec.estado, t) : { ok: paso.valida(t), salida: '' };
@@ -335,7 +336,19 @@ function enviar(){
   }
   pintar();
 }
-inp.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); enviar(); } };
+inp.onkeydown = e => {
+  if (e.key === 'Enter'){ e.preventDefault(); enviar(); return; }
+  if (!S) return;
+  if (e.key === 'Tab'){   // mismo autocompletado que en las actividades
+    e.preventDefault();
+    const sec = secs && secs[S.q];
+    completarInput(inp, sec && sec.estado, html => { S.hist += html; pintar(); });
+    return;
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'l'){ e.preventDefault(); S.hist = ''; pintar(); return; }
+  if (e.key === 'ArrowUp' && S.mem.length){ e.preventDefault(); S.memI = Math.max(0, S.memI - 1); inp.value = S.mem[S.memI]; }
+  else if (e.key === 'ArrowDown'){ e.preventDefault(); S.memI = Math.min(S.mem.length, S.memI + 1); inp.value = S.mem[S.memI] ?? ''; }
+};
 $('d-pant').onclick = () => { if (!getSelection().toString()) inp.focus(); };
 $('d-salir').onclick = $('d-x').onclick = pedirSalir;
 })();
