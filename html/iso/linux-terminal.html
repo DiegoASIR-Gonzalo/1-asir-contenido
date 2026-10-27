@@ -230,6 +230,38 @@
   .act-term .pantalla{padding:8px 16px;line-height:1.3}
   .act-term .pie{padding:6px 14px}             /* sustituye el 52 % de la terminal principal */
   .act-term .pantalla{cursor:text}
+
+  /* Panel de estructura del mundo virtual: solo dentro de la ventana de actividades */
+  #act-fondo .act-cuerpo{flex-direction:row;position:relative}
+  .act-principal{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column}
+  .act-mapa{--mapa-w:300px;position:relative;flex:0 0 auto;width:var(--mapa-w);max-width:45%;min-width:0;display:flex;flex-direction:column;
+    background:#241f31;border-left:1px solid rgba(255,255,255,.14)}
+  .act-mapa-cab{flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px 4px 12px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .act-mapa-titulo{flex:1;min-width:0;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#c0bfbc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-mapa-cab button{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font:inherit;font-size:14px;line-height:22px;text-align:center;cursor:pointer}
+  .act-mapa-cab button:hover{background:var(--acento)}
+  .act-mapa-ruta{flex:none;padding:4px 12px 6px;font:12px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--ruta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-mapa-cuerpo{flex:1;min-height:0;overflow:auto;padding:2px 6px 10px;font:12px/1.45 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#d6d3d1;overscroll-behavior:contain}
+  .mapa-fila{display:flex;align-items:baseline;gap:6px;padding:1px 6px;border-radius:4px;white-space:nowrap}
+  .mapa-fila.actual{background:rgba(229,165,10,.18)}
+  .mapa-modo{flex:none;color:#9a9996;font-size:11px}
+  .mapa-nombre{overflow:hidden;text-overflow:ellipsis}
+  .mapa-fila.dir .mapa-nombre{color:var(--carpeta);font-weight:700}
+  .mapa-fila.exec .mapa-nombre{color:var(--exec)}
+  .mapa-fila.link .mapa-nombre{color:#c061cb;font-style:italic}
+  .mapa-flecha{color:#888a85}
+  .mapa-vacio{padding:10px 12px;color:#c0bfbc;font-size:12px}
+  .act-mapa.minimizada{width:34px;max-width:34px}
+  .act-mapa.minimizada .act-mapa-ruta,.act-mapa.minimizada .act-mapa-cuerpo,.act-mapa.minimizada .act-mapa-res{display:none}
+  .act-mapa.minimizada .act-mapa-cab{flex-direction:column;padding:8px 0;gap:8px;border-bottom:0}
+  .act-mapa.minimizada .act-mapa-titulo{flex:0 0 auto;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+  .act-mapa-res{position:absolute;left:-3px;top:0;bottom:0;width:7px;z-index:2;cursor:ew-resize;touch-action:none}
+  .act-mapa-res::after{content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:rgba(255,255,255,.08)}
+  .act-mapa-res:hover::after,.act-mapa-res:focus-visible::after{width:2px;background:var(--marca)}
+  @media (max-width:720px){
+    .act-mapa{position:absolute;right:0;top:0;bottom:0;z-index:5;width:min(82%,320px);max-width:82%;box-shadow:-8px 0 24px rgba(0,0,0,.45)}
+    .act-mapa.minimizada{width:34px;max-width:34px;box-shadow:none}
+  }
   .entrada{display:flex;align-items:baseline}
   .entrada input{flex:1;min-width:0;font:inherit;color:inherit;background:none;border:0;padding:0;caret-color:var(--term-txt)}
   .entrada input:focus-visible{outline:none}
@@ -347,23 +379,34 @@
         <button class="act-cerrar" id="act-cerrar" type="button" aria-label="Cerrar actividad">✕</button>
       </div>
       <div class="act-cuerpo">
-        <article class="enunciado" id="act-enunciado"></article>
-        <div class="terminal act-term">
-          <div class="pantalla" id="act-pantalla">
-            <span id="act-hist"></span>
-            <div class="entrada" id="act-linea">
-              <span id="act-prompt"></span>
-              <input id="act-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando" title="Tab completa · ↑ ↓ historial · Ctrl+L limpia · Ctrl+C cancela">
+        <div class="act-principal">
+          <article class="enunciado" id="act-enunciado"></article>
+          <div class="terminal act-term">
+            <div class="pantalla" id="act-pantalla">
+              <span id="act-hist"></span>
+              <div class="entrada" id="act-linea">
+                <span id="act-prompt"></span>
+                <input id="act-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando" title="Tab completa · ↑ ↓ historial · Ctrl+L limpia · Ctrl+C cancela">
+              </div>
+            </div>
+            <div class="pie">
+              <button id="act-reiniciar" type="button">↺ Reiniciar</button>
+              <span class="contador" id="act-contador"></span>
+              <button id="act-solucion" type="button" hidden>Ver solución</button>
+              <button id="act-pista" type="button">💡 Pista</button>
+              <button id="act-sonido" type="button" aria-pressed="true" title="Sonido al superar un paso">🔊</button>
             </div>
           </div>
-          <div class="pie">
-            <button id="act-reiniciar" type="button">↺ Reiniciar</button>
-            <span class="contador" id="act-contador"></span>
-            <button id="act-solucion" type="button" hidden>Ver solución</button>
-            <button id="act-pista" type="button">💡 Pista</button>
-            <button id="act-sonido" type="button" aria-pressed="true" title="Sonido al superar un paso">🔊</button>
-          </div>
         </div>
+        <aside class="act-mapa" id="act-mapa" aria-label="Estructura de carpetas y permisos">
+          <div class="act-mapa-cab">
+            <span class="act-mapa-titulo">Estructura</span>
+            <button type="button" id="act-mapa-min" aria-expanded="true" aria-controls="act-mapa-arbol" aria-label="Minimizar panel de estructura" title="Minimizar estructura de carpetas">−</button>
+          </div>
+          <div class="act-mapa-ruta" id="act-mapa-ruta"></div>
+          <div class="act-mapa-cuerpo" id="act-mapa-arbol" tabindex="0" aria-label="Árbol de carpetas y permisos. Usa las flechas para desplazarte."></div>
+          <span class="act-mapa-res" id="act-mapa-res" role="separator" aria-orientation="vertical" aria-label="Cambiar el ancho del panel" tabindex="0" title="Arrastra para cambiar el ancho del panel"></span>
+        </aside>
       </div>
       <div class="act-fx" id="act-fx" aria-hidden="true"></div>
     </div>
@@ -1275,6 +1318,39 @@ function lineaLarga(e, p, it, verInodo){
   const extra = it.tipo === 'link' ? ' -> ' + escaparHtml(it.destino) : '';
   const linea = tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
   return verInodo ? conNumeroInodo(p, it, linea) : linea;
+}
+
+/* ---- Árbol del mundo virtual (panel de estructura de la actividad) ----
+   Recorre estado.fs desde la raíz y devuelve una fila por carpeta o fichero
+   con su tipo y permisos. No sigue enlaces: así no puede entrar en un ciclo. */
+function mapaHtml(e){
+  const fs = (e && e.fs) || {}, hijos = new Map();
+  for (const p of Object.keys(fs)){
+    if (p === '/' || !fs[p]) continue;
+    const corte = p.lastIndexOf('/');
+    const padre = corte <= 0 ? '/' : p.slice(0, corte);
+    if (!hijos.has(padre)) hijos.set(padre, []);
+    hijos.get(padre).push(p);
+  }
+  for (const lista of hijos.values()) lista.sort((a, b) => nombreDe(a).localeCompare(nombreDe(b), 'es'));
+  const filas = [];
+  const ver = (p, nivel) => {
+    const it = fs[p];
+    if (!it) return;
+    const dir = it.tipo === 'dir', link = it.tipo === 'link';
+    const modo = link ? 'rwxrwxrwx' : permisosDe(it);
+    const ejecutable = it.tipo === 'file' && /[1357]/.test(modoDe(it)[2] || '0');
+    const clase = dir ? 'dir' : link ? 'link' : (ejecutable ? 'exec' : 'file');
+    const actual = p === e.cwd ? ' actual' : '';
+    const destino = link ? ' <span class="mapa-flecha">→</span> ' + escaparHtml(rutaVisible(it.destino)) : '';
+    filas.push('<div class="mapa-fila ' + clase + actual + '" role="treeitem" aria-level="' + (nivel + 1) + '" style="padding-left:' + (6 + nivel * 13) + 'px">' +
+      '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> <span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
+    for (const h of hijos.get(p) || []) ver(h, nivel + 1);
+  };
+  ver('/', 0);
+  return filas.length
+    ? '<div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
+    : '<p class="mapa-vacio">No hay datos del mundo virtual.</p>';
 }
 
 /* ---- Comandos ---- */
@@ -2210,6 +2286,73 @@ pintarSonido();
 const AYUDA_ACT = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n' +
   '<span class="c"># Tab completa · ↑ ↓ historial · Ctrl+L limpia · Ctrl+C cancela.</span>\n';
 
+/* ---- Panel de estructura de carpetas y permisos (solo en la actividad) ---- */
+const mapaAct = $('act-mapa'), mapaArbol = $('act-mapa-arbol'), mapaRuta = $('act-mapa-ruta'), btnMapa = $('act-mapa-min');
+let mapaMin = false, mapaAncho = 300;
+try {
+  const w = Number(localStorage.getItem('act-mapa-ancho'));
+  if (Number.isFinite(w) && w > 0) mapaAncho = Math.min(Math.max(Math.round(w), 160), 800);
+  const pref = localStorage.getItem('act-mapa-min');
+  mapaMin = pref === '1' || (pref === null && innerWidth < 720);   // en móvil empieza plegado
+} catch (e) { mapaMin = innerWidth < 720; }
+const guardarMapa = () => {
+  try {
+    localStorage.setItem('act-mapa-ancho', String(mapaAncho));
+    localStorage.setItem('act-mapa-min', mapaMin ? '1' : '0');
+  } catch (e) {}   // sin almacenamiento, el panel sigue funcionando durante la visita
+};
+function aplicarMapa(){
+  mapaAct.classList.toggle('minimizada', mapaMin);
+  mapaAct.style.setProperty('--mapa-w', mapaAncho + 'px');
+  btnMapa.textContent = mapaMin ? '+' : '−';
+  btnMapa.setAttribute('aria-expanded', String(!mapaMin));
+  btnMapa.setAttribute('aria-label', mapaMin ? 'Mostrar panel de estructura' : 'Minimizar panel de estructura');
+  btnMapa.title = mapaMin ? 'Mostrar estructura de carpetas' : 'Minimizar estructura de carpetas';
+}
+btnMapa.onclick = () => {
+  mapaMin = !mapaMin;
+  aplicarMapa();
+  guardarMapa();
+  if (!mapaMin) mapaArbol.scrollTop = 0;
+};
+function pintarMapaAct(){
+  if (!estadoAct) return;
+  const y = mapaArbol.scrollTop;   // conserva el desplazamiento al ejecutar comandos
+  mapaArbol.innerHTML = mapaHtml(estadoAct);
+  mapaArbol.scrollTop = y;
+  mapaRuta.textContent = rutaVisible(estadoAct.cwd);
+}
+const resMapa = $('act-mapa-res');
+let arrastreMapa = null;
+resMapa.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  arrastreMapa = { x: e.clientX, w: mapaAct.getBoundingClientRect().width };
+  resMapa.setPointerCapture(e.pointerId);
+});
+resMapa.addEventListener('pointermove', e => {
+  if (!arrastreMapa) return;
+  const cuerpo = document.querySelector('#act-fondo .act-cuerpo');
+  const max = Math.max(180, Math.round((cuerpo ? cuerpo.clientWidth : innerWidth) * .45));
+  mapaAncho = Math.max(160, Math.min(Math.round(arrastreMapa.w + arrastreMapa.x - e.clientX), max));
+  aplicarMapa();
+});
+['pointerup', 'pointercancel'].forEach(ev => resMapa.addEventListener(ev, () => {
+  if (!arrastreMapa) return;
+  arrastreMapa = null;
+  guardarMapa();
+}));
+resMapa.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  const cuerpo = document.querySelector('#act-fondo .act-cuerpo');
+  const max = Math.max(180, Math.round((cuerpo ? cuerpo.clientWidth : innerWidth) * .45));
+  mapaAncho = Math.max(160, Math.min(mapaAncho + (e.key === 'ArrowLeft' ? 20 : -20), max));
+  aplicarMapa();
+  guardarMapa();
+});
+aplicarMapa();
+
 // Abre la actividad retomando el paso guardado (si lo hay) y su mundo virtual.
 function cargarAct(){
   pasoAct = 0; fallosAct = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
@@ -2255,6 +2398,7 @@ function pintarAct(){
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
   $('act-solucion').hidden = hechaAct || fallosAct < 3;
   pantAct.scrollTop = pantAct.scrollHeight;
+  pintarMapaAct();
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
 }
 
