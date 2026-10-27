@@ -23,4 +23,6 @@ assert(duelo.includes('d-salas-cab') && duelo.includes('d-empty'), 'la lista de 
 assert(duelo.includes('d-crear') && duelo.includes('d-unirse'), 'las acciones de crear y unirse deben diferenciarse visualmente');
 assert(duelo.includes('act-fondo d-fondo') && duelo.includes('d-ventana'), 'la ventana del duelo debe tener una geometría propia');
 assert(duelo.includes('setTimeout(pintarPartida, 200)'), 'la cuenta atrás debe repintar hasta mostrar el ejercicio');
+assert(duelo.includes('d-mapa') && duelo.includes('mapaResumenHtml') && duelo.includes('mapaEjercicioHtml'), 'la partida online debe mostrar el contexto del ejercicio');
+assert(duelo.includes('d-mapa-min'), 'el panel de estructura debe poder plegarse');
 console.log('✓ interfaz multijugador: 0 errores');
