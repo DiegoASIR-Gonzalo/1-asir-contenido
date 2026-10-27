@@ -781,7 +781,7 @@ ACTIVIDADES.push(
   actividadRafa(78, 'Guardar usuarios ordenados', { cwd:'~' }, pasoRafa('Guarda la información de usuarios ordenada por hora en persona.', { existe:'~/persona' }, 'who | sort > persona', 'Una tubería pasa la salida de <code>who</code> a <code>sort</code> y la redirección la guarda.'), 2),
   actividadRafa(79, 'Guardar directorios', { cwd:'~', fs:{ '~/prueba':'dir' } }, pasoRafa('Crea carpeta sin lectura y guarda los directorios encontrados en direc.', { existe:['~/prueba/carpeta','~/direc'], modo:{ '~/prueba/carpeta':'333' } }, 'mkdir prueba/carpeta; chmod 333 prueba/carpeta; find ~ -type d > direc', 'La salida de <code>find</code> se puede guardar con <code>></code>.'), 3),
   actividadRafa(80, 'Guardar errores', { cwd:'~' }, pasoRafa('Redirige el error de una búsqueda inexistente a malos y muéstralo.', { existe:'~/malos', muestra:'No such file' }, 'find /noexiste -type d 2> malos; cat malos', '<code>2></code> redirige la salida de error.'), 3),
-  actividadRafa(81, 'Añadir ficheros a direc', { cwd:'~', fs:{ '~/direc':'inicio\n' } }, pasoRafa('Añade los ficheros ordinarios de /etc a direc.', { contenido:{ '~/direc':'inicio\n/etc/hosts\n' } }, 'echo /etc/hosts >> direc', '<code>>></code> añade sin borrar lo anterior.'), 2),
+  actividadRafa(81, 'Añadir ficheros a direc', { cwd:'~', fs:{ '~/direc':'inicio\n' } }, pasoRafa('Añade los ficheros ordinarios de /etc a direc.', { contenido:{ '~/direc':'inicio\n/etc/hostname\n/etc/hosts\n/etc/motd\n/etc/passwd\n/etc/rc2.d/README\n/etc/rc2.d/S01cron\n/etc/rc2.d/S20ssh\n/etc/timezone\n' } }, 'find /etc -type f >> direc', '<code>find /etc -type f</code> localiza todos los ficheros ordinarios de <code>/etc</code> y <code>&gt;&gt;</code> los añade a <code>direc</code> sin borrar lo anterior.'), 2),
   actividadRafa(82, 'Buscar nombres con ai', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/archivo.txt':'x', '~/nuevalista':'' } }, pasoRafa('Busca en prueba los nombres que contienen ai y guárdalos.', { existe:'~/nuevalista' }, 'find prueba -name "*ai*" > nuevalista', '<code>-name</code> puede buscar una cadena dentro del nombre.'), 2),
   actividadRafa(83, 'Medir who', { cwd:'~' }, pasoRafa('Mide el tiempo que tarda el comando who.', { muestra:'real 0m0.001s' }, 'time who', '<code>time</code> muestra el tiempo de ejecución.'), 2),
   actividadRafa(84, 'Ordenar procesos', { cwd:'~' }, pasoRafa('Muestra los procesos ordenados.', { muestra:'PID' }, 'ps | sort', '<code>ps</code> muestra procesos y <code>sort</code> los ordena.'), 2),
@@ -794,7 +794,7 @@ ACTIVIDADES.push(
   actividadRafa(91, 'Extraer usuario y shell', { cwd:'~', fs:{ '/tmp/passwd':'usuario:x:1:/bin/bash\notro:x:2:/bin/sh\n' } }, pasoRafa('Extrae el usuario y el shell.', { muestra:['/bin/bash','/bin/sh'] }, 'cut -d : -f 1,4 /tmp/passwd', 'Se pueden seleccionar varios campos con <code>-f</code>.'), 2)
 );
 
-// El ODT contiene 88 ejercicios numerados. Desde el 36, el texto visible debe
+// El ODT contiene 87 ejercicios numerados. Desde el 36, el texto visible debe
 // coincidir con el documento; las actividades generales no forman parte de esta serie.
 const tareasRafa = {
   36:'Crear un enlace simbólico (llamado enlafich1) al fichero enlace de dir2 endir1.',
@@ -857,7 +857,7 @@ for (let i = ACTIVIDADES.length - 1; i >= 0; i--) if (/^rafa-\d+$/.test(ACTIVIDA
 
 const nuevas36a40 = [
   actividadRafa(36, 'Enlace simbólico al fichero', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'fich1\n' } }, pasoRafa(tareasRafa[36], { enlace:[{ path:'~/prueba/dir1/enlafich1', destino:'~/prueba/dir2/enlace' }] }, 'ln -s prueba/dir2/enlace prueba/dir1/enlafich1', 'Un enlace simbólico guarda la ruta del fichero de destino.'), 3),
-  actividadRafa(37, 'Copiar mediante el enlace', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'fich1\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir311':'dir' } }, pasoRafa(tareasRafa[37], { existe:'~/prueba/dir311/enlafich1' }, 'cp prueba/dir1/enlafich1 prueba/dir311', 'La copia utiliza el enlace como ruta de origen.'), 3),
+  actividadRafa(37, 'Copiar mediante el enlace', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'fich1\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir3':'dir', '~/prueba/dir3/dir31':'dir', '~/prueba/dir3/dir31/dir311':'dir' } }, pasoRafa(tareasRafa[37], { existe:'~/prueba/dir3/dir31/dir311/enlafich1' }, 'cd prueba/dir1; cp enlafich1 ../dir3/dir31/dir311', 'Desde dir1, la ruta relativa lleva al directorio dir311 que cuelga de dir3.'), 3),
   actividadRafa(38, 'Leer mediante el enlace', { cwd:'~/prueba/dir1', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'línea uno\nlínea dos\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' } } }, pasoRafa(tareasRafa[38], { muestra:'línea uno' }, 'cat enlafich1', 'La ruta simbólica permite leer el fichero original.'), 3),
   actividadRafa(39, 'Borrar fich1 de dir2', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/fich1':'fich1\n' } }, pasoRafa(tareasRafa[39], { noExiste:'~/prueba/dir2/fich1' }, 'rm prueba/dir2/fich1', 'Se elimina la entrada indicada con <code>rm</code>.'), 2),
   actividadRafa(40, 'Limpieza final', { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir3':'dir' } }, pasoRafa(tareasRafa[40], { noExiste:'~/prueba' }, 'rm -r prueba', 'La opción recursiva borra todo el árbol.'), 2)
@@ -887,3 +887,133 @@ const actividadesRafa = [
   ...(fusionada55 ? [fusionada55] : [])
 ].sort((a, b) => Number(a.id.slice(5)) - Number(b.id.slice(5)));
 ACTIVIDADES.push(...actividadesRafa);
+
+// Ajustes finales: cada ejemplo debe enseñar el comando que resuelve literalmente
+// el enunciado del ODT, no solo dejar un estado parecido.
+const reemplazarPasoRafa = (numero, inicio, meta, ejemplo, explica, tarea) => {
+  const actividad = ACTIVIDADES.find(a => a.id === 'rafa-' + String(numero).padStart(2, '0'));
+  if (!actividad) return;
+  actividad.inicio = inicio;
+  actividad.pasos = [pasoRafa(tarea || actividad.pasos[0].tarea, meta, ejemplo, explica)];
+};
+
+reemplazarPasoRafa(41,
+  { cwd:'~', fs:{ '~/prueba':'dir' } },
+  { existe:['~/prueba/dir2','~/prueba/dir3'], modo:{ '~/prueba/dir2':'755' }, muestra:'dir2' },
+  'mkdir prueba/dir2 prueba/dir3; ls -ld prueba/dir2',
+  'Se crean los dos directorios y <code>ls -ld</code> permite consultar los permisos de dir2.'
+);
+reemplazarPasoRafa(44,
+  { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir2':{ tipo:'dir', modo:'551' } } },
+  { modo:{ '~/prueba/dir2':'551' }, muestra:['dir2','dr-xr-x--x'] },
+  'ls -ld prueba/dir2',
+  '<code>ls -ld</code> muestra los permisos del directorio sin listar su contenido.'
+);
+reemplazarPasoRafa(49,
+  { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir3':{ tipo:'dir', modo:'755' } } },
+  { modo:{ '~/prueba/dir3':'755' }, muestra:['dir3','drwxr-xr-x'] },
+  'ls -ld prueba/dir3',
+  '<code>ls -ld</code> consulta los permisos actuales de dir3.'
+);
+reemplazarPasoRafa(51,
+  { cwd:'~/prueba/dir3', fs:{ '~/prueba/dir3':'dir' } },
+  { existe:['dira','dirb','dirc','dird'], cwd:'~/prueba/dir3' },
+  'mkdir dira dirb dirc dird',
+  'Al estar dentro de dir3, las rutas relativas crean las cuatro carpetas allí.'
+);
+reemplazarPasoRafa(52,
+  { cwd:'~/prueba/dir3', fs:{ '~/prueba/dir3':'dir', '~/prueba/dir3/dira':'dir', '~/prueba/dir3/dirb':'dir', '~/prueba/dir3/dirc':'dir', '~/prueba/dir3/dird':'dir' } },
+  { modo:{ dira:'755', dirb:'755', dirc:'755', dird:'755' }, muestra:'dira' },
+  'ls -ld dira dirb dirc dird',
+  '<code>ls -ld</code> permite comprobar que la máscara 022 dejó los directorios con modo 755.'
+);
+
+const actividad53 = ACTIVIDADES.find(a => a.id === 'rafa-53');
+if (actividad53){
+  actividad53.inicio = { cwd:'~', fs:{ '~/prueba':'dir' } };
+  actividad53.pasos = [
+    pasoRafa(actividad53.pasos[0].tarea, { existe:'~/prueba/uno', modo:{ '~/prueba/uno':'200' }, muestra:'uno' }, 'touch prueba/uno; chmod a-r prueba/uno; ls -l prueba/uno', 'Se crea el fichero, se quita la lectura y se comprueba el modo con <code>ls -l</code>.'),
+    pasoRafa('Intenta borrar el fichero <code>uno</code>.', { noExiste:'~/prueba/uno' }, 'rm prueba/uno', '<code>rm</code> elimina el fichero indicado.')
+  ];
+}
+
+const actividad55 = ACTIVIDADES.find(a => a.id === 'rafa-55');
+if (actividad55){
+  actividad55.inicio = { cwd:'~' };
+  actividad55.pasos = [
+    pasoRafa(actividad55.pasos[0].tarea, { existe:['~/carpeta1','~/carpeta2'], modo:{ '~/carpeta1':'700', '~/carpeta2':'750' } }, 'mkdir -m 700 carpeta1; mkdir -m 750 carpeta2', 'La opción <code>-m</code> crea cada directorio con los permisos indicados.'),
+    pasoRafa('Crea los cuatro ficheros y asigna sus permisos.', { existe:['~/carpeta1/fich1','~/carpeta1/fich2','~/carpeta2/file1','~/carpeta2/file2'], modo:{ '~/carpeta1/fich1':'666', '~/carpeta1/fich2':'644', '~/carpeta2/file1':'664', '~/carpeta2/file2':'640' } }, 'touch carpeta1/fich1 carpeta1/fich2 carpeta2/file1 carpeta2/file2; chmod 666 carpeta1/fich1; chmod 644 carpeta1/fich2; chmod 664 carpeta2/file1; chmod 640 carpeta2/file2', '<code>chmod</code> aplica los permisos que pide el documento a cada fichero.')
+  ];
+}
+reemplazarPasoRafa(56,
+  { cwd:'~', fs:{ '~/carpeta1':{ tipo:'dir', modo:'700' }, '~/carpeta1/fich1':{ contenido:'fich1\n', modo:'666' }, '~/carpeta1/fich2':{ contenido:'fich2\n', modo:'644' }, '~/carpeta2':{ tipo:'dir', modo:'750' }, '~/carpeta2/file1':{ contenido:'file1\n', modo:'664' }, '~/carpeta2/file2':{ contenido:'file2\n', modo:'640' } } },
+  { modo:{ '~/carpeta1':'700', '~/carpeta2':'750', '~/carpeta1/fich1':'666', '~/carpeta1/fich2':'644', '~/carpeta2/file1':'664', '~/carpeta2/file2':'640' }, muestra:['carpeta1','fich1','file1'] },
+  'ls -ld carpeta1 carpeta2; ls -l carpeta1 carpeta2',
+  'La consulta de permisos permite comprobar qué operaciones puede hacer otro usuario en cada entrada.'
+);
+reemplazarPasoRafa(60,
+  { cwd:'~', fs:{ '~/prueba':'dir', '~/fuentes':'dir', '~/fuentes/dir1':'dir', '~/fuentes/dir2':'dir', '~/fuentes/dir3':'dir' } },
+  { cwd:'~/prueba', noExiste:['~/fuentes/dir2','~/fuentes/dir3'], existe:'~/fuentes/dir1' },
+  'cd prueba; rm -r ../fuentes/dir2 ../fuentes/dir3',
+  'Primero se entra en prueba y después se eliminan las carpetas de fuentes cuyo número no es 1.'
+);
+reemplazarPasoRafa(61,
+  { cwd:'~' },
+  { muestra:'tty2' },
+  'ls -l /dev/tty2',
+  '<code>ls -l</code> confirma que tty2 existe y muestra su fecha de actualización.'
+);
+reemplazarPasoRafa(65,
+  { cwd:'~' },
+  { muestra:'/etc/hosts' },
+  'find / -type f -user root',
+  '<code>-user root</code> filtra los ficheros cuyo propietario es root.'
+);
+reemplazarPasoRafa(68,
+  { cwd:'~' },
+  { muestra:['/home/usuario/.bashrc','texto ASCII'] },
+  'find / -type f -user usuario -exec file {} +',
+  '<code>find</code> selecciona los ficheros del usuario y ejecuta <code>file</code> para mostrar su tipo.'
+);
+reemplazarPasoRafa(71,
+  { cwd:'~', fs:{ '~/menus':'dir', '/home/rafa/Descargas/informe1':'uno\n', '/home/rafa/Descargas/informe2':'dos\n' } },
+  { existe:['~/menus/informe1','~/menus/informe2'] },
+  'cp /home/rafa/Descargas/informe[12] menus',
+  'El comodín selecciona todos los ficheros del usuario conocido cuyo nombre acaba en número.'
+);
+reemplazarPasoRafa(78,
+  { cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/archivo.txt':'x' } },
+  { existe:['~/nuevalista','~/malos'], muestra:'No such file' },
+  'find prueba -name "*ai*" > nuevalista; find /noexiste -name "*ai*" 2> malos; cat malos',
+  'La salida correcta va a <code>nuevalista</code> y el error de una búsqueda fallida se redirige a <code>malos</code>.'
+);
+reemplazarPasoRafa(80,
+  { cwd:'~' },
+  { muestra:'PID' },
+  'ps | sort -n',
+  '<code>sort -n</code> ordena numéricamente las líneas de <code>ps</code> por su PID.'
+);
+reemplazarPasoRafa(81,
+  { cwd:'~' },
+  { muestra:'2' },
+  'cut -d : -f 1 /etc/passwd | wc -l',
+  '<code>cut</code> extrae el primer campo de <code>/etc/passwd</code> y <code>wc -l</code> cuenta sus líneas.'
+);
+reemplazarPasoRafa(82,
+  { cwd:'~' },
+  { muestra:'2' },
+  'grep "/bin/bash" /etc/passwd | wc -l',
+  '<code>grep</code> filtra los usuarios que usan bash y <code>wc -l</code> los cuenta.'
+);
+reemplazarPasoRafa(86,
+  { cwd:'~' },
+  { muestra:['root','usuario'] },
+  'cut -d : -f 1 /etc/passwd',
+  '<code>cut -d :</code> extrae el primer campo de cada entrada del sistema.'
+);
+reemplazarPasoRafa(87,
+  { cwd:'~' },
+  { muestra:['root:/bin/bash','usuario:/bin/bash'] },
+  'cut -d : -f 1,7 /etc/passwd',
+  'El primer campo es el usuario y el séptimo, el intérprete que utiliza.'
+);

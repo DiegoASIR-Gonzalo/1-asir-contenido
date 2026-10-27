@@ -1151,6 +1151,7 @@ function rutaAbs(p, cwd = MUNDO_HOME){
 const rutaVisible = p => p === MUNDO_HOME ? '~' : (p.startsWith(MUNDO_HOME + '/') ? '~' + p.slice(MUNDO_HOME.length) : p);
 const padreDe = p => p === '/' ? '/' : p.slice(0, p.lastIndexOf('/')) || '/';
 const nombreDe = p => p === '/' ? '/' : p.slice(p.lastIndexOf('/') + 1);
+const propietarioDe = (p, it) => it && it.propietario || (p.startsWith('/home/rafa') ? 'rafa' : p.startsWith(MUNDO_HOME) ? 'usuario' : 'root');
 const escaparHtml = t => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const quitarHtml = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
 
@@ -1425,11 +1426,17 @@ function cmd_ls(e, args){
   return { out: salidas.join('\n'), err: errores.join('\n'), code: errores.length && !salidas.length ? 1 : 0 };
 }
 function cmd_mkdir(e, args){
-  let padres = false;
+  let padres = false, modo = null;
   const rutas = [];
-  for (const a of args){ if (a === '-p') padres = true; else if (!a.startsWith('-')) rutas.push(a); }
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-p') padres = true;
+    else if (a === '-m') modo = String(args[++i] || '');
+    else if (!a.startsWith('-')) rutas.push(a);
+  }
   if (!rutas.length) return fallo('mkdir: falta un operando');
   let err = '';
+  const modoNuevo = /^[0-7]{3,4}$/.test(modo || '') ? modo.slice(-3) : null;
   for (const raw of rutas){
     const p = rutaAbs(raw, e.cwd);
     if (e.fs[p]){
@@ -1440,11 +1447,11 @@ function cmd_mkdir(e, args){
     if (padres){
       const partes = p.split('/').filter(Boolean);
       let actual = '';
-      for (const parte of partes){ actual += '/' + parte; if (!e.fs[actual]) e.fs[actual] = { tipo:'dir', modo: modoConUmask(0o777, e) }; }
+      for (const parte of partes){ actual += '/' + parte; if (!e.fs[actual]) e.fs[actual] = { tipo:'dir', modo: modoNuevo || modoConUmask(0o777, e) }; }
     } else {
       const padre = padreDe(p);
       if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "mkdir: no se puede crear el directorio '" + raw + "': No such file or directory"; continue; }
-      e.fs[p] = { tipo:'dir', modo: modoConUmask(0o777, e) };
+      e.fs[p] = { tipo:'dir', modo: modoNuevo || modoConUmask(0o777, e) };
     }
   }
   return { out:'', err, code: err ? 1 : 0 };
@@ -1626,10 +1633,18 @@ function cmd_tree(e, args){
   return exito(lineas.join('\n'));
 }
 function cmd_find(e, args){
-  let inicio = '.', name = null, tipo = null;
+  let inicio = '.', name = null, tipo = null, usuario = null, grupo = null;
+  let execCmd = null, execArgs = [];
   for (let i = 0; i < args.length; i++){
     if (args[i] === '-name') name = args[++i];
     else if (args[i] === '-type') { tipo = args[++i]; }
+    else if (args[i] === '-user') usuario = args[++i];
+    else if (args[i] === '-group') grupo = args[++i];
+    else if (args[i] === '-exec'){
+      execCmd = args[++i];
+      while (i + 1 < args.length && args[i + 1] !== '+' && args[i + 1] !== ';') execArgs.push(args[++i]);
+      if (args[i + 1] === '+' || args[i + 1] === ';') i++;
+    }
     else if (!args[i].startsWith('-')) inicio = args[i];
   }
   const p = rutaAbs(inicio, e.cwd);
@@ -1638,11 +1653,13 @@ function cmd_find(e, args){
   const rec = x => {
     const it = e.fs[x];
     const valeTipo = !tipo || (tipo === 'd' ? it.tipo === 'dir' : tipo === 'f' ? it.tipo === 'file' : true);
-    if (valeTipo && (!re || re.test(nombreDe(x)))) out.push(rutaVisible(x));
+    const propietario = propietarioDe(x, it), pertenece = propietario === usuario || propietario === grupo;
+    if (valeTipo && (!re || re.test(nombreDe(x))) && (!usuario && !grupo || pertenece)) out.push(x);
     if (it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h);
   };
   rec(p);
-  return exito(out.join('\n'));
+  if (execCmd === 'file') return exito(out.map(x => cmd_file(e, [x]).out).join('\n'));
+  return exito(out.map(rutaVisible).join('\n'));
 }
 function cmd_grep(e, args, stdin){
   let i = 0;
@@ -1725,10 +1742,25 @@ function cmd_tail(e, args, stdin){
   return exito(ls.slice(-n).join('\n'));
 }
 function cmd_sort(e, args, stdin){
-  const rev = args.includes('-r'), files = args.filter(a => !a.startsWith('-'));
+  const rev = args.includes('-r'), numeric = args.includes('-n');
+  let campo = 0;
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-k') campo = Math.max(0, Number(args[i + 1]) - 1) || 0;
+    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1) || 0;
+  }
+  const files = args.filter(a => !a.startsWith('-'));
   const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
   const ls = texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1);
-  ls.sort((a, b) => a.localeCompare(b, 'es'));
+  ls.sort((a, b) => {
+    const aa = a.trim().split(/\s+/)[campo], bb = b.trim().split(/\s+/)[campo];
+    if (numeric){
+      const na = Number(aa), nb = Number(bb);
+      if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+      if (Number.isFinite(na)) return -1;
+      if (Number.isFinite(nb)) return 1;
+    }
+    return a.localeCompare(b, 'es');
+  });
   if (rev) ls.reverse();
   return exito(ls.join('\n'));
 }
@@ -2521,7 +2553,7 @@ function enviarAct(){
 /* ---- Tab: completa comandos, opciones y rutas, como bash ---- */
 const OPCIONES_CMD = {
   ls:'-a -A -l -h -r -R -1 -t -i', cd:'-P', mkdir:'-p', rm:'-r -f', cp:'-r', ln:'-s', chmod:'-R',
-  grep:'-i -r -n -v', find:'-name -type -maxdepth', head:'-n', tail:'-n', sort:'-r -n',
+  grep:'-i -r -n -v', find:'-name -type -user -group -exec -maxdepth', head:'-n', tail:'-n', sort:'-r -n -k',
   du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t'
 };
 const COMANDOS_TAB = () => ['clear', 'history', 'mkcd'].concat(Object.keys(CMD_SIM).filter(x => x !== '.')).sort((a, b) => a.localeCompare(b, 'es'));
