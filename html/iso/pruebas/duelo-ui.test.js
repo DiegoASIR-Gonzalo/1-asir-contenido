@@ -21,4 +21,6 @@ assert(duelo.includes('d-mode-grid'), 'el menú debe presentar los modos como ta
 assert(duelo.includes('d-settings') && duelo.includes("htmlFor = 'd-nombre'"), 'la configuración debe estar agrupada y etiquetada');
 assert(duelo.includes('d-salas-cab') && duelo.includes('d-empty'), 'la lista de salas debe tener cabecera y estado vacío propio');
 assert(duelo.includes('d-crear') && duelo.includes('d-unirse'), 'las acciones de crear y unirse deben diferenciarse visualmente');
+assert(duelo.includes('act-fondo d-fondo') && duelo.includes('d-ventana'), 'la ventana del duelo debe tener una geometría propia');
+assert(duelo.includes('setTimeout(pintarPartida, 200)'), 'la cuenta atrás debe repintar hasta mostrar el ejercicio');
 console.log('✓ interfaz multijugador: 0 errores');
