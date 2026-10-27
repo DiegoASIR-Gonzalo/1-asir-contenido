@@ -2368,6 +2368,7 @@ function cargarAct(){
   histAct = AYUDA_ACT;
   if (pasoAct && !hechaAct) histAct += '<span class="c"># Retomas la actividad en el paso ' + (pasoAct + 1) + ' de ' + act.pasos.length + '.</span>\n';
   entradaAct.value = '';
+  mapaArbol.scrollTop = 0;
   pintarAct(); entradaAct.focus();
 }
 
