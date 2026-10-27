@@ -123,6 +123,9 @@ ACTIVIDADES.forEach(a => a.pasos.forEach(p => {
   const pistas = ctx.pistasSeguras(p);
   assert(pistas.length >= 3, 'cada paso debe ofrecer tres orientaciones útiles en ' + a.id);
   assert(pistas.every(pista => pista.trim() !== (p.ejemplo || '').trim()), 'una pista no debe mostrar el ejemplo completo en ' + a.id);
+  const base = [].concat(p.pista || []).join(' ');
+  if (/Piensa en el comando|Puedes consultar la chuleta/i.test(base))
+    assert(!pistas.some(pista => /^Piensa en el comando|^Puedes consultar la chuleta/i.test(pista)), 'un paso con pistas genéricas debe recibir orientación contextual en ' + a.id);
 }));
 assert(!html.includes('pulsa «Ver solución»'), 'el flujo de fallos no debe dirigir a la solución completa');
 const paso42 = { meta:{ modo:{ '~/prueba/dir2':'555' } }, ejemplo:'chmod a-w prueba/dir2' };
@@ -134,8 +137,13 @@ assert(pistas42.some(pista => /simbólica|chmod/i.test(pista)), 'el ejercicio 42
 assert(ctx.validarPaso(paso42, estado42, 'chmod a-w prueba/dir2').ok, 'la forma simbólica correcta debe superar el ejercicio 42');
 const paso83 = ACTIVIDADES.find(a => a.id === 'rafa-83').pasos[0];
 assert(!ctx.pistasSeguras(paso83).some(pista => /notación simbólica/i.test(pista)), 'el ejercicio 83 no debe recibir una pista de chmod');
+const paso74 = ACTIVIDADES.find(a => a.id === 'rafa-74').pasos[0];
+const pistas74 = ctx.pistasSeguras(paso74).join(' | ');
+assert(/who/.test(pistas74) && /sort/.test(pistas74) && /redirecci|fichero/.test(pistas74), 'el ejercicio 74 debe recibir pistas específicas de who, sort y la redirección');
+assert(!pistas74.includes(paso74.ejemplo), 'las pistas específicas del ejercicio 74 no deben mostrar la solución completa');
 assert(html.includes("fallosPaso < 3"), 'la solución debe reservarse para quien se atasca');
-assert(html.includes('no se escribe automáticamente'), 'la solución debe explicar sin rellenar la terminal');
+assert(html.includes('pistaIdx < 3'), 'la solución debe aparecer al mostrar la tercera pista');
+assert(!html.includes('no se escribe automáticamente'), 'la terminal no debe mostrar una explicación innecesaria al enseñar la solución');
 assert(!html.includes('entradaAct.value = ej;'), 'la solución no debe escribir el comando automáticamente');
 
 /* ---------- 2) Utilidades de impresión ---------- */

@@ -2163,11 +2163,50 @@ function enriquecerDiagnostico(paso, mensaje){
   return texto;
 }
 
+function pistasInteligentes(paso){
+  const tokens = tokenizar(paso.ejemplo || ''), comandos = [], pistas = [];
+  const añadir = texto => { if (texto && !pistas.includes(texto)) pistas.push(texto); };
+  tokens.forEach(token => { if (CMD_SIM[token] && !comandos.includes(token)) comandos.push(token); });
+  const ayuda = {
+    who:'Usa who para obtener las líneas de usuarios conectados.',
+    users:'Usa users para obtener los nombres de los usuarios conectados.',
+    sort:'Usa sort para ordenar las líneas que recibas.',
+    wc:'Usa wc para contar el resultado; revisa si necesitas contar palabras o líneas.',
+    find:'Usa find indicando primero dónde buscar y después el filtro.',
+    grep:'Usa grep para quedarte solo con las líneas que cumplen el patrón.',
+    cut:'Usa cut para extraer campos de cada línea.',
+    chmod:'Usa chmod para cambiar los permisos del objetivo.',
+    ls:'Usa ls para listar la ruta que pide el enunciado.',
+    cat:'Usa cat para mostrar el contenido de un fichero.',
+    mkdir:'Usa mkdir para crear la carpeta indicada.',
+    touch:'Usa touch para crear el fichero.',
+    cd:'Usa cd para cambiar a la carpeta indicada.'
+  };
+  comandos.forEach(comando => añadir(ayuda[comando]));
+  if (tokens.includes('>')) añadir('Guarda la salida usando una redirección > hacia el fichero indicado.');
+  else if (tokens.includes('>>')) añadir('Añade la salida al final de un fichero usando >>.');
+  else if (tokens.includes('2>')) añadir('Guarda los errores en un fichero usando la redirección 2>.');
+  if (tokens.includes('|')) añadir('Conecta los comandos con una tubería: la salida del primero entra en el siguiente.');
+  if (comandos.includes('wc')){
+    if (tokens.includes('-w')) añadir('En wc, la opción -w cuenta palabras.');
+    else if (tokens.includes('-l')) añadir('En wc, la opción -l cuenta líneas.');
+  }
+  if (comandos.includes('sort') && tokens.includes('-n')) añadir('En sort, la opción -n ordena los valores numéricamente.');
+  ['Relaciona el comando con el objetivo concreto del enunciado y completa sus argumentos.',
+    'Comprueba qué dato debe producir el comando antes de elegir sus opciones.',
+    'Usa la estructura del objetivo para decidir qué argumentos faltan.']
+    .forEach(texto => { if (pistas.length < 3) añadir(texto); });
+  while (pistas.length < 3) pistas.push('Revisa el objetivo y la forma general del comando.');
+  return pistas.slice(0, 3);
+}
+
 function pistasSeguras(paso){
   const base = paso.aprendizaje && paso.aprendizaje.pistas ? paso.aprendizaje.pistas : paso.pista;
   const normal = texto => String(texto || '').replace(/<[^>]*>/g, '').trim().replace(/\s+/g, ' ');
   const ejemplo = normal(paso.ejemplo);
-  const l = [].concat(base || []).filter(Boolean).filter(p => !ejemplo || !normal(p).includes(ejemplo));
+  const baseNormal = [].concat(base || []).filter(Boolean).map(normal);
+  const genericas = baseNormal.some(p => /^Piensa en el comando/i.test(p)) && baseNormal.some(p => /Puedes consultar la chuleta/i.test(p));
+  const l = (genericas ? pistasInteligentes(paso) : baseNormal).filter(p => !ejemplo || !normal(p).includes(ejemplo));
   const comando = tokenizar(paso.ejemplo || '')[0] || 'comando';
   const simbolica = tokenizar(paso.ejemplo || '').some(token => /^[ugoa]+[+-=][rwx]+$/.test(token));
   if (simbolica && !l.some(p => /simbólica/i.test(p))) l.push('Este ejercicio pide notación simbólica: usa letras con +, - o =.');
@@ -2619,7 +2658,7 @@ function pintarAct(){
   $('act-contador').textContent = (hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total) + (puntos ? ' · ⭐ ' + puntos : '');
   $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
-  $('act-solucion').hidden = hechaAct || fallosPaso < 3 || ayudaAct;
+  $('act-solucion').hidden = hechaAct || (fallosPaso < 3 && pistaIdx < 3) || ayudaAct;
   $('act-solucion').textContent = 'Ver una solución explicada';
   pantAct.scrollTop = pantAct.scrollHeight;
   pintarMapaAct();
@@ -2805,7 +2844,6 @@ $('act-solucion').onclick = () => {
   ayudaAct = true;   // este paso dará 5 puntos en vez de 10/15
   histAct += '<span class="c"># Solución del paso ' + (pasoAct + 1) + ': ' + escapar(ej) + '</span>\n';
   if (paso.explica) histAct += '<span class="c"># ' + escapar(quitarHtml([].concat(paso.explica).join(' '))) + '</span>\n';
-  histAct += '<span class="c"># La solución no se escribe automáticamente: intenta ahora el comando tú mismo.</span>\n';
   pintarAct(); entradaAct.focus();
 };
 $('act-pista').onclick = () => {
