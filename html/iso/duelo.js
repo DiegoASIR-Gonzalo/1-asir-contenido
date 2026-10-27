@@ -2,7 +2,7 @@
    DUELO · multijugador (pestaña "Duelo" junto a "Actividades")
    ---------------------------------------------------------------------
    Se carga DESPUÉS del script principal del HTML (reutiliza sus funciones y estilos:
-   $, promptHtml, escapar, normalizar, unir, aceptado, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
+   $, promptHtml, escapar, normalizar, unir, crearEstado, validarPaso, rutaVisible, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
 
    Modos:
      · "web"      (1vs1)    : se eligen N actividades al azar de actividades.js (5-12); gana quien las termina antes.
@@ -236,9 +236,10 @@ function vistaPanel(){
 function secuencias(){
   if (sala.modo === 'web') return (sala.ids || []).map(id => ORDEN_ACT.find(a => a.id === id)).filter(Boolean).map(a => ({
     titulo: a.titulo, enun: unir(a.enunciado),
-    pasos: a.pasos.map(p => ({ tarea: p.tarea, ok: t => aceptado(p, t), out: p.out, ruta: p.ruta })) }));
-  return (sala.preguntas || []).map((q, i) => ({ titulo: 'Pregunta anónima ' + (i + 1), enun: '<p>' + escapar(q.enun).replace(/\n/g, '<br>') + '</p>',
-    pasos: Object.values(q.h).map((hs, j, todos) => ({ tarea: 'Comando ' + (j + 1) + ' de ' + todos.length, ok: t => Object.values(hs).includes(huella(t, sala.sem)) })) }));
+    estado: crearEstado(a),
+    pasos: a.pasos.map(p => ({ tarea: p.tarea, paso: p })) }));
+  return (sala.preguntas || []).map((q, i) => ({ titulo: 'Pregunta anónima ' + (i + 1), enun: '<p>' + escapar(q.enun).replace(/\n/g, '<br>') + '</p>', estado: null,
+    pasos: Object.values(q.h).map((hs, j, todos) => ({ tarea: 'Comando ' + (j + 1) + ' de ' + todos.length, valida: t => Object.values(hs).includes(huella(t, sala.sem)) })) }));
 }
 
 /* ---- 9) Ventana del duelo ---- */
@@ -299,7 +300,7 @@ function pintar(){
   const falta = sala.inicio - (Date.now() + off);
   if (falta > 0){ setTimeout(() => { if (sala && !fondo.hidden) pintar(); }, 200); return nada('<h3>¡Prepárate!</h3><p>Empieza en ' + Math.ceil(falta / 1000) + '…</p>' + barras); }
   if (creador) return nada('<h3>Estás observando el duelo</h3>' + barras);
-  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: '~', hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
+  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: secs[0].estado ? rutaVisible(secs[0].estado.cwd) : '~', hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
   if (S.q >= secs.length) return nada('<h3>¡Has terminado!</h3><p>Comprobando el resultado…</p>' + barras);
   const q = secs[S.q]; enun.classList.remove('d-full'); term.hidden = false;
   enun.innerHTML = barras + '<h3>Secuencia ' + (S.q + 1) + ' / ' + secs.length + ' · ' + escapar(q.titulo) + '</h3>' + q.enun +
@@ -311,21 +312,26 @@ function pintar(){
 
 function enviar(){
   if (!S || S.q >= secs.length || sala.ganador) return;
-  const crudo = inp.value, t = normalizar(crudo), paso = secs[S.q].pasos[S.p]; inp.value = '';
+  const crudo = inp.value, t = normalizar(crudo), sec = secs[S.q], paso = sec.pasos[S.p]; inp.value = '';
   S.hist += promptHtml(S.ruta) + escapar(crudo) + '\n';
   if (t === 'clear') S.hist = '';
   else if (t){
-    if (paso.ok(t)){
-      if (paso.out) S.hist += paso.out + '\n';
-      if (paso.ruta) S.ruta = paso.ruta;
+    const res = sec.estado ? validarPaso(paso.paso, sec.estado, t) : { ok: paso.valida(t), salida: '' };
+    if (res.ok){
+      if (sec.estado){ sec.estado = res.estado; S.ruta = rutaVisible(sec.estado.cwd); }
+      if (res.salida) S.hist += res.salida + '\n';
       S.hecho++; S.p++;
-      if (S.p >= secs[S.q].pasos.length){ S.q++; S.p = 0; S.ruta = '~'; S.hist = ''; }   // siguiente secuencia: terminal limpia
+      if (S.p >= sec.pasos.length){   // siguiente secuencia: terminal limpia y mundo nuevo
+        S.q++; S.p = 0;
+        S.ruta = secs[S.q] && secs[S.q].estado ? rutaVisible(secs[S.q].estado.cwd) : '~';
+        S.hist = '';
+      }
       ref.child('jugadores/' + uid + '/prog').set(S.hecho);
       if (S.q >= secs.length){   // ¡terminó! El primero en escribir "ganador" gana (transacción)
         ref.child('jugadores/' + uid + '/fin').set(firebase.database.ServerValue.TIMESTAMP);
         ref.child('ganador').transaction(g => g || uid);
       }
-    } else S.hist += 'bash: ' + escapar(t.split(' ')[0]) + ': orden no encontrada\n';
+    } else S.hist += '<span class="c"># ' + escapar(res.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
   }
   pintar();
 }

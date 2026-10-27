@@ -154,7 +154,8 @@
   .act-cab{padding:14px 16px 10px}
   .act-cab h2{font-size:15px}
   .act-cab p{font-size:12px;color:#c0bfbc;margin-top:2px}
-  .act-cab input{width:100%;margin-top:10px;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .act-cab input,.act-cab select{width:100%;margin-top:10px;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .act-cab select{cursor:pointer}
   .act-cab input::placeholder{color:#c0bfbc}
   .act-vacio{padding:10px 12px;font-size:13px;color:#c0bfbc}
   .act-lista{flex:1;overflow:auto;padding:4px 8px}
@@ -305,7 +306,13 @@
 <aside class="act-panel" id="panel-act" aria-label="Actividades">
   <div class="act-cab">
     <h2>Actividades</h2><p>Practica tú mismo: escribe los comandos en la terminal.</p>
-    <input type="search" id="act-buscar" placeholder="Buscar actividad…" aria-label="Buscar actividad" autocomplete="off">
+    <input type="search" id="act-buscar" placeholder="Buscar actividad o tarea…" aria-label="Buscar actividad o tarea" autocomplete="off">
+    <select id="act-nivel" aria-label="Filtrar por nivel">
+      <option value="">Todos los niveles</option>
+      <option value="1">Nivel 1 · Básico</option>
+      <option value="2">Nivel 2 · Medio</option>
+      <option value="3">Nivel 3 · Reto</option>
+    </select>
   </div>
   <div class="act-lista" id="act-lista"></div>
   <div class="act-pie"><span id="act-progreso"></span><button type="button" id="act-borrar">Borrar progreso</button></div>
@@ -336,6 +343,7 @@
           <div class="pie">
             <button id="act-reiniciar" type="button">↺ Reiniciar</button>
             <span class="contador" id="act-contador"></span>
+            <button id="act-solucion" type="button" hidden>Ver solución</button>
             <button id="act-pista" type="button">💡 Pista</button>
           </div>
         </div>
@@ -988,12 +996,14 @@ $('fondo-anim-sel').onchange = () => {
    ---------------------------------------------------------------------
    Piezas (ids del HTML entre paréntesis):
      · Botón "Actividades" de la barra (btn-act) → abre/cierra el panel lateral (panel-act).
-     · Panel lateral: buscador (act-buscar) + subapartados desplegables (act-lista).
+     · Panel lateral: buscador (act-buscar), filtro de nivel (act-nivel) y
+       subapartados desplegables (act-lista).
      · Ventana flotante (act-fondo > act-ventana): enunciado (act-enunciado) y una
        terminal con su propio prompt + <input> (act-pantalla, act-in), más los
-       botones Reiniciar / Pista (act-reiniciar, act-pista).
+       botones Reiniciar / Pista / Ver solución (act-reiniciar, act-pista, act-solucion).
    Datos: vienen de actividades.js (lista global window.ACTIVIDADES). Aquí NO se
-   escribe ninguna actividad; solo se leen.
+   escribe ninguna actividad; solo se leen. El mundo virtual de la terminal
+   (ficheros, carpetas, permisos…) lo crea el MOTOR DEL SIMULADOR de más abajo.
 
    Flujo:
      1. DATOS_ACT   → se leen y validan las actividades (las incompletas se descartan
@@ -1001,15 +1011,21 @@ $('fondo-anim-sel').onchange = () => {
      2. GRUPOS_ACT  → se agrupan por el campo "grupo"; ORDEN_ACT es la lista plana en
                       el mismo orden que ve la persona en el panel. Todos los índices
                       (actI, "Siguiente") se refieren a ORDEN_ACT.
-     3. construirLista() dibuja el panel (grupos plegables + filtro del buscador).
-     4. abrirAct(i)  → muestra la ventana (con fundido) y llama a reiniciarAct().
+     3. construirLista() dibuja el panel (grupos plegables + buscador + nivel).
+     4. abrirAct(i)  → muestra la ventana (con fundido) y llama a cargarAct(), que
+                      retoma el paso guardado o empieza de cero.
      5. pintarAct()  → vuelve a dibujar enunciado + terminal a partir del ESTADO
                       (variables "…Act" de más abajo). Es la única función que toca el DOM
                       de la actividad: cualquier cambio de estado termina llamándola.
-     6. enviarAct()  → al pulsar Enter compara el comando con los "ok" del paso actual
-                      (aceptado()) y actualiza el estado: acierto → siguiente paso /
-                      actividad completada; fallo → mensaje de error y, a los 2 fallos, pista.
-     7. Ventana: geometría (posición y tamaño) en "geo"; colocar() la aplica al DOM y
+     6. enviarAct()  → al pulsar Enter pasa el comando por validarPaso(): el motor
+                      ejecuta el comando sobre una copia del mundo y comprueba el
+                      objetivo del paso (meta). Acierto → se guarda el estado nuevo y
+                      se avanza; fallo → mensaje concreto, pista a los 2 fallos y
+                      botón "Ver solución" a los 3.
+     7. Progreso: cada acierto guarda { paso, estado } en localStorage para poder
+                      retomar la actividad donde se dejó (actividades-hechas guarda
+                      las completadas).
+     8. Ventana: geometría (posición y tamaño) en "geo"; colocar() la aplica al DOM y
                       limitar() la mantiene dentro de la pantalla. Más abajo: arrastre,
                       tiradores de redimensión, maximizar y teclado.
    Ajustes rápidos: PLEGAR_GRUPOS_AL_INICIO, TOPE, MIN_W y MIN_H.
@@ -1017,6 +1033,754 @@ $('fondo-anim-sel').onchange = () => {
 const btnAct = $('btn-act'), panelAct = $('panel-act'), fondoAct = $('act-fondo');
 const entradaAct = $('act-in'), histoAct = $('act-hist'), pantAct = $('act-pantalla');
 const PLEGAR_GRUPOS_AL_INICIO = true;   // true = los subapartados empiezan plegados · false = todos desplegados
+
+/* =====================================================================
+   MOTOR DEL SIMULADOR (lo usan las actividades y el duelo)
+   ---------------------------------------------------------------------
+   Un "mundo" es { cwd, fs, funciones }:
+     fs[ruta] = { tipo:'dir' } | { tipo:'file', contenido, modo } | { tipo:'link', destino }
+   Las rutas se guardan siempre absolutas; ~ se traduce a /home/usuario.
+   Este bloque no toca el DOM salvo quitarHtml(), que convierte el HTML
+   generado a texto para comparar o para escribir en un fichero.
+   ===================================================================== */
+const MUNDO_HOME = '/home/usuario';
+const exito = (out = '') => ({ out, err: '', code: 0 });
+const fallo = err => ({ out: '', err, code: 1 });
+
+function rutaAbs(p, cwd = MUNDO_HOME){
+  p = String(p == null ? '' : p).trim();
+  if (!p) p = '.';
+  if (p === '~') p = MUNDO_HOME;
+  else if (p.startsWith('~/')) p = MUNDO_HOME + p.slice(1);
+  else if (!p.startsWith('/')) p = cwd + '/' + p;
+  const partes = [];
+  for (const trozo of p.split('/')){
+    if (!trozo || trozo === '.') continue;
+    if (trozo === '..'){ partes.pop(); continue; }
+    partes.push(trozo);
+  }
+  return '/' + partes.join('/');
+}
+const rutaVisible = p => p === MUNDO_HOME ? '~' : (p.startsWith(MUNDO_HOME + '/') ? '~' + p.slice(MUNDO_HOME.length) : p);
+const padreDe = p => p === '/' ? '/' : p.slice(0, p.lastIndexOf('/')) || '/';
+const nombreDe = p => p === '/' ? '/' : p.slice(p.lastIndexOf('/') + 1);
+const escaparHtml = t => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const quitarHtml = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
+
+const modoDe = it => {
+  const m = String((it && it.modo) || (it && it.tipo === 'dir' ? '755' : '644')).replace(/\D/g, '').slice(-3);
+  return (m || '644').padStart(3, '0');
+};
+const permisosDe = it => {
+  const m = modoDe(it), r = ['---','--x','-w-','-wx','r--','r-x','rw-','rwx'];
+  return r[Number(m[0]) || 0] + r[Number(m[1]) || 0] + r[Number(m[2]) || 0];
+};
+
+function mundoBase(){
+  const e = { cwd: MUNDO_HOME, fs: {}, funciones: [] };
+  const dir = p => { e.fs[p] = { tipo:'dir', modo:'755' }; };
+  const file = (p, c = '', modo = '644') => { e.fs[p] = { tipo:'file', contenido:c, modo }; };
+  dir('/'); dir('/home'); dir(MUNDO_HOME);
+  ['Descargas','Documentos','Imágenes','Música','Vídeos'].forEach(d => dir(MUNDO_HOME + '/' + d));
+  file(MUNDO_HOME + '/.bashrc', '# ~/.bashrc\nmkcd() {\n  mkdir -p "$1" && cd "$1"\n}\n');
+  dir(MUNDO_HOME + '/Descargas/1-asir-contenido-main');
+  file(MUNDO_HOME + '/Descargas/BinarioFH.pdf', 'PDF');
+  file(MUNDO_HOME + '/Descargas/Conceptos UD 1.pdf', 'PDF');
+  dir('/bin');
+  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','wc','whoami'].forEach(c => file('/bin/' + c, '', '755'));
+  dir('/etc');
+  file('/etc/hostname', 'usuario');
+  file('/etc/hosts', '127.0.0.1 localhost');
+  file('/etc/passwd', 'root:x:0:0:root:/root:/bin/bash\nusuario:x:1000:1000:Usuario:/home/usuario:/bin/bash');
+  file('/etc/timezone', 'Europe/Madrid');
+  dir('/etc/terminfo'); dir('/etc/tmpfiles.d');
+  dir('/tmp'); dir('/tmp/cache');
+  dir('/dev');
+  ['null','random','zero','tty','tty0','tty1','tty2','tty3','tty4','ttyS0'].forEach(d => file('/dev/' + d, '', ['null','random','zero'].includes(d) ? '666' : '620'));
+  dir('/usr'); dir('/usr/bin'); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
+  return e;
+}
+
+function crearEstado(act = {}){
+  const e = mundoBase();
+  const ini = act.inicio || {};
+  if (ini.base === 'vacio'){
+    e.fs = { '/': { tipo:'dir', modo:'755' }, '/home': { tipo:'dir', modo:'755' }, [MUNDO_HOME]: { tipo:'dir', modo:'755' } };
+  }
+  const crearPadres = p => {
+    if (p === '/' || e.fs[p]) return;
+    crearPadres(padreDe(p));
+    e.fs[p] = { tipo:'dir', modo:'755' };
+  };
+  Object.entries(ini.fs || {}).forEach(([raw, v]) => {
+    const p = rutaAbs(raw, MUNDO_HOME);
+    if (v === null){ delete e.fs[p]; return; }
+    if (v === 'dir' || (v && v.tipo === 'dir')){ crearPadres(p); return; }
+    if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = { tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }; return; }
+    const contenido = typeof v === 'string' ? v : (v && v.contenido) || '';
+    const modo = (v && v.modo) || '644';
+    crearPadres(padreDe(p));
+    e.fs[p] = { tipo:'file', contenido, modo };
+  });
+  e.cwd = rutaAbs(ini.cwd || '~', MUNDO_HOME);
+  return e;
+}
+
+const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones }));
+
+const obtener = (e, p) => e.fs[p];
+const esDir = (e, p) => { const it = e.fs[p]; return !!it && it.tipo === 'dir'; };
+function resolverEnlace(e, p){
+  let actual = p;
+  for (let i = 0; i < 10; i++){
+    const it = e.fs[actual];
+    if (!it || it.tipo !== 'link') return actual;
+    actual = it.destino;
+  }
+  return actual;
+}
+function listarHijos(e, p, ocultos){
+  const base = p === '/' ? '/' : p + '/';
+  return Object.keys(e.fs)
+    .filter(k => k.startsWith(base) && k !== p && !k.slice(base.length).includes('/') && (ocultos || !nombreDe(k).startsWith('.')))
+    .sort((a, b) => nombreDe(a).localeCompare(nombreDe(b), 'es'));
+}
+function patronRegex(pat){
+  let r = '^';
+  for (let i = 0; i < pat.length; i++){
+    const c = pat[i];
+    if (c === '*') r += '[^/]*';
+    else if (c === '?') r += '[^/]';
+    else if (c === '['){
+      const fin = pat.indexOf(']', i + 1);
+      if (fin > i){ r += '[' + pat.slice(i + 1, fin).replace(/\\/g, '\\\\') + ']'; i = fin; }
+      else r += '\\[';
+    } else r += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  return new RegExp(r + '$');
+}
+function expandirGlob(e, raw){
+  if (!/[*?[]/.test(raw)) return [rutaAbs(raw, e.cwd)];
+  const p = rutaAbs(raw, e.cwd);
+  const padre = padreDe(p), base = nombreDe(p);
+  const objetivo = resolverEnlace(e, padre);
+  if (!esDir(e, objetivo)) return [p];
+  const re = patronRegex(base);
+  const hijos = listarHijos(e, objetivo, true).filter(k => re.test(nombreDe(k)));
+  return hijos.length ? hijos : [p];
+}
+function expandirLlaves(s){
+  const m = s.match(/\{([^{}]+)\}/);
+  if (!m) return [s];
+  const dentro = m[1];
+  let opciones;
+  const rango = dentro.match(/^(-?\d+)\.\.(-?\d+)(?:\.\.(-?\d+))?$/);
+  if (rango){
+    const a = Number(rango[1]), b = Number(rango[2]);
+    const paso = Math.abs(Number(rango[3]) || (a <= b ? 1 : -1));
+    opciones = [];
+    if (a <= b) for (let i = a; i <= b; i += paso) opciones.push(String(i));
+    else for (let i = a; i >= b; i -= paso) opciones.push(String(i));
+  } else opciones = dentro.split(',');
+  return opciones.flatMap(o => expandirLlaves(s.slice(0, m.index) + o + s.slice(m.index + m[0].length)));
+}
+
+/* ---- Utilidades de salida ---- */
+function nombreHtml(e, p, it){
+  const n = escaparHtml(nombreDe(p));
+  if (it.tipo === 'dir' || it.tipo === 'link') return '<b class="d">' + n + '</b>';
+  return /[1357]/.test(modoDe(it)[2] || '0') ? '<b class="x">' + n + '</b>' : n;
+}
+function columnas(e, hijos){
+  const nombres = hijos.map(h => nombreHtml(e, h, e.fs[h]));
+  const largos = nombres.map(n => quitarHtml(n).length);
+  const ancho = Math.max(1, ...largos) + 2;
+  const cols = Math.max(1, Math.floor(80 / ancho));
+  if (cols === 1) return nombres.join('\n');
+  const filas = Math.ceil(nombres.length / cols), lineas = [];
+  for (let f = 0; f < filas; f++){
+    const celdas = [];
+    for (let c = 0; c < cols; c++){
+      const i = c * filas + f;
+      if (i < nombres.length) celdas.push(nombres[i] + ' '.repeat(Math.max(0, ancho - largos[i])));
+    }
+    lineas.push(celdas.join('').replace(/\s+$/, ''));
+  }
+  return lineas.join('\n');
+}
+function lineaLarga(e, p, it){
+  const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : '-';
+  const tam = it.tipo === 'file' ? String((it.contenido || '').length) : '4096';
+  const extra = it.tipo === 'link' ? ' -> ' + escaparHtml(it.destino) : '';
+  return tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
+}
+
+/* ---- Comandos ---- */
+function cmd_pwd(e){ return exito(e.cwd); }
+function cmd_cd(e, args){
+  const raw = args[0] || '~';
+  const p = resolverEnlace(e, rutaAbs(raw, e.cwd));
+  const it = e.fs[p];
+  if (!it) return fallo('bash: cd: ' + raw + ': No such file or directory');
+  if (it.tipo !== 'dir') return fallo('bash: cd: ' + raw + ': Not a directory');
+  e.cwd = p;
+  return exito();
+}
+function cmd_ls(e, args){
+  const flags = new Set(), rutas = [];
+  for (const a of args){
+    if (a.startsWith('-') && a !== '-') for (const c of a.slice(1)) flags.add(c);
+    else rutas.push(a);
+  }
+  const larga = flags.has('l'), ocultos = flags.has('a');
+  let objetivos = [];
+  for (const r of (rutas.length ? rutas : ['.'])) objetivos.push(...expandirGlob(e, r));
+  if (!objetivos.length) objetivos = [rutaAbs('.', e.cwd)];
+  if (flags.has('r')) objetivos.reverse();
+  const salidas = [], errores = [];
+  const total = objetivos.length;
+  for (const p0 of objetivos){
+    let p = p0, it = e.fs[p];
+    if (!it){ errores.push("ls: no se puede acceder a '" + p0 + "': No such file or directory"); continue; }
+    if (it.tipo === 'link' && !larga) p = resolverEnlace(e, p);
+    it = e.fs[p];
+    if (!it){ errores.push("ls: no se puede acceder a '" + p0 + "': No such file or directory"); continue; }
+    if (it.tipo !== 'dir'){
+      salidas.push(larga ? lineaLarga(e, p, it) : nombreHtml(e, p, it));
+      continue;
+    }
+    if (flags.has('d')){ salidas.push(nombreHtml(e, p, it)); continue; }
+    if (total > 1 && !flags.has('R')) salidas.push(escaparHtml(p0) + ':');
+    if (flags.has('R')){
+      const recorrer = (dir, nivel) => {
+        if (nivel) salidas.push('');
+        salidas.push(escaparHtml(nivel ? rutaVisible(dir) : p0) + ':');
+        const hs = listarHijos(e, dir, ocultos);
+        if (flags.has('r')) hs.reverse();
+        for (const h of hs) salidas.push('  '.repeat(nivel) + (larga ? lineaLarga(e, h, e.fs[h]) : nombreHtml(e, h, e.fs[h])));
+        for (const h of hs) if (e.fs[h].tipo === 'dir') recorrer(h, nivel + 1);
+      };
+      recorrer(p, 0);
+      continue;
+    }
+    const hijos = listarHijos(e, p, ocultos);
+    if (flags.has('r')) hijos.reverse();
+    if (larga) for (const h of hijos) salidas.push(lineaLarga(e, h, e.fs[h]));
+    else if (hijos.length) salidas.push(columnas(e, hijos));
+  }
+  return { out: salidas.join('\n'), err: errores.join('\n'), code: errores.length && !salidas.length ? 1 : 0 };
+}
+function cmd_mkdir(e, args){
+  let padres = false;
+  const rutas = [];
+  for (const a of args){ if (a === '-p') padres = true; else if (!a.startsWith('-')) rutas.push(a); }
+  if (!rutas.length) return fallo('mkdir: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd);
+    if (e.fs[p]){
+      if (padres && e.fs[p].tipo === 'dir') continue;
+      err += (err ? '\n' : '') + "mkdir: no se puede crear el directorio '" + raw + "': El fichero ya existe";
+      continue;
+    }
+    if (padres){
+      const partes = p.split('/').filter(Boolean);
+      let actual = '';
+      for (const parte of partes){ actual += '/' + parte; if (!e.fs[actual]) e.fs[actual] = { tipo:'dir', modo:'755' }; }
+    } else {
+      const padre = padreDe(p);
+      if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "mkdir: no se puede crear el directorio '" + raw + "': No such file or directory"; continue; }
+      e.fs[p] = { tipo:'dir', modo:'755' };
+    }
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_touch(e, args){
+  if (!args.length) return fallo('touch: falta un operando');
+  let err = '';
+  for (const raw of args){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (it){
+      if (it.tipo === 'dir') err += (err ? '\n' : '') + "touch: no se puede tocar '" + raw + "': Es un directorio";
+      continue;
+    }
+    const padre = padreDe(p);
+    if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "touch: no se puede crear '" + raw + "': No such file or directory"; continue; }
+    e.fs[p] = { tipo:'file', contenido:'', modo:'644' };
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function borrarRec(e, p){ for (const k of Object.keys(e.fs)) if (k === p || k.startsWith(p + '/')) delete e.fs[k]; }
+function cmd_rm(e, args){
+  let rec = false, force = false;
+  const rutas = [];
+  for (const a of args){
+    if (a === '-r' || a === '-R') rec = true;
+    else if (a === '-f') force = true;
+    else if (a.startsWith('-')) for (const c of a.slice(1)){ if (c === 'r' || c === 'R') rec = true; if (c === 'f') force = true; }
+    else rutas.push(a);
+  }
+  if (!rutas.length) return fallo('rm: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd);
+    if (p === '/' || p === MUNDO_HOME){ err += (err ? '\n' : '') + 'rm: no se puede borrar ' + raw + ': Operación no permitida'; continue; }
+    const it = e.fs[p];
+    if (!it){ if (!force) err += (err ? '\n' : '') + "rm: no se puede borrar '" + raw + "': No such file or directory"; continue; }
+    if (it.tipo === 'dir'){
+      if (!rec){ err += (err ? '\n' : '') + "rm: no se puede borrar '" + raw + "': Es un directorio"; continue; }
+      borrarRec(e, p);
+    } else delete e.fs[p];
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_cp(e, args){
+  let rec = false;
+  const ops = [];
+  for (const a of args){ if (a === '-r' || a === '-R') rec = true; else if (!a.startsWith('-')) ops.push(a); }
+  if (ops.length < 2) return fallo('cp: faltan operandos');
+  const src = rutaAbs(ops[0], e.cwd), it = e.fs[src];
+  if (!it) return fallo("cp: no se puede acceder a '" + ops[0] + "': No such file or directory");
+  if (it.tipo === 'dir' && !rec) return fallo("cp: -r no especificado; se omite el directorio '" + ops[0] + "'");
+  let dst = rutaAbs(ops[1], e.cwd);
+  if (e.fs[dst] && e.fs[dst].tipo === 'dir') dst += '/' + nombreDe(src);
+  if (!esDir(e, padreDe(dst))) return fallo("cp: no se puede crear '" + ops[1] + "': No such file or directory");
+  for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')) e.fs[dst + k.slice(src.length)] = JSON.parse(JSON.stringify(e.fs[k]));
+  return exito();
+}
+function cmd_mv(e, args){
+  const ops = args.filter(a => !a.startsWith('-'));
+  if (ops.length < 2) return fallo('mv: faltan operandos');
+  const src = rutaAbs(ops[0], e.cwd);
+  if (!e.fs[src]) return fallo("mv: no se puede acceder a '" + ops[0] + "': No such file or directory");
+  let dst = rutaAbs(ops[1], e.cwd);
+  if (e.fs[dst] && e.fs[dst].tipo === 'dir') dst += '/' + nombreDe(src);
+  if (!esDir(e, padreDe(dst))) return fallo("mv: no se puede mover '" + ops[0] + "': No such file or directory");
+  if (src === dst) return exito();
+  for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')){ e.fs[dst + k.slice(src.length)] = e.fs[k]; delete e.fs[k]; }
+  return exito();
+}
+function cmd_cat(e, args, stdin){
+  if (!args.length) return exito(stdin || '');
+  let out = '', err = '';
+  for (const raw of args){
+    let p = rutaAbs(raw, e.cwd);
+    if (e.fs[p] && e.fs[p].tipo === 'link') p = resolverEnlace(e, p);
+    const it = e.fs[p];
+    if (!it){ err += "cat: " + raw + ": No such file or directory\n"; continue; }
+    if (it.tipo === 'dir'){ err += "cat: " + raw + ": Es un directorio\n"; continue; }
+    out += it.contenido || '';
+    if (out && !out.endsWith('\n')) out += '\n';
+  }
+  return { out, err, code: err ? 1 : 0 };
+}
+function cmd_echo(e, args){ return exito(args.join(' ')); }
+function cmd_ln(e, args){
+  let simbolico = false;
+  const ops = [];
+  for (const a of args){ if (a === '-s') simbolico = true; else if (!a.startsWith('-')) ops.push(a); }
+  if (ops.length !== 2) return fallo('ln: faltan operandos');
+  const destino = rutaAbs(ops[0], e.cwd), enlace = rutaAbs(ops[1], e.cwd);
+  if (e.fs[enlace]) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': El fichero ya existe");
+  if (!e.fs[destino]) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': No such file or directory");
+  if (!esDir(e, padreDe(enlace))) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': No such file or directory");
+  e.fs[enlace] = simbolico ? { tipo:'link', destino } : JSON.parse(JSON.stringify(e.fs[destino]));
+  return exito();
+}
+function cmd_chmod(e, args){
+  if (args.length < 2) return fallo('chmod: faltan operandos');
+  const modo = args[0], rutas = args.slice(1);
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it){ err += "chmod: no se puede acceder a '" + raw + "': No such file or directory\n"; continue; }
+    if (/^[0-7]{3,4}$/.test(modo)) it.modo = modo.slice(-3);
+    else {
+      let quien = 'a', m = modo;
+      if (/^[ugoa][+-=]/.test(m)){ quien = m[0]; m = m.slice(1); }
+      const op = m[0], perms = m.slice(1), actual = modoDe(it).split('').map(Number);
+      const idxs = quien === 'a' ? [0,1,2] : [{u:0,g:1,o:2}[quien]];
+      for (const idx of idxs){
+        if (idx == null) continue;
+        for (const c of perms){
+          const bit = { r:4, w:2, x:1 }[c] || 0;
+          if (op === '+') actual[idx] |= bit;
+          else if (op === '-') actual[idx] &= ~bit;
+          else if (op === '=') actual[idx] = bit;
+        }
+      }
+      it.modo = actual.join('');
+    }
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_file(e, args){
+  if (!args.length) return fallo('file: falta un operando');
+  return exito(args.map(raw => {
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it) return raw + ': no se puede abrir';
+    if (it.tipo === 'dir') return raw + ': directorio';
+    if (it.tipo === 'link') return raw + ': enlace simbólico a ' + it.destino;
+    return raw + ': ' + ((it.contenido || '').trim() ? 'texto ASCII' : 'archivo vacío');
+  }).join('\n'));
+}
+function cmd_tree(e, args){
+  const raw = args.find(a => !a.startsWith('-')) || '.';
+  const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+  if (!it) return fallo('tree: ' + raw + ': No such file or directory');
+  if (it.tipo !== 'dir') return exito(nombreHtml(e, p, it));
+  let dirs = 0, files = 0;
+  const lineas = [nombreHtml(e, p, it)];
+  const rec = (dir, pref) => {
+    const hs = listarHijos(e, dir, false);
+    hs.forEach((h, i) => {
+      const ultimo = i === hs.length - 1, hi = e.fs[h];
+      lineas.push(pref + (ultimo ? '└── ' : '├── ') + nombreHtml(e, h, hi));
+      if (hi.tipo === 'dir'){ dirs++; rec(h, pref + (ultimo ? '    ' : '│   ')); }
+      else files++;
+    });
+  };
+  rec(p, '');
+  lineas.push('', dirs + (dirs === 1 ? ' directorio' : ' directorios') + ', ' + files + (files === 1 ? ' archivo' : ' archivos'));
+  return exito(lineas.join('\n'));
+}
+function cmd_find(e, args){
+  let inicio = '.', name = null, tipo = null;
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-name') name = args[++i];
+    else if (args[i] === '-type') tipo = args[++i];
+    else if (!args[i].startsWith('-')) inicio = args[i];
+  }
+  const p = rutaAbs(inicio, e.cwd);
+  if (!e.fs[p]) return fallo("find: '" + inicio + "': No such file or directory");
+  const re = name ? patronRegex(name) : null, out = [];
+  const rec = x => {
+    const it = e.fs[x];
+    const valeTipo = !tipo || (tipo === 'd' ? it.tipo === 'dir' : tipo === 'f' ? it.tipo === 'file' : true);
+    if (valeTipo && (!re || re.test(nombreDe(x)))) out.push(rutaVisible(x));
+    if (it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h);
+  };
+  rec(p);
+  return exito(out.join('\n'));
+}
+function cmd_grep(e, args, stdin){
+  let i = 0;
+  const flags = { i:false, v:false, c:false, n:false };
+  while (i < args.length && args[i].startsWith('-')){ for (const c of args[i].slice(1)) flags[c] = true; i++; }
+  const patron = args[i++];
+  if (patron == null) return fallo('grep: falta el patrón');
+  let re;
+  try { re = new RegExp(patron, flags.i ? 'i' : ''); }
+  catch { re = new RegExp(patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags.i ? 'i' : ''); }
+  const archivos = args.slice(i), lineas = [];
+  let total = 0;
+  const procesar = (texto, prefijo) => {
+    const ls = texto.split('\n');
+    if (ls.length && ls[ls.length - 1] === '') ls.pop();
+    ls.forEach((linea, n) => {
+      const coincide = re.test(linea) !== flags.v;
+      if (!coincide) return;
+      total++;
+      if (!flags.c) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
+    });
+  };
+  if (archivos.length){
+    for (const raw of archivos){
+      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+      if (!it || it.tipo !== 'file') continue;
+      procesar(it.contenido || '', archivos.length > 1 ? raw + ':' : '');
+    }
+  } else procesar(stdin || '', '');
+  return exito(flags.c ? String(total) : lineas.join('\n'));
+}
+function cmd_wc(e, args, stdin){
+  const flags = { l:false, w:false, c:false }, files = [];
+  for (const a of args){ if (a.startsWith('-')) for (const c of a.slice(1)) flags[c] = true; else files.push(a); }
+  const contar = t => ({
+    l: (t.match(/\n/g) || []).length + (t && !t.endsWith('\n') ? 1 : 0),
+    w: t.trim() ? t.trim().split(/\s+/).length : 0,
+    c: t.length
+  });
+  const formato = (n, f) => {
+    const partes = [];
+    if (flags.l) partes.push(n.l);
+    if (flags.w) partes.push(n.w);
+    if (flags.c) partes.push(n.c);
+    if (!partes.length) partes.push(n.l, n.w, n.c);
+    return partes.join(' ') + (f ? ' ' + f : '');
+  };
+  if (!files.length) return exito(formato(contar(stdin || ''), ''));
+  const out = [];
+  let err = '';
+  for (const raw of files){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it || it.tipo === 'dir'){ err += 'wc: ' + raw + ': No such file or directory\n'; continue; }
+    out.push(formato(contar(it.contenido || ''), raw));
+  }
+  return { out: out.join('\n'), err, code: err ? 1 : 0 };
+}
+function cmd_head(e, args, stdin){
+  let n = 10;
+  const files = [];
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
+    else if (!args[i].startsWith('-')) files.push(args[i]);
+  }
+  const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  return exito(texto.split('\n').slice(0, n).join('\n'));
+}
+function cmd_tail(e, args, stdin){
+  let n = 10;
+  const files = [];
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
+    else if (!args[i].startsWith('-')) files.push(args[i]);
+  }
+  const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  const ls = texto.split('\n');
+  if (ls.length && ls[ls.length - 1] === '') ls.pop();
+  return exito(ls.slice(-n).join('\n'));
+}
+function cmd_sort(e, args, stdin){
+  const rev = args.includes('-r'), files = args.filter(a => !a.startsWith('-'));
+  const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  const ls = texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1);
+  ls.sort((a, b) => a.localeCompare(b, 'es'));
+  if (rev) ls.reverse();
+  return exito(ls.join('\n'));
+}
+function cmd_du(e, args){
+  const h = args.includes('-h'), s = args.includes('-s');
+  const raw = args.find(a => !a.startsWith('-')) || '.';
+  const p = rutaAbs(raw, e.cwd);
+  if (!e.fs[p]) return fallo('du: no se puede acceder a ' + raw);
+  const tam = x => {
+    const it = e.fs[x];
+    if (!it) return 0;
+    if (it.tipo === 'file') return (it.contenido || '').length;
+    if (it.tipo === 'link') return 0;
+    return listarHijos(e, x, true).reduce((n, h) => n + tam(h), 0);
+  };
+  const humano = n => n < 1024 ? String(n) : n < 1024 * 1024 ? (n / 1024).toFixed(0) + 'K' : (n / 1024 / 1024).toFixed(1) + 'M';
+  const lineas = [];
+  const rec = x => {
+    const t = tam(x);
+    if (!s && e.fs[x].tipo === 'dir') for (const h of listarHijos(e, x, true)) if (e.fs[h].tipo === 'dir') rec(h);
+    lineas.push((h ? humano(t) : t) + '\t' + rutaVisible(x));
+  };
+  rec(p);
+  return exito(lineas.join('\n'));
+}
+const TIPO_INTERNO = new Set(['pwd','cd','echo','type','alias','source','.','exit','history','umask']);
+const TIPO_EXTERNO = new Set(['bash','cat','chmod','cp','date','file','find','grep','head','ln','ls','mkdir','mv','nano','ping','rm','sort','ssh','tail','tar','touch','tree','vi','vim','wc','wget','whoami']);
+function cmd_type(e, args){
+  args = args.filter(a => !a.startsWith('-'));   // -a, -t, -p... no cambian la respuesta en el simulador
+  if (!args.length) return fallo('type: falta un operando');
+  return exito(args.map(a => {
+    if (e.funciones.includes(a)) return a + ' es una función';
+    if (TIPO_INTERNO.has(a)) return a + ' es una orden interna del shell';
+    if (TIPO_EXTERNO.has(a)) return a + ' es /usr/bin/' + a;
+    return 'bash: type: ' + a + ': no encontrado';
+  }).join('\n'));
+}
+const WHEREIS = {
+  whoami: '/usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
+  ls: '/usr/bin/ls /usr/share/man/man1/ls.1.gz',
+  mkdir: '/usr/bin/mkdir /usr/share/man/man1/mkdir.1.gz',
+  touch: '/usr/bin/touch /usr/share/man/man1/touch.1.gz',
+  cp: '/usr/bin/cp /usr/share/man/man1/cp.1.gz',
+  mv: '/usr/bin/mv /usr/share/man/man1/mv.1.gz',
+  rm: '/usr/bin/rm /usr/share/man/man1/rm.1.gz',
+  cat: '/usr/bin/cat /usr/share/man/man1/cat.1.gz',
+  chmod: '/usr/bin/chmod /usr/share/man/man1/chmod.1.gz',
+  tree: '/usr/bin/tree /usr/share/man/man1/tree.1.gz'
+};
+function cmd_whereis(e, args){
+  if (!args.length) return fallo('whereis: falta un operando');
+  return exito(args.map(a => a + ': ' + (WHEREIS[a] || '')).join('\n'));
+}
+function cmd_source(e, args){
+  const raw = args[0] || '~/.bashrc';
+  const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+  if (!it || it.tipo !== 'file') return fallo('bash: source: ' + raw + ': No such file or directory');
+  const re = /(?:function\s+)?([A-Za-z_]\w*)\s*\(\s*\)/g;
+  let m;
+  while ((m = re.exec(it.contenido || ''))) if (!e.funciones.includes(m[1])) e.funciones.push(m[1]);
+  return exito();
+}
+function cmd_mkcd(e, args){
+  if (!args.length) return fallo('mkcd: falta la ruta');
+  const r = cmd_mkdir(e, ['-p', args[0]]);
+  if (r.code) return r;
+  return cmd_cd(e, [args[0]]);
+}
+
+const CMD_SIM = {
+  pwd: cmd_pwd, cd: cmd_cd, ls: cmd_ls, mkdir: cmd_mkdir, touch: cmd_touch, rm: cmd_rm,
+  cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
+  file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
+  head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
+  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario')
+};
+
+/* ---- Intérprete de una línea ---- */
+function tokenizar(linea){
+  const out = [];
+  let actual = '', comilla = null;
+  const empujar = () => { if (actual !== ''){ out.push(actual); actual = ''; } };
+  for (let i = 0; i < linea.length; i++){
+    const ch = linea[i];
+    if (comilla){
+      if (ch === comilla) comilla = null;
+      else if (ch === '\\' && comilla === '"' && i + 1 < linea.length) actual += linea[++i];
+      else actual += ch;
+      continue;
+    }
+    if (ch === '"' || ch === "'"){ comilla = ch; continue; }
+    if (ch === '\\' && i + 1 < linea.length){ actual += linea[++i]; continue; }
+    if (/\s/.test(ch)){ empujar(); continue; }
+    if (ch === '&' && linea[i + 1] === '&'){ empujar(); out.push('&&'); i++; continue; }
+    if (ch === '|' && linea[i + 1] === '|'){ empujar(); out.push('||'); i++; continue; }
+    if (ch === '|'){ empujar(); out.push('|'); continue; }
+    if (ch === ';'){ empujar(); out.push(';'); continue; }
+    if (ch === '>' && linea[i + 1] === '>'){ empujar(); out.push('>>'); i++; continue; }
+    if (ch === '>'){ empujar(); out.push('>'); continue; }
+    actual += ch;
+  }
+  empujar();
+  return out;
+}
+function ejecutarSimple(e, tokens, stdin = ''){
+  const cmd = tokens[0];
+  if (!cmd) return exito('');
+  const args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
+  if (cmd === 'mkcd' && e.funciones.includes('mkcd')) return cmd_mkcd(e, args);
+  const fn = CMD_SIM[cmd];
+  if (!fn) return fallo('bash: ' + cmd + ': orden no encontrada');
+  return fn(e, args, stdin);
+}
+function ejecutarPipeline(e, tokens, stdin = ''){
+  let redir = null, idx = -1;
+  for (let i = 0; i < tokens.length; i++) if (tokens[i] === '>' || tokens[i] === '>>'){ redir = tokens[i]; idx = i; break; }
+  let destino = null;
+  if (redir){
+    destino = tokens[idx + 1];
+    tokens = tokens.slice(0, idx).concat(tokens.slice(idx + 2));
+    if (!destino) return { out:'', err:'bash: falta el fichero de redirección', code:1 };
+  }
+  const segmentos = [];
+  let seg = [];
+  for (const t of tokens){ if (t === '|'){ segmentos.push(seg); seg = []; } else seg.push(t); }
+  segmentos.push(seg);
+  let out = '', err = '', code = 0, entrada = stdin;
+  for (const s of segmentos){
+    if (!s.length) continue;
+    const r = ejecutarSimple(e, s, entrada);
+    out = r.out; err += r.err; code = r.code;
+    if (code !== 0) break;
+    entrada = quitarHtml(out);
+  }
+  if (redir && code === 0){
+    const p = rutaAbs(destino, e.cwd), padre = padreDe(p);
+    if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino + ': No such file or directory', code:1 };
+    const texto = quitarHtml(out);
+    const anterior = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+    e.fs[p] = { tipo:'file', contenido: (redir === '>>' ? anterior : '') + texto + (texto.endsWith('\n') ? '' : '\n'), modo:'644' };
+    out = '';
+  }
+  return { out, err, code };
+}
+function ejecutarLinea(e, linea){
+  const tokens = tokenizar(linea);
+  let out = '', err = '', code = 0, i = 0, ejecutar = true;
+  while (i < tokens.length){
+    const seg = [];
+    while (i < tokens.length && ![';','&&','||'].includes(tokens[i])) seg.push(tokens[i++]);
+    const op = tokens[i++];
+    if (ejecutar && seg.length){
+      const r = ejecutarPipeline(e, seg);
+      out += r.out; err += r.err; code = r.code;
+    }
+    if (op === '&&') ejecutar = code === 0;
+    else if (op === '||') ejecutar = code !== 0;
+    else ejecutar = true;
+  }
+  return { out, err, code };
+}
+
+/* ---- Objetivos de un paso ---- */
+function comprobarMeta(e, meta, salida){
+  const texto = quitarHtml(salida || '');
+  const falla = motivo => ({ ok:false, motivo });
+  if (meta.cwd != null){
+    const p = rutaAbs(meta.cwd, e.cwd);
+    if (e.cwd !== p) return falla('Estás en ' + rutaVisible(e.cwd) + ', pero el objetivo es ' + rutaVisible(p) + '.');
+  }
+  for (const raw of [].concat(meta.existe || [])){
+    const p = rutaAbs(raw, e.cwd);
+    if (!e.fs[p]) return falla('Todavía no existe ' + rutaVisible(p) + '.');
+  }
+  for (const raw of [].concat(meta.noExiste || [])){
+    const p = rutaAbs(raw, e.cwd);
+    if (e.fs[p]) return falla('Sigue existiendo ' + rutaVisible(p) + '.');
+  }
+  if (meta.contenido){
+    for (const [raw, esperado] of Object.entries(meta.contenido)){
+      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+      if (!it || it.tipo !== 'file') return falla('No existe el fichero ' + rutaVisible(p) + '.');
+      if ((it.contenido || '') !== esperado) return falla('El contenido de ' + rutaVisible(p) + ' no es el esperado.');
+    }
+  }
+  if (meta.modo){
+    for (const [raw, esperado] of Object.entries(meta.modo)){
+      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+      if (!it) return falla('No existe ' + rutaVisible(p) + '.');
+      if (modoDe(it) !== String(esperado).slice(-3)) return falla('Los permisos de ' + rutaVisible(p) + ' no son los esperados.');
+    }
+  }
+  for (const en of [].concat(meta.enlace || [])){
+    if (!en) continue;
+    const p = rutaAbs(en.path, e.cwd), destino = rutaAbs(en.destino, e.cwd), it = e.fs[p];
+    if (!it || it.tipo !== 'link') return falla('No existe el enlace ' + rutaVisible(p) + '.');
+    if (it.destino !== destino) return falla('El enlace ' + rutaVisible(p) + ' no apunta a ' + rutaVisible(destino) + '.');
+  }
+  if (meta.funcion && !e.funciones.includes(meta.funcion)) return falla('La función ' + meta.funcion + ' no está cargada.');
+  for (const x of [].concat(meta.muestra || [])){
+    const coincide = x instanceof RegExp ? (x.lastIndex = 0, x.test(texto)) : texto.includes(x);
+    if (!coincide) return falla('La salida no contiene ' + (x instanceof RegExp ? String(x) : x) + '.');
+  }
+  for (const x of [].concat(meta.noMuestra || [])){
+    const coincide = x instanceof RegExp ? (x.lastIndex = 0, x.test(texto)) : texto.includes(x);
+    if (coincide) return falla('La salida no debería contener ' + (x instanceof RegExp ? String(x) : x) + '.');
+  }
+  if (meta.orden){
+    let pos = -1;
+    for (const x of [].concat(meta.orden)){
+      const i = texto.indexOf(x, pos + 1);
+      if (i < 0) return falla('La salida no está en el orden pedido: falta ' + x + '.');
+      pos = i;
+    }
+  }
+  if (meta.salida != null && texto.trim() !== String(meta.salida).trim()) return falla('La salida no es la esperada.');
+  return { ok:true, motivo:'' };
+}
+
+// API común para la actividad y el duelo. Devuelve el estado nuevo solo si el comando cumple el paso.
+function validarPaso(paso, estado, t){
+  if (typeof paso.ok === 'function') return { ok: paso.ok(t), estado, salida:'', error:'Ese comando no es el que pide el paso.' };
+  // Formato antiguo (ok / acepta): se acepta el comando tal cual, sin ejecutarlo ni tocar el mundo.
+  if (!paso.meta){
+    if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.' };
+    return { ok:true, estado, salida: paso.out || '', error:'' };
+  }
+  const candidato = estado ? clonarEstado(estado) : null;
+  const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
+  if (r.code !== 0) return { ok:false, estado, salida:'', error: r.err || 'El comando no se pudo ejecutar.' };
+  const v = comprobarMeta(candidato, paso.meta, r.out);
+  return v.ok ? { ok:true, estado: candidato, salida: r.out || '', error:'' } : { ok:false, estado, salida:'', error: v.motivo };
+}
 
 // 1) Lectura y validación de las actividades que cargó actividades.js.
 //    Lo que falle se avisa en la consola (F12) y la actividad se ignora, para que una errata no rompa todo el panel.
@@ -1027,8 +1791,10 @@ const DATOS_ACT = (window.ACTIVIDADES || []).filter((a, i) => {
   if (!a || !a.id){ console.warn('Actividades: ' + nombre + ' no tiene "id" y se ignora.'); return false; }
   if (idsVistos.has(a.id)){ console.warn('Actividades: el id "' + a.id + '" está repetido (' + nombre + ') y se ignora. Cada actividad necesita un id único.'); return false; }
   if (!Array.isArray(a.pasos) || !a.pasos.length){ console.warn('Actividades: ' + nombre + ' no tiene "pasos" y se ignora.'); return false; }
-  const mal = a.pasos.findIndex(p => !p || !Array.isArray(p.ok) || !p.ok.length);
-  if (mal >= 0){ console.warn('Actividades: en ' + nombre + ' el paso ' + (mal + 1) + ' no tiene la lista "ok" y la actividad se ignora.'); return false; }
+  const mal = a.pasos.findIndex(p => !p || (!p.meta && !p.ok && !p.acepta));
+  if (mal >= 0){ console.warn('Actividades: en ' + nombre + ' el paso ' + (mal + 1) + ' no tiene "meta", "ok" ni "acepta" y la actividad se ignora.'); return false; }
+  const sinEjemplo = a.pasos.findIndex(p => p && !p.ejemplo);
+  if (sinEjemplo >= 0) console.warn('Actividades: en ' + nombre + ' el paso ' + (sinEjemplo + 1) + ' no tiene "ejemplo"; la solución y el progreso guardado funcionarán peor.');
   idsVistos.add(a.id);   // solo cuenta si la actividad es válida
   return true;
 });
@@ -1046,7 +1812,7 @@ const INDICE_ACT = new Map(ORDEN_ACT.map((a, i) => [a, i]));   // id/objeto → 
 const escapar = t => Object.assign(document.createElement('div'), { textContent: t }).innerHTML;
 const normalizar = t => t.trim().replace(/\s+/g, ' ');
 
-// Actividades completadas (se recuerdan si el navegador lo permite)
+// Actividades completadas y progreso paso a paso (se recuerdan si el navegador lo permite)
 let hechas = [];
 try {
   const guardado = JSON.parse(localStorage.getItem('actividades-hechas'));
@@ -1054,13 +1820,22 @@ try {
 } catch (e) { hechas = []; }
 const guardarHechas = () => { try { localStorage.setItem('actividades-hechas', JSON.stringify(hechas)); } catch (e) {} };
 
+// progreso[id] = { paso, estado } → permite retomar una actividad donde se dejó
+let progreso = {};
+try {
+  const g = JSON.parse(localStorage.getItem('actividades-progreso'));
+  if (g && typeof g === 'object' && !Array.isArray(g)) progreso = g;
+} catch (e) { progreso = {}; }
+const guardarProgreso = () => { try { localStorage.setItem('actividades-progreso', JSON.stringify(progreso)); } catch (e) {} };
+
 // ESTADO de la actividad abierta (pintarAct() dibuja la pantalla a partir de estas variables)
 let act = null,          // actividad abierta (objeto de ORDEN_ACT)
     actI = 0,            // su posición en ORDEN_ACT
+    estadoAct = null,    // mundo virtual: { cwd, fs, funciones }
+    rutaAct = null,      // (formato antiguo) ruta que muestra el prompt si el paso trae "ruta"
     pasoAct = 0,         // paso que toca resolver (0 = el primero)
-    rutaAct = '~',       // ruta que muestra el prompt (cambia con el campo "ruta" de los pasos)
     histAct = '',        // HTML de lo ya escrito en la terminal (comandos y salidas)
-    fallosAct = 0,       // fallos seguidos en el paso actual (a los 2 sale la pista)
+    fallosAct = 0,       // fallos seguidos en el paso actual (2 → pista, 3 → Ver solución)
     pistaIdx = 0,        // pistas del paso actual ya enseñadas (cada petición muestra la siguiente)
     hechaAct = false,    // true cuando se ha superado el último paso
     mem = [], memI = 0;  // historial de comandos escritos (flechas ↑ ↓) y posición en él
@@ -1070,16 +1845,19 @@ const estadoGrupos = new Map();   // título del subapartado → ¿desplegado? (
 const sinTildes = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();  // buscar sin distinguir tildes ni mayúsculas
 
 // Dibuja el panel. Se llama al cargar, al completar una actividad, al borrar el progreso y al escribir en el buscador.
+const NIVELES = { 1: 'Básico', 2: 'Medio', 3: 'Reto' };
+const nivelDe = a => NIVELES[a.nivel] ? a.nivel : 1;
+const textoBuscable = a => sinTildes([a.grupo || '', a.titulo, a.resumen || ''].concat(a.pasos.map(p => p.tarea || '')).join(' ').replace(/<[^>]*>/g, ' '));
 function construirLista(){
-  const lista = $('act-lista'), q = sinTildes($('act-buscar').value.trim());
+  const lista = $('act-lista'), q = sinTildes($('act-buscar').value.trim()), nivel = $('act-nivel').value;
   const aviso = texto => { lista.innerHTML = '<p class="act-vacio"></p>'; lista.firstChild.textContent = texto; };
   lista.innerHTML = '';
   if (!ORDEN_ACT.length) aviso('No hay actividades cargadas. Comprueba que actividades.js está en la misma carpeta que este HTML.');
   let coincidencias = 0;
   GRUPOS_ACT.forEach(gr => {
-    // Con búsqueda se muestran solo las actividades que coinciden. El texto buscado incluye el nombre del
-    // subapartado, así que buscar el nombre de un subapartado muestra todas sus actividades.
-    const items = !q ? gr.items : gr.items.filter(a => sinTildes(gr.titulo + ' ' + a.titulo + ' ' + a.resumen).includes(q));
+    // Se filtra por nivel y por texto (título, resumen y tareas de los pasos). El texto buscado incluye
+    // el nombre del subapartado, así que buscar el nombre de un subapartado muestra todas sus actividades.
+    const items = gr.items.filter(a => (!nivel || String(nivelDe(a)) === nivel) && (!q || textoBuscable(a).includes(q)));
     if (!items.length) return;
     coincidencias += items.length;
     const det = document.createElement('details');
@@ -1100,16 +1878,18 @@ function construirLista(){
       b.innerHTML = '<span class="act-num"></span><span class="act-txt"><b></b><small></small></span>';
       b.children[0].textContent = ok ? '✓' : i + 1;     // número global (posición en ORDEN_ACT) o ✓ si está completada
       b.children[1].children[0].textContent = a.titulo;
-      b.children[1].children[1].textContent = a.resumen + ' · ' + a.pasos.length + (a.pasos.length === 1 ? ' paso' : ' pasos') + (ok ? ' · completada' : '');
+      b.children[1].children[1].textContent = a.resumen + ' · ' + NIVELES[nivelDe(a)] + ' · ' + a.pasos.length + (a.pasos.length === 1 ? ' paso' : ' pasos') + (ok ? ' · completada' : '');
       b.onclick = () => abrirAct(i);
       caja.append(b);
     });
     lista.append(det);
   });
-  if (ORDEN_ACT.length && !coincidencias) aviso('Ninguna actividad coincide con «' + $('act-buscar').value.trim() + '».');
-  $('act-progreso').textContent = ORDEN_ACT.filter(a => hechas.includes(a.id)).length + ' de ' + ORDEN_ACT.length + ' completadas';
+  if (ORDEN_ACT.length && !coincidencias) aviso('Ninguna actividad coincide con «' + $('act-buscar').value.trim() + '»' + (nivel ? ' en el nivel ' + NIVELES[nivel] : '') + '.');
+  const enCurso = ORDEN_ACT.filter(a => !hechas.includes(a.id) && progreso[a.id] && progreso[a.id].paso > 0).length;
+  $('act-progreso').textContent = ORDEN_ACT.filter(a => hechas.includes(a.id)).length + ' de ' + ORDEN_ACT.length + ' completadas' + (enCurso ? ' · ' + enCurso + ' en curso' : '');
 }
 $('act-buscar').oninput = construirLista;
+$('act-nivel').onchange = construirLista;
 
 // Abre/cierra el panel lateral. Al abrir el foco va al buscador (con los grupos plegados no hay botones a los que llevarlo).
 function alternarAct(abierto){
@@ -1129,7 +1909,7 @@ function bloquearFondo(si){ capaFondo.forEach(el => { el.inert = si; }); }
 // Si ya había una abierta (botón "Siguiente ▶") se limita a cambiar el contenido: el velo no se repite.
 function abrirAct(i){
   act = ORDEN_ACT[i]; actI = i;
-  $('act-titulo').textContent = 'usuario@linux: ~ — Actividad: ' + act.titulo;
+  $('act-titulo').textContent = 'usuario@linux: ~ — Actividad: ' + act.titulo + ' · Nivel ' + nivelDe(act) + ' (' + NIVELES[nivelDe(act)] + ')';
   alternarAct(false);
   if (!geo) geo = geometriaInicial();   // la primera vez se centra; después conserva donde la dejó la persona
   clearTimeout(cierreAct);              // por si se reabre mientras todavía se está desvaneciendo
@@ -1138,7 +1918,7 @@ function abrirAct(i){
   colocar();
   void fondoAct.offsetWidth;            // fuerza el primer dibujado para que el fundido de entrada se anime
   fondoAct.classList.add('visible');
-  reiniciarAct();
+  cargarAct();
 }
 let cierreAct = 0;
 // Cierra la ventana: quita la clase "visible" (el CSS hace el fundido) y oculta el contenedor al terminar la transición.
@@ -1229,9 +2009,32 @@ barraAct.addEventListener('keydown', e => {
   colocar();
 });
 addEventListener('resize', () => { if (!fondoAct.hidden) colocar(); });
-// Vuelve al paso 1 con la terminal limpia (también se llama al abrir una actividad).
+// ¿Se puede reutilizar el estado guardado de esta actividad?
+const progresoValido = g => !!g && Number.isInteger(g.paso) && g.paso >= 0 && g.paso <= act.pasos.length &&
+  !!g.estado && typeof g.estado.cwd === 'string' && !!g.estado.fs && Array.isArray(g.estado.funciones);
+
+// Abre la actividad retomando el paso guardado (si lo hay) y su mundo virtual.
+function cargarAct(){
+  pasoAct = 0; fallosAct = 0; pistaIdx = 0; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  estadoAct = crearEstado(act);
+  const g = progreso[act.id];
+  if (progresoValido(g) && g.paso > 0){
+    pasoAct = g.paso;
+    estadoAct = g.estado;
+    if (typeof g.ruta === 'string') rutaAct = g.ruta;   // compatibilidad con el formato antiguo
+    hechaAct = pasoAct >= act.pasos.length;
+  }
+  histAct = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n';
+  if (pasoAct && !hechaAct) histAct += '<span class="c"># Retomas la actividad en el paso ' + (pasoAct + 1) + ' de ' + act.pasos.length + '.</span>\n';
+  entradaAct.value = '';
+  pintarAct(); entradaAct.focus();
+}
+
+// Vuelve al paso 1 con la terminal limpia y borra el progreso guardado de esta actividad.
 function reiniciarAct(){
-  pasoAct = 0; rutaAct = '~'; fallosAct = 0; pistaIdx = 0; hechaAct = false; mem = []; memI = 0;
+  pasoAct = 0; fallosAct = 0; pistaIdx = 0; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  estadoAct = crearEstado(act);
+  delete progreso[act.id]; guardarProgreso(); construirLista();
   histAct = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n';
   entradaAct.value = '';
   pintarAct(); entradaAct.focus();
@@ -1249,10 +2052,11 @@ function pintarAct(){
     (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + unir(act.final) + '</p>' + solucionHtml(act) : '');
   histoAct.innerHTML = histAct;
   $('act-linea').hidden = hechaAct;
-  $('act-prompt').innerHTML = promptHtml(rutaAct);
+  $('act-prompt').innerHTML = promptHtml(rutaAct || rutaVisible(estadoAct.cwd));
   $('act-contador').textContent = hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total;
   $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
+  $('act-solucion').hidden = hechaAct || fallosAct < 3;
   pantAct.scrollTop = pantAct.scrollHeight;
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
 }
@@ -1263,7 +2067,7 @@ function solucionHtml(a){
   let cuerpo;
   if (a.solucion) cuerpo = unir(a.solucion, true);
   else cuerpo = '<ol>' + a.pasos.map(p => {
-    const cmd = p.ok.find(o => typeof o === 'string');
+    const cmd = p.ejemplo || (Array.isArray(p.ok) ? p.ok.find(o => typeof o === 'string') : '');
     return '<li>' + (cmd ? '<code>' + escapar(cmd) + '</code>' : '') + (p.explica ? ' — ' + [].concat(p.explica).join(' ') : '') + '</li>';
   }).join('') + '</ol>';
   return '<div class="solucion" role="region" aria-label="Explicación de la solución"><h4>Explicación de la solución</h4>' + cuerpo + '</div>';
@@ -1277,39 +2081,48 @@ function pistaHtml(paso){
   pistaIdx = Math.min(pistaIdx + 1, l.length);
   return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
 }
-const aceptado = (paso, t) => paso.ok.some(o => {
-  if (!(o instanceof RegExp)) return o === t;
+// Pasos antiguos (ok / acepta) y pasos nuevos (meta): aceptado() solo mira las respuestas de texto o regex.
+const patronesDe = paso => [].concat(paso.acepta || paso.ok || []).filter(o => typeof o === 'string' || o instanceof RegExp);
+const aceptado = (paso, t) => patronesDe(paso).some(o => {
+  if (!(o instanceof RegExp)) return normalizar(o) === t;
   o.lastIndex = 0;            // evita fallos si la expresión regular lleva el flag "g"
   return o.test(t);
 });
 
 // Enter: valida el comando escrito contra el paso actual
-// Se ejecuta al pulsar Enter en la terminal de la actividad: valida el comando y actualiza el estado.
+// Se ejecuta al pulsar Enter en la terminal de la actividad: validarPaso() prueba el comando sobre una copia
+// del mundo virtual y solo guarda el estado nuevo si cumple el objetivo (meta) del paso.
 function enviarAct(){
   if (hechaAct) return;
   const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
   entradaAct.value = '';
-  histAct += promptHtml(rutaAct) + escapar(crudo) + '\n';
+  histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
   if (t){ mem.push(crudo.trim()); memI = mem.length; }
   if (!t){ /* línea vacía: solo avanza el prompt */ }
   else if (t === 'clear'){ histAct = ''; }
-  else if (aceptado(paso, t)){
-    if (paso.out) histAct += paso.out + '\n';
-    if (paso.ruta) rutaAct = paso.ruta;
-    pasoAct++; fallosAct = 0; pistaIdx = 0;
-    if (pasoAct === act.pasos.length){
-      hechaAct = true;
-      histAct += '\n<span class="x">✔ Actividad completada</span>\n';
-      if (!hechas.includes(act.id)){ hechas.push(act.id); guardarHechas(); construirLista(); }
+  else {
+    const v = validarPaso(paso, estadoAct, t);
+    if (v.ok){
+      estadoAct = v.estado;
+      if (paso.ruta) rutaAct = paso.ruta;   // formato antiguo: la ruta del prompt viene del paso
+      if (v.salida) histAct += v.salida + '\n';
+      pasoAct++; fallosAct = 0; pistaIdx = 0;
+      if (pasoAct === act.pasos.length){
+        hechaAct = true;
+        histAct += '\n<span class="x">✔ Actividad completada</span>\n';
+        delete progreso[act.id]; guardarProgreso();
+        if (!hechas.includes(act.id)){ hechas.push(act.id); guardarHechas(); }
+      } else {
+        progreso[act.id] = { paso: pasoAct, estado: estadoAct, ruta: rutaAct };   // retomar aquí la próxima vez
+        guardarProgreso();
+      }
+      construirLista();
+    } else {
+      fallosAct++;
+      histAct += '<span class="c"># ' + escapar(v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
+      if (fallosAct === 2) histAct += pistaHtml(paso);
+      else if (fallosAct === 3) histAct += '<span class="c"># Si sigues atascado, pulsa «Ver solución».</span>\n';
     }
-  } else {
-    fallosAct++;
-    const primera = t.split(' ')[0];
-    const parecido = paso.ok.some(o => typeof o === 'string' && o.split(' ')[0] === primera);
-    histAct += parecido
-      ? '<span class="c"># Ese comando no es lo que pide el paso actual: revisa el enunciado.</span>\n'
-      : 'bash: ' + escapar(primera) + ': orden no encontrada\n';
-    if (fallosAct >= 2){ histAct += pistaHtml(paso); fallosAct = 0; }
   }
   // La terminal de la actividad no crece sin límite durante una sesión larga
   const lineas = histAct.split('\n');
@@ -1325,6 +2138,16 @@ entradaAct.onkeydown = e => {
 };
 pantAct.onclick = () => { if (!getSelection().toString()) entradaAct.focus(); };
 $('act-reiniciar').onclick = reiniciarAct;
+// "Ver solución" (aparece tras 3 fallos): deja el comando resuelto escrito en la línea, para pulsar Enter.
+$('act-solucion').onclick = () => {
+  if (hechaAct) return;
+  const paso = act.pasos[pasoAct], ej = paso.ejemplo;
+  if (!ej) return;
+  histAct += '<span class="c"># Solución del paso ' + (pasoAct + 1) + ': ' + escapar(ej) + '</span>\n';
+  if (paso.explica) histAct += '<span class="c"># ' + escapar(quitarHtml([].concat(paso.explica).join(' '))) + '</span>\n';
+  entradaAct.value = ej;      // se escribe sola: solo queda pulsar Enter
+  pintarAct(); entradaAct.focus();
+};
 $('act-pista').onclick = () => {
   if (hechaAct){ if (actI < ORDEN_ACT.length - 1) abrirAct(actI + 1); else cerrarAct(); return; }
   histAct += pistaHtml(act.pasos[pasoAct]); pintarAct(); entradaAct.focus();
@@ -1334,9 +2157,9 @@ $('act-cerrar').onclick = cerrarAct;
 // Botón de la barra, borrar progreso, clic fuera y Escape
 btnAct.onclick = () => alternarAct(!panelAct.classList.contains('abierto'));
 $('act-borrar').onclick = () => {
-  if (!hechas.length) return;
+  if (!hechas.length && !Object.keys(progreso).length) return;
   if (!confirm('¿Borrar el progreso de todas las actividades?')) return;
-  hechas = []; guardarHechas(); construirLista(); avisar('Progreso borrado');
+  hechas = []; progreso = {}; guardarHechas(); guardarProgreso(); construirLista(); avisar('Progreso borrado');
 };
 addEventListener('click', e => {
   if (panelAct.classList.contains('abierto') && !panelAct.contains(e.target) && !btnAct.contains(e.target)) alternarAct(false);
