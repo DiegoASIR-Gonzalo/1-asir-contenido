@@ -67,5 +67,15 @@
     return { pistas, solucion: ejemploCompleto(paso), duracionPista:8000, momentos:[8000, 16000, 24000, 32000] };
   }
 
-  window.DUELO_CORE = { MODOS, ESTADOS_SALA:[...ESTADOS], crearConfiguracionSala, normalizarSala, esSalaUnible, calcularPosiciones, crearPlanAyudas };
+  function crearRelojAyudas(plan, callbacks, reloj){
+    const r = reloj || window, ids = [];
+    const iniciar = () => {
+      plan.momentos.slice(0, 3).forEach((ms, i) => ids.push(r.setTimeout(() => callbacks.onPista(i), ms)));
+      ids.push(r.setTimeout(() => callbacks.onSolucion(), plan.momentos[3]));
+    };
+    const cancelar = () => { ids.splice(0).forEach(id => r.clearTimeout(id)); };
+    return { iniciar, cancelar };
+  }
+
+  window.DUELO_CORE = { MODOS, ESTADOS_SALA:[...ESTADOS], crearConfiguracionSala, normalizarSala, esSalaUnible, calcularPosiciones, crearPlanAyudas, crearRelojAyudas };
 })();

@@ -31,5 +31,13 @@ const plan = core.crearPlanAyudas({ ejemplo:'mkdir -p proyectos/web', pista:['Un
 assert.strictEqual(plan.duracionPista, 8000);
 assert.strictEqual(JSON.stringify(plan.momentos), JSON.stringify([8000, 16000, 24000, 32000]));
 assert(!plan.pistas.some(x => x.includes('mkdir -p proyectos/web')));
+const pendientes = [], eventos = [];
+const reloj = { setTimeout(fn, ms){ pendientes.push({ fn, ms }); return pendientes.length - 1; }, clearTimeout(id){ pendientes[id] = null; } };
+const ayudas = core.crearRelojAyudas(plan, { onPista:i => eventos.push('p' + i), onSolucion:() => eventos.push('s') }, reloj);
+ayudas.iniciar();
+assert.strictEqual(JSON.stringify(pendientes.filter(Boolean).map(x => x.ms)), JSON.stringify([8000, 16000, 24000, 32000]));
+pendientes.filter(Boolean).forEach(x => x.fn());
+assert.strictEqual(JSON.stringify(eventos), JSON.stringify(['p0', 'p1', 'p2', 's']));
+ayudas.cancelar();
 
 console.log('✓ core de salas, posiciones y pistas: 0 errores');
