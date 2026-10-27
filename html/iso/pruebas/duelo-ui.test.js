@@ -14,6 +14,7 @@ assert(duelo.includes('Práctica'), 'el modo Práctica debe aparecer en el multi
 assert(duelo.includes('MAX_JUGADORES = 30'), 'las salas deben admitir una clase completa');
 assert(duelo.includes('crearRelojAyudas'), 'la interfaz debe usar el reloj común de pistas');
 assert(duelo.includes('onDisconnect'), 'la sala debe limpiar participantes desconectados');
+assert(duelo.includes('fondo.hidden = true'), 'la ventana de partida debe empezar cerrada');
 assert(!/anonimo|Preguntas anónimas|MAX_PREGUNTAS/.test(duelo), 'no debe quedar el modo antiguo de preguntas anónimas');
 assert(!/modo === ['"]web['"]/.test(duelo), 'no debe quedar el modo web antiguo');
 console.log('✓ interfaz multijugador: 0 errores');

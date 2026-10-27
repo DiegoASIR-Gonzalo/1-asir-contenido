@@ -23,6 +23,7 @@
   const panel = E('aside', 'act-panel', '<div class="act-cab"><h2>Duelo</h2><p>Compite o practica en grupo.</p></div><div class="d-cuerpo"></div>');
   const cuerpo = panel.lastChild;
   const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Arena Linux"><div class="act-int"><div class="titulo"><span id="d-tit">Arena Linux</span><button id="d-x" class="act-cerrar" type="button" aria-label="Salir">✕</button></div><div class="act-cuerpo"><article id="d-enun" class="enunciado"></article><div id="d-term" class="terminal act-term"><div id="d-pant" class="pantalla"><span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" spellcheck="false" aria-label="Escribe un comando"></div></div><div class="pie"><button id="d-salir" type="button">Salir</button><span id="d-contador" class="contador"></span></div></div></div></div></section>');
+  fondo.hidden = true;
   document.body.append(panel, fondo);
   const enunciado = $('d-enun'), terminal = $('d-term'), pantalla = $('d-pant'), entrada = $('d-in');
   const abrir = () => { fondo.hidden = false; void fondo.offsetWidth; fondo.classList.add('visible'); };
