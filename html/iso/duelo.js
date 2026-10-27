@@ -2,7 +2,7 @@
    DUELO · multijugador (pestaña "Duelo" junto a "Actividades")
    ---------------------------------------------------------------------
    Se carga DESPUÉS del script principal del HTML (reutiliza sus funciones y estilos:
-   $, prompt, escapar, normalizar, unir, aceptado, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
+   $, promptHtml, escapar, normalizar, unir, crearEstado, validarPaso, rutaVisible, ORDEN_ACT y las clases .act-*, .terminal, .enunciado…).
 
    Modos:
      · "web"      (1vs1)    : se eligen N actividades al azar de actividades.js (5-12); gana quien las termina antes.
@@ -73,7 +73,7 @@ const cuerpo = panelD.lastChild; panelD.setAttribute('aria-label', 'Duelo');
 const fondo = E('div', 'act-fondo', '<div class="act-velo"></div><section class="act-ventana" role="dialog" aria-label="Duelo"><div class="act-int">' +
   '<div class="titulo" id="d-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño"><span id="d-tit"></span><button class="act-max" id="d-max" type="button" aria-label="Maximizar ventana">□</button><button class="act-cerrar" id="d-x" type="button" aria-label="Salir del duelo">✕</button></div>' +
   '<div class="act-cuerpo"><article class="enunciado" id="d-enun"></article><div class="terminal act-term" id="d-term"><div class="pantalla" id="d-pant">' +
-  '<span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando"></div></div>' +
+  '<span id="d-hist"></span><div class="entrada"><span id="d-prompt"></span><input id="d-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando" title="Tab completa · ↑ ↓ historial · Ctrl+L limpia"></div></div>' +
   '<div class="pie"><button id="d-salir" type="button">Salir del duelo</button><span class="contador" id="d-cont"></span></div></div></div></div></section>');
 fondo.hidden = true;
 document.body.append(panelD, fondo);
@@ -236,9 +236,10 @@ function vistaPanel(){
 function secuencias(){
   if (sala.modo === 'web') return (sala.ids || []).map(id => ORDEN_ACT.find(a => a.id === id)).filter(Boolean).map(a => ({
     titulo: a.titulo, enun: unir(a.enunciado),
-    pasos: a.pasos.map(p => ({ tarea: p.tarea, ok: t => aceptado(p, t), out: p.out, ruta: p.ruta })) }));
-  return (sala.preguntas || []).map((q, i) => ({ titulo: 'Pregunta anónima ' + (i + 1), enun: '<p>' + escapar(q.enun).replace(/\n/g, '<br>') + '</p>',
-    pasos: Object.values(q.h).map((hs, j, todos) => ({ tarea: 'Comando ' + (j + 1) + ' de ' + todos.length, ok: t => Object.values(hs).includes(huella(t, sala.sem)) })) }));
+    estado: crearEstado(a),
+    pasos: a.pasos.map(p => ({ tarea: p.tarea, paso: p })) }));
+  return (sala.preguntas || []).map((q, i) => ({ titulo: 'Pregunta anónima ' + (i + 1), enun: '<p>' + escapar(q.enun).replace(/\n/g, '<br>') + '</p>', estado: null,
+    pasos: Object.values(q.h).map((hs, j, todos) => ({ tarea: 'Comando ' + (j + 1) + ' de ' + todos.length, valida: t => Object.values(hs).includes(huella(t, sala.sem)) })) }));
 }
 
 /* ---- 9) Ventana del duelo ---- */
@@ -299,37 +300,55 @@ function pintar(){
   const falta = sala.inicio - (Date.now() + off);
   if (falta > 0){ setTimeout(() => { if (sala && !fondo.hidden) pintar(); }, 200); return nada('<h3>¡Prepárate!</h3><p>Empieza en ' + Math.ceil(falta / 1000) + '…</p>' + barras); }
   if (creador) return nada('<h3>Estás observando el duelo</h3>' + barras);
-  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: '~', hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
+  if (!S){ S = { q: 0, p: 0, hecho: 0, ruta: secs[0].estado ? rutaVisible(secs[0].estado.cwd) : '~', mem: [], memI: 0, hist: '<span class="c"># Escribe el comando y pulsa Enter. ¡El primero en terminar gana!</span>\n' }; }
   if (S.q >= secs.length) return nada('<h3>¡Has terminado!</h3><p>Comprobando el resultado…</p>' + barras);
   const q = secs[S.q]; enun.classList.remove('d-full'); term.hidden = false;
   enun.innerHTML = barras + '<h3>Secuencia ' + (S.q + 1) + ' / ' + secs.length + ' · ' + escapar(q.titulo) + '</h3>' + q.enun +
     '<ol class="tareas">' + q.pasos.map((p, i) => '<li class="' + (i < S.p ? 'hecha' : i === S.p ? 'actual' : '') + '">' + p.tarea + '</li>').join('') + '</ol>';
-  $('d-hist').innerHTML = S.hist; $('d-prompt').innerHTML = prompt(S.ruta);
+  $('d-hist').innerHTML = S.hist; $('d-prompt').innerHTML = promptHtml(S.ruta);
   $('d-cont').textContent = 'Comando ' + (S.hecho + 1) + ' / ' + total; $('d-pant').scrollTop = $('d-pant').scrollHeight;
   if (document.activeElement !== inp) inp.focus();
 }
 
 function enviar(){
   if (!S || S.q >= secs.length || sala.ganador) return;
-  const crudo = inp.value, t = normalizar(crudo), paso = secs[S.q].pasos[S.p]; inp.value = '';
-  S.hist += prompt(S.ruta) + escapar(crudo) + '\n';
+  const crudo = inp.value, t = normalizar(crudo), sec = secs[S.q], paso = sec.pasos[S.p]; inp.value = '';
+  S.hist += promptHtml(S.ruta) + escapar(crudo) + '\n';
+  if (t){ S.mem.push(crudo.trim()); S.memI = S.mem.length; }
   if (t === 'clear') S.hist = '';
   else if (t){
-    if (paso.ok(t)){
-      if (paso.out) S.hist += paso.out + '\n';
-      if (paso.ruta) S.ruta = paso.ruta;
+    const res = sec.estado ? validarPaso(paso.paso, sec.estado, t) : { ok: paso.valida(t), salida: '' };
+    if (res.ok){
+      if (sec.estado){ sec.estado = res.estado; S.ruta = rutaVisible(sec.estado.cwd); }
+      if (res.salida) S.hist += res.salida + '\n';
       S.hecho++; S.p++;
-      if (S.p >= secs[S.q].pasos.length){ S.q++; S.p = 0; S.ruta = '~'; S.hist = ''; }   // siguiente secuencia: terminal limpia
+      if (S.p >= sec.pasos.length){   // siguiente secuencia: terminal limpia y mundo nuevo
+        S.q++; S.p = 0;
+        S.ruta = secs[S.q] && secs[S.q].estado ? rutaVisible(secs[S.q].estado.cwd) : '~';
+        S.hist = '';
+      }
       ref.child('jugadores/' + uid + '/prog').set(S.hecho);
       if (S.q >= secs.length){   // ¡terminó! El primero en escribir "ganador" gana (transacción)
         ref.child('jugadores/' + uid + '/fin').set(firebase.database.ServerValue.TIMESTAMP);
         ref.child('ganador').transaction(g => g || uid);
       }
-    } else S.hist += 'bash: ' + escapar(t.split(' ')[0]) + ': orden no encontrada\n';
+    } else S.hist += '<span class="c"># ' + escapar(res.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
   }
   pintar();
 }
-inp.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); enviar(); } };
+inp.onkeydown = e => {
+  if (e.key === 'Enter'){ e.preventDefault(); enviar(); return; }
+  if (!S) return;
+  if (e.key === 'Tab'){   // mismo autocompletado que en las actividades
+    e.preventDefault();
+    const sec = secs && secs[S.q];
+    completarInput(inp, sec && sec.estado, html => { S.hist += html; pintar(); });
+    return;
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'l'){ e.preventDefault(); S.hist = ''; pintar(); return; }
+  if (e.key === 'ArrowUp' && S.mem.length){ e.preventDefault(); S.memI = Math.max(0, S.memI - 1); inp.value = S.mem[S.memI]; }
+  else if (e.key === 'ArrowDown'){ e.preventDefault(); S.memI = Math.min(S.mem.length, S.memI + 1); inp.value = S.mem[S.memI] ?? ''; }
+};
 $('d-pant').onclick = () => { if (!getSelection().toString()) inp.focus(); };
 $('d-salir').onclick = $('d-x').onclick = pedirSalir;
 })();

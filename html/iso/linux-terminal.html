@@ -4,13 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Escritorio Linux · Guía de comandos</title>
+<meta name="description" content="Terminal Linux interactiva para 1.º de ASIR: comandos, ejemplos y actividades autoevaluables.">
+<meta name="theme-color" content="#300a24">
 <style>
   /* ============ COLORES (cámbialos aquí) ============ */
   :root{
     --escritorio-1:#2c001e; --escritorio-2:#5e2750;   /* fondo del escritorio */
     --barra:#1a1a1a;                                  /* barra superior */
     --ventana:#2e2c33; --lateral:#38353f;             /* marco de la ventana y panel lateral */
-    --acento:#e95420;                                 /* elemento activo */
+    --acento:#c34113;                                 /* elemento activo (oscurecido: blanco encima = 5,1:1) */
     --term:#300a24; --term-txt:#eeeeec;               /* terminal */
     --usuario:#8ae234; --ruta:#729fcf; --carpeta:#729fcf; --exec:#8ae234; --marca:#fce94f;
     --kw:#ad7fa8; --str:#e9b96e; --com:#888a85;       /* resaltado de código (.bashrc) */
@@ -22,20 +24,31 @@
     /* 1.ª capa: imagen de fondo (variable --fondo-img, la rellena el script); 2.ª capa: degradado de respaldo */
     background:var(--fondo-img,none) center/cover no-repeat fixed,linear-gradient(135deg,var(--escritorio-1),var(--escritorio-2)) fixed;
     display:flex;flex-direction:column}
-  /* Lienzo de los fondos animados: fijo, detrás de todo y sin capturar clics */
-  #fondo-anim{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
+  /* Lienzo de los fondos animados: fijo, encima del degradado y debajo de la interfaz */
+  #fondo-anim{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
   #fondo-anim[hidden]{display:none}
   :focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+  /* Contenido solo para lectores de pantalla */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+  /* Aviso flotante (fondo cambiado, progreso borrado, imagen no guardada…) */
+  .aviso{position:fixed;left:50%;bottom:22px;z-index:40;transform:translate(-50%,10px);max-width:calc(100% - 32px);
+    background:#241f31;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:9px 18px;font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+  .aviso.visible{opacity:1;transform:translate(-50%,0)}
+  .sinjs{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;background:#300a24;color:#fff;text-align:center}
 
   /* Barra superior tipo GNOME */
-  .barra{background:var(--barra);height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:13px}
+  .barra{background:var(--barra);height:30px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;font-size:13px;position:relative;z-index:2}
+  .barra #reloj{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .barra-btn{flex:none}
   .barra b{font-weight:500}
 
   /* Ventana */
   .ventana{flex:1;min-height:0;margin:18px auto;width:min(1100px,calc(100% - 24px));display:flex;flex-direction:column;
     background:var(--ventana);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55)}
   .titulo{height:42px;display:flex;align-items:center;justify-content:center;position:relative;font-weight:700;font-size:14px}
-  .titulo i{position:absolute;right:14px;width:22px;height:22px;border-radius:50%;background:#4a4752;font-style:normal;text-align:center;line-height:22px;font-size:12px}
+  .titulo .min{position:absolute;right:12px;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font:inherit;font-size:16px;line-height:24px;text-align:center;cursor:pointer}
+  .titulo .min:hover{background:var(--acento)}
   .cuerpo{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
 
   /* Panel lateral */
@@ -89,13 +102,26 @@
 
   @media (max-width:720px){
     .cuerpo{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-    .lateral{max-height:34vh}
+    .lateral{max-height:32vh}
+    .terminal{min-height:0}   /* en móvil apaisado no debe empujar la explicación fuera de la ventana */
+  }
+  /* En pantallas táctiles los tiradores de redimensión necesitan más superficie */
+  @media (pointer:coarse){
+    .res.n,.res.s{height:14px}
+    .res.n{top:-7px}.res.s{bottom:-7px}
+    .res.e,.res.w{width:14px}
+    .res.e{right:-7px}.res.w{left:-7px}
+    .res.ne,.res.nw,.res.se,.res.sw{width:22px;height:22px}
+    .res.ne{top:-6px;right:-6px}.res.nw{top:-6px;left:-6px}
+    .res.se{bottom:-6px;right:-6px}.res.sw{bottom:-6px;left:-6px}
   }
   /* Transición suave solo en el panel lateral (resaltado del comando activo) */
   .item{transition:background .2s ease}
 
   /* Botón cuadriculado y panel de personalización */
-  .ventana{position:relative}
+  .ventana{position:relative;z-index:1;transition:opacity .25s ease,transform .25s ease}
+  /* "Ver el escritorio": la ventana desaparece y deja ver el fondo de pantalla */
+  .ventana.minimizada{opacity:0;transform:scale(.97);pointer-events:none}
   .ajustes-btn{position:absolute;left:10px;top:6px;width:30px;height:30px;display:grid;place-items:center;background:#4a4752;color:#fff;border:0;border-radius:8px;cursor:pointer}
   .ajustes-btn:hover,.ajustes-btn[aria-expanded="true"]{background:var(--acento)}
   .ajustes{position:absolute;left:10px;top:46px;z-index:5;width:min(290px,calc(100% - 20px));max-height:calc(100% - 56px);overflow:auto;
@@ -128,7 +154,8 @@
   .act-cab{padding:14px 16px 10px}
   .act-cab h2{font-size:15px}
   .act-cab p{font-size:12px;color:#c0bfbc;margin-top:2px}
-  .act-cab input{width:100%;margin-top:10px;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .act-cab input,.act-cab select{width:100%;margin-top:10px;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .act-cab select{cursor:pointer}
   .act-cab input::placeholder{color:#c0bfbc}
   .act-vacio{padding:10px 12px;font-size:13px;color:#c0bfbc}
   .act-lista{flex:1;overflow:auto;padding:4px 8px}
@@ -145,21 +172,22 @@
 
   /* ===== Ventana de actividad: enunciado + terminal (misma terminal que la principal) ===== */
   /* La ventana flota sobre el escritorio (sin fondo oscuro): la posición y el tamaño los pone el script */
-  .act-fondo{position:fixed;inset:0;z-index:30;pointer-events:none}
+  .act-fondo{position:fixed;inset:0;z-index:30;pointer-events:auto}
   .act-fondo[hidden],.entrada[hidden]{display:none}
   .act-ventana{position:absolute;pointer-events:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);
     opacity:0;transform:scale(.97);transition:opacity .22s ease,transform .22s ease}
-  /* Velo que oscurece el escritorio (solo visual: no bloquea los clics). Aparece y desaparece con suavidad */
+  /* Velo que oscurece el escritorio. La capa .act-fondo captura los clics: mientras el
+     diálogo está abierto, no se puede pulsar nada de la página que hay detrás. */
   .act-velo{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .28s ease}
   .act-fondo.visible .act-velo{opacity:1}
   .act-fondo.visible .act-ventana{opacity:1;transform:none}
   .act-ventana.maximizada,.act-ventana.maximizada .act-int{border-radius:0}
   .act-int{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:var(--ventana)}
   .act-ventana .titulo{flex:none;user-select:none;touch-action:none;cursor:default}
-  .act-ventana .titulo span{min-width:0;max-width:100%;padding:0 84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .act-cerrar,.act-max{position:absolute;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font-size:12px;line-height:22px;text-align:center;cursor:pointer}
-  .act-cerrar{right:14px}
-  .act-max{right:42px}
+  .act-ventana .titulo span{min-width:0;max-width:100%;padding:0 96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-cerrar,.act-max{position:absolute;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font-size:12px;line-height:26px;text-align:center;cursor:pointer}
+  .act-cerrar{right:12px}
+  .act-max{right:44px}
   .act-cerrar:hover,.act-max:hover{background:var(--acento)}
   /* Tiradores para cambiar el tamaño: bordes y esquinas, justo por fuera del borde de la ventana */
   .res{position:absolute;z-index:3;touch-action:none}
@@ -198,25 +226,79 @@
   .solucion code{background:#eceae8}
   @keyframes aparece{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .exito{margin-top:6px;padding:6px 12px;border-radius:8px;background:#d7f0e0;color:#14532d;font-weight:700}
+  .tareas .fallos-paso{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;
+    font-size:11px;font-weight:700;color:#fff;background:#e57373;border-radius:10px;cursor:help}
   .act-term{flex:1 1 0;min-height:140px}
   .act-term .pantalla{padding:8px 16px;line-height:1.3}
   .act-term .pie{padding:6px 14px}             /* sustituye el 52 % de la terminal principal */
   .act-term .pantalla{cursor:text}
+
+  /* Panel de estructura del mundo virtual: solo dentro de la ventana de actividades */
+  #act-fondo .act-cuerpo{flex-direction:row;position:relative}
+  .act-principal{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column}
+  .act-mapa{--mapa-w:300px;position:relative;flex:0 0 auto;width:var(--mapa-w);max-width:45%;min-width:0;display:flex;flex-direction:column;
+    background:#241f31;border-left:1px solid rgba(255,255,255,.14)}
+  .act-mapa-cab{flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px 4px 12px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .act-mapa-titulo{flex:1;min-width:0;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#c0bfbc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-mapa-cab button{flex:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font:inherit;font-size:14px;line-height:22px;text-align:center;cursor:pointer}
+  .act-mapa-cab button:hover{background:var(--acento)}
+  .act-mapa-ruta{flex:none;padding:4px 12px 6px;font:12px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--ruta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act-mapa-cuerpo{flex:1;min-height:0;overflow:auto;padding:2px 6px 10px;font:12px/1.45 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#d6d3d1;overscroll-behavior:contain}
+  .mapa-fila{display:flex;align-items:baseline;gap:6px;padding:1px 6px;border-radius:4px;white-space:nowrap}
+  .mapa-fila.actual{background:rgba(229,165,10,.18)}
+  .mapa-modo{flex:none;color:#9a9996;font-size:11px}
+  .mapa-nombre{overflow:hidden;text-overflow:ellipsis}
+  .mapa-fila.dir .mapa-nombre{color:var(--carpeta);font-weight:700}
+  .mapa-fila.exec .mapa-nombre{color:var(--exec)}
+  .mapa-fila.link .mapa-nombre{color:#c061cb;font-style:italic}
+  .mapa-flecha{color:#888a85}
+  .mapa-vacio{padding:10px 12px;color:#c0bfbc;font-size:12px}
+  .act-mapa.minimizada{width:34px;max-width:34px}
+  .act-mapa.minimizada .act-mapa-ruta,.act-mapa.minimizada .act-mapa-cuerpo,.act-mapa.minimizada .act-mapa-res{display:none}
+  .act-mapa.minimizada .act-mapa-cab{flex-direction:column;padding:8px 0;gap:8px;border-bottom:0}
+  .act-mapa.minimizada .act-mapa-titulo{flex:0 0 auto;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+  .act-mapa-res{position:absolute;left:-3px;top:0;bottom:0;width:7px;z-index:2;cursor:ew-resize;touch-action:none}
+  .act-mapa-res::after{content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:rgba(255,255,255,.08)}
+  .act-mapa-res:hover::after,.act-mapa-res:focus-visible::after{width:2px;background:var(--marca)}
+  @media (max-width:720px){
+    .act-mapa{position:absolute;right:0;top:0;bottom:0;z-index:5;width:min(82%,320px);max-width:82%;box-shadow:-8px 0 24px rgba(0,0,0,.45)}
+    .act-mapa-res{display:none}   /* en el cajón móvil el ancho es fijo: no hay tirador que arrastrar */
+    .act-mapa.minimizada{width:34px;max-width:34px;box-shadow:none}
+  }
   .entrada{display:flex;align-items:baseline}
   .entrada input{flex:1;min-width:0;font:inherit;color:inherit;background:none;border:0;padding:0;caret-color:var(--term-txt)}
   .entrada input:focus-visible{outline:none}
 
-  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}}
+  /* Celebración: partículas y "+puntos". Se crean al vuelo y se borran solas (sin imágenes ni librerías) */
+  .act-int{position:relative}
+  .act-fx{position:absolute;inset:0;z-index:6;overflow:hidden;pointer-events:none;border-radius:12px}
+  .act-fx i{position:absolute;width:8px;height:8px;border-radius:2px;background:var(--acento);
+    animation:particula var(--dur,900ms) cubic-bezier(.15,.65,.3,1) forwards}
+  @keyframes particula{
+    from{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(1)}
+    to{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(.35)}
+  }
+  .act-mas{position:absolute;z-index:7;pointer-events:none;white-space:nowrap;font:700 15px "Ubuntu Mono",monospace;
+    color:#f6d32d;text-shadow:0 1px 3px rgba(0,0,0,.8);animation:sube 950ms ease-out forwards}
+  @keyframes sube{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-52px)}}
+  @keyframes palomita{50%{transform:scale(1.3)}}
+  .act-item.hecha .act-num{animation:palomita .55s ease}
+  @media (prefers-reduced-motion:reduce){.act-fx,.act-mas{display:none}}
+
+  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}.aviso,.ventana{transition:none}}
 </style>
 </head>
 <body>
+<noscript><p class="sinjs">Esta guía necesita JavaScript para mostrar la terminal y las actividades. Actívalo y recarga la página.</p></noscript>
 <canvas id="fondo-anim" aria-hidden="true" hidden></canvas>
 
-<div class="barra">
+<header class="barra">
+  <h1 class="sr-only">Terminal Linux: guía de comandos de 1.º ASIR</h1>
   <!-- Botón "Actividades": abre/cierra el panel lateral con las actividades -->
   <button class="barra-btn" id="btn-act" type="button" aria-expanded="false" aria-controls="panel-act">Actividades</button>
+  <button class="barra-btn" id="btn-restaurar" type="button" hidden>Mostrar ventana</button>
   <span id="reloj"></span><span>ES ⏻</span>
-</div>
+</header>
 
 <main class="ventana">
   <div class="titulo">
@@ -228,7 +310,8 @@
         <rect x="1" y="11" width="4" height="4" rx="1"/><rect x="6" y="11" width="4" height="4" rx="1"/><rect x="11" y="11" width="4" height="4" rx="1"/>
       </svg>
     </button>
-    <span id="titulo-ventana">Terminal</span><i aria-hidden="true">✕</i>
+    <span id="titulo-ventana">Terminal</span>
+    <button class="min" id="btn-min" type="button" aria-label="Minimizar la ventana y ver el escritorio" title="Ver el escritorio">–</button>
   </div>
 
   <!-- Panel de personalización (los colores se generan desde AJUSTES_COLORES en el script) -->
@@ -258,7 +341,7 @@
 
     <section class="principal">
       <div class="terminal">
-        <div class="pantalla" id="pantalla" aria-live="polite"></div>
+        <div class="pantalla" id="pantalla"></div>
         <div class="pie">
           <button id="ant">◀ Anterior</button>
           <span class="contador" id="contador"></span>
@@ -274,7 +357,13 @@
 <aside class="act-panel" id="panel-act" aria-label="Actividades">
   <div class="act-cab">
     <h2>Actividades</h2><p>Practica tú mismo: escribe los comandos en la terminal.</p>
-    <input type="search" id="act-buscar" placeholder="Buscar actividad…" aria-label="Buscar actividad" autocomplete="off">
+    <input type="search" id="act-buscar" placeholder="Buscar actividad o tarea…" aria-label="Buscar actividad o tarea" autocomplete="off">
+    <select id="act-nivel" aria-label="Filtrar por nivel">
+      <option value="">Todos los niveles</option>
+      <option value="1">Nivel 1 · Básico</option>
+      <option value="2">Nivel 2 · Medio</option>
+      <option value="3">Nivel 3 · Reto</option>
+    </select>
   </div>
   <div class="act-lista" id="act-lista"></div>
   <div class="act-pie"><span id="act-progreso"></span><button type="button" id="act-borrar">Borrar progreso</button></div>
@@ -285,7 +374,7 @@
      (los tiradores .res los crea el script). -->
 <div class="act-fondo" id="act-fondo" hidden>
   <div class="act-velo" aria-hidden="true"></div>
-  <section class="act-ventana" id="act-ventana" role="dialog" aria-labelledby="act-titulo">
+  <section class="act-ventana" id="act-ventana" role="dialog" aria-modal="true" aria-labelledby="act-titulo">
     <div class="act-int">
       <div class="titulo" id="act-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño">
         <span id="act-titulo"></span>
@@ -293,25 +382,43 @@
         <button class="act-cerrar" id="act-cerrar" type="button" aria-label="Cerrar actividad">✕</button>
       </div>
       <div class="act-cuerpo">
-        <article class="enunciado" id="act-enunciado"></article>
-        <div class="terminal act-term">
-          <div class="pantalla" id="act-pantalla">
-            <span id="act-hist" aria-live="polite"></span>
-            <div class="entrada" id="act-linea">
-              <span id="act-prompt"></span>
-              <input id="act-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando">
+        <div class="act-principal">
+          <article class="enunciado" id="act-enunciado"></article>
+          <div class="terminal act-term">
+            <div class="pantalla" id="act-pantalla">
+              <span id="act-hist"></span>
+              <div class="entrada" id="act-linea">
+                <span id="act-prompt"></span>
+                <input id="act-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Escribe un comando" title="Tab completa · ↑ ↓ historial · Ctrl+L limpia · Ctrl+C cancela">
+              </div>
+            </div>
+            <div class="pie">
+              <button id="act-reiniciar" type="button">↺ Reiniciar</button>
+              <span class="contador" id="act-contador"></span>
+              <button id="act-solucion" type="button" hidden>Ver solución</button>
+              <button id="act-pista" type="button">💡 Pista</button>
+              <button id="act-sonido" type="button" aria-pressed="true" title="Sonido al superar un paso">🔊</button>
             </div>
           </div>
-          <div class="pie">
-            <button id="act-reiniciar" type="button">↺ Reiniciar</button>
-            <span class="contador" id="act-contador"></span>
-            <button id="act-pista" type="button">💡 Pista</button>
-          </div>
         </div>
+        <aside class="act-mapa" id="act-mapa" aria-label="Estructura de carpetas y permisos">
+          <div class="act-mapa-cab">
+            <span class="act-mapa-titulo">Estructura</span>
+            <button type="button" id="act-mapa-min" aria-expanded="true" aria-controls="act-mapa-arbol" aria-label="Minimizar panel de estructura" title="Minimizar estructura de carpetas">−</button>
+          </div>
+          <div class="act-mapa-ruta" id="act-mapa-ruta"></div>
+          <div class="act-mapa-cuerpo" id="act-mapa-arbol" tabindex="0" aria-label="Árbol de carpetas y permisos. Usa las flechas para desplazarte."></div>
+          <span class="act-mapa-res" id="act-mapa-res" role="separator" aria-orientation="vertical" aria-label="Cambiar el ancho del panel" tabindex="0" title="Arrastra para cambiar el ancho del panel"></span>
+        </aside>
       </div>
+      <div class="act-fx" id="act-fx" aria-hidden="true"></div>
     </div>
   </section>
 </div>
+
+<!-- Avisos flotantes y anuncios para lectores de pantalla -->
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+<p class="sr-only" id="anuncio" role="status"></p>
 
 <!-- Comandos y ejemplos del panel lateral (ver instrucciones dentro del archivo). Debe ir ANTES del script principal. -->
 <script src="ejemplos.js"></script>
@@ -321,7 +428,7 @@
 <script src="actividades.js"></script>
 
 <script>
-/* Los comandos y ejemplos (GRUPOS, prompt, FONDO_IMAGEN, FONDO_ANIMADO) están en ejemplos.js */
+/* Los comandos y ejemplos (GRUPOS, promptHtml, FONDO_IMAGEN, FONDO_ANIMADO) están en ejemplos.js */
 
 /* =====================================================================
    ACTIVIDADES (botón "Actividades" de la barra superior)
@@ -330,6 +437,20 @@
    que este HTML), con todas las instrucciones para añadir o cambiar actividades.
    Aquí abajo, en "Actividades: panel lateral + ventana…", está la lógica
    comentada paso a paso.
+
+   Para comprobar que una actividad nueva está bien escrita, sin abrir el
+   navegador:  node html/iso/pruebas/actividades.test.js
+   (desde la carpeta del repositorio). Ejecuta el "ejemplo" de cada paso y avisa
+   si algo no cuadra.
+
+   La terminal de la actividad imita a bash en lo que más se usa en clase:
+   Tab completa comandos/opciones/rutas, ↑ ↓ recorren el historial, Ctrl+L
+   limpia la pantalla, Ctrl+C cancela la línea, Ctrl+U borra hasta el cursor,
+   Ctrl+W borra la palabra anterior y Ctrl+A / Ctrl+E van al principio y al final.
+   Al superar un paso se suman puntos con un pequeño estallido de partículas y,
+   al terminar la actividad, confeti y +25. Los puntos se guardan en el navegador
+   y se pueden borrar con "Borrar progreso". El botón 🔊/🔇 apaga el sonido.
+   Todo eso está en la lógica: no hay que tocar nada al añadir actividades.
    ===================================================================== */
 /* ================= FIN DE LA ZONA EDITABLE ================= */
 
@@ -340,12 +461,24 @@ const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const espera = ms => new Promise(r => setTimeout(r, ms));
 let g = 0, c = 0, s = 0, turno = 0;
 
+// Aviso flotante: confirma cambios de fondo, progreso borrado, etc.
+let tAviso = 0;
+function avisar(texto){
+  const caja = $('aviso'); if (!caja) return;
+  caja.textContent = texto; caja.classList.add('visible');
+  clearTimeout(tAviso); tAviso = setTimeout(() => caja.classList.remove('visible'), 2800);
+}
+
+// Los datos vienen de ejemplos.js. Si no está o falla, se avisa en pantalla en vez de dejar la página vacía.
+const grupos = typeof GRUPOS !== 'undefined' && Array.isArray(GRUPOS) ? GRUPOS : [];
+const FONDO_POR_DEFECTO = typeof FONDO_IMAGEN === 'string' ? FONDO_IMAGEN : '';
+
 // Construye el panel lateral
 const PLEGAR_GRUPOS_LATERAL = true;   // true = los subapartados empiezan ocultos · false = todos desplegados
 const estadoLat = new Map();          // título del subapartado → ¿desplegado? (se recuerda aunque se busque y se borre la búsqueda)
 const bloquesLat = [];                // para el buscador: { gr, det, items: [{ b, texto }] }
 const normLat = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();   // buscar sin distinguir tildes ni mayúsculas
-GRUPOS.forEach((gr, gi) => {
+grupos.forEach((gr, gi) => {
   const det = document.createElement('details'); det.open = !PLEGAR_GRUPOS_LATERAL;
   det.innerHTML = '<summary></summary><div class="items"></div>';
   const resumen = det.firstChild, caja = det.lastChild, items = [];
@@ -399,15 +532,24 @@ function alternarGrupo(det, caja){
   }
 }
 
-function abrir(gi, ci){ g = gi; c = ci; s = 0; pintar(); }
+function abrir(gi, ci){ if (!grupos[gi]) return; g = gi; c = ci; s = 0; pintar(); }
 function ir(d){
-  const n = GRUPOS[g].comandos[c].diapositivas.length;
+  if (!grupos.length) return;
+  const n = grupos[g].comandos[c].diapositivas.length;
   s = Math.min(n - 1, Math.max(0, s + d)); pintar();
 }
 
 async function pintar(){
-  const cm = GRUPOS[g].comandos[c], dia = cm.diapositivas[s], mio = ++turno;
-  document.querySelectorAll('.item').forEach(b => b.classList.toggle('activo', +b.dataset.g === g && +b.dataset.c === c));
+  if (!grupos.length) return;
+  const cm = grupos[g].comandos[c], dia = cm.diapositivas[s], mio = ++turno;
+  let activo = null;
+  document.querySelectorAll('.item').forEach(b => {
+    const esActivo = +b.dataset.g === g && +b.dataset.c === c;
+    b.classList.toggle('activo', esActivo);
+    if (esActivo){ b.setAttribute('aria-current', 'true'); activo = b; }
+    else b.removeAttribute('aria-current');
+  });
+  if (activo) activo.scrollIntoView({ block: 'nearest' });
   $('titulo-ventana').textContent = 'usuario@linux: ~ — ' + cm.nombre;
   $('contador').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' · ' + (s + 1) + ' / ' + cm.diapositivas.length;
   $('ant').disabled = s === 0; $('sig').disabled = s === cm.diapositivas.length - 1;
@@ -420,18 +562,19 @@ async function pintar(){
   const instantaneo = reducido || ajustes.vel === 0;
   const p = $('pantalla'); let hecho = '', ruta = '~';
   for (const paso of pasos){
-    p.innerHTML = hecho + prompt(ruta) + '<span id="tec"></span><span class="cursor"></span>';
+    p.innerHTML = hecho + promptHtml(ruta) + '<span id="tec"></span><span class="cursor"></span>';
     const tec = $('tec');
     if (instantaneo) tec.textContent = paso.cmd;
     else for (const ch of paso.cmd){ if (mio !== turno) return; tec.textContent += ch; await espera(ajustes.vel); }
-    hecho += prompt(ruta) + esc(paso.cmd) + '\n' + (paso.out ? paso.out + '\n' : '');
+    hecho += promptHtml(ruta) + esc(paso.cmd) + '\n' + (paso.out ? paso.out + '\n' : '');
     if (paso.ruta) ruta = paso.ruta;
     p.innerHTML = hecho; p.scrollTop = p.scrollHeight;
     if (!instantaneo){ await espera(350); } // pausa entre comandos de la cadena
     if (mio !== turno) return;
   }
-  p.innerHTML = hecho + prompt(ruta) + '<span class="cursor"></span>';
+  p.innerHTML = hecho + promptHtml(ruta) + '<span class="cursor"></span>';
   p.scrollTop = p.scrollHeight;
+  if (mio === turno) $('anuncio').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' de ' + cm.nombre + ', diapositiva ' + (s + 1) + ' de ' + cm.diapositivas.length + '.';
 }
 
 $('ant').onclick = () => ir(-1);
@@ -466,25 +609,34 @@ const VEL_DEFECTO = 24; // milisegundos por letra
 const ajustes = { colores:{...TEMAS.Ubuntu}, vel:VEL_DEFECTO, fondo:'', animado:'' };
 const fondoAnimado = () => ajustes.animado === 'ninguno' ? '' : (ajustes.animado || (typeof FONDO_ANIMADO === 'string' ? FONDO_ANIMADO : ''));
 
-// Recupera lo guardado (si el navegador lo permite)
+// Recupera lo guardado (si el navegador lo permite) validando los datos para que uno corrupto no rompa la página
 try {
-  const guardado = JSON.parse(localStorage.getItem('ajustes-terminal'));
-  if (guardado){ Object.assign(ajustes.colores, guardado.colores); ajustes.vel = guardado.vel ?? VEL_DEFECTO; }
+  const guardado = JSON.parse(localStorage.getItem('ajustes-terminal')) || {};
+  const claves = AJUSTES_COLORES.map(o => o.v);
+  const esColor = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
+  if (guardado.colores && typeof guardado.colores === 'object')
+    for (const k of claves) if (esColor(guardado.colores[k])) ajustes.colores[k] = guardado.colores[k];
+  const vel = Number(guardado.vel);
+  if (Number.isFinite(vel)) ajustes.vel = Math.max(0, Math.min(120, Math.round(vel)));
   ajustes.fondo = localStorage.getItem('fondo-terminal') || '';
   ajustes.animado = localStorage.getItem('fondo-animado') || '';
 } catch (e) {}
-// La imagen se guarda aparte: si no cupiera, los colores y la velocidad se conservan igualmente
+// La imagen se guarda aparte: si no cupiera, los colores y la velocidad se conservan igualmente.
+// Devuelve false si el navegador no pudo guardar (por ejemplo, cuota llena).
 const guardar = () => {
-  try { localStorage.setItem('ajustes-terminal', JSON.stringify({ colores: ajustes.colores, vel: ajustes.vel })); } catch (e) {}
-  try { if (ajustes.fondo) localStorage.setItem('fondo-terminal', ajustes.fondo); else localStorage.removeItem('fondo-terminal'); } catch (e) {}
-  try { if (ajustes.animado) localStorage.setItem('fondo-animado', ajustes.animado); else localStorage.removeItem('fondo-animado'); } catch (e) {}
+  let ok = true;
+  try { localStorage.setItem('ajustes-terminal', JSON.stringify({ colores: ajustes.colores, vel: ajustes.vel })); } catch (e) { ok = false; }
+  try { if (ajustes.fondo) localStorage.setItem('fondo-terminal', ajustes.fondo); else localStorage.removeItem('fondo-terminal'); } catch (e) { ok = false; }
+  try { if (ajustes.animado) localStorage.setItem('fondo-animado', ajustes.animado); else localStorage.removeItem('fondo-animado'); } catch (e) { ok = false; }
+  return ok;
 };
 
 // Aplica los ajustes a la página y sincroniza los controles
 function aplicar(){
+  if (ajustes.animado && ajustes.animado !== 'ninguno' && !FONDOS_ANIMADOS[ajustes.animado]) ajustes.animado = '';
   for (const k in ajustes.colores) document.documentElement.style.setProperty(k, ajustes.colores[k]);
-  const imagen = ajustes.fondo === 'ninguna' ? '' : (ajustes.fondo || FONDO_IMAGEN);
-  document.documentElement.style.setProperty('--fondo-img', imagen ? 'url("' + imagen + '")' : 'none');
+  const imagen = ajustes.fondo === 'ninguna' ? '' : (ajustes.fondo || FONDO_POR_DEFECTO);
+  document.documentElement.style.setProperty('--fondo-img', imagen ? 'url("' + imagen.replace(/"/g, '%22') + '")' : 'none');
   const anim = FONDOS_ANIMADOS[fondoAnimado()] ? fondoAnimado() : '';
   if (anim !== fondoClave || (anim && lienzoFondo.hidden)) iniciarFondo(anim);
   $('fondo-anim-sel').value = anim || 'ninguno';
@@ -514,7 +666,11 @@ $('tema').onchange = () => {
 $('vel').oninput = () => { ajustes.vel = +$('vel').value; aplicar(); };
 $('vel').onchange = () => { guardar(); pintar(); };
 
-$('restablecer').onclick = () => { ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; ajustes.animado = ''; aplicar(); guardar(); pintar(); };
+$('restablecer').onclick = () => {
+  if (!confirm('¿Restablecer los colores, la velocidad, el fondo de pantalla y la animación?')) return;
+  ajustes.colores = {...TEMAS.Ubuntu}; ajustes.vel = VEL_DEFECTO; ajustes.fondo = ''; ajustes.animado = '';
+  aplicar(); guardar(); pintar(); avisar('Ajustes restablecidos');
+};
 
 // Abrir y cerrar el panel (botón, clic fuera o Escape)
 const btnAjustes = $('btn-ajustes'), panel = $('panel-ajustes');
@@ -523,23 +679,47 @@ btnAjustes.onclick = () => alternar(panel.hidden);
 addEventListener('keydown', e => { if (e.key === 'Escape') alternar(false); });
 addEventListener('click', e => { if (!panel.hidden && !panel.contains(e.target) && !btnAjustes.contains(e.target)) alternar(false); });
 
-// Fondo de pantalla: se reduce a 1920 px como máximo para que ocupe poco y se pueda guardar
+// "Ver el escritorio": oculta la ventana principal para poder ver el fondo de pantalla elegido.
+const ventanaPrincipal = document.querySelector('.ventana');
+function verEscritorio(si){
+  ventanaPrincipal.classList.toggle('minimizada', si);
+  ventanaPrincipal.inert = si;
+  $('btn-restaurar').hidden = !si;
+  if (si) $('btn-restaurar').focus(); else $('btn-min').focus();
+}
+$('btn-min').onclick = () => verEscritorio(true);
+$('btn-restaurar').onclick = () => verEscritorio(false);
+
+// Fondo de pantalla: se reduce a 1280 px como máximo para que ocupe poco y quepa en localStorage
 function cargarImagen(archivo){
   const img = new Image(), url = URL.createObjectURL(archivo);
   img.onload = () => {
-    const k = Math.min(1, 1920 / Math.max(img.width, img.height));
-    const lienzo = document.createElement('canvas');
-    lienzo.width = Math.round(img.width * k); lienzo.height = Math.round(img.height * k);
-    lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
-    ajustes.fondo = lienzo.toDataURL('image/jpeg', .85);
-    ajustes.animado = 'ninguno';   // al elegir una imagen se quita la animación para que se vea
-    URL.revokeObjectURL(url); aplicar(); guardar();
+    try {
+      const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+      const lienzo = document.createElement('canvas');
+      lienzo.width = Math.round(img.width * k); lienzo.height = Math.round(img.height * k);
+      lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
+      ajustes.fondo = lienzo.toDataURL('image/jpeg', .8);
+      ajustes.animado = 'ninguno';   // al elegir una imagen se quita la animación para que se vea
+      aplicar();
+      const guardada = guardar();
+      avisar(guardada ? 'Imagen de fondo aplicada' : 'Imagen aplicada, pero el navegador no pudo guardarla');
+      if (!guardada) console.warn('Fondo: no se pudo guardar la imagen (cuota de localStorage llena).');
+    } catch (e) {
+      avisar('No se pudo procesar la imagen');
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   };
+  img.onerror = () => { URL.revokeObjectURL(url); avisar('No se pudo leer la imagen'); };
   img.src = url;
 }
 $('fondo-elegir').onclick = () => $('fondo-archivo').click();
 $('fondo-archivo').onchange = e => { const f = e.target.files[0]; if (f) cargarImagen(f); e.target.value = ''; };
-$('fondo-quitar').onclick = () => { ajustes.fondo = 'ninguna'; ajustes.animado = 'ninguno'; aplicar(); guardar(); };
+$('fondo-quitar').onclick = () => {
+  ajustes.fondo = 'ninguna'; ajustes.animado = 'ninguno'; aplicar(); guardar();
+  avisar('Fondo de pantalla restablecido');
+};
 
 /* =====================================================================
    FONDOS ANIMADOS (panel de personalización › "Animado")
@@ -882,19 +1062,26 @@ addEventListener('resize', () => { clearTimeout(esperaTamano); esperaTamano = se
 // Selector "Animado" del panel
 $('fondo-anim-sel').innerHTML = '<option value="ninguno">Sin animación</option>' +
   Object.entries(FONDOS_ANIMADOS).map(([clave, f]) => `<option value="${clave}">${f.nombre}</option>`).join('');
-$('fondo-anim-sel').onchange = () => { ajustes.animado = $('fondo-anim-sel').value; aplicar(); guardar(); };
+$('fondo-anim-sel').onchange = () => {
+  ajustes.animado = $('fondo-anim-sel').value;
+  aplicar(); guardar();
+  const fondo = FONDOS_ANIMADOS[ajustes.animado];
+  avisar(fondo ? 'Fondo animado: ' + fondo.nombre : 'Animación desactivada');
+};
 
 /* =====================================================================
    ACTIVIDADES · CÓMO FUNCIONA EL SCRIPT (para quien lo mantenga)
    ---------------------------------------------------------------------
    Piezas (ids del HTML entre paréntesis):
      · Botón "Actividades" de la barra (btn-act) → abre/cierra el panel lateral (panel-act).
-     · Panel lateral: buscador (act-buscar) + subapartados desplegables (act-lista).
+     · Panel lateral: buscador (act-buscar), filtro de nivel (act-nivel) y
+       subapartados desplegables (act-lista).
      · Ventana flotante (act-fondo > act-ventana): enunciado (act-enunciado) y una
        terminal con su propio prompt + <input> (act-pantalla, act-in), más los
-       botones Reiniciar / Pista (act-reiniciar, act-pista).
+       botones Reiniciar / Pista / Ver solución (act-reiniciar, act-pista, act-solucion).
    Datos: vienen de actividades.js (lista global window.ACTIVIDADES). Aquí NO se
-   escribe ninguna actividad; solo se leen.
+   escribe ninguna actividad; solo se leen. El mundo virtual de la terminal
+   (ficheros, carpetas, permisos…) lo crea el MOTOR DEL SIMULADOR de más abajo.
 
    Flujo:
      1. DATOS_ACT   → se leen y validan las actividades (las incompletas se descartan
@@ -902,15 +1089,21 @@ $('fondo-anim-sel').onchange = () => { ajustes.animado = $('fondo-anim-sel').val
      2. GRUPOS_ACT  → se agrupan por el campo "grupo"; ORDEN_ACT es la lista plana en
                       el mismo orden que ve la persona en el panel. Todos los índices
                       (actI, "Siguiente") se refieren a ORDEN_ACT.
-     3. construirLista() dibuja el panel (grupos plegables + filtro del buscador).
-     4. abrirAct(i)  → muestra la ventana (con fundido) y llama a reiniciarAct().
+     3. construirLista() dibuja el panel (grupos plegables + buscador + nivel).
+     4. abrirAct(i)  → muestra la ventana (con fundido) y llama a cargarAct(), que
+                      retoma el paso guardado o empieza de cero.
      5. pintarAct()  → vuelve a dibujar enunciado + terminal a partir del ESTADO
                       (variables "…Act" de más abajo). Es la única función que toca el DOM
                       de la actividad: cualquier cambio de estado termina llamándola.
-     6. enviarAct()  → al pulsar Enter compara el comando con los "ok" del paso actual
-                      (aceptado()) y actualiza el estado: acierto → siguiente paso /
-                      actividad completada; fallo → mensaje de error y, a los 2 fallos, pista.
-     7. Ventana: geometría (posición y tamaño) en "geo"; colocar() la aplica al DOM y
+     6. enviarAct()  → al pulsar Enter pasa el comando por validarPaso(): el motor
+                      ejecuta el comando sobre una copia del mundo y comprueba el
+                      objetivo del paso (meta). Acierto → se guarda el estado nuevo y
+                      se avanza; fallo → mensaje concreto, pista a los 2 fallos y
+                      botón "Ver solución" a los 3.
+     7. Progreso: cada acierto guarda { paso, estado } en localStorage para poder
+                      retomar la actividad donde se dejó (actividades-hechas guarda
+                      las completadas).
+     8. Ventana: geometría (posición y tamaño) en "geo"; colocar() la aplica al DOM y
                       limitar() la mantiene dentro de la pantalla. Más abajo: arrastre,
                       tiradores de redimensión, maximizar y teclado.
    Ajustes rápidos: PLEGAR_GRUPOS_AL_INICIO, TOPE, MIN_W y MIN_H.
@@ -919,6 +1112,854 @@ const btnAct = $('btn-act'), panelAct = $('panel-act'), fondoAct = $('act-fondo'
 const entradaAct = $('act-in'), histoAct = $('act-hist'), pantAct = $('act-pantalla');
 const PLEGAR_GRUPOS_AL_INICIO = true;   // true = los subapartados empiezan plegados · false = todos desplegados
 
+/* =====================================================================
+   MOTOR DEL SIMULADOR (lo usan las actividades y el duelo)
+   ---------------------------------------------------------------------
+   Un "mundo" es { cwd, fs, funciones }:
+     fs[ruta] = { tipo:'dir' } | { tipo:'file', contenido, modo } | { tipo:'link', destino }
+   Las rutas se guardan siempre absolutas; ~ se traduce a /home/usuario.
+   Este bloque no toca el DOM salvo quitarHtml(), que convierte el HTML
+   generado a texto para comparar o para escribir en un fichero.
+   ===================================================================== */
+const MUNDO_HOME = '/home/usuario';
+const exito = (out = '') => ({ out, err: '', code: 0 });
+const fallo = err => ({ out: '', err, code: 1 });
+
+function rutaAbs(p, cwd = MUNDO_HOME){
+  p = String(p == null ? '' : p).trim();
+  if (!p) p = '.';
+  if (p === '~') p = MUNDO_HOME;
+  else if (p.startsWith('~/')) p = MUNDO_HOME + p.slice(1);
+  else if (!p.startsWith('/')) p = cwd + '/' + p;
+  const partes = [];
+  for (const trozo of p.split('/')){
+    if (!trozo || trozo === '.') continue;
+    if (trozo === '..'){ partes.pop(); continue; }
+    partes.push(trozo);
+  }
+  return '/' + partes.join('/');
+}
+const rutaVisible = p => p === MUNDO_HOME ? '~' : (p.startsWith(MUNDO_HOME + '/') ? '~' + p.slice(MUNDO_HOME.length) : p);
+const padreDe = p => p === '/' ? '/' : p.slice(0, p.lastIndexOf('/')) || '/';
+const nombreDe = p => p === '/' ? '/' : p.slice(p.lastIndexOf('/') + 1);
+const escaparHtml = t => String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const quitarHtml = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
+
+const modoDe = it => {
+  const m = String((it && it.modo) || (it && it.tipo === 'dir' ? '755' : '644')).replace(/\D/g, '').slice(-3);
+  return (m || '644').padStart(3, '0');
+};
+const inodoDe = (p, it) => {
+  if (it && it.inodo != null) return String(it.inodo);
+  let h = 0;
+  for (let i = 0; i < p.length; i++) h = ((h * 31) + p.charCodeAt(i)) >>> 0;
+  return String(100000 + (h % 900000));
+};
+const permisosDe = it => {
+  const m = modoDe(it), r = ['---','--x','-w-','-wx','r--','r-x','rw-','rwx'];
+  return r[Number(m[0]) || 0] + r[Number(m[1]) || 0] + r[Number(m[2]) || 0];
+};
+
+function mundoBase(){
+  const e = { cwd: MUNDO_HOME, fs: {}, funciones: [], umask: '022' };
+  const dir = p => { e.fs[p] = { tipo:'dir', modo:'755' }; };
+  const file = (p, c = '', modo = '644') => { e.fs[p] = { tipo:'file', contenido:c, modo }; };
+  dir('/'); dir('/home'); dir(MUNDO_HOME);
+  ['Descargas','Documentos','Imágenes','Música','Vídeos'].forEach(d => dir(MUNDO_HOME + '/' + d));
+  file(MUNDO_HOME + '/.bashrc', '# ~/.bashrc\nmkcd() {\n  mkdir -p "$1" && cd "$1"\n}\n');
+  dir(MUNDO_HOME + '/Descargas/1-asir-contenido-main');
+  file(MUNDO_HOME + '/Descargas/BinarioFH.pdf', 'PDF');
+  file(MUNDO_HOME + '/Descargas/Conceptos UD 1.pdf', 'PDF');
+  dir('/bin');
+  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/bin/' + c, '', '755'));
+  dir('/etc');
+  file('/etc/hostname', 'usuario');
+  file('/etc/hosts', '127.0.0.1 localhost');
+  file('/etc/motd', 'Bienvenido a Linux\n');
+  file('/etc/passwd', 'root:x:0:0:root:/root:/bin/bash\nusuario:x:1000:1000:Usuario:/home/usuario:/bin/bash');
+  file('/etc/timezone', 'Europe/Madrid');
+  dir('/etc/rc2.d');
+  file('/etc/rc2.d/S01cron', '#!/bin/sh\n');
+  file('/etc/rc2.d/S20ssh', '#!/bin/sh\n');
+  file('/etc/rc2.d/README', 'Enlaces a los servicios del arranque.\n');
+  dir('/etc/terminfo'); dir('/etc/tmpfiles.d');
+  file('/.dockerenv', '');
+  dir('/tmp'); dir('/tmp/cache');
+  dir('/dev');
+  ['null','random','zero','tty','tty0','tty1','tty2','tty3','tty4','ttyS0'].forEach(d => file('/dev/' + d, '', ['null','random','zero'].includes(d) ? '666' : '620'));
+  dir('/usr'); dir('/usr/bin'); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
+  dir('/home/rafa'); dir('/home/rafa/Documentos'); dir('/home/rafa/Descargas');
+  file('/home/rafa/Documentos/nota.txt', 'Notas de Rafa\n');
+  file('/home/rafa/Descargas/apuntes.txt', 'Apuntes\n');
+  return e;
+}
+
+function crearEstado(act = {}){
+  const e = mundoBase();
+  const ini = act.inicio || {};
+  if (ini.base === 'vacio'){
+    e.fs = { '/': { tipo:'dir', modo:'755' }, '/home': { tipo:'dir', modo:'755' }, [MUNDO_HOME]: { tipo:'dir', modo:'755' } };
+  }
+  const crearPadres = p => {
+    if (p === '/' || e.fs[p]) return;
+    crearPadres(padreDe(p));
+    e.fs[p] = { tipo:'dir', modo:'755' };
+  };
+  e.umask = /^[0-7]{1,4}$/.test(String(ini.umask || '')) ? String(ini.umask).slice(-3).padStart(3, '0') : '022';
+  Object.entries(ini.fs || {}).forEach(([raw, v]) => {
+    const p = rutaAbs(raw, MUNDO_HOME);
+    if (v === null){ delete e.fs[p]; return; }
+    if (v === 'dir'){ crearPadres(p); return; }
+    if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; return; }
+    if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = { tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }; return; }
+    const contenido = typeof v === 'string' ? v : (v && v.contenido) || '';
+    const modo = (v && v.modo) || '644';
+    crearPadres(padreDe(p));
+    e.fs[p] = { tipo:'file', contenido, modo };
+  });
+  e.cwd = rutaAbs(ini.cwd || '~', MUNDO_HOME);
+  return e;
+}
+
+const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones, umask: e.umask || '022' }));
+// Permisos con los que nace un fichero o carpeta según la umask actual (por defecto 022 → 644 y 755).
+const modoConUmask = (base, e) => ((base & ~parseInt(e.umask || '022', 8)) & 0o777).toString(8).padStart(3, '0');
+
+const obtener = (e, p) => e.fs[p];
+const esDir = (e, p) => { const it = e.fs[p]; return !!it && it.tipo === 'dir'; };
+function resolverEnlace(e, p){
+  let actual = p;
+  for (let i = 0; i < 10; i++){
+    const it = e.fs[actual];
+    if (!it || it.tipo !== 'link') return actual;
+    actual = it.destino;
+  }
+  return actual;
+}
+function listarHijos(e, p, ocultos){
+  const base = p === '/' ? '/' : p + '/';
+  return Object.keys(e.fs)
+    .filter(k => k.startsWith(base) && k !== p && !k.slice(base.length).includes('/') && (ocultos || !nombreDe(k).startsWith('.')))
+    .sort((a, b) => nombreDe(a).localeCompare(nombreDe(b), 'es'));
+}
+function patronRegex(pat){
+  let r = '^';
+  for (let i = 0; i < pat.length; i++){
+    const c = pat[i];
+    if (c === '*') r += '[^/]*';
+    else if (c === '?') r += '[^/]';
+    else if (c === '['){
+      const fin = pat.indexOf(']', i + 1);
+      if (fin > i){
+        let dentro = pat.slice(i + 1, fin).replace(/\\/g, '\\\\');
+        if (dentro.startsWith('!')) dentro = '^' + dentro.slice(1);
+        r += '[' + dentro + ']';
+        i = fin;
+      }
+      else r += '\\[';
+    } else r += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  return new RegExp(r + '$');
+}
+function expandirGlob(e, raw){
+  if (!/[*?[]/.test(raw)) return [rutaAbs(raw, e.cwd)];
+  const p = rutaAbs(raw, e.cwd);
+  const padre = padreDe(p), base = nombreDe(p);
+  const objetivo = resolverEnlace(e, padre);
+  if (!esDir(e, objetivo)) return [p];
+  const re = patronRegex(base);
+  const hijos = listarHijos(e, objetivo, true).filter(k => re.test(nombreDe(k)));
+  return hijos.length ? hijos : [p];
+}
+function expandirLlaves(s){
+  const m = s.match(/\{([^{}]+)\}/);
+  if (!m) return [s];
+  const dentro = m[1];
+  let opciones;
+  const rango = dentro.match(/^(-?\d+)\.\.(-?\d+)(?:\.\.(-?\d+))?$/);
+  if (rango){
+    const a = Number(rango[1]), b = Number(rango[2]);
+    const paso = Math.abs(Number(rango[3]) || (a <= b ? 1 : -1));
+    opciones = [];
+    if (a <= b) for (let i = a; i <= b; i += paso) opciones.push(String(i));
+    else for (let i = a; i >= b; i -= paso) opciones.push(String(i));
+  } else opciones = dentro.split(',');
+  return opciones.flatMap(o => expandirLlaves(s.slice(0, m.index) + o + s.slice(m.index + m[0].length)));
+}
+
+/* ---- Utilidades de salida ---- */
+function nombreHtml(e, p, it){
+  const n = escaparHtml(nombreDe(p));
+  if (it.tipo === 'dir' || it.tipo === 'link') return '<b class="d">' + n + '</b>';
+  return /[1357]/.test(modoDe(it)[2] || '0') ? '<b class="x">' + n + '</b>' : n;
+}
+const conNumeroInodo = (p, it, texto) => String(inodoDe(p, it)).padStart(7) + ' ' + texto;
+function nombreConInodo(e, p, it, flags){
+  const n = nombreHtml(e, p, it);
+  return flags.has('i') ? conNumeroInodo(p, it, n) : n;
+}
+function columnas(e, hijos, flags){
+  const nombres = hijos.map(h => nombreConInodo(e, h, e.fs[h], flags));
+  const largos = nombres.map(n => quitarHtml(n).length);
+  const ancho = Math.max(1, ...largos) + 2;
+  const cols = Math.max(1, Math.floor(80 / ancho));
+  if (cols === 1) return nombres.join('\n');
+  const filas = Math.ceil(nombres.length / cols), lineas = [];
+  for (let f = 0; f < filas; f++){
+    const celdas = [];
+    for (let c = 0; c < cols; c++){
+      const i = c * filas + f;
+      if (i < nombres.length) celdas.push(nombres[i] + ' '.repeat(Math.max(0, ancho - largos[i])));
+    }
+    lineas.push(celdas.join('').replace(/\s+$/, ''));
+  }
+  return lineas.join('\n');
+}
+function lineaLarga(e, p, it, verInodo){
+  const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : '-';
+  const tam = it.tipo === 'file' ? String((it.contenido || '').length) : '4096';
+  const extra = it.tipo === 'link' ? ' -> ' + escaparHtml(it.destino) : '';
+  const linea = tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
+  return verInodo ? conNumeroInodo(p, it, linea) : linea;
+}
+
+/* ---- Árbol del mundo virtual (panel de estructura de la actividad) ----
+   Recorre estado.fs desde la raíz y devuelve una fila por carpeta o fichero
+   con su tipo y permisos. No sigue enlaces: así no puede entrar en un ciclo. */
+function mapaHtml(e){
+  const fs = (e && e.fs) || {}, hijos = new Map();
+  for (const p of Object.keys(fs)){
+    if (p === '/' || !fs[p]) continue;
+    const corte = p.lastIndexOf('/');
+    const padre = corte <= 0 ? '/' : p.slice(0, corte);
+    if (!hijos.has(padre)) hijos.set(padre, []);
+    hijos.get(padre).push(p);
+  }
+  for (const lista of hijos.values()) lista.sort((a, b) => nombreDe(a).localeCompare(nombreDe(b), 'es'));
+  const filas = [];
+  const ver = (p, nivel) => {
+    const it = fs[p];
+    if (!it) return;
+    const dir = it.tipo === 'dir', link = it.tipo === 'link';
+    const modo = link ? 'rwxrwxrwx' : permisosDe(it);
+    const ejecutable = it.tipo === 'file' && /[1357]/.test(modoDe(it)[2] || '0');
+    const clase = dir ? 'dir' : link ? 'link' : (ejecutable ? 'exec' : 'file');
+    const actual = p === e.cwd ? ' actual' : '';
+    const destino = link ? ' <span class="mapa-flecha">→</span> ' + escaparHtml(rutaVisible(it.destino)) : '';
+    filas.push('<div class="mapa-fila ' + clase + actual + '" role="treeitem" aria-level="' + (nivel + 1) + '" style="padding-left:' + (6 + nivel * 13) + 'px">' +
+      '<span class="mapa-modo">' + (dir ? 'd' : link ? 'l' : '-') + modo + '</span> <span class="mapa-nombre">' + (p === '/' ? '/' : escaparHtml(nombreDe(p)) + (dir ? '/' : '')) + '</span>' + destino + '</div>');
+    for (const h of hijos.get(p) || []) ver(h, nivel + 1);
+  };
+  ver('/', 0);
+  return filas.length
+    ? '<div class="mapa-arbol" role="tree" aria-label="Estructura de carpetas y permisos">' + filas.join('') + '</div>'
+    : '<p class="mapa-vacio">No hay datos del mundo virtual.</p>';
+}
+
+/* ---- Comandos ---- */
+function cmd_pwd(e){ return exito(e.cwd); }
+function cmd_cd(e, args){
+  const raw = args[0] || '~';
+  const p = resolverEnlace(e, rutaAbs(raw, e.cwd));
+  const it = e.fs[p];
+  if (!it) return fallo('bash: cd: ' + raw + ': No such file or directory');
+  if (it.tipo !== 'dir') return fallo('bash: cd: ' + raw + ': Not a directory');
+  e.cwd = p;
+  return exito();
+}
+function cmd_ls(e, args){
+  const flags = new Set(), rutas = [];
+  for (const a of args){
+    if (a.startsWith('-') && a !== '-') for (const c of a.slice(1)) flags.add(c);
+    else rutas.push(a);
+  }
+  const larga = flags.has('l'), ocultos = flags.has('a');
+  let objetivos = [];
+  for (const r of (rutas.length ? rutas : ['.'])) objetivos.push(...expandirGlob(e, r));
+  if (!objetivos.length) objetivos = [rutaAbs('.', e.cwd)];
+  if (flags.has('r')) objetivos.reverse();
+  const salidas = [], errores = [];
+  const total = objetivos.length;
+  for (const p0 of objetivos){
+    let p = p0, it = e.fs[p];
+    if (!it){ errores.push("ls: no se puede acceder a '" + p0 + "': No such file or directory"); continue; }
+    if (it.tipo === 'link' && !larga) p = resolverEnlace(e, p);
+    it = e.fs[p];
+    if (!it){ errores.push("ls: no se puede acceder a '" + p0 + "': No such file or directory"); continue; }
+    if (it.tipo !== 'dir'){
+      salidas.push(larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags));
+      continue;
+    }
+    if (flags.has('d')){ salidas.push(larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags)); continue; }
+    if (total > 1 && !flags.has('R')) salidas.push(escaparHtml(p0) + ':');
+    if (flags.has('R')){
+      const recorrer = (dir, nivel) => {
+        if (nivel) salidas.push('');
+        salidas.push(escaparHtml(nivel ? rutaVisible(dir) : p0) + ':');
+        const hs = listarHijos(e, dir, ocultos);
+        if (flags.has('r')) hs.reverse();
+        for (const h of hs) salidas.push('  '.repeat(nivel) + (larga ? lineaLarga(e, h, e.fs[h], flags.has('i')) : nombreConInodo(e, h, e.fs[h], flags)));
+        for (const h of hs) if (e.fs[h].tipo === 'dir') recorrer(h, nivel + 1);
+      };
+      recorrer(p, 0);
+      continue;
+    }
+    const hijos = listarHijos(e, p, ocultos);
+    if (flags.has('r')) hijos.reverse();
+    if (larga) for (const h of hijos) salidas.push(lineaLarga(e, h, e.fs[h], flags.has('i')));
+    else if (hijos.length) salidas.push(columnas(e, hijos, flags));
+  }
+  return { out: salidas.join('\n'), err: errores.join('\n'), code: errores.length && !salidas.length ? 1 : 0 };
+}
+function cmd_mkdir(e, args){
+  let padres = false;
+  const rutas = [];
+  for (const a of args){ if (a === '-p') padres = true; else if (!a.startsWith('-')) rutas.push(a); }
+  if (!rutas.length) return fallo('mkdir: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd);
+    if (e.fs[p]){
+      if (padres && e.fs[p].tipo === 'dir') continue;
+      err += (err ? '\n' : '') + "mkdir: no se puede crear el directorio '" + raw + "': El fichero ya existe";
+      continue;
+    }
+    if (padres){
+      const partes = p.split('/').filter(Boolean);
+      let actual = '';
+      for (const parte of partes){ actual += '/' + parte; if (!e.fs[actual]) e.fs[actual] = { tipo:'dir', modo: modoConUmask(0o777, e) }; }
+    } else {
+      const padre = padreDe(p);
+      if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "mkdir: no se puede crear el directorio '" + raw + "': No such file or directory"; continue; }
+      e.fs[p] = { tipo:'dir', modo: modoConUmask(0o777, e) };
+    }
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_touch(e, args){
+  if (!args.length) return fallo('touch: falta un operando');
+  let err = '';
+  for (const raw of args){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (it){
+      if (it.tipo === 'dir') err += (err ? '\n' : '') + "touch: no se puede tocar '" + raw + "': Es un directorio";
+      continue;
+    }
+    const padre = padreDe(p);
+    if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "touch: no se puede crear '" + raw + "': No such file or directory"; continue; }
+    e.fs[p] = { tipo:'file', contenido:'', modo: modoConUmask(0o666, e) };
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function borrarRec(e, p){ for (const k of Object.keys(e.fs)) if (k === p || k.startsWith(p + '/')) delete e.fs[k]; }
+function cmd_rm(e, args){
+  let rec = false, force = false;
+  const rutas = [];
+  for (const a of args){
+    if (a === '-r' || a === '-R') rec = true;
+    else if (a === '-f') force = true;
+    else if (a.startsWith('-')) for (const c of a.slice(1)){ if (c === 'r' || c === 'R') rec = true; if (c === 'f') force = true; }
+    else rutas.push(a);
+  }
+  if (!rutas.length) return fallo('rm: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd);
+    if (p === '/' || p === MUNDO_HOME){ err += (err ? '\n' : '') + 'rm: no se puede borrar ' + raw + ': Operación no permitida'; continue; }
+    const it = e.fs[p];
+    if (!it){ if (!force) err += (err ? '\n' : '') + "rm: no se puede borrar '" + raw + "': No such file or directory"; continue; }
+    if (it.tipo === 'dir'){
+      if (!rec){ err += (err ? '\n' : '') + "rm: no se puede borrar '" + raw + "': Es un directorio"; continue; }
+      borrarRec(e, p);
+    } else delete e.fs[p];
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_cp(e, args){
+  let rec = false;
+  const ops = [];
+  for (const a of args){ if (a === '-r' || a === '-R') rec = true; else if (!a.startsWith('-')) ops.push(a); }
+  if (ops.length < 2) return fallo('cp: faltan operandos');
+  const destinos = ops[ops.length - 1], fuentes = ops.slice(0, -1);
+  const dstBase = rutaAbs(destinos, e.cwd);
+  const dstEsDir = e.fs[dstBase] && e.fs[dstBase].tipo === 'dir';
+  if (fuentes.length > 1 && !dstEsDir) return fallo("cp: el destino '" + destinos + "' no es un directorio");
+  let err = '';
+  for (const raw of fuentes){
+    const src = rutaAbs(raw, e.cwd), it = e.fs[src];
+    if (!it){ err += (err ? '\n' : '') + "cp: no se puede acceder a '" + raw + "': No such file or directory"; continue; }
+    if (it.tipo === 'dir' && !rec){ err += (err ? '\n' : '') + "cp: -r no especificado; se omite el directorio '" + raw + "'"; continue; }
+    const dst = dstEsDir ? dstBase + '/' + nombreDe(src) : dstBase;
+    if (!esDir(e, padreDe(dst))){ err += (err ? '\n' : '') + "cp: no se puede crear '" + destinos + "': No such file or directory"; continue; }
+    for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')) e.fs[dst + k.slice(src.length)] = JSON.parse(JSON.stringify(e.fs[k]));
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_mv(e, args){
+  const ops = args.filter(a => !a.startsWith('-'));
+  if (ops.length < 2) return fallo('mv: faltan operandos');
+  const src = rutaAbs(ops[0], e.cwd);
+  if (!e.fs[src]) return fallo("mv: no se puede acceder a '" + ops[0] + "': No such file or directory");
+  let dst = rutaAbs(ops[1], e.cwd);
+  if (e.fs[dst] && e.fs[dst].tipo === 'dir') dst += '/' + nombreDe(src);
+  if (!esDir(e, padreDe(dst))) return fallo("mv: no se puede mover '" + ops[0] + "': No such file or directory");
+  if (src === dst) return exito();
+  for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')){ e.fs[dst + k.slice(src.length)] = e.fs[k]; delete e.fs[k]; }
+  return exito();
+}
+function cmd_cat(e, args, stdin){
+  if (!args.length) return exito(stdin || '');
+  let out = '', err = '';
+  for (const raw of args){
+    let p = rutaAbs(raw, e.cwd);
+    if (e.fs[p] && e.fs[p].tipo === 'link') p = resolverEnlace(e, p);
+    const it = e.fs[p];
+    if (!it){ err += "cat: " + raw + ": No such file or directory\n"; continue; }
+    if (it.tipo === 'dir'){ err += "cat: " + raw + ": Es un directorio\n"; continue; }
+    out += it.contenido || '';
+    if (out && !out.endsWith('\n')) out += '\n';
+  }
+  return { out, err, code: err ? 1 : 0 };
+}
+function cmd_echo(e, args){ return exito(args.join(' ')); }
+function cmd_date(e, args){
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const formato = args[0] || '';
+  if (formato === '+%F') return exito(d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()));
+  if (formato === '+%d%m%y') return exito(p(d.getDate()) + p(d.getMonth() + 1) + p(d.getFullYear() % 100));
+  if (formato === '+%B') return exito(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][d.getMonth()]);
+  return exito(dias[d.getDay()] + ' ' + p(d.getDate()) + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' UTC');
+}
+function cmd_ln(e, args){
+  let simbolico = false;
+  const ops = [];
+  for (const a of args){ if (a === '-s') simbolico = true; else if (!a.startsWith('-')) ops.push(a); }
+  if (ops.length !== 2) return fallo('ln: faltan operandos');
+  const destino = rutaAbs(ops[0], e.cwd), enlace = rutaAbs(ops[1], e.cwd);
+  if (e.fs[enlace]) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': El fichero ya existe");
+  if (!e.fs[destino]) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': No such file or directory");
+  if (!esDir(e, padreDe(enlace))) return fallo("ln: no se puede crear el enlace '" + ops[1] + "': No such file or directory");
+  if (simbolico) e.fs[enlace] = { tipo:'link', destino };
+  else {
+    e.fs[enlace] = JSON.parse(JSON.stringify(e.fs[destino]));
+    e.fs[enlace].inodo = inodoDe(destino, e.fs[destino]);
+  }
+  return exito();
+}
+function cmd_chmod(e, args){
+  if (args.length < 2) return fallo('chmod: faltan operandos');
+  const modo = args[0], rutas = args.slice(1);
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it){ err += "chmod: no se puede acceder a '" + raw + "': No such file or directory\n"; continue; }
+    if (/^[0-7]{3,4}$/.test(modo)) it.modo = modo.slice(-3);
+    else {
+      let quien = 'a', m = modo;
+      if (/^[ugoa][+-=]/.test(m)){ quien = m[0]; m = m.slice(1); }
+      const op = m[0], perms = m.slice(1), actual = modoDe(it).split('').map(Number);
+      const idxs = quien === 'a' ? [0,1,2] : [{u:0,g:1,o:2}[quien]];
+      for (const idx of idxs){
+        if (idx == null) continue;
+        for (const c of perms){
+          const bit = { r:4, w:2, x:1 }[c] || 0;
+          if (op === '+') actual[idx] |= bit;
+          else if (op === '-') actual[idx] &= ~bit;
+          else if (op === '=') actual[idx] = bit;
+        }
+      }
+      it.modo = actual.join('');
+    }
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_umask(e, args){
+  if (!args.length) return exito(String(e.umask || '022').padStart(4, '0'));
+  const raw = String(args[0]).replace(/^0+/, '') || '0';
+  if (!/^[0-7]{1,3}$/.test(raw)) return fallo("bash: umask: " + args[0] + ": máscara no válida");
+  e.umask = raw.padStart(3, '0');
+  return exito();
+}
+function cmd_file(e, args){
+  if (!args.length) return fallo('file: falta un operando');
+  return exito(args.map(raw => {
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it) return raw + ': no se puede abrir';
+    if (it.tipo === 'dir') return raw + ': directorio';
+    if (it.tipo === 'link') return raw + ': enlace simbólico a ' + it.destino;
+    return raw + ': ' + ((it.contenido || '').trim() ? 'texto ASCII' : 'archivo vacío');
+  }).join('\n'));
+}
+function cmd_tree(e, args){
+  const raw = args.find(a => !a.startsWith('-')) || '.';
+  const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+  if (!it) return fallo('tree: ' + raw + ': No such file or directory');
+  if (it.tipo !== 'dir') return exito(nombreHtml(e, p, it));
+  let dirs = 0, files = 0;
+  const lineas = [nombreHtml(e, p, it)];
+  const rec = (dir, pref) => {
+    const hs = listarHijos(e, dir, false);
+    hs.forEach((h, i) => {
+      const ultimo = i === hs.length - 1, hi = e.fs[h];
+      lineas.push(pref + (ultimo ? '└── ' : '├── ') + nombreHtml(e, h, hi));
+      if (hi.tipo === 'dir'){ dirs++; rec(h, pref + (ultimo ? '    ' : '│   ')); }
+      else files++;
+    });
+  };
+  rec(p, '');
+  lineas.push('', dirs + (dirs === 1 ? ' directorio' : ' directorios') + ', ' + files + (files === 1 ? ' archivo' : ' archivos'));
+  return exito(lineas.join('\n'));
+}
+function cmd_find(e, args){
+  let inicio = '.', name = null, tipo = null;
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-name') name = args[++i];
+    else if (args[i] === '-type') tipo = args[++i];
+    else if (!args[i].startsWith('-')) inicio = args[i];
+  }
+  const p = rutaAbs(inicio, e.cwd);
+  if (!e.fs[p]) return fallo("find: '" + inicio + "': No such file or directory");
+  const re = name ? patronRegex(name) : null, out = [];
+  const rec = x => {
+    const it = e.fs[x];
+    const valeTipo = !tipo || (tipo === 'd' ? it.tipo === 'dir' : tipo === 'f' ? it.tipo === 'file' : true);
+    if (valeTipo && (!re || re.test(nombreDe(x)))) out.push(rutaVisible(x));
+    if (it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h);
+  };
+  rec(p);
+  return exito(out.join('\n'));
+}
+function cmd_grep(e, args, stdin){
+  let i = 0;
+  const flags = { i:false, v:false, c:false, n:false };
+  while (i < args.length && args[i].startsWith('-')){ for (const c of args[i].slice(1)) flags[c] = true; i++; }
+  const patron = args[i++];
+  if (patron == null) return fallo('grep: falta el patrón');
+  let re;
+  try { re = new RegExp(patron, flags.i ? 'i' : ''); }
+  catch { re = new RegExp(patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags.i ? 'i' : ''); }
+  const archivos = args.slice(i), lineas = [];
+  let total = 0;
+  const procesar = (texto, prefijo) => {
+    const ls = texto.split('\n');
+    if (ls.length && ls[ls.length - 1] === '') ls.pop();
+    ls.forEach((linea, n) => {
+      const coincide = re.test(linea) !== flags.v;
+      if (!coincide) return;
+      total++;
+      if (!flags.c) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
+    });
+  };
+  if (archivos.length){
+    for (const raw of archivos){
+      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+      if (!it || it.tipo !== 'file') continue;
+      procesar(it.contenido || '', archivos.length > 1 ? raw + ':' : '');
+    }
+  } else procesar(stdin || '', '');
+  return exito(flags.c ? String(total) : lineas.join('\n'));
+}
+function cmd_wc(e, args, stdin){
+  const flags = { l:false, w:false, c:false }, files = [];
+  for (const a of args){ if (a.startsWith('-')) for (const c of a.slice(1)) flags[c] = true; else files.push(a); }
+  const contar = t => ({
+    l: (t.match(/\n/g) || []).length + (t && !t.endsWith('\n') ? 1 : 0),
+    w: t.trim() ? t.trim().split(/\s+/).length : 0,
+    c: t.length
+  });
+  const formato = (n, f) => {
+    const partes = [];
+    if (flags.l) partes.push(n.l);
+    if (flags.w) partes.push(n.w);
+    if (flags.c) partes.push(n.c);
+    if (!partes.length) partes.push(n.l, n.w, n.c);
+    return partes.join(' ') + (f ? ' ' + f : '');
+  };
+  if (!files.length) return exito(formato(contar(stdin || ''), ''));
+  const out = [];
+  let err = '';
+  for (const raw of files){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it || it.tipo === 'dir'){ err += 'wc: ' + raw + ': No such file or directory\n'; continue; }
+    out.push(formato(contar(it.contenido || ''), raw));
+  }
+  return { out: out.join('\n'), err, code: err ? 1 : 0 };
+}
+function cmd_head(e, args, stdin){
+  let n = 10;
+  const files = [];
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
+    else if (!args[i].startsWith('-')) files.push(args[i]);
+  }
+  const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  return exito(texto.split('\n').slice(0, n).join('\n'));
+}
+function cmd_tail(e, args, stdin){
+  let n = 10;
+  const files = [];
+  for (let i = 0; i < args.length; i++){
+    if (args[i] === '-n') n = Number(args[++i]) || 10;
+    else if (/^-\d+$/.test(args[i])) n = Number(args[i].slice(1));
+    else if (!args[i].startsWith('-')) files.push(args[i]);
+  }
+  const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  const ls = texto.split('\n');
+  if (ls.length && ls[ls.length - 1] === '') ls.pop();
+  return exito(ls.slice(-n).join('\n'));
+}
+function cmd_sort(e, args, stdin){
+  const rev = args.includes('-r'), files = args.filter(a => !a.startsWith('-'));
+  const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  const ls = texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1);
+  ls.sort((a, b) => a.localeCompare(b, 'es'));
+  if (rev) ls.reverse();
+  return exito(ls.join('\n'));
+}
+function cmd_du(e, args){
+  const h = args.includes('-h'), s = args.includes('-s');
+  const raw = args.find(a => !a.startsWith('-')) || '.';
+  const p = rutaAbs(raw, e.cwd);
+  if (!e.fs[p]) return fallo('du: no se puede acceder a ' + raw);
+  const tam = x => {
+    const it = e.fs[x];
+    if (!it) return 0;
+    if (it.tipo === 'file') return (it.contenido || '').length;
+    if (it.tipo === 'link') return 0;
+    return listarHijos(e, x, true).reduce((n, h) => n + tam(h), 0);
+  };
+  const humano = n => n < 1024 ? String(n) : n < 1024 * 1024 ? (n / 1024).toFixed(0) + 'K' : (n / 1024 / 1024).toFixed(1) + 'M';
+  const lineas = [];
+  const rec = x => {
+    const t = tam(x);
+    if (!s && e.fs[x].tipo === 'dir') for (const h of listarHijos(e, x, true)) if (e.fs[h].tipo === 'dir') rec(h);
+    lineas.push((h ? humano(t) : t) + '\t' + rutaVisible(x));
+  };
+  rec(p);
+  return exito(lineas.join('\n'));
+}
+const TIPO_INTERNO = new Set(['pwd','cd','echo','type','alias','source','.','exit','history','umask']);
+const TIPO_EXTERNO = new Set(['bash','cat','chmod','cp','date','file','find','grep','head','ln','ls','mkdir','mv','nano','ping','rm','sort','ssh','tail','tar','touch','tree','vi','vim','wc','wget','whoami']);
+function cmd_type(e, args){
+  args = args.filter(a => !a.startsWith('-'));   // -a, -t, -p... no cambian la respuesta en el simulador
+  if (!args.length) return fallo('type: falta un operando');
+  return exito(args.map(a => {
+    if (e.funciones.includes(a)) return a + ' es una función';
+    if (TIPO_INTERNO.has(a)) return a + ' es una orden interna del shell';
+    if (TIPO_EXTERNO.has(a)) return a + ' es /usr/bin/' + a;
+    return 'bash: type: ' + a + ': no encontrado';
+  }).join('\n'));
+}
+const WHEREIS = {
+  whoami: '/usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
+  ls: '/usr/bin/ls /usr/share/man/man1/ls.1.gz',
+  mkdir: '/usr/bin/mkdir /usr/share/man/man1/mkdir.1.gz',
+  touch: '/usr/bin/touch /usr/share/man/man1/touch.1.gz',
+  cp: '/usr/bin/cp /usr/share/man/man1/cp.1.gz',
+  mv: '/usr/bin/mv /usr/share/man/man1/mv.1.gz',
+  rm: '/usr/bin/rm /usr/share/man/man1/rm.1.gz',
+  cat: '/usr/bin/cat /usr/share/man/man1/cat.1.gz',
+  chmod: '/usr/bin/chmod /usr/share/man/man1/chmod.1.gz',
+  tree: '/usr/bin/tree /usr/share/man/man1/tree.1.gz'
+};
+function cmd_whereis(e, args){
+  if (!args.length) return fallo('whereis: falta un operando');
+  return exito(args.map(a => a + ': ' + (WHEREIS[a] || '')).join('\n'));
+}
+function cmd_source(e, args){
+  const raw = args[0] || '~/.bashrc';
+  const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+  if (!it || it.tipo !== 'file') return fallo('bash: source: ' + raw + ': No such file or directory');
+  const re = /(?:function\s+)?([A-Za-z_]\w*)\s*\(\s*\)/g;
+  let m;
+  while ((m = re.exec(it.contenido || ''))) if (!e.funciones.includes(m[1])) e.funciones.push(m[1]);
+  return exito();
+}
+function cmd_mkcd(e, args){
+  if (!args.length) return fallo('mkcd: falta la ruta');
+  const r = cmd_mkdir(e, ['-p', args[0]]);
+  if (r.code) return r;
+  return cmd_cd(e, [args[0]]);
+}
+
+const CMD_SIM = {
+  pwd: cmd_pwd, cd: cmd_cd, ls: cmd_ls, mkdir: cmd_mkdir, touch: cmd_touch, rm: cmd_rm,
+  cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
+  file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
+  head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
+  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), date: cmd_date, umask: cmd_umask
+};
+
+/* ---- Intérprete de una línea ---- */
+function tokenizar(linea){
+  const out = [];
+  let actual = '', comilla = null;
+  const empujar = () => { if (actual !== ''){ out.push(actual); actual = ''; } };
+  for (let i = 0; i < linea.length; i++){
+    const ch = linea[i];
+    if (comilla){
+      if (ch === comilla) comilla = null;
+      else if (ch === '\\' && comilla === '"' && i + 1 < linea.length) actual += linea[++i];
+      else actual += ch;
+      continue;
+    }
+    if (ch === '"' || ch === "'"){ comilla = ch; continue; }
+    if (ch === '\\' && i + 1 < linea.length){ actual += linea[++i]; continue; }
+    if (/\s/.test(ch)){ empujar(); continue; }
+    if (ch === '&' && linea[i + 1] === '&'){ empujar(); out.push('&&'); i++; continue; }
+    if (ch === '|' && linea[i + 1] === '|'){ empujar(); out.push('||'); i++; continue; }
+    if (ch === '|'){ empujar(); out.push('|'); continue; }
+    if (ch === ';'){ empujar(); out.push(';'); continue; }
+    if (ch === '>' && linea[i + 1] === '>'){ empujar(); out.push('>>'); i++; continue; }
+    if (ch === '>'){ empujar(); out.push('>'); continue; }
+    actual += ch;
+  }
+  empujar();
+  return out;
+}
+function ejecutarSimple(e, tokens, stdin = ''){
+  const cmd = tokens[0];
+  if (!cmd) return exito('');
+  let args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
+  // Los comodines se expanden como en bash para los comandos que reciben ficheros.
+  // find y grep quedan fuera porque sus patrones no son rutas.
+  if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd))
+    args = args.flatMap(a => a.startsWith('-') ? [a] : expandirGlob(e, a));
+  if (cmd === 'mkcd' && e.funciones.includes('mkcd')) return cmd_mkcd(e, args);
+  const fn = CMD_SIM[cmd];
+  if (!fn) return fallo('bash: ' + cmd + ': orden no encontrada');
+  return fn(e, args, stdin);
+}
+function ejecutarPipeline(e, tokens, stdin = ''){
+  let redir = null, idx = -1;
+  for (let i = 0; i < tokens.length; i++) if (tokens[i] === '>' || tokens[i] === '>>'){ redir = tokens[i]; idx = i; break; }
+  let destino = null;
+  if (redir){
+    destino = tokens[idx + 1];
+    tokens = tokens.slice(0, idx).concat(tokens.slice(idx + 2));
+    if (!destino) return { out:'', err:'bash: falta el fichero de redirección', code:1 };
+  }
+  const segmentos = [];
+  let seg = [];
+  for (const t of tokens){ if (t === '|'){ segmentos.push(seg); seg = []; } else seg.push(t); }
+  segmentos.push(seg);
+  let out = '', err = '', code = 0, entrada = stdin;
+  for (const s of segmentos){
+    if (!s.length) continue;
+    const r = ejecutarSimple(e, s, entrada);
+    out = r.out; err += r.err; code = r.code;
+    if (code !== 0) break;
+    entrada = quitarHtml(out);
+  }
+  if (redir && code === 0){
+    const p = rutaAbs(destino, e.cwd), padre = padreDe(p);
+    if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino + ': No such file or directory', code:1 };
+    const texto = quitarHtml(out);
+    const anterior = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+    e.fs[p] = { tipo:'file', contenido: (redir === '>>' ? anterior : '') + texto + (texto.endsWith('\n') ? '' : '\n'), modo:'644' };
+    out = '';
+  }
+  return { out, err, code };
+}
+function ejecutarLinea(e, linea){
+  linea = String(linea).replace(/\$(?:\{)?(HOME|PWD|USER)(?:\})?/g, (m, v) =>
+    v === 'HOME' ? MUNDO_HOME : (v === 'PWD' ? e.cwd : 'usuario'));
+  const tokens = tokenizar(linea);
+  let out = '', err = '', code = 0, i = 0, ejecutar = true;
+  while (i < tokens.length){
+    const seg = [];
+    while (i < tokens.length && ![';','&&','||'].includes(tokens[i])) seg.push(tokens[i++]);
+    const op = tokens[i++];
+    if (ejecutar && seg.length){
+      const r = ejecutarPipeline(e, seg);
+      out += r.out; err += r.err; code = r.code;
+    }
+    if (op === '&&') ejecutar = code === 0;
+    else if (op === '||') ejecutar = code !== 0;
+    else ejecutar = true;
+  }
+  return { out, err, code };
+}
+
+/* ---- Objetivos de un paso ---- */
+function comprobarMeta(e, meta, salida){
+  const texto = quitarHtml(salida || '');
+  const falla = motivo => ({ ok:false, motivo });
+  if (meta.cwd != null){
+    const p = rutaAbs(meta.cwd, e.cwd);
+    if (e.cwd !== p) return falla('Estás en ' + rutaVisible(e.cwd) + ', pero el objetivo es ' + rutaVisible(p) + '.');
+  }
+  for (const raw of [].concat(meta.existe || [])){
+    const p = rutaAbs(raw, e.cwd);
+    if (!e.fs[p]) return falla('Todavía no existe ' + rutaVisible(p) + '.');
+  }
+  for (const raw of [].concat(meta.noExiste || [])){
+    const p = rutaAbs(raw, e.cwd);
+    if (e.fs[p]) return falla('Sigue existiendo ' + rutaVisible(p) + '.');
+  }
+  if (meta.contenido){
+    for (const [raw, esperado] of Object.entries(meta.contenido)){
+      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+      if (!it || it.tipo !== 'file') return falla('No existe el fichero ' + rutaVisible(p) + '.');
+      if ((it.contenido || '') !== esperado) return falla('El contenido de ' + rutaVisible(p) + ' no es el esperado.');
+    }
+  }
+  if (meta.modo){
+    for (const [raw, esperado] of Object.entries(meta.modo)){
+      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+      if (!it) return falla('No existe ' + rutaVisible(p) + '.');
+      if (modoDe(it) !== String(esperado).slice(-3)) return falla('Los permisos de ' + rutaVisible(p) + ' no son los esperados.');
+    }
+  }
+  for (const en of [].concat(meta.enlace || [])){
+    if (!en) continue;
+    const p = rutaAbs(en.path, e.cwd), destino = rutaAbs(en.destino, e.cwd), it = e.fs[p];
+    if (!it || it.tipo !== 'link') return falla('No existe el enlace ' + rutaVisible(p) + '.');
+    if (it.destino !== destino) return falla('El enlace ' + rutaVisible(p) + ' no apunta a ' + rutaVisible(destino) + '.');
+  }
+  if (meta.funcion && !e.funciones.includes(meta.funcion)) return falla('La función ' + meta.funcion + ' no está cargada.');
+  if (meta.umask != null){
+    const esperada = String(meta.umask).replace(/^0+/, '').padStart(3, '0');
+    if ((e.umask || '022') !== esperada) return falla('La umask es ' + (e.umask || '022') + ', pero debería ser ' + esperada + '.');
+  }
+  for (const x of [].concat(meta.muestra || [])){
+    const coincide = x instanceof RegExp ? (x.lastIndex = 0, x.test(texto)) : texto.includes(x);
+    if (!coincide) return falla('La salida no contiene ' + (x instanceof RegExp ? String(x) : x) + '.');
+  }
+  for (const x of [].concat(meta.noMuestra || [])){
+    const coincide = x instanceof RegExp ? (x.lastIndex = 0, x.test(texto)) : texto.includes(x);
+    if (coincide) return falla('La salida no debería contener ' + (x instanceof RegExp ? String(x) : x) + '.');
+  }
+  if (meta.orden){
+    let pos = -1;
+    for (const x of [].concat(meta.orden)){
+      const i = texto.indexOf(x, pos + 1);
+      if (i < 0) return falla('La salida no está en el orden pedido: falta ' + x + '.');
+      pos = i;
+    }
+  }
+  if (meta.salida != null && texto.trim() !== String(meta.salida).trim()) return falla('La salida no es la esperada.');
+  return { ok:true, motivo:'' };
+}
+
+// API común para la actividad y el duelo. Devuelve el estado nuevo solo si el comando cumple el paso.
+function validarPaso(paso, estado, t){
+  if (typeof paso.ok === 'function') return { ok: paso.ok(t), estado, salida:'', error:'Ese comando no es el que pide el paso.' };
+  // Formato antiguo (ok / acepta): se acepta el comando tal cual, sin ejecutarlo ni tocar el mundo.
+  if (!paso.meta){
+    if (!aceptado(paso, t)) return { ok:false, estado, salida:'', error:'Ese comando no es el que pide el paso.' };
+    return { ok:true, estado, salida: paso.out || '', error:'' };
+  }
+  const candidato = estado ? clonarEstado(estado) : null;
+  const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
+  if (r.code !== 0) return { ok:false, estado, salida:'', error: r.err || 'El comando no se pudo ejecutar.' };
+  const v = comprobarMeta(candidato, paso.meta, r.out);
+  return v.ok ? { ok:true, estado: candidato, salida: r.out || '', error:'' } : { ok:false, estado, salida:'', error: v.motivo };
+}
+
 // 1) Lectura y validación de las actividades que cargó actividades.js.
 //    Lo que falle se avisa en la consola (F12) y la actividad se ignora, para que una errata no rompa todo el panel.
 if (!window.ACTIVIDADES) console.error('Actividades: no se encontró actividades.js. Debe estar en la misma carpeta que este HTML y cargarse antes de este script.');
@@ -926,11 +1967,13 @@ const idsVistos = new Set();
 const DATOS_ACT = (window.ACTIVIDADES || []).filter((a, i) => {
   const nombre = '«' + ((a && (a.titulo || a.id)) || 'actividad nº ' + (i + 1)) + '»';
   if (!a || !a.id){ console.warn('Actividades: ' + nombre + ' no tiene "id" y se ignora.'); return false; }
-  if (idsVistos.has(a.id)) console.warn('Actividades: el id "' + a.id + '" está repetido (' + nombre + '). Cada actividad necesita un id único.');
-  idsVistos.add(a.id);
+  if (idsVistos.has(a.id)){ console.warn('Actividades: el id "' + a.id + '" está repetido (' + nombre + ') y se ignora. Cada actividad necesita un id único.'); return false; }
   if (!Array.isArray(a.pasos) || !a.pasos.length){ console.warn('Actividades: ' + nombre + ' no tiene "pasos" y se ignora.'); return false; }
-  const mal = a.pasos.findIndex(p => !p || !Array.isArray(p.ok) || !p.ok.length);
-  if (mal >= 0){ console.warn('Actividades: en ' + nombre + ' el paso ' + (mal + 1) + ' no tiene la lista "ok" y la actividad se ignora.'); return false; }
+  const mal = a.pasos.findIndex(p => !p || (!p.meta && !p.ok && !p.acepta));
+  if (mal >= 0){ console.warn('Actividades: en ' + nombre + ' el paso ' + (mal + 1) + ' no tiene "meta", "ok" ni "acepta" y la actividad se ignora.'); return false; }
+  const sinEjemplo = a.pasos.findIndex(p => p && !p.ejemplo);
+  if (sinEjemplo >= 0) console.warn('Actividades: en ' + nombre + ' el paso ' + (sinEjemplo + 1) + ' no tiene "ejemplo"; la solución y el progreso guardado funcionarán peor.');
+  idsVistos.add(a.id);   // solo cuenta si la actividad es válida
   return true;
 });
 
@@ -943,22 +1986,44 @@ DATOS_ACT.forEach(a => {
   gr.items.push(a);
 });
 const ORDEN_ACT = GRUPOS_ACT.flatMap(gr => gr.items);
+const INDICE_ACT = new Map(ORDEN_ACT.map((a, i) => [a, i]));   // id/objeto → posición, para no recorrer la lista en cada elemento
 const escapar = t => Object.assign(document.createElement('div'), { textContent: t }).innerHTML;
 const normalizar = t => t.trim().replace(/\s+/g, ' ');
 
-// Actividades completadas (se recuerdan si el navegador lo permite)
+// Actividades completadas y progreso paso a paso (se recuerdan si el navegador lo permite)
 let hechas = [];
-try { hechas = JSON.parse(localStorage.getItem('actividades-hechas')) || []; } catch (e) {}
+try {
+  const guardado = JSON.parse(localStorage.getItem('actividades-hechas'));
+  if (Array.isArray(guardado)) hechas = guardado.filter(x => typeof x === 'string');
+} catch (e) { hechas = []; }
 const guardarHechas = () => { try { localStorage.setItem('actividades-hechas', JSON.stringify(hechas)); } catch (e) {} };
+
+// progreso[id] = { paso, estado } → permite retomar una actividad donde se dejó
+let progreso = {};
+try {
+  const g = JSON.parse(localStorage.getItem('actividades-progreso'));
+  if (g && typeof g === 'object' && !Array.isArray(g)) progreso = g;
+} catch (e) { progreso = {}; }
+const guardarProgreso = () => { try { localStorage.setItem('actividades-progreso', JSON.stringify(progreso)); } catch (e) {} };
+
+// Puntos y sonido: refuerzo al superar pasos. "Borrar progreso" también pone los puntos a cero.
+let puntos = 0;
+try { const g = Number(localStorage.getItem('actividades-puntos')); if (Number.isFinite(g) && g > 0) puntos = Math.floor(g); } catch (e) {}
+const guardarPuntos = () => { try { localStorage.setItem('actividades-puntos', String(puntos)); } catch (e) {} };
+let sonido = true;
+try { if (localStorage.getItem('actividades-sonido') === '0') sonido = false; } catch (e) {}
 
 // ESTADO de la actividad abierta (pintarAct() dibuja la pantalla a partir de estas variables)
 let act = null,          // actividad abierta (objeto de ORDEN_ACT)
     actI = 0,            // su posición en ORDEN_ACT
+    estadoAct = null,    // mundo virtual: { cwd, fs, funciones }
+    rutaAct = null,      // (formato antiguo) ruta que muestra el prompt si el paso trae "ruta"
     pasoAct = 0,         // paso que toca resolver (0 = el primero)
-    rutaAct = '~',       // ruta que muestra el prompt (cambia con el campo "ruta" de los pasos)
     histAct = '',        // HTML de lo ya escrito en la terminal (comandos y salidas)
-    fallosAct = 0,       // fallos seguidos en el paso actual (a los 2 sale la pista)
+    fallosAct = 0,       // fallos seguidos en el paso actual (2 → pista, 3 → Ver solución)
+    fallosPaso = 0,      // total de intentos fallidos en el paso actual (se muestra en la lista)
     pistaIdx = 0,        // pistas del paso actual ya enseñadas (cada petición muestra la siguiente)
+    ayudaAct = false,    // true si en este paso se pidió "Ver solución" (da menos puntos)
     hechaAct = false,    // true cuando se ha superado el último paso
     mem = [], memI = 0;  // historial de comandos escritos (flechas ↑ ↓) y posición en él
 
@@ -967,16 +2032,19 @@ const estadoGrupos = new Map();   // título del subapartado → ¿desplegado? (
 const sinTildes = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();  // buscar sin distinguir tildes ni mayúsculas
 
 // Dibuja el panel. Se llama al cargar, al completar una actividad, al borrar el progreso y al escribir en el buscador.
+const NIVELES = { 1: 'Básico', 2: 'Medio', 3: 'Reto' };
+const nivelDe = a => NIVELES[a.nivel] ? a.nivel : 1;
+const textoBuscable = a => sinTildes([a.grupo || '', a.titulo, a.resumen || ''].concat(a.pasos.map(p => p.tarea || '')).join(' ').replace(/<[^>]*>/g, ' '));
 function construirLista(){
-  const lista = $('act-lista'), q = sinTildes($('act-buscar').value.trim());
+  const lista = $('act-lista'), q = sinTildes($('act-buscar').value.trim()), nivel = $('act-nivel').value;
   const aviso = texto => { lista.innerHTML = '<p class="act-vacio"></p>'; lista.firstChild.textContent = texto; };
   lista.innerHTML = '';
   if (!ORDEN_ACT.length) aviso('No hay actividades cargadas. Comprueba que actividades.js está en la misma carpeta que este HTML.');
   let coincidencias = 0;
   GRUPOS_ACT.forEach(gr => {
-    // Con búsqueda se muestran solo las actividades que coinciden. El texto buscado incluye el nombre del
-    // subapartado, así que buscar el nombre de un subapartado muestra todas sus actividades.
-    const items = !q ? gr.items : gr.items.filter(a => sinTildes(gr.titulo + ' ' + a.titulo + ' ' + a.resumen).includes(q));
+    // Se filtra por nivel y por texto (título, resumen y tareas de los pasos). El texto buscado incluye
+    // el nombre del subapartado, así que buscar el nombre de un subapartado muestra todas sus actividades.
+    const items = gr.items.filter(a => (!nivel || String(nivelDe(a)) === nivel) && (!q || textoBuscable(a).includes(q)));
     if (!items.length) return;
     coincidencias += items.length;
     const det = document.createElement('details');
@@ -992,21 +2060,24 @@ function construirLista(){
       if (!q) estadoGrupos.set(gr.titulo, abriendo);   // mientras se busca no se guarda: ese desplegado es temporal
     };
     items.forEach(a => {
-      const i = ORDEN_ACT.indexOf(a), ok = hechas.includes(a.id), b = document.createElement('button');
+      const i = INDICE_ACT.get(a), ok = hechas.includes(a.id), b = document.createElement('button');
       b.type = 'button'; b.className = 'act-item' + (ok ? ' hecha' : '');
       b.innerHTML = '<span class="act-num"></span><span class="act-txt"><b></b><small></small></span>';
       b.children[0].textContent = ok ? '✓' : i + 1;     // número global (posición en ORDEN_ACT) o ✓ si está completada
       b.children[1].children[0].textContent = a.titulo;
-      b.children[1].children[1].textContent = a.resumen + ' · ' + a.pasos.length + (a.pasos.length === 1 ? ' paso' : ' pasos') + (ok ? ' · completada' : '');
+      b.children[1].children[1].textContent = a.resumen + ' · ' + NIVELES[nivelDe(a)] + ' · ' + a.pasos.length + (a.pasos.length === 1 ? ' paso' : ' pasos') + (ok ? ' · completada' : '');
       b.onclick = () => abrirAct(i);
       caja.append(b);
     });
     lista.append(det);
   });
-  if (ORDEN_ACT.length && !coincidencias) aviso('Ninguna actividad coincide con «' + $('act-buscar').value.trim() + '».');
-  $('act-progreso').textContent = ORDEN_ACT.filter(a => hechas.includes(a.id)).length + ' de ' + ORDEN_ACT.length + ' completadas';
+  if (ORDEN_ACT.length && !coincidencias) aviso('Ninguna actividad coincide con «' + $('act-buscar').value.trim() + '»' + (nivel ? ' en el nivel ' + NIVELES[nivel] : '') + '.');
+  const enCurso = ORDEN_ACT.filter(a => !hechas.includes(a.id) && progreso[a.id] && progreso[a.id].paso > 0).length;
+  $('act-progreso').textContent = ORDEN_ACT.filter(a => hechas.includes(a.id)).length + ' de ' + ORDEN_ACT.length + ' completadas' +
+    (enCurso ? ' · ' + enCurso + ' en curso' : '') + (puntos ? ' · ⭐ ' + puntos + ' pts' : '');
 }
 $('act-buscar').oninput = construirLista;
+$('act-nivel').onchange = construirLista;
 
 // Abre/cierra el panel lateral. Al abrir el foco va al buscador (con los grupos plegados no hay botones a los que llevarlo).
 function alternarAct(abierto){
@@ -1016,24 +2087,33 @@ function alternarAct(abierto){
   else if (panelAct.contains(document.activeElement)) btnAct.focus();
 }
 
+// Mientras el diálogo está abierto, el resto de la página no recibe clics ni foco
+// (los avisos y los anuncios se quedan fuera: inert los ocultaría a los lectores de pantalla)
+const capaFondo = [...document.body.children].filter(el =>
+  el.id !== 'act-fondo' && el.id !== 'anuncio' && el.id !== 'aviso' && el.tagName !== 'SCRIPT' && el.tagName !== 'NOSCRIPT');
+function bloquearFondo(si){ capaFondo.forEach(el => { el.inert = si; }); }
+
 // Abre la actividad nº i de ORDEN_ACT: pone el título, cierra el panel, coloca la ventana y la muestra con fundido.
 // Si ya había una abierta (botón "Siguiente ▶") se limita a cambiar el contenido: el velo no se repite.
 function abrirAct(i){
   act = ORDEN_ACT[i]; actI = i;
-  $('act-titulo').textContent = 'usuario@linux: ~ — Actividad: ' + act.titulo;
+  $('act-titulo').textContent = 'usuario@linux: ~ — Actividad: ' + act.titulo + ' · Nivel ' + nivelDe(act) + ' (' + NIVELES[nivelDe(act)] + ')';
   alternarAct(false);
   if (!geo) geo = geometriaInicial();   // la primera vez se centra; después conserva donde la dejó la persona
   clearTimeout(cierreAct);              // por si se reabre mientras todavía se está desvaneciendo
   fondoAct.hidden = false;
+  bloquearFondo(true);
   colocar();
   void fondoAct.offsetWidth;            // fuerza el primer dibujado para que el fundido de entrada se anime
   fondoAct.classList.add('visible');
-  reiniciarAct();
+  cargarAct();
 }
 let cierreAct = 0;
 // Cierra la ventana: quita la clase "visible" (el CSS hace el fundido) y oculta el contenedor al terminar la transición.
 function cerrarAct(){
   fondoAct.classList.remove('visible'); // el velo y la ventana se desvanecen y, al terminar, se oculta el contenedor
+  bloquearFondo(false);
+  setTimeout(() => { $('act-fx').innerHTML = ''; }, 400);   // sin partículas sueltas al reabrir
   cierreAct = setTimeout(() => { fondoAct.hidden = true; }, reducido ? 0 : 300);
   btnAct.focus();
 }
@@ -1096,6 +2176,18 @@ ventAct.addEventListener('pointermove', e => {
 barraAct.addEventListener('dblclick', e => { if (!e.target.closest('button')) alternarMax(); });
 $('act-max').onclick = alternarMax;
 
+// Foco atrapado dentro de la ventana mientras el diálogo está abierto
+ventAct.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const foco = [...ventAct.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+  if (!foco.length) return;
+  const primero = foco[0], ultimo = foco[foco.length - 1];
+  if (!ventAct.contains(document.activeElement)){ e.preventDefault(); primero.focus(); return; }
+  if (e.shiftKey && document.activeElement === primero){ e.preventDefault(); ultimo.focus(); }
+  else if (!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primero.focus(); }
+});
+
 // Teclado: con la barra de título enfocada, flechas = mover y Mayús + flechas = redimensionar
 barraAct.addEventListener('keydown', e => {
   if (e.target !== barraAct || maxim) return;
@@ -1106,10 +2198,189 @@ barraAct.addEventListener('keydown', e => {
   colocar();
 });
 addEventListener('resize', () => { if (!fondoAct.hidden) colocar(); });
-// Vuelve al paso 1 con la terminal limpia (también se llama al abrir una actividad).
+// ¿Se puede reutilizar el estado guardado de esta actividad?
+const progresoValido = g => !!g && Number.isInteger(g.paso) && g.paso >= 0 && g.paso <= act.pasos.length &&
+  !!g.estado && typeof g.estado.cwd === 'string' && !!g.estado.fs && Array.isArray(g.estado.funciones);
+
+/* ---- Celebración: partículas, puntos y sonido ----
+   Nada de imágenes ni librerías: se crean unos <i> con una animación CSS y se borran solos.
+   Con "reducir movimiento" activado solo quedan los puntos y el sonido. */
+let audioCtx = null;
+function tono(frec, dur, tipo, vol, retraso){
+  if (!sonido) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = audioCtx.currentTime + (retraso || 0);
+    const o = audioCtx.createOscillator(), v = audioCtx.createGain();
+    o.type = tipo || 'sine';
+    o.frequency.value = frec;
+    v.gain.setValueAtTime(0.0001, t0);
+    v.gain.exponentialRampToValueAtTime(vol || 0.04, t0 + 0.012);
+    v.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(v); v.connect(audioCtx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  } catch (e) {}   // si el navegador bloquea el audio, la celebración sigue siendo visual
+}
+const sonidoPaso = () => { tono(784, .12, 'sine', .04); tono(1175, .16, 'sine', .028, .08); };
+const sonidoFin = () => [523, 659, 784, 1047].forEach((f, i) => tono(f, .22, 'triangle', .038, i * .1));
+
+// Punto desde el que salen las partículas: la línea de escritura (o el centro de la terminal si ya terminó)
+function puntoAct(){
+  const caja = $('act-fx'), ref = $('act-linea').hidden ? $('act-pantalla') : $('act-linea');
+  const r = caja.getBoundingClientRect(), l = ref.getBoundingClientRect();
+  return { x: Math.max(14, l.left - r.left + 18), y: Math.max(14, l.top - r.top + l.height / 2) };
+}
+
+function particulas(n, x, y, fuerza){
+  if (reducido) return;
+  const caja = $('act-fx'), colores = ['#e5a50a', '#26a269', '#3584e4', '#c061cb', '#f6d32d', '#ffffff'];
+  for (let i = 0; i < n; i++){
+    const p = document.createElement('i');
+    const ang = Math.random() * Math.PI * 2;
+    const dist = (fuerza ? 90 : 30) + Math.random() * (fuerza ? 220 : 75);
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.background = colores[i % colores.length];
+    p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+    p.style.setProperty('--dy', (Math.sin(ang) * dist * .8 - (fuerza ? 50 : 8)) + 'px');
+    p.style.setProperty('--rot', Math.round(Math.random() * 900 - 450) + 'deg');
+    p.style.setProperty('--dur', Math.round(600 + Math.random() * 550) + 'ms');
+    if (i % 3 === 0){ p.style.width = '5px'; p.style.height = '11px'; p.style.borderRadius = '1px'; }
+    caja.append(p);
+    p.addEventListener('animationend', () => p.remove(), { once: true });
+  }
+}
+
+function flotante(texto, x, y){
+  if (reducido) return;
+  const n = document.createElement('span');
+  n.className = 'act-mas';
+  n.textContent = texto;
+  n.style.left = x + 'px';
+  n.style.top = y + 'px';
+  $('act-fx').append(n);
+  n.addEventListener('animationend', () => n.remove(), { once: true });
+}
+
+// Suma puntos y celebra: pequeño estallido al superar un paso, confeti al terminar la actividad.
+function sumarPuntos(n, fin){
+  puntos += n; guardarPuntos();
+  const p = puntoAct();
+  flotante('+' + n + ' ⭐', p.x, p.y);
+  particulas(fin ? 60 : 14, p.x, p.y, !!fin);
+  if (fin) sonidoFin(); else sonidoPaso();
+}
+
+// Botón de sonido (se recuerda entre visitas)
+const btnSonido = $('act-sonido');
+function pintarSonido(){
+  btnSonido.textContent = sonido ? '🔊' : '🔇';
+  btnSonido.setAttribute('aria-pressed', String(sonido));
+  btnSonido.title = sonido ? 'Sonido activado. Pulsa para desactivarlo.' : 'Sonido desactivado. Pulsa para activarlo.';
+}
+btnSonido.onclick = () => {
+  sonido = !sonido;
+  try { localStorage.setItem('actividades-sonido', sonido ? '1' : '0'); } catch (e) {}
+  pintarSonido();
+  if (sonido) sonidoPaso();
+};
+pintarSonido();
+
+// Texto de bienvenida de la terminal de la actividad (se repite al retomar y al reiniciar)
+const AYUDA_ACT = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n' +
+  '<span class="c"># Tab completa · ↑ ↓ historial · Ctrl+L limpia · Ctrl+C cancela.</span>\n';
+
+/* ---- Panel de estructura de carpetas y permisos (solo en la actividad) ---- */
+const mapaAct = $('act-mapa'), mapaArbol = $('act-mapa-arbol'), mapaRuta = $('act-mapa-ruta'), btnMapa = $('act-mapa-min');
+let mapaMin = false, mapaAncho = 300;
+try {
+  const w = Number(localStorage.getItem('act-mapa-ancho'));
+  if (Number.isFinite(w) && w > 0) mapaAncho = Math.min(Math.max(Math.round(w), 160), 800);
+  const pref = localStorage.getItem('act-mapa-min');
+  mapaMin = pref === '1' || (pref === null && innerWidth < 720);   // en móvil empieza plegado
+} catch (e) { mapaMin = innerWidth < 720; }
+const guardarMapa = () => {
+  try {
+    localStorage.setItem('act-mapa-ancho', String(mapaAncho));
+    localStorage.setItem('act-mapa-min', mapaMin ? '1' : '0');
+  } catch (e) {}   // sin almacenamiento, el panel sigue funcionando durante la visita
+};
+function aplicarMapa(){
+  mapaAct.classList.toggle('minimizada', mapaMin);
+  mapaAct.style.setProperty('--mapa-w', mapaAncho + 'px');
+  btnMapa.textContent = mapaMin ? '+' : '−';
+  btnMapa.setAttribute('aria-expanded', String(!mapaMin));
+  btnMapa.setAttribute('aria-label', mapaMin ? 'Mostrar panel de estructura' : 'Minimizar panel de estructura');
+  btnMapa.title = mapaMin ? 'Mostrar estructura de carpetas' : 'Minimizar estructura de carpetas';
+}
+btnMapa.onclick = () => {
+  mapaMin = !mapaMin;
+  aplicarMapa();
+  guardarMapa();
+  if (!mapaMin) mapaArbol.scrollTop = 0;
+};
+function pintarMapaAct(){
+  if (!estadoAct) return;
+  const y = mapaArbol.scrollTop;   // conserva el desplazamiento al ejecutar comandos
+  mapaArbol.innerHTML = mapaHtml(estadoAct);
+  mapaArbol.scrollTop = y;
+  mapaRuta.textContent = rutaVisible(estadoAct.cwd);
+}
+const resMapa = $('act-mapa-res');
+let arrastreMapa = null;
+resMapa.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  arrastreMapa = { x: e.clientX, w: mapaAct.getBoundingClientRect().width };
+  resMapa.setPointerCapture(e.pointerId);
+});
+resMapa.addEventListener('pointermove', e => {
+  if (!arrastreMapa) return;
+  const cuerpo = document.querySelector('#act-fondo .act-cuerpo');
+  const max = Math.max(180, Math.round((cuerpo ? cuerpo.clientWidth : innerWidth) * .45));
+  mapaAncho = Math.max(160, Math.min(Math.round(arrastreMapa.w + arrastreMapa.x - e.clientX), max));
+  aplicarMapa();
+});
+['pointerup', 'pointercancel'].forEach(ev => resMapa.addEventListener(ev, () => {
+  if (!arrastreMapa) return;
+  arrastreMapa = null;
+  guardarMapa();
+}));
+resMapa.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  const cuerpo = document.querySelector('#act-fondo .act-cuerpo');
+  const max = Math.max(180, Math.round((cuerpo ? cuerpo.clientWidth : innerWidth) * .45));
+  mapaAncho = Math.max(160, Math.min(mapaAncho + (e.key === 'ArrowLeft' ? 20 : -20), max));
+  aplicarMapa();
+  guardarMapa();
+});
+aplicarMapa();
+
+// Abre la actividad retomando el paso guardado (si lo hay) y su mundo virtual.
+function cargarAct(){
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  estadoAct = crearEstado(act);
+  const g = progreso[act.id];
+  if (progresoValido(g) && g.paso > 0){
+    pasoAct = g.paso;
+    estadoAct = g.estado;
+    if (typeof g.ruta === 'string') rutaAct = g.ruta;   // compatibilidad con el formato antiguo
+    hechaAct = pasoAct >= act.pasos.length;
+  }
+  histAct = AYUDA_ACT;
+  if (pasoAct && !hechaAct) histAct += '<span class="c"># Retomas la actividad en el paso ' + (pasoAct + 1) + ' de ' + act.pasos.length + '.</span>\n';
+  entradaAct.value = '';
+  mapaArbol.scrollTop = 0;
+  pintarAct(); entradaAct.focus();
+}
+
+// Vuelve al paso 1 con la terminal limpia y borra el progreso guardado de esta actividad.
 function reiniciarAct(){
-  pasoAct = 0; rutaAct = '~'; fallosAct = 0; pistaIdx = 0; hechaAct = false; mem = []; memI = 0;
-  histAct = '<span class="c"># Escribe los comandos que pide el enunciado y pulsa Enter.</span>\n';
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  estadoAct = crearEstado(act);
+  delete progreso[act.id]; guardarProgreso(); construirLista();
+  histAct = AYUDA_ACT;
   entradaAct.value = '';
   pintarAct(); entradaAct.focus();
 }
@@ -1122,14 +2393,18 @@ function pintarAct(){
   $('act-enunciado').innerHTML = '<h3>' + escapar(act.titulo) + '</h3>' + unir(act.enunciado) +
     '<ol class="tareas">' + act.pasos.map((p, i) =>
       '<li class="' + (i < pasoAct ? 'hecha' : (i === pasoAct && !hechaAct ? 'actual' : '')) + '">' + p.tarea +
+      (i === pasoAct && !hechaAct && fallosPaso > 0 ? ' <span class="fallos-paso" title="Intentos fallidos en este paso">' + fallosPaso + '</span>' : '') +
       (i < pasoAct && p.explica ? '<div class="nota">' + unir(p.explica, true) + '</div>' : '') + '</li>').join('') + '</ol>' +
     (hechaAct ? '<p class="exito">✔ ¡Actividad completada! ' + unir(act.final) + '</p>' + solucionHtml(act) : '');
   histoAct.innerHTML = histAct;
   $('act-linea').hidden = hechaAct;
-  $('act-prompt').innerHTML = prompt(rutaAct);
-  $('act-contador').textContent = hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total;
+  $('act-prompt').innerHTML = promptHtml(rutaAct || rutaVisible(estadoAct.cwd));
+  $('act-contador').textContent = (hechaAct ? 'Completada · ' + total + ' / ' + total : 'Paso ' + (pasoAct + 1) + ' / ' + total) + (puntos ? ' · ⭐ ' + puntos : '');
+  $('anuncio').textContent = hechaAct ? 'Actividad completada: ' + act.titulo : 'Paso ' + (pasoAct + 1) + ' de ' + total + ': ' + act.titulo;
   $('act-pista').textContent = hechaAct ? (actI < ORDEN_ACT.length - 1 ? 'Siguiente ▶' : 'Cerrar ✕') : '💡 Pista';
+  $('act-solucion').hidden = hechaAct || fallosAct < 3;
   pantAct.scrollTop = pantAct.scrollHeight;
+  pintarMapaAct();
   if (hechaAct){ const caja = document.querySelector('#act-enunciado .solucion'); if (caja) setTimeout(() => caja.scrollIntoView({ block:'nearest', behavior: reducido ? 'auto' : 'smooth' }), 250); }
 }
 
@@ -1139,7 +2414,7 @@ function solucionHtml(a){
   let cuerpo;
   if (a.solucion) cuerpo = unir(a.solucion, true);
   else cuerpo = '<ol>' + a.pasos.map(p => {
-    const cmd = p.ok.find(o => typeof o === 'string');
+    const cmd = p.ejemplo || (Array.isArray(p.ok) ? p.ok.find(o => typeof o === 'string') : '');
     return '<li>' + (cmd ? '<code>' + escapar(cmd) + '</code>' : '') + (p.explica ? ' — ' + [].concat(p.explica).join(' ') : '') + '</li>';
   }).join('') + '</ol>';
   return '<div class="solucion" role="region" aria-label="Explicación de la solución"><h4>Explicación de la solución</h4>' + cuerpo + '</div>';
@@ -1153,47 +2428,163 @@ function pistaHtml(paso){
   pistaIdx = Math.min(pistaIdx + 1, l.length);
   return '<span class="c"># Pista' + (l.length > 1 ? ' ' + (n + 1) + '/' + l.length : '') + ': ' + escapar(l[n]) + (agotadas && l.length > 1 ? ' (no hay más pistas)' : '') + '</span>\n';
 }
-const aceptado = (paso, t) => paso.ok.some(o => o instanceof RegExp ? o.test(t) : o === t);
+// Pasos antiguos (ok / acepta) y pasos nuevos (meta): aceptado() solo mira las respuestas de texto o regex.
+const patronesDe = paso => [].concat(paso.acepta || paso.ok || []).filter(o => typeof o === 'string' || o instanceof RegExp);
+const aceptado = (paso, t) => patronesDe(paso).some(o => {
+  if (!(o instanceof RegExp)) return normalizar(o) === t;
+  o.lastIndex = 0;            // evita fallos si la expresión regular lleva el flag "g"
+  return o.test(t);
+});
 
 // Enter: valida el comando escrito contra el paso actual
-// Se ejecuta al pulsar Enter en la terminal de la actividad: valida el comando y actualiza el estado.
+// Se ejecuta al pulsar Enter en la terminal de la actividad: validarPaso() prueba el comando sobre una copia
+// del mundo virtual y solo guarda el estado nuevo si cumple el objetivo (meta) del paso.
 function enviarAct(){
   if (hechaAct) return;
   const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
   entradaAct.value = '';
-  histAct += prompt(rutaAct) + escapar(crudo) + '\n';
+  histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
   if (t){ mem.push(crudo.trim()); memI = mem.length; }
   if (!t){ /* línea vacía: solo avanza el prompt */ }
   else if (t === 'clear'){ histAct = ''; }
-  else if (aceptado(paso, t)){
-    if (paso.out) histAct += paso.out + '\n';
-    if (paso.ruta) rutaAct = paso.ruta;
-    pasoAct++; fallosAct = 0; pistaIdx = 0;
-    if (pasoAct === act.pasos.length){
-      hechaAct = true;
-      histAct += '\n<span class="x">✔ Actividad completada</span>\n';
-      if (!hechas.includes(act.id)){ hechas.push(act.id); guardarHechas(); construirLista(); }
-    }
-  } else {
-    fallosAct++;
-    const primera = t.split(' ')[0];
-    const parecido = paso.ok.some(o => typeof o === 'string' && o.split(' ')[0] === primera);
-    histAct += parecido
-      ? '<span class="c"># Ese comando no es lo que pide el paso actual: revisa el enunciado.</span>\n'
-      : 'bash: ' + escapar(primera) + ': orden no encontrada\n';
-    if (fallosAct >= 2){ histAct += pistaHtml(paso); fallosAct = 0; }
+  else if (t === 'history'){
+    histAct += mem.map((c, i) => String(i + 1).padStart(3, ' ') + '  ' + escapar(c)).join('\n') + '\n';
   }
+  else {
+    const v = validarPaso(paso, estadoAct, t);
+    if (v.ok){
+      estadoAct = v.estado;
+      if (paso.ruta) rutaAct = paso.ruta;   // formato antiguo: la ruta del prompt viene del paso
+      if (v.salida) histAct += v.salida + '\n';
+      // Puntos: 15 si sale a la primera, 10 si hubo fallos, 5 si se pidió la solución. Terminar: +25.
+      const gana = ayudaAct ? 5 : fallosAct === 0 ? 15 : 10;
+      ayudaAct = false;
+      pasoAct++; fallosAct = 0; fallosPaso = 0; pistaIdx = 0;
+      if (pasoAct === act.pasos.length){
+        hechaAct = true;
+        sumarPuntos(25, true);
+        histAct += '\n<span class="x">✔ Actividad completada · +25 ⭐</span>\n';
+        delete progreso[act.id]; guardarProgreso();
+        if (!hechas.includes(act.id)){ hechas.push(act.id); guardarHechas(); }
+      } else {
+        sumarPuntos(gana, false);
+        progreso[act.id] = { paso: pasoAct, estado: estadoAct, ruta: rutaAct };   // retomar aquí la próxima vez
+        guardarProgreso();
+      }
+      construirLista();
+    } else {
+      fallosAct++;
+      fallosPaso++;
+      histAct += '<span class="c"># ' + escapar(v.error || 'Ese comando no es el que pide el paso.') + '</span>\n';
+      if (fallosAct === 2) histAct += pistaHtml(paso);
+      else if (fallosAct === 3) histAct += '<span class="c"># Si sigues atascado, pulsa «Ver solución».</span>\n';
+    }
+  }
+  // La terminal de la actividad no crece sin límite durante una sesión larga
+  const lineas = histAct.split('\n');
+  if (lineas.length > 240) histAct = lineas.slice(-240).join('\n');
   pintarAct();
 }
 
-// Eventos de la terminal de la actividad
+/* ---- Tab: completa comandos, opciones y rutas, como bash ---- */
+const OPCIONES_CMD = {
+  ls:'-a -A -l -h -r -R -1 -t -i', cd:'-P', mkdir:'-p', rm:'-r -f', cp:'-r', ln:'-s', chmod:'-R',
+  grep:'-i -r -n -v', find:'-name -type -maxdepth', head:'-n', tail:'-n', sort:'-r -n',
+  du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t'
+};
+const COMANDOS_TAB = () => ['clear', 'history', 'mkcd'].concat(Object.keys(CMD_SIM).filter(x => x !== '.')).sort((a, b) => a.localeCompare(b, 'es'));
+
+// Candidatos para el trozo que va del último espacio al cursor.
+function candidatosTab(texto, pos, estado){
+  const desde = texto.lastIndexOf(' ', pos - 1) + 1;
+  const trozo = texto.slice(desde, pos);
+  const comando = texto.slice(0, desde).trim().split(/\s+/)[0] || '';
+  let lista;
+  if (!comando) lista = COMANDOS_TAB();
+  else if (trozo.startsWith('-')) lista = (OPCIONES_CMD[comando] || '').split(' ').filter(Boolean);
+  else {
+    // Rutas: se completa el último trozo y se respeta lo escrito delante ("~/", "Documentos/", "../")
+    const corte = trozo.lastIndexOf('/');
+    const cabeza = trozo.slice(0, corte + 1), base = trozo.slice(corte + 1);
+    if (base === '~' || base === '.' || base === '..') lista = [base + '/'];
+    else {
+      const dir = rutaAbs(cabeza || '.', estado ? estado.cwd : MUNDO_HOME);
+      const real = estado ? resolverEnlace(estado, dir) : dir;
+      const nombres = estado && esDir(estado, real) ? listarHijos(estado, dir, base.startsWith('.')).map(nombreDe) : [];
+      lista = nombres.map(nombre => {
+        const p = dir + '/' + nombre;
+        return cabeza + nombre + (esDir(estado, resolverEnlace(estado, p)) ? '/' : '');
+      });
+    }
+  }
+  return { desde, trozo, lista: [...new Set(lista)].filter(x => x.startsWith(trozo)) };
+}
+
+// Aplica Tab sobre un input. Si hay varias opciones, escribe la lista con salida(html), como bash.
+function completarInput(inp, estado, salida){
+  const texto = inp.value, pos = inp.selectionStart;
+  const { desde, trozo, lista } = candidatosTab(texto, pos, estado);
+  if (!lista.length) return;
+  if (lista.length === 1){
+    const nuevo = lista[0], espacio = nuevo.endsWith('/') ? '' : ' ';
+    inp.value = texto.slice(0, desde) + nuevo + espacio + texto.slice(pos);
+    const fin = desde + nuevo.length + espacio.length;
+    inp.setSelectionRange(fin, fin);
+    return;
+  }
+  // Varias: se completa hasta donde coinciden; si no se puede avanzar, se listan.
+  let comun = lista[0];
+  for (const c of lista) while (!c.startsWith(comun)) comun = comun.slice(0, -1);
+  if (comun.length > trozo.length){
+    inp.value = texto.slice(0, desde) + comun + texto.slice(pos);
+    const fin = desde + comun.length;
+    inp.setSelectionRange(fin, fin);
+  } else salida('<span class="c"># ' + lista.map(escapar).join('   ') + '</span>\n');
+}
+
+// Eventos de la terminal de la actividad: Enter, Tab, historial (↑ ↓) y atajos de bash
 entradaAct.onkeydown = e => {
-  if (e.key === 'Enter'){ e.preventDefault(); enviarAct(); }
-  else if (e.key === 'ArrowUp'){ if (mem.length){ e.preventDefault(); memI = Math.max(0, memI - 1); entradaAct.value = mem[memI]; } }
+  if (e.key === 'Enter'){ e.preventDefault(); enviarAct(); return; }
+  if (e.key === 'Tab'){
+    e.preventDefault();
+    completarInput(entradaAct, estadoAct, html => { histAct += html; pintarAct(); });
+    return;
+  }
+  if (e.ctrlKey || e.metaKey){
+    const k = e.key.toLowerCase(), i = entradaAct.selectionStart, j = entradaAct.selectionEnd;
+    if (k === 'l'){ e.preventDefault(); histAct = ''; pintarAct(); }          // Ctrl+L: limpiar
+    else if (k === 'c' && i === j){                                          // Ctrl+C: cancelar (con selección, copia)
+      e.preventDefault();
+      histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(entradaAct.value) + '^C\n';
+      entradaAct.value = ''; memI = mem.length; pintarAct();
+    }
+    else if (k === 'u'){ e.preventDefault(); entradaAct.value = entradaAct.value.slice(i); entradaAct.setSelectionRange(0, 0); }   // borra hasta el cursor
+    else if (k === 'w'){                                                     // borra la palabra anterior
+      e.preventDefault();
+      const antes = entradaAct.value.slice(0, i).replace(/\S+\s*$/, '');
+      entradaAct.value = antes + entradaAct.value.slice(i);
+      entradaAct.setSelectionRange(antes.length, antes.length);
+    }
+    else if (k === 'a'){ e.preventDefault(); entradaAct.setSelectionRange(0, 0); }
+    else if (k === 'e'){ e.preventDefault(); entradaAct.setSelectionRange(entradaAct.value.length, entradaAct.value.length); }
+    return;
+  }
+  if (e.key === 'ArrowUp'){ if (mem.length){ e.preventDefault(); memI = Math.max(0, memI - 1); entradaAct.value = mem[memI]; } }
   else if (e.key === 'ArrowDown'){ e.preventDefault(); memI = Math.min(mem.length, memI + 1); entradaAct.value = mem[memI] ?? ''; }
 };
 pantAct.onclick = () => { if (!getSelection().toString()) entradaAct.focus(); };
 $('act-reiniciar').onclick = reiniciarAct;
+// "Ver solución" (aparece tras 3 fallos): deja el comando resuelto escrito en la línea, para pulsar Enter.
+$('act-solucion').onclick = () => {
+  if (hechaAct) return;
+  const paso = act.pasos[pasoAct], ej = paso.ejemplo;
+  if (!ej) return;
+  ayudaAct = true;   // este paso dará 5 puntos en vez de 10/15
+  histAct += '<span class="c"># Solución del paso ' + (pasoAct + 1) + ': ' + escapar(ej) + '</span>\n';
+  if (paso.explica) histAct += '<span class="c"># ' + escapar(quitarHtml([].concat(paso.explica).join(' '))) + '</span>\n';
+  entradaAct.value = ej;      // se escribe sola: solo queda pulsar Enter
+  pintarAct(); entradaAct.focus();
+};
 $('act-pista').onclick = () => {
   if (hechaAct){ if (actI < ORDEN_ACT.length - 1) abrirAct(actI + 1); else cerrarAct(); return; }
   histAct += pistaHtml(act.pasos[pasoAct]); pintarAct(); entradaAct.focus();
@@ -1202,19 +2593,32 @@ $('act-cerrar').onclick = cerrarAct;
 
 // Botón de la barra, borrar progreso, clic fuera y Escape
 btnAct.onclick = () => alternarAct(!panelAct.classList.contains('abierto'));
-$('act-borrar').onclick = () => { hechas = []; guardarHechas(); construirLista(); };
+$('act-borrar').onclick = () => {
+  if (!hechas.length && !Object.keys(progreso).length && !puntos) return;
+  if (!confirm('¿Borrar el progreso y los puntos de todas las actividades?')) return;
+  hechas = []; progreso = {}; puntos = 0;
+  guardarHechas(); guardarProgreso(); guardarPuntos();
+  construirLista(); avisar('Progreso borrado');
+};
 addEventListener('click', e => {
   if (panelAct.classList.contains('abierto') && !panelAct.contains(e.target) && !btnAct.contains(e.target)) alternarAct(false);
 });
 addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!fondoAct.hidden && ventAct.contains(document.activeElement)) cerrarAct(); else alternarAct(false);
+  if (!fondoAct.hidden){ cerrarAct(); return; }
+  if (panelAct.classList.contains('abierto')){ alternarAct(false); return; }
+  if (ventanaPrincipal.classList.contains('minimizada')){ verEscritorio(false); return; }
+  alternar(false);
 });
 
 construirLista();
 
 aplicar();
-abrir(0, 0); // comando que se abre al cargar
+if (grupos.length) abrir(0, 0); // comando que se abre al cargar
+else {
+  $('pantalla').innerHTML = '<span class="c"># No hay comandos cargados. Revisa ejemplos.js.</span>\n';
+  $('explicacion').innerHTML = '<h3>No se han podido cargar los comandos</h3><p>Comprueba que <code>ejemplos.js</code> está en la misma carpeta que este HTML y que no tiene errores de sintaxis.</p>';
+}
 </script>
 
 <!-- DUELO (multijugador con Firebase). Va DESPUÉS del script principal. Configuración y explicación dentro de duelo.js -->

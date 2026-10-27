@@ -24,7 +24,7 @@
        { cmd:"mkdir -p a/b/c", out:"", exp:"<p>Con <code>-p</code> crea toda la ruta.</p>" }
    ]},
    ===================================================================== */
-const prompt = ruta => '<span class="u">usuario@linux</span>:<span class="r">' + ruta + '</span>$ '; // texto antes del comando
+const promptHtml = ruta => '<span class="u">usuario@linux</span>:<span class="r">' + ruta + '</span>$ '; // texto antes del comando
 
 // Imagen de fondo por defecto: ruta o URL, p. ej. "fondo.jpg" o "img/escritorio.png".
 // Déjala vacía ("") para usar el degradado de color. Desde el botón cuadriculado también se puede elegir otra imagen.
@@ -41,42 +41,44 @@ const GRUPOS = [
 
     { nombre:"type", resumen:"Tipo de comando", diapositivas:[
       { cmd:"type nano",
-        out:'nano is /usr/bin/nano',
-        exp:'<h3>type</h3><p>Muestra que tipo de comando es el que queremos saber</p><p>Te dice ademas en donde esta alojado el comando o incluso si es interno.</p>' },
-      { cmd:"type nano (pero si fuera un alias)",
-        out:'nano es un alias de nano -l',
-        exp:'<h3>¿Que pasaría si fuera un alias?</h3><p>Solamente nos especificaría que es un alias y no el comando en si.</p>' },
+        out:'nano es /usr/bin/nano',
+        exp:'<h3>type</h3><p>Muestra qué tipo de comando es y dónde está alojado. También indica si es interno del shell, como <code>pwd</code>, o un programa del sistema.</p>' },
+      { pasos:[
+          { cmd:"alias nano='nano -l'" },
+          { cmd:"type nano", out:'nano es un alias de nano -l' }
+        ],
+        exp:'<h3>¿Qué pasa si es un alias?</h3><p><code>alias</code> crea un atajo para la sesión y <code>type</code> lo detecta: avisa de que es un alias y muestra a qué comando apunta, en lugar de la ruta del programa.</p>' },
       { cmd:"type pwd",
         out:'pwd es una orden interna del shell',
-        exp:'<p>Esto es lo que sucede cuando estamos ante un comando interno, nos especifica que es de la <strong>bash</strong></p>' }
+        exp:'<p>Cuando el comando es interno, <code>type</code> lo indica y señala que lo gestiona la <strong>bash</strong>.</p>' }
     ]},
 
     { nombre:"man", resumen:"Manual de comandos", diapositivas:[
       { cmd:"man",
         out:'¿Qué página del manual desea?<p>Por ejemplo, pruebe man man.</p>',
-        exp:'<h3>El manual universal</h3><p>Podremos consultar casi cualquier comando con "man", pero habra otros que no ya que dependa si tiene o no dentro de man.</p>' },
+        exp:'<h3>El manual universal</h3><p>Podemos consultar casi cualquier comando con "man", pero algunos, como los comandos internos del shell, no tienen página de manual.</p>' },
 	  { cmd:"man -k whoami",
-        out:'whoami (1)           - print effective user name',
-        exp:'<h3>Forma de verlo abrebiado</h3><p>Podremos consultar de forma más breve con "man", pero usando el parametro <code>-k</code></p>' },
+        out:'whoami (1)           - muestra el nombre de usuario efectivo',
+        exp:'<h3>Forma abreviada</h3><p>Podemos buscar por palabra clave con <code>man -k</code>, sin conocer el nombre exacto del comando.</p>' },
     ]},
 			
 	{ nombre:"tldr", resumen:"Resumen de un comando", diapositivas:[
       { pasos:[
-          { cmd:"tldr pwd", out:'pwd\n  Imprime el nombre del directorio actual.\n  Más información: Enlace ficticio\n\n- Imprime el directorio actual:\n   pwd\n\n- Imprime el directorio actual y resuelve todos los enlaces simbólicos (es decir, muestra la ruta física real):\n    pwd -P' }
+          { cmd:"tldr pwd", out:'pwd\n  Imprime el nombre del directorio actual.\n  Más información: https://www.gnu.org/software/coreutils/pwd\n\n- Imprime el directorio actual:\n   pwd\n\n- Imprime el directorio actual y resuelve todos los enlaces simbólicos (es decir, muestra la ruta física real):\n    pwd -P' }
         ],
-        exp:'<h3>Taildeer</h3>Comando que nos sirve para saber que hace un comando o un resumen de este, pero antes de nada siempre hay que poner <code>tldr --update</code>' }
+        exp:'<h3>tldr</h3><p>Muestra ejemplos breves de un comando. La primera vez hay que actualizar la base de datos con <code>tldr --update</code>.</p>' }
     ]},
 	
 	{ nombre:"whatis", resumen:"Consultar comando", diapositivas:[
       { cmd:"whatis whoami",
-        out:'whoami (1)           - print effective user name',
-        exp:'Para consultar brevemente un comando, practicamente es lo mismo que <code>man -k "comando a poner"</code>' }
+        out:'whoami (1)           - muestra el nombre de usuario efectivo',
+        exp:'<p><code>whatis</code> muestra en una sola línea qué hace un comando, usando su propia base de datos.</p>' }
     ]},
 	
 	{ nombre:"whereis", resumen:"Ruta de un comando", diapositivas:[
       { cmd:"whereis whoami",
         out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
-        exp:'Podremos ver la ruta donde se aloja un comando.' }
+        exp:'<p>Muestra dónde está el programa y su página de manual. No indica si el comando es interno del shell: para eso se usa <code>type</code>.</p>' }
     ]}
   ]},
 
@@ -84,35 +86,37 @@ const GRUPOS = [
 
     { nombre:"file", resumen:"Mostrar un archivo", diapositivas:[
       { cmd:'file test.txt',
-        out:'test.txt: empty',
-        exp:'<h3>file</h3><p>Nos dira si un archivo tiene contenido dentro o esta vacio, muy util para saber que tipo de archivo es un fichero.' },
-      { cmd:'file test.txt',
-        out:'test.txt: ASCII text',
-        exp:'Lo que pasaría si ese fichero tuviera unos bits rellenados.' }
+        out:'test.txt: vacío',
+        exp:'<h3>file</h3><p>Indica qué tipo de contenido tiene un archivo (texto, binario, vacío…). Es útil para saber con qué tipo de fichero trabajas.' },
+      { pasos:[
+          { cmd:'echo "hola" > test.txt' },
+          { cmd:'file test.txt', out:'test.txt: texto ASCII' }
+        ],
+        exp:'Así se ve cuando el fichero ya tiene contenido de texto.' }
     ]},
     
-    { nombre:"du", resumen:"Consultas espacio", diapositivas:[
+    { nombre:"du", resumen:"Consultar el espacio", diapositivas:[
       { pasos:[
           { cmd:"cd ./Prueba", out:'', ruta:'~/Prueba'},
           { cmd:"du", out:'4   .'},
           { cmd:"du -lh", out:'4,0K	.' }
         ],
-        exp:'<h3>El comando para ver el espacio</h3>Este comando nos permite ver a detalle cuanto espacio se esta consumiendo en una ruta.<p>Si usamos el parametro <code>-lh</code> podremos ver hasta si son MB o GB.</p>' },
+        exp:'<h3>El comando para ver el espacio</h3>Muestra cuánto espacio ocupa una ruta.<p>Con <code>-h</code> se ve en unidades legibles (K, M, G).</p>' },
       { pasos:[
           { cmd:"cd ./Prueba", out:'', ruta:'~/Prueba'},
           { cmd:"du", out:'8  	./1-asir-contenido-main/pdfs/fundamentos-hardware\n396	./1-asir-contenido-main/pdfs/redes\n2000	./1-asir-contenido-main/pdfs/bd\n7472	./1-asir-contenido-main/pdfs\n80	./1-asir-contenido-main/html/redes\n88	./1-asir-contenido-main/html\n7924	./1-asir-contenido-main\n8	./PruebasISO\n5755448	.' },
           { cmd:"du -lh", out:'8,0K	./1-asir-contenido-main/pdfs/fundamentos-hardware\n396K	./1-asir-contenido-main/pdfs/redes\n2,0M	./1-asir-contenido-main/pdfs/bd\n7,3M	./1-asir-contenido-main/pdfs\n80K	./1-asir-contenido-main/html/redes\n88K	./1-asir-contenido-main/html\n7,8M	./1-asir-contenido-main\n12K	./PruebasISO\n5,5G	.' }
         ],
-        exp:'<h3>El comando para ver el espacio</h3>Este comando nos permite ver a detalle cuanto espacio se esta consumiendo en una ruta.<p>Si usamos el parametro <code>-lh</code> podremos ver hasta si son MB o GB.</p>' },
+        exp:'<h3>El comando para ver el espacio</h3>Muestra cuánto espacio ocupa una ruta.<p>Con <code>-h</code> se ve en unidades legibles (K, M, G).</p>' },
     ]},
     
 	  { nombre:"wc", resumen:"Contar líneas", diapositivas:[
       { cmd:'wc test.txt',
         out:'1  3 13 test.txt',
-        exp:'<h3>wc (Word Count)</h3><p>Contara el número de líneas, palabras, caracteres y bytes que tiene un fichero o documento de texto.' },
+        exp:'<h3>wc (Word Count)</h3><p>Cuenta las líneas, palabras, caracteres y bytes de un fichero o de la entrada estándar.' },
       { cmd:'wc -l test.txt',
         out:'1 test.txt',
-        exp:'Con el parametro <code>-l</code> contara las líneas directamente.' }
+        exp:'Con <code>-l</code> cuenta solo las líneas.' }
     ]},
 
     { nombre:"chmod", resumen:"Cambiar permisos", diapositivas:[
@@ -133,10 +137,11 @@ const GRUPOS = [
     { nombre:"pipes", resumen:"Encadenar con |", diapositivas:[
       { pasos:[
           { cmd:"mkdir saludos", out:'' },
-          { cmd:"touch saludo1.txt | mv saludo1.txt saludos", out:'' },
-          { cmd:"ls saludos | wc -l saludos/saludo1.txt | tree saludos", out:'<b class="d">saludos</b>\n└── saludo1.txt\n\n1 directory, 1 file' }
+          { cmd:"touch saludo1.txt && mv saludo1.txt saludos", out:'' },
+          { cmd:"ls saludos | wc -l", out:'1' },
+          { cmd:"tree saludos", out:'<b class="d">saludos</b>\n└── saludo1.txt\n\n1 directorio, 1 archivo' }
         ],
-        exp:'<h3>Tuberías</h3><p>El símbolo <code>|</code> envía la salida de un comando como entrada del siguiente. Cada eslabón filtra o transforma: primero se lista el directorio, luego <code>wc -l</code> cuenta las líneas del fichero y <code>tree</code> lista de forma ordenada el directorio de nuevo.</p>' },
+        exp:'<h3>Tuberías</h3><p>El símbolo <code>|</code> envía la salida de un comando a la entrada del siguiente. Aquí <code>ls</code> lista el directorio, <code>wc -l</code> cuenta las líneas que recibe y <code>tree</code> dibuja el árbol de carpetas.</p>' },
       { pasos:[
           { cmd:'mkdir demo && echo "carpeta creada"', out:'carpeta creada' },
           { cmd:'ls /noexiste || echo "no existe, sigo igualmente"', out:'ls: no se puede acceder a \'/noexiste\': No existe el fichero o el directorio\nno existe, sigo igualmente' },
@@ -161,10 +166,11 @@ const GRUPOS = [
     
     { nombre:"Ejemplo 1", resumen:"Ver la hora", diapositivas:[
       { pasos:[
-          { cmd:"Función de ver la hora", out:'hora () {\n        date +%T\n}' },
-          { cmd:"hora", out:'Se vería la hora'}
+          { cmd:"tail -n 3 ~/.bashrc", out:'hora() {\n  date +%T\n}' },
+          { cmd:"source ~/.bashrc", out:'' },
+          { cmd:"hora", out:'14:32:07'}
         ],
-        exp:'<h3>Una sesión completa</h3><p>Así se ve un flujo real: se crea la estructura (<code>mkdir -p</code>), se entra (<code>cd</code>), se crean archivos vacíos (<code>touch</code>), se revisa todo (<code>ls -R</code>) y se vuelve atrás. Fíjate en cómo el prompt cambia de ruta.</p>' }
+        exp:'<h3>Una función para ver la hora</h3><p>La función <code>hora</code> se guarda en <code>~/.bashrc</code> y ejecuta <code>date +%T</code>, que muestra solo la hora. Al recargar el archivo con <code>source</code> queda disponible como cualquier comando.</p>' }
     ]},
     
     { nombre:"mkcd", resumen:"Crear y entrar", diapositivas:[
@@ -181,7 +187,7 @@ const GRUPOS = [
         ],
         exp:'<h3>Las comillas importan</h3><p>Por eso la función usa <code>"$1"</code> entre comillas: así un nombre con espacios cuenta como un solo argumento. Sin ellas, crearía dos carpetas, <code>mis</code> y <code>fotos</code>.</p>' },
       { pasos:[
-          { cmd:"type mkcd", out:'mkcd is a function\nmkcd () \n{ \n    mkdir -p "$1" &amp;&amp; cd "$1"\n}' },
+          { cmd:"type mkcd", out:'mkcd es una función\nmkcd () \n{ \n    mkdir -p "$1" &amp;&amp; cd "$1"\n}' },
           { cmd:"declare -F", out:'declare -f extraer\ndeclare -f mkcd' }
         ],
         exp:'<h3>Inspeccionar funciones</h3><p><code>type</code> muestra la definición de una función cargada y <code>declare -F</code> lista todas. Para quitar una de la sesión actual se usa <code>unset -f nombre</code>.</p>' }
@@ -204,19 +210,19 @@ const GRUPOS = [
   ]},
 
   { titulo:"Expansión de llaves", comandos:[
-    { nombre:"Ejemplo 1", resumen:"", diapositivas:[
+    { nombre:"Ejemplo 1", resumen:"Encadenar con &&", diapositivas:[
       { pasos:[
           { cmd:"cd Descargas/ && pwd", out:'/home/usuario/Descargas', ruta:'~/Descargas'}
         ],
-        exp:'<h3>Ejemplo 1</h3><p>El simbolo <code>&</code> nos servirá para poder decir que si un comando es exitoso, pues que se ejecute uno despues.</p>' }
+        exp:'<h3>Encadenar con &amp;&amp;</h3><p>El símbolo <code>&amp;&amp;</code> ejecuta el segundo comando solo si el primero termina bien. Aquí <code>cd Descargas/</code> debe funcionar para que se ejecute <code>pwd</code>.</p>' }
     ]},
-    { nombre:"Ejemplo 2", resumen:"", diapositivas:[
+    { nombre:"Ejemplo 2", resumen:"Crear varios ficheros", diapositivas:[
       { pasos:[
           { cmd:"cd Prueba", out:'', ruta:'~/Prueba'},
           { cmd:"touch fich-{1..10}.txt", out:''},
           { cmd:"ls", out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt' }
         ],
-        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>No es muy complicado ya que unicamente usamos los simbolos <code>{ }</code> para poder crear varios ficheros de golpe.</p>' }
+        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>Las llaves <code>{1..10}</code> generan la lista completa antes de ejecutar el comando, así que <code>touch</code> crea los diez ficheros de una vez.</p>' }
     ]}
   ]},
 
@@ -226,15 +232,15 @@ const GRUPOS = [
           { cmd:"ln -s /home/usuario/Descargas/ softDes", out:'' },
           { cmd:"ls softDes", out:'1-asir-contenido-main\n1-asir-contenido-main.zip\nBinarioFH.pdf\nBoletin Scott II.odt\nConceptos UD 1.pdf\n...'}
         ],
-        exp:'<h3>SoftLink</h3><p>Un pequeña utilidad para crear accesos directos al estilo de Windows, podemos hacerlo tanto con rutas como con ficheros.</p>' }
+        exp:'<h3>SoftLink</h3><p>Sirve para crear accesos directos al estilo de Windows, tanto a carpetas como a ficheros.</p>' }
     ]},
-    { nombre:"HardLink", resumen:"* Mas pesados", diapositivas:[
+    { nombre:"HardLink", resumen:"Enlaces duros", diapositivas:[
       { pasos:[
-          { cmd:"touch test.txt > prueba", out:'' },
+          { cmd:'echo "hola" > test.txt', out:'' },
           { cmd:"ln test.txt hardtest.txt", out:'' },
-          { cmd:"ls -lhi", out:'total 8,0K\n394844 -rw-rw-r-- 2 usuario usuario 7 oct 21 14:17 hardtest.txt\n394844 -rw-rw-r-- 2 usuario usuario 7 oct 21 14:17 hardtest.txt'}
+          { cmd:"ls -lhi", out:'total 8,0K\n394844 -rw-r--r-- 2 usuario usuario 5 oct 21 14:17 hardtest.txt\n394844 -rw-r--r-- 2 usuario usuario 5 oct 21 14:17 test.txt'}
         ],
-        exp:'<h3>HardLink</h3><p>Casi lo mismo que el SoftLink, pero puede con ficheros más pesados, el ejemplo en pantalla tiene el mismo peso y mismo contenido.<p>Si borraramos el fichero creado no pasaría nada.</p></p>' }
+        exp:'<h3>HardLink</h3><p>Un enlace duro comparte el mismo inodo que el archivo original: los dos nombres apuntan al mismo contenido. Si borras uno, el otro sigue existiendo.</p>' }
     ]}
   ]}
 ];

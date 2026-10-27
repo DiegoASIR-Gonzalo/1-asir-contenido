@@ -4,102 +4,128 @@
 
    QUÉ ES ESTE ARCHIVO
    Aquí solo hay datos: la lista de actividades. Todo el funcionamiento
-   (panel lateral, ventana, terminal, comprobación de comandos) está en el
+   (panel lateral, ventana, terminal, motor del simulador) está en el
    <script> de linux-terminal.html. Este archivo se carga con
        <script src="actividades.js"></script>
    justo ANTES del script principal, así que debe estar en la MISMA CARPETA
    que el HTML. Si le cambias el nombre, cambia también esa línea.
 
-   CÓMO FUNCIONA (resumen)
-   1. Al cargar, este archivo deja las actividades en la lista global ACTIVIDADES.
-   2. El script principal las agrupa por el campo "grupo" para crear los
-      subapartados del panel (salen en el orden en que se escriban aquí).
-   3. Al elegir una actividad se abre la ventana: el enunciado y las casillas
-      salen de "enunciado" y de la "tarea" de cada paso.
-   4. La persona escribe un comando y pulsa Enter. Se compara con los "ok" del
-      PASO ACTUAL: si coincide se muestra su "out" y se pasa al siguiente paso;
-      si no, la terminal responde con un error y, tras dos fallos seguidos,
-      con la "pista".
-   5. Al superar el último paso la actividad queda completada. El progreso se
-      guarda en el navegador usando el "id" de cada actividad.
+   CÓMO AÑADIR UNA ACTIVIDAD
+   Copia una actividad de las que hay al final, cambia su "id" y adapta los
+   pasos. No hay que tocar el HTML ni el motor: el panel se construye solo.
 
    CAMPOS DE CADA ACTIVIDAD
      id        : texto ÚNICO, sin espacios (p. ej. "estructura"). Sirve para recordar
                  qué actividades están completadas: si lo cambias, esa actividad
                  vuelve a aparecer como pendiente.
      grupo     : nombre del subapartado del panel. Mismo texto = mismo subapartado.
-                 Los subapartados se crean solos; no hay que declararlos antes.
+     nivel     : 1 = Básico, 2 = Medio, 3 = Reto. El panel permite filtrar por nivel.
      titulo    : nombre de la actividad (sale en el panel y en la ventana).
      resumen   : frase corta que sale bajo el título en el panel.
      enunciado : HTML que se muestra arriba en la ventana (<p>, <code>, <pre>...).
                  Para mostrar < y > escribe &lt; y &gt;; para & escribe &amp;.
+     inicio    : (opcional) mundo virtual de partida. Es un objeto con:
+                   cwd  : carpeta inicial (por defecto "~").
+                   base : "vacio" deja solo /, /home y el home (sin Descargas ni /bin).
+                   fs   : ficheros y carpetas extra. Ejemplos:
+                            "~/Prueba": "dir"
+                            "~/nota.txt": "Hola"
+                            "~/nota.txt": { contenido: "Hola", modo: "600" }
+                            "~/copia.txt": { tipo: "link", destino: "~/nota.txt" }
+                   umask: máscara inicial ("022", "077"...). Afecta a mkdir y touch.
+                 Sin "inicio" se usa el escritorio completo del simulador.
      final     : (opcional) mensaje de éxito al terminar. También admite HTML.
+     solucion  : (opcional) explicación de la solución (texto o lista de párrafos).
+                 Si no se pone, se genera con el "ejemplo" y el "explica" de cada paso.
      pasos     : lista de pasos que hay que superar EN ORDEN. Cada paso tiene:
-        tarea : lo que se pide (HTML). Sale como casilla en el enunciado.
-        ok    : comandos que se aceptan como correctos (ver más abajo).
-        out   : lo que muestra la terminal al acertar (HTML, como en las
-                diapositivas: <b class="d">carpeta</b>, <mark>resaltado</mark>...).
-                Usa \n para saltos de línea. Vacío ("") si el comando no imprime nada.
-        ruta  : (opcional) cambia el prompt tras acertar, p. ej. "~/proyectos"
-                (útil con cd). Se mantiene en los pasos siguientes.
-        pista : (opcional, TEXTO PLANO sin HTML) ayuda del botón "Pista" y la
-                que sale tras dos fallos seguidos. Puede ser un texto o una LISTA
-                con tantas pistas como quieras, de más suave a más directa:
-                  pista:["Piensa en crear carpetas.","Es mkdir.","mkdir -p ruta"]
-                Cada vez que se pide una pista sale la siguiente (Pista 2/3...);
-                al agotarlas se repite la última.
-        explica : (opcional, HTML) explicación extra que aparece bajo la tarea
-                cuando se supera ese paso. Texto o LISTA de textos (un párrafo
-                cada uno).
-     solucion : (opcional, a nivel de actividad) explicación de la solución. Al completar
-                la actividad aparece con un fundido en un recuadro blanco bajo el mensaje
-                de éxito. Texto o LISTA de textos (HTML, un párrafo cada uno). Si no lo
-                pones, se genera solo con el comando de cada paso y su "explica".
-     Además, "enunciado" y "final" también pueden ser una lista de textos.
+        tarea  : lo que se pide (HTML). Sale como casilla en el enunciado.
+        meta   : objetivo que debe cumplirse en el mundo virtual. Es la forma
+                 recomendada de validar. Admite:
+                   cwd        : carpeta en la que hay que terminar ("~/proyectos/web").
+                   existe     : rutas que deben existir (ficheros o carpetas).
+                   noExiste   : rutas que ya no deben existir.
+                   contenido  : { "ruta": "texto exacto" } que debe tener un fichero.
+                   modo       : { "ruta": "644" } permisos esperados.
+                   enlace     : [{ path: "softDes", destino: "~/Descargas" }].
+                   funcion    : nombre de una función que debe estar cargada.
+                   umask      : máscara esperada ("022", "077"...).
+                   muestra    : texto o expresión regular que debe aparecer en la salida.
+                   noMuestra  : texto o expresión regular que NO debe aparecer.
+                   orden      : textos que deben salir en ese orden.
+                   salida     : salida completa esperada (se comparan los espacios sobrantes).
+                 Las rutas relativas de "meta" se resuelven desde la carpeta en la
+                 que queda la terminal DESPUÉS de ejecutar el comando. Si el paso
+                 cambia de carpeta, usa rutas con "~/" para no depender de dónde
+                 acabe la terminal.
+                 Si el comando no cumple alguno, el paso no avanza y el mundo
+                 virtual se queda como estaba (los pasos son atómicos).
+        acepta : (alternativa a "meta") textos o expresiones regulares que se aceptan
+                 como comando correcto. Se mantiene por compatibilidad con el formato
+                 antiguo "ok".
+        ok     : igual que "acepta" (formato antiguo).
+        pista  : TEXTO PLANO sin HTML. Puede ser un texto o una lista de 3 pistas,
+                 de más suave a más directa. Cada petición enseña la siguiente.
+        explica: (recomendado) HTML con la explicación que aparece bajo la tarea
+                 cuando se supera el paso. Texto o lista de párrafos.
+        ejemplo: (recomendado) el comando exacto que resuelve el paso. Se usa para
+                 el botón "Ver solución" y para reconstruir el progreso guardado.
+        out    : (formato antiguo) salida fija que se muestra al acertar.
 
    CÓMO SE COMPARA LO QUE ESCRIBE LA PERSONA
    - Antes de comparar se recorta el texto y los espacios repetidos se juntan en
      uno: "  ls    -l " equivale a "ls -l".
-   - Cada elemento de "ok" puede ser:
-       * un TEXTO: tiene que coincidir con el comando completo, y distingue
-         mayúsculas de minúsculas. Ejemplo: "cd Prueba".
-       * una EXPRESIÓN REGULAR para aceptar varias formas a la vez. Ejemplo:
-         /^mkdir -p (\.\/)?proyectos\/web\/?$/  acepta "mkdir -p proyectos/web",
-         "mkdir -p ./proyectos/web" y la variante con "/" al final.
-         Consejos: empieza con ^ y termina con $ (si no, aceptaría texto extra),
-         y escribe \/ para una barra normal y \. para un punto literal.
-   - Si el comando escrito empieza igual que alguno de los "ok" de texto (misma
-     primera palabra) pero no coincide, la terminal avisa de que no es lo que pide
-     el paso. Si la primera palabra no se parece a ninguno, responde como bash:
-     "orden no encontrada". Por eso conviene que haya al menos un "ok" de texto.
-   - Además, la terminal acepta siempre "clear" (limpiar), las flechas arriba y
-     abajo (historial) y Enter vacío.
+   - En los pasos con "meta" no se compara el texto: se ejecuta el comando en una
+     copia del mundo virtual y se comprueba el objetivo. Así se aceptan variantes
+     equivalentes (por ejemplo "ls /bin" y "ls -l /bin" para listar /bin).
+   - "acepta" y "ok" sí comparan el comando completo. Cada elemento puede ser:
+       * un TEXTO: tiene que coincidir exactamente (distingue mayúsculas).
+       * una EXPRESIÓN REGULAR para aceptar varias formas: /^mkdir -p (\.\/)?web\/?$/
+   - La terminal acepta siempre "clear", las flechas arriba/abajo (historial) y Enter vacío.
+     Además, Tab completa comandos, opciones y rutas (como bash) y Ctrl+L limpia la
+     pantalla. Al superar un paso se suman puntos y se celebra con partículas; al
+     terminar la actividad, confeti. No hay que configurar nada de eso en los datos.
 
    PLANTILLA PARA COPIAR Y PEGAR (ojo con las comas entre actividades):
 
-   { id:"mi-actividad", grupo:"Nombre del subapartado", titulo:"Título", resumen:"Qué se practica",
+   { id:"mi-actividad", grupo:"Nombre del subapartado", nivel:1,
+     titulo:"Título", resumen:"Qué se practica",
      enunciado:"<p>Contexto de la actividad.</p>",
      final:"¡Muy bien!",
      pasos:[
-       { tarea:"Crea la carpeta <code>fotos</code>", ok:["mkdir fotos"], out:"",
+       { tarea:"Crea la carpeta <code>fotos</code>",
+         meta:{ existe:["fotos"] },
          pista:["Es un comando de crear.","Se llama mkdir.","mkdir fotos"],
-         explica:"<code>mkdir</code> = make directory." },
-       { tarea:"Lista el contenido", ok:["ls"], out:"fotos" }
+         explica:"<code>mkdir</code> = make directory.",
+         ejemplo:"mkdir fotos" },
+       { tarea:"Lista el contenido",
+         meta:{ muestra:"fotos" },
+         pista:["Lista la carpeta actual.","El comando es de dos letras.","ls"],
+         explica:"<code>ls</code> lista el contenido del directorio actual.",
+         ejemplo:"ls" }
      ]},
 
    CÓMO REPARTIRLAS EN VARIOS ARCHIVOS (recomendado si hay muchas)
-   Puedes crear más archivos con este mismo formato, p. ej. act-ficheros.js,
-   act-bashrc.js... Cada uno empieza igual que este y añade sus actividades:
+   Puedes crear más archivos con este mismo formato, p. ej. act-ficheros.js.
+   Cada uno empieza igual que este y añade sus actividades:
        window.ACTIVIDADES = window.ACTIVIDADES || [];
        ACTIVIDADES.push( { ...actividad 1... }, { ...actividad 2... } );
    Después, en linux-terminal.html, añade un <script src="..."> por archivo,
    uno detrás de otro y siempre antes del script principal. El ORDEN de esas
    líneas decide el orden de los subapartados (y de las actividades).
 
+   COMPROBAR QUE TODO ESTÁ BIEN (antes de dar una actividad por terminada)
+   Desde la carpeta del repositorio, ejecuta:
+       node html/iso/pruebas/actividades.test.js
+   Recorre todas las actividades, escribe el "ejemplo" de cada paso y avisa si
+   alguno no lo supera, si falta una pista, si un "meta" tiene una clave mal
+   escrita o si un comando inventado consigue avanzar. Solo necesita Node; no
+   hay que instalar nada.
+
    SI ALGO NO FUNCIONA
    Abre la consola del navegador (F12). El script avisa si falta el archivo, si
-   hay ids repetidos o si a una actividad le faltan pasos o "ok"; las actividades
-   incompletas se ignoran para que no rompan el resto.
+   hay ids repetidos, si a una actividad le faltan pasos o si un paso no tiene
+   "meta", "ok" ni "acepta"; las actividades incompletas se ignoran para que no
+   rompan el resto.
    ===================================================================== */
 
 window.ACTIVIDADES = window.ACTIVIDADES || [];
@@ -108,119 +134,597 @@ ACTIVIDADES.push(
 
 
   // ---------- Subapartado: Consultar comandos ----------
-  { id:"tipo-ubicacion", grupo:"Consultar comandos", titulo:"¿Qué es y dónde vive?", resumen:"type y whereis",
+  { id:"tipo-ubicacion", grupo:"Consultar comandos", nivel:1, titulo:"¿Qué es y dónde vive?", resumen:"type y whereis",
     enunciado:'<p>Un compañero duda de dos cosas: si <code>pwd</code> es un programa o una orden interna de la bash, y en qué ruta está instalado <code>whoami</code>. Averígualo desde la terminal.</p>',
     final:'<code>type</code> te dice qué clase de comando es y <code>whereis</code> te dice dónde está.',
+    solucion:['<code>type</code> consulta cómo interpreta la shell un nombre: orden interna, programa, alias o función.',
+              '<code>whereis</code> busca el ejecutable y sus páginas de manual en las carpetas habituales.'],
     pasos:[
       { tarea:'Averigua qué tipo de comando es <code>pwd</code>',
-        ok:['type pwd'], out:'pwd es una orden interna del shell',
-        pista:'El comando que muestra de qué tipo es otro comando se llama type.' },
+        meta:{ salida:'pwd es una orden interna del shell' },
+        pista:['Hace falta un comando que te diga de qué tipo es otro comando.','Se llama type y recibe el nombre del comando.','type pwd'],
+        explica:'<code>type</code> distingue las órdenes internas del shell (como <code>pwd</code>) de los programas instalados (como <code>ls</code>).',
+        ejemplo:'type pwd' },
       { tarea:'Localiza dónde está <code>whoami</code>',
-        ok:['whereis whoami'], out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
-        pista:'Se usa igual que el anterior, pero la palabra empieza por "where".' }
+        meta:{ salida:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz' },
+        pista:['Busca un comando que localice el ejecutable y su manual.','Su nombre empieza por "where".','whereis whoami'],
+        explica:'<code>whereis</code> muestra el ejecutable y las páginas de manual que coinciden con el nombre.',
+        ejemplo:'whereis whoami' }
     ]},
 
   // ---------- Subapartado: Ficheros y carpetas ----------
-  { id:"estructura", grupo:"Ficheros y carpetas", titulo:"Tu primera estructura", resumen:"mkdir, cd, touch y ls",
+  { id:"estructura", grupo:"Ficheros y carpetas", nivel:1, titulo:"Tu primera estructura", resumen:"mkdir, cd, touch y ls",
     enunciado:'<p>Vas a montar la carpeta de una web desde cero. La carpeta <code>proyectos</code> todavía no existe.</p>',
+    inicio:{ base:'vacio' },
     final:'Has creado una estructura, entrado en ella y comprobado el resultado: el flujo básico de cualquier sesión.',
     solucion:['La secuencia completa era: <code>mkdir -p proyectos/web</code>, <code>cd proyectos/web</code>, <code>touch index.html</code> y <code>ls</code>.',
               '<code>-p</code> creó las dos carpetas de una vez, <code>cd</code> te colocó dentro, <code>touch</code> creó el fichero vacío y <code>ls</code> confirmó que existe.'],
     pasos:[
       { tarea:'Crea de golpe la ruta <code>proyectos/web</code>',
-        ok:[/^mkdir -p (\.\/)?proyectos\/web\/?$/], out:'',
+        meta:{ existe:['proyectos','proyectos/web'] },
         pista:['Necesitas crear una carpeta dentro de otra que aún no existe.','mkdir tiene una opción que crea también las carpetas intermedias.','La opción es -p: mkdir -p proyectos/web'],
-        explica:['Con <code>-p</code> no hace falta crear <code>proyectos</code> antes que <code>web</code>.','Si la carpeta ya existe, <code>-p</code> no da error.'] },
+        explica:'Con <code>-p</code> no hace falta crear <code>proyectos</code> antes que <code>web</code>, y si ya existe no da error.',
+        ejemplo:'mkdir -p proyectos/web' },
       { tarea:'Entra en <code>proyectos/web</code>',
-        ok:['cd proyectos/web','cd proyectos/web/','cd ./proyectos/web','cd ~/proyectos/web'], out:'', ruta:'~/proyectos/web',
-        pista:'cd seguido de la ruta de la carpeta.' },
+        meta:{ cwd:'~/proyectos/web' },
+        pista:['Cambia de carpeta con cd.','La ruta es relativa: proyectos/web.','cd proyectos/web'],
+        explica:'<code>cd</code> cambia el directorio actual. El prompt muestra <code>~/proyectos/web</code> para confirmarlo.',
+        ejemplo:'cd proyectos/web' },
       { tarea:'Crea un fichero vacío llamado <code>index.html</code>',
-        ok:['touch index.html'], out:'',
-        pista:'touch crea ficheros vacíos.' },
+        meta:{ existe:['index.html'] },
+        pista:['El comando crea el fichero si no existe.','Se llama touch.','touch index.html'],
+        explica:'<code>touch</code> crea un fichero vacío (o actualiza la fecha de uno que ya existe).',
+        ejemplo:'touch index.html' },
       { tarea:'Muestra el contenido de la carpeta',
-        ok:['ls'], out:'index.html',
-        pista:'El comando para listar es de dos letras.' }
+        meta:{ muestra:'index.html' },
+        pista:['Lista el directorio actual.','El comando es de dos letras.','ls'],
+        explica:'<code>ls</code> lista el contenido del directorio actual. Debe aparecer <code>index.html</code>.',
+        ejemplo:'ls' }
     ]},
 
-  { id:"ficheros-lote", grupo:"Ficheros y carpetas", titulo:"Ficheros en lote", resumen:"Expansión de llaves",
-    enunciado:'<p>Necesitas diez ficheros de prueba, <code>fich-1.txt</code> … <code>fich-10.txt</code>, dentro de la carpeta <code>Prueba</code>. Hacerlo uno a uno sería eterno: usa las llaves.</p>',
+  { id:"ficheros-lote", grupo:"Ficheros y carpetas", nivel:2, titulo:"Ficheros en lote", resumen:"Expansión de llaves",
+    enunciado:'<p>Necesitas diez ficheros de prueba, <code>fich-1.txt</code> a <code>fich-10.txt</code>, dentro de la carpeta <code>Prueba</code>. Hacerlo uno a uno sería eterno: usa las llaves.</p>',
+    inicio:{ fs:{ '~/Prueba':'dir' } },
     final:'Las llaves <code>{1..10}</code> se expanden antes de ejecutar el comando, así que <code>touch</code> recibe los diez nombres.',
+    solucion:['Primero se entra en <code>Prueba</code> con <code>cd Prueba</code>.',
+              'Después, <code>touch fich-{1..10}.txt</code> genera diez argumentos y <code>ls</code> confirma que están todos.'],
     pasos:[
       { tarea:'Entra en la carpeta <code>Prueba</code>',
-        ok:['cd Prueba','cd ./Prueba','cd Prueba/','cd ~/Prueba'], out:'', ruta:'~/Prueba',
-        pista:'cd Prueba' },
+        meta:{ cwd:'~/Prueba' },
+        pista:['La carpeta ya existe en tu home.','Cambia de directorio con cd.','cd Prueba'],
+        explica:'<code>cd Prueba</code> entra en una carpeta que ya existe.',
+        ejemplo:'cd Prueba' },
       { tarea:'Crea los diez ficheros con un solo <code>touch</code>',
-        ok:['touch fich-{1..10}.txt'], out:'',
-        pista:'El nombre lleva un rango entre llaves: fich-{1..10}.txt' },
+        meta:{ existe:['fich-1.txt','fich-2.txt','fich-3.txt','fich-4.txt','fich-5.txt','fich-6.txt','fich-7.txt','fich-8.txt','fich-9.txt','fich-10.txt'] },
+        pista:['El nombre lleva un rango entre llaves.','El rango se escribe con dos puntos: {1..10}.','touch fich-{1..10}.txt'],
+        explica:'La bash expande <code>{1..10}</code> en <code>1 2 3 … 10</code> antes de ejecutar <code>touch</code>, que recibe los diez nombres.',
+        ejemplo:'touch fich-{1..10}.txt' },
       { tarea:'Comprueba que se han creado',
-        ok:['ls'], out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt',
-        pista:'Lista el contenido de la carpeta.' }
+        meta:{ muestra:['fich-1.txt','fich-10.txt'], noMuestra:'fich-11.txt' },
+        pista:['Lista el contenido de la carpeta actual.','El comando es de dos letras.','ls'],
+        explica:'<code>ls</code> muestra los diez ficheros. El orden de las columnas no importa: lo que importa es que estén todos.',
+        ejemplo:'ls' }
     ]},
 
   // ---------- Subapartado: Funciones en .bashrc ----------
-  { id:"funcion-mkcd", grupo:"Funciones en .bashrc", titulo:"Tu función mkcd", resumen:"Funciones en ~/.bashrc",
+  { id:"funcion-mkcd", grupo:"Funciones en .bashrc", nivel:2, titulo:"Tu función mkcd", resumen:"Funciones en ~/.bashrc",
     enunciado:'<p>En tu <code>~/.bashrc</code> acabas de añadir esta función:</p><pre>mkcd() {\n  mkdir -p "$1" &amp;&amp; cd "$1"\n}</pre><p>Cárgala y pruébala.</p>',
     final:'Una función de <code>~/.bashrc</code> se usa como cualquier comando. <code>$1</code> es su primer argumento.',
+    solucion:['<code>source ~/.bashrc</code> vuelve a leer el fichero y define la función en la sesión actual.',
+              'Después, <code>mkcd proyectos/nuevo</code> la ejecuta, y <code>pwd</code> confirma la ruta final.'],
     pasos:[
       { tarea:'Recarga <code>~/.bashrc</code> sin cerrar la terminal',
-        ok:['source ~/.bashrc','. ~/.bashrc'], out:'',
-        pista:'El comando se llama source y recibe el fichero a cargar.' },
+        meta:{ funcion:'mkcd' },
+        pista:['El fichero se lee con un comando que empieza por "s".','Se llama source y recibe el fichero a cargar.','source ~/.bashrc'],
+        explica:'<code>source</code> ejecuta el fichero en la shell actual, así que la función queda disponible.',
+        ejemplo:'source ~/.bashrc' },
       { tarea:'Usa <code>mkcd</code> para crear y entrar en <code>proyectos/nuevo</code>',
-        ok:['mkcd proyectos/nuevo','mkcd "proyectos/nuevo"'], out:'', ruta:'~/proyectos/nuevo',
-        pista:'mkcd seguido de la ruta que quieres crear.' },
+        meta:{ cwd:'~/proyectos/nuevo', existe:['~/proyectos/nuevo'] },
+        pista:['mkcd recibe la ruta que quieres crear y en la que quieres entrar.','La ruta pedida es proyectos/nuevo.','mkcd proyectos/nuevo'],
+        explica:'<code>mkcd</code> combina <code>mkdir -p</code> y <code>cd</code>: crea la ruta y te coloca dentro.',
+        ejemplo:'mkcd proyectos/nuevo' },
       { tarea:'Comprueba en qué directorio estás',
-        ok:['pwd'], out:'/home/usuario/proyectos/nuevo',
-        pista:'Imprime el directorio actual.' }
+        meta:{ salida:'/home/usuario/proyectos/nuevo' },
+        pista:['El comando imprime la ruta de trabajo actual.','Su nombre son tres letras.','pwd'],
+        explica:'<code>pwd</code> (print working directory) muestra la ruta absoluta del directorio actual.',
+        ejemplo:'pwd' }
     ]},
 
   // ---------- Subapartado: Varios comandos ----------
-  { id:"enlace-simbolico", grupo:"Varios comandos", titulo:"Acceso directo", resumen:"Enlace simbólico con ln -s",
+  { id:"enlace-simbolico", grupo:"Varios comandos", nivel:2, titulo:"Acceso directo", resumen:"Enlace simbólico con ln -s",
     enunciado:'<p>Quieres entrar a tu carpeta <code>/home/usuario/Descargas/</code> desde un acceso directo llamado <code>softDes</code>.</p>',
     final:'Un enlace simbólico apunta a la ruta original: es el equivalente a un acceso directo de Windows.',
+    solucion:['<code>ln -s /home/usuario/Descargas softDes</code> crea el enlace en tu home.',
+              '<code>ls softDes</code> lista el contenido del destino y <code>file softDes</code> confirma que es un enlace simbólico.'],
     pasos:[
       { tarea:'Crea el enlace simbólico <code>softDes</code> hacia <code>/home/usuario/Descargas/</code>',
-        ok:['ln -s /home/usuario/Descargas/ softDes','ln -s /home/usuario/Descargas softDes','ln -s ~/Descargas softDes','ln -s ~/Descargas/ softDes'], out:'',
-        pista:'ln con la opción -s, luego el destino y por último el nombre del enlace.' },
+        meta:{ enlace:[{ path:'softDes', destino:'~/Descargas' }] },
+        pista:['El comando para crear enlaces es ln.','Con la opción -s el enlace es simbólico.','ln -s ~/Descargas softDes'],
+        explica:'<code>-s</code> crea un enlace simbólico; si se omite, se crea un enlace duro al mismo contenido.',
+        ejemplo:'ln -s ~/Descargas softDes' },
       { tarea:'Lista el contenido de <code>softDes</code>',
-        ok:['ls softDes','ls softDes/'], out:'1-asir-contenido-main\nBinarioFH.pdf\nConceptos UD 1.pdf\n...',
-        pista:'ls seguido del nombre del enlace.' }
+        meta:{ muestra:['1-asir-contenido-main','BinarioFH.pdf','Conceptos UD 1.pdf'] },
+        pista:['El enlace se usa como si fuera la carpeta de destino.','Lista la ruta softDes.','ls softDes'],
+        explica:'Al listar el enlace, la shell resuelve el destino y muestra el contenido de <code>~/Descargas</code>.',
+        ejemplo:'ls softDes' },
+      { tarea:'Comprueba de qué tipo es <code>softDes</code>',
+        meta:{ muestra:'enlace simbólico a /home/usuario/Descargas' },
+        pista:['Hay un comando que dice qué tipo de fichero es.','Se llama file.','file softDes'],
+        explica:'<code>file</code> identifica el tipo: en este caso, un enlace simbólico y la ruta a la que apunta.',
+        ejemplo:'file softDes' }
     ]},
-  
+
   // ---------- Subapartado: Ejercicios de Rafa ----------
-  { id:"ejercicio1", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 1/2 Básico", resumen:"Listar carpetas",
+  { id:"rafa-01", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 1", resumen:"Listar /bin",
     enunciado:'<p>Listar todos los archivos del directorio <code>bin</code>.</p>',
     final:'¡Bien hecho!',
-    solucion:['Podemos siempre consultar carpetas de diferentes formas, ya dependera de como nos lo pida el profesor (ya sea con <code>ls</code> o <code>tree</code>)'],
     pasos:[
-      { tarea:'Lista el directorio <code>bin</code> de las formas que conozcas.',
-        ok:['ls /bin', 'ls /bin/', 'tree /bin', 'tree /bin/'], out:'',
-        pista:['Recuerda que hay muchos comandos para poder listar directorios.', 'Uno de ellos empieza por la l...', 'Siempre podremos listarlo de 2 o 3 formas.'],
-        explica:['Si pusiste <code>ls</code> lo has hecho bien, y si pusiste <code>tree</code> tambien, el proposito iba a ser si o si listar el contenido'] },
-      { tarea:'Lista el directorio <code>tmp</code> de las formas que conozcas.',
-        ok:['ls /tmp', 'ls /tmp/', 'tree /tmp', 'tree /tmp/'], out:'',
-        pista:'Recuerda que hay muchos comandos para poder listar directorios.' }
+      { tarea:'Lista el contenido de <code>/bin</code>.',
+        meta:{ muestra:['bash','cat','ls','pwd'] },
+        pista:['La ruta del directorio es /bin.','ls recibe la ruta como argumento.','ls /bin'],
+        explica:'<code>ls /bin</code> muestra los comandos instalados en ese directorio.',
+        ejemplo:'ls /bin' }
     ]},
 
-  { id:"ejercicio3", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 3 Básico", resumen:"Listados complejos",
-    enunciado:'<p>Listar todos los archivos del directorio <code>etc</code> que empiecen por t en orden  inverso.</p>',
+  { id:"rafa-02", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 2", resumen:"Listar /tmp",
+    enunciado:'<p>Listar todos los archivos del directorio <code>tmp</code>.</p>',
     final:'¡Bien hecho!',
     pasos:[
-      { tarea:'Lista el directorio <code>etc</code> de las formas que conozcas. Pero respetando el orden dictado.',
-        ok:['ls -r /etc/t*', 'ls -r etc/t*'], out:'Listado de archivos...',
-        pista:['Para ordenarlo por t tendríamos que poner al final t *', 'Si no sabes como ordenarlo inversamente, usa -r'] }
+      { tarea:'Lista el contenido de <code>/tmp</code>.',
+        meta:{ muestra:'cache' },
+        pista:['La ruta del directorio es /tmp.','Puedes usar ls con la ruta absoluta.','ls /tmp'],
+        explica:'Dentro de <code>/tmp</code> hay una carpeta llamada <code>cache</code>.',
+        ejemplo:'ls /tmp' }
     ]},
 
-  { id:"ejercicio4", grupo:"Ejercicios de Rafa", titulo:"Ejercicio 4 Básico", resumen:"Listar especial 2",
-    enunciado:'<p>Listar todos los archivos del directorio <code>dev</code> que empiecen por tty y tengan 5 caracteres.</p>',
+  { id:"rafa-03", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 3", resumen:"Filtrar y ordenar /etc",
+    enunciado:'<p>Listar todos los archivos del directorio <code>etc</code> que empiecen por <code>t</code> en orden inverso.</p>',
     final:'¡Bien hecho!',
     pasos:[
-      { tarea:'Lista el directorio <code>dev</code> de las formas que conozcas. Pero empezando por tty y que tengan 5 caracteres.',
-        ok:['ls /dev/tty??'], out:'',
-        pista:'Para listarlo por los que empiezan por <code>tty</code> tendríamos que ponerlo al final del comando.' },
-	  { tarea:'Lista el directorio <code>dev</code> de las formas que conozcas. Pero que empiecen por tty y acaben en 1,2,3 o 4.',
-        ok:['ls /dev/tty[1-4]'], out:'',
-        pista:'Para listarlo por los que empiezan por <code>tty</code> tendríamos que ponerlo al final del comando.' }
-		
+      { tarea:'Lista los archivos de <code>/etc</code> que empiezan por <code>t</code>, en orden inverso.',
+        meta:{ orden:['tmpfiles.d','timezone','terminfo'], noMuestra:['hosts','passwd'] },
+        pista:['Para filtrar por la letra t, añade t* al final de la ruta.','Si no sabes cómo ordenarlo al revés, usa -r.','ls -r /etc/t*'],
+        explica:'<code>-r</code> invierte el orden de la lista; <code>t*</code> deja solo los nombres que empiezan por t.',
+        ejemplo:'ls -r /etc/t*' }
+    ]},
+
+  { id:"rafa-04", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 4", resumen:"Comodín de un carácter",
+    enunciado:'<p>Listar todos los archivos del directorio <code>dev</code> que empiecen por <code>tty</code> y tengan 5 caracteres.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Lista los archivos de <code>/dev</code> que empiezan por <code>tty</code> y tienen 5 caracteres.',
+        meta:{ muestra:'ttyS0', noMuestra:['tty0','tty4'] },
+        pista:['Cada ? sustituye exactamente a un carácter.','Después de tty necesitas dos comodines.','ls /dev/tty??'],
+        explica:'<code>tty??</code> exige dos caracteres más después de tty, así que encaja con <code>ttyS0</code> y no con <code>tty0</code>.',
+        ejemplo:'ls /dev/tty??' }
+    ]},
+
+  { id:"rafa-05", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 5", resumen:"Rango de caracteres",
+    enunciado:'<p>Listar todos los archivos del directorio <code>dev</code> que empiecen por <code>tty</code> y acaben en 1,2,3 ó 4.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Lista los archivos de <code>/dev</code> que empiezan por <code>tty</code> y acaban en un dígito del 1 al 4.',
+        meta:{ muestra:['tty1','tty2','tty3','tty4'], noMuestra:['tty0','ttyS0'] },
+        pista:['Para aceptar un rango de caracteres se usan corchetes.','El rango del 1 al 4 se escribe [1-4].','ls /dev/tty[1-4]'],
+        explica:'<code>[1-4]</code> acepta un único carácter entre 1 y 4 y deja fuera <code>tty0</code> y <code>ttyS0</code>.',
+        ejemplo:'ls /dev/tty[1-4]' }
+    ]},
+
+  { id:"rafa-06", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 6", resumen:"Filtrar por el final",
+    enunciado:'<p>Listar todos los archivos del directorio <code>dev</code> que empiecen por <code>t</code> y acaben en <code>C1</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ fs:{ '/dev/ttyC1':'' } },
+    pasos:[
+      { tarea:'Lista los archivos de <code>/dev</code> que empiezan por <code>t</code> y acaban en <code>C1</code>.',
+        meta:{ muestra:'ttyC1', noMuestra:['tty0','ttyS0'] },
+        pista:['Puedes combinar el comodín * con el texto final.','La ruta empieza por /dev/t.','ls /dev/t*C1'],
+        explica:'El patrón <code>t*C1</code> empieza por t, admite cualquier cosa en medio y termina en C1.',
+        ejemplo:'ls /dev/t*C1' }
+    ]},
+
+  { id:"rafa-07", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 7", resumen:"Mostrar archivos ocultos",
+    enunciado:'<p>Listar todos los archivos, incluidos los ocultos, del directorio raíz.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Lista el contenido de <code>/</code>, incluidos los archivos ocultos.',
+        meta:{ muestra:['.dockerenv','bin','etc'] },
+        pista:['Los archivos ocultos empiezan por punto.','La opción -a muestra los ocultos.','ls -a /'],
+        explica:'<code>ls -a /</code> enseña también los nombres que empiezan por punto, como <code>.dockerenv</code>.',
+        ejemplo:'ls -a /' }
+    ]},
+
+  { id:"rafa-08", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 8", resumen:"Excluir con comodines",
+    enunciado:'<p>Listar todos los archivos del directorio <code>etc</code> que no empiecen por <code>t</code>.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Lista los archivos de <code>/etc</code> que no empiezan por <code>t</code>.',
+        meta:{ muestra:['hostname','motd','passwd'], noMuestra:['timezone','terminfo','tmpfiles.d'] },
+        pista:['Dentro de unos corchetes, ! niega el conjunto.','El patrón sería [!t]*.','ls /etc/[!t]*'],
+        explica:'<code>[!t]</code> acepta un carácter que no sea t; el resto del nombre lo cubre <code>*</code>.',
+        ejemplo:'ls /etc/[!t]*' }
+    ]},
+
+  { id:"rafa-09", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 9", resumen:"Listado recursivo",
+    enunciado:'<p>Listar todos los archivos del directorio <code>usr</code> y sus subdirectorios.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Lista <code>/usr</code> y todo lo que cuelga de sus subdirectorios.',
+        meta:{ muestra:['/usr/share/man:','man1'] },
+        pista:['La opción -R recorre los subdirectorios.','Combínala con la ruta /usr.','ls -R /usr'],
+        explica:'<code>ls -R /usr</code> muestra cada carpeta y, debajo, el contenido de sus subcarpetas.',
+        ejemplo:'ls -R /usr' }
+    ]},
+
+  { id:"rafa-10", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 10", resumen:"Cambiar a /tmp",
+    enunciado:'<p>Cambiarse al directorio <code>tmp</code>.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Cambia al directorio <code>/tmp</code>.',
+        meta:{ cwd:'/tmp' },
+        pista:['El comando para cambiar de carpeta es cd.','Puedes usar la ruta absoluta.','cd /tmp'],
+        explica:'<code>cd /tmp</code> cambia el directorio actual a <code>/tmp</code>.',
+        ejemplo:'cd /tmp' }
+    ]},
+
+  { id:"rafa-11", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 11", resumen:"Comprobar el directorio",
+    enunciado:'<p>Verificar que el directorio actual ha cambiado.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'/tmp' },
+    pasos:[
+      { tarea:'Muestra la ruta del directorio actual.',
+        meta:{ salida:'/tmp' },
+        pista:['El comando que muestra la ruta actual tiene tres letras.','Muestra la trayectoria completa.','pwd'],
+        explica:'<code>pwd</code> imprime la ruta absoluta del directorio en el que estás.',
+        ejemplo:'pwd' }
+    ]},
+
+  { id:"rafa-12", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 12", resumen:"Día y hora",
+    enunciado:'<p>Mostrar el día y la hora actual.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Muestra la fecha y la hora del sistema.',
+        meta:{ muestra:[/\d{2}:\d{2}/,'UTC'] },
+        pista:['El comando se llama date.','No necesita argumentos.','date'],
+        explica:'<code>date</code> muestra el día, la fecha y la hora actuales.',
+        ejemplo:'date' }
+    ]},
+
+  { id:"rafa-13", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 13", resumen:"Volver a $HOME",
+    enunciado:'<p>Con un solo comando posicionarse en el directorio <code>$HOME</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'/tmp' },
+    pasos:[
+      { tarea:'Vuelve a tu directorio personal con un solo comando.',
+        meta:{ cwd:'~' },
+        pista:['La variable $HOME guarda tu directorio personal.','También puedes usar la abreviatura ~.','cd $HOME'],
+        explica:'<code>cd $HOME</code> cambia al directorio personal del usuario.',
+        ejemplo:'cd $HOME' }
+    ]},
+
+  { id:"rafa-14", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 14", resumen:"Verificar $HOME",
+    enunciado:'<p>Verificar que se está en él.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~' },
+    pasos:[
+      { tarea:'Comprueba que el directorio actual es tu directorio personal.',
+        meta:{ salida:'/home/usuario' },
+        pista:['Usa el comando que muestra la ruta actual.','La ruta completa empieza por /home.','pwd'],
+        explica:'<code>pwd</code> debe mostrar <code>/home/usuario</code>.',
+        ejemplo:'pwd' }
+    ]},
+
+  { id:"rafa-15", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 15", resumen:"Número de inodo",
+    enunciado:'<p>Listar todos los ficheros del directorio <code>HOME</code> mostrando su número de inodo.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Lista los ficheros de tu directorio personal mostrando el número de inodo.',
+        meta:{ muestra:[/\d+/,'Descargas'] },
+        pista:['La opción -i de ls muestra el número de inodo.','Puedes combinar -i con la ruta del home.','ls -i ~'],
+        explica:'<code>ls -i ~</code> antepone a cada nombre su número de inodo.',
+        ejemplo:'ls -i ~' }
+    ]},
+
+  { id:"rafa-16", grupo:"Ejercicios de Rafa", nivel:1, titulo:"Ejercicio 16", resumen:"Crear prueba",
+    enunciado:'<p>Crear en vuestro directorio de inicio, un directorio <code>prueba</code>.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Crea el directorio <code>prueba</code> en tu directorio personal.',
+        meta:{ existe:'~/prueba' },
+        pista:['Estás en tu directorio personal.','mkdir crea un directorio.','mkdir prueba'],
+        explica:'<code>mkdir prueba</code> crea la carpeta <code>~/prueba</code>.',
+        ejemplo:'mkdir prueba' }
+    ]},
+
+  { id:"rafa-17", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 17", resumen:"Árbol de directorios",
+    enunciado:'<p>Crear los directorios <code>dir1</code>, <code>dir2</code> y <code>dir3</code> en el directorio <code>prueba</code>. Dentro de <code>dir1</code> crear el directorio <code>dir11</code>. Dentro del directorio <code>dir3</code> crear el directorio <code>dir31</code>. Dentro del directorio <code>dir31</code>, crear los directorios <code>dir311</code> y <code>dir312</code>.</p>',
+    final:'¡Bien hecho!',
+    pasos:[
+      { tarea:'Crea toda la estructura con una sola orden.',
+        meta:{ existe:['prueba/dir1/dir11','prueba/dir2','prueba/dir3/dir31/dir311','prueba/dir3/dir31/dir312'] },
+        pista:['La opción -p crea también los directorios intermedios.','Puedes pasar varias rutas a mkdir.','mkdir -p prueba/dir1/dir11 prueba/dir2 prueba/dir3/dir31/dir311 prueba/dir3/dir31/dir312'],
+        explica:'<code>mkdir -p</code> crea cada ruta completa sin quejarse de los niveles que faltan.',
+        ejemplo:'mkdir -p prueba/dir1/dir11 prueba/dir2 prueba/dir3/dir31/dir311 prueba/dir3/dir31/dir312' }
+    ]},
+
+  { id:"rafa-18", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 18", resumen:"Copiar motd",
+    enunciado:'<p>Copiar el archivo <code>/etc/motd</code> a un archivo llamado <code>mensaje</code> de nuestro directorio <code>prueba</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba':'dir' } },
+    pasos:[
+      { tarea:'Copia <code>/etc/motd</code> en <code>prueba/mensaje</code>.',
+        meta:{ existe:'prueba/mensaje', contenido:{ 'prueba/mensaje':'Bienvenido a Linux\n' } },
+        pista:['El comando de copia es cp.','El primer argumento es el origen y el segundo el destino.','cp /etc/motd prueba/mensaje'],
+        explica:'<code>cp</code> copia el contenido del fichero de origen en la ruta de destino.',
+        ejemplo:'cp /etc/motd prueba/mensaje' }
+    ]},
+
+  { id:"rafa-19", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 19", resumen:"Copiar mensaje en tres carpetas",
+    enunciado:'<p>Copiar <code>mensaje</code> en <code>dir1</code>, <code>dir2</code> y <code>dir3</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/mensaje':'Bienvenido a Linux\n', '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir3':'dir' } },
+    pasos:[
+      { tarea:'Copia <code>prueba/mensaje</code> en las tres carpetas.',
+        meta:{ existe:['prueba/dir1/mensaje','prueba/dir2/mensaje','prueba/dir3/mensaje'] },
+        pista:['Puedes encadenar varios comandos con punto y coma.','Cada cp necesita su origen y su destino.','cp prueba/mensaje prueba/dir1; cp prueba/mensaje prueba/dir2; cp prueba/mensaje prueba/dir3'],
+        explica:'Cada <code>cp</code> copia el mismo fichero a una carpeta distinta.',
+        ejemplo:'cp prueba/mensaje prueba/dir1; cp prueba/mensaje prueba/dir2; cp prueba/mensaje prueba/dir3' }
+    ]},
+
+  { id:"rafa-20", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 20", resumen:"Comprobar con un comando",
+    enunciado:'<p>Comprobar el ejercicio anterior mediante un solo comando.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1/mensaje':'x', '~/prueba/dir2/mensaje':'x', '~/prueba/dir3/mensaje':'x' } },
+    pasos:[
+      { tarea:'Comprueba con un solo comando que <code>mensaje</code> está en <code>dir1</code>, <code>dir2</code> y <code>dir3</code>.',
+        meta:{ orden:['dir1/mensaje','dir2/mensaje','dir3/mensaje'] },
+        pista:['find busca de forma recursiva por un nombre.','Puedes buscar dentro de la carpeta prueba.','find prueba -name mensaje'],
+        explica:'<code>find prueba -name mensaje</code> recorre el árbol y muestra las tres copias en una sola salida.',
+        ejemplo:'find prueba -name mensaje' }
+    ]},
+
+  { id:"rafa-21", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 21", resumen:"Copiar rc2.d",
+    enunciado:'<p>Copiar los archivos del directorio <code>rc2.d</code> que se encuentra en <code>/etc</code> al directorio <code>dir31</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir3/dir31':'dir' } },
+    pasos:[
+      { tarea:'Copia todos los archivos de <code>/etc/rc2.d</code> en <code>prueba/dir3/dir31</code>.',
+        meta:{ existe:['prueba/dir3/dir31/README','prueba/dir3/dir31/S01cron','prueba/dir3/dir31/S20ssh'] },
+        pista:['El comodín * representa todos los nombres.','El destino es la carpeta dir31.','cp /etc/rc2.d/* prueba/dir3/dir31'],
+        explica:'El comodín <code>*</code> expande todos los ficheros de <code>rc2.d</code> y <code>cp</code> los copia en el destino.',
+        ejemplo:'cp /etc/rc2.d/* prueba/dir3/dir31' }
+    ]},
+
+  { id:"rafa-22", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 22", resumen:"Filtrar nombres de /bin",
+    enunciado:'<p>Copiar en el directorio <code>dir311</code> los archivos de <code>/bin</code> que tengan una <code>a</code> como segunda letra y su nombre tenga cuatro letras.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir3/dir31/dir311':'dir' } },
+    pasos:[
+      { tarea:'Copia en <code>prueba/dir3/dir31/dir311</code> los archivos de <code>/bin</code> con cuatro letras y una <code>a</code> en segundo lugar.',
+        meta:{ existe:['prueba/dir3/dir31/dir311/bash','prueba/dir3/dir31/dir311/date','prueba/dir3/dir31/dir311/tail'], noExiste:['prueba/dir3/dir31/dir311/cat'] },
+        pista:['? sustituye a un solo carácter.','El patrón ?a?? empieza por cualquier letra, sigue con a y acaba con dos caracteres.','cp /bin/?a?? prueba/dir3/dir31/dir311'],
+        explica:'<code>?a??</code> encaja con <code>bash</code>, <code>date</code> y <code>tail</code>, pero no con <code>cat</code>, que solo tiene tres letras.',
+        ejemplo:'cp /bin/?a?? prueba/dir3/dir31/dir311' }
+    ]},
+
+  { id:"rafa-23", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 23", resumen:"Copiar otro usuario",
+    enunciado:'<p>Copiar el directorio de otro usuario y sus subdirectorios debajo de <code>dir11</code> (incluido el propio directorio).</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1/dir11':'dir' } },
+    pasos:[
+      { tarea:'Copia <code>/home/rafa</code> y todo su contenido dentro de <code>prueba/dir1/dir11</code>.',
+        meta:{ existe:['prueba/dir1/dir11/rafa','prueba/dir1/dir11/rafa/Documentos/nota.txt','prueba/dir1/dir11/rafa/Descargas/apuntes.txt'] },
+        pista:['Para copiar carpetas necesitas la opción -r.','El origen es /home/rafa y el destino dir11.','cp -r /home/rafa prueba/dir1/dir11'],
+        explica:'<code>cp -r</code> copia la carpeta indicada, sus subcarpetas y todos sus ficheros.',
+        ejemplo:'cp -r /home/rafa prueba/dir1/dir11' }
+    ]},
+
+  { id:"rafa-24", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 24", resumen:"Mover dir31",
+    enunciado:'<p>Mover el directorio <code>dir31</code> y sus subdirectorios debajo de <code>dir2</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir2':'dir', '~/prueba/dir3/dir31/dir311':'dir', '~/prueba/dir3/dir31/dir312':'dir' } },
+    pasos:[
+      { tarea:'Mueve <code>prueba/dir3/dir31</code> dentro de <code>prueba/dir2</code>.',
+        meta:{ existe:['prueba/dir2/dir31/dir311','prueba/dir2/dir31/dir312'], noExiste:'prueba/dir3/dir31' },
+        pista:['El comando para mover es mv.','El destino es la carpeta dir2.','mv prueba/dir3/dir31 prueba/dir2'],
+        explica:'<code>mv</code> traslada la carpeta completa, con sus subdirectorios, a la nueva ubicación.',
+        ejemplo:'mv prueba/dir3/dir31 prueba/dir2' }
+    ]},
+
+  { id:"rafa-25", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 25", resumen:"Archivos ordinarios del HOME",
+    enunciado:'<p>Mostrar por pantalla los archivos ordinarios del directorio <code>HOME</code> y sus subdirectorios.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1/mensaje':'x' } },
+    pasos:[
+      { tarea:'Muestra solo los archivos ordinarios de tu directorio personal y sus subdirectorios.',
+        meta:{ muestra:['.bashrc','BinarioFH.pdf','mensaje'] },
+        pista:['find recorre el árbol de directorios.','El criterio -type f selecciona archivos ordinarios.','find ~ -type f'],
+        explica:'<code>find ~ -type f</code> recorre el home y muestra únicamente los ficheros, sin las carpetas.',
+        ejemplo:'find ~ -type f' }
+    ]},
+
+  { id:"rafa-26", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 26", resumen:"Ocultar mensaje",
+    enunciado:'<p>Ocultar el archivo <code>mensaje</code> del directorio <code>dir3</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir3/mensaje':'x' } },
+    pasos:[
+      { tarea:'Renombra <code>prueba/dir3/mensaje</code> para que quede oculto.',
+        meta:{ existe:'prueba/dir3/.mensaje', noExiste:'prueba/dir3/mensaje' },
+        pista:['Un archivo se oculta si su nombre empieza por punto.','Puedes cambiar el nombre con mv.','mv prueba/dir3/mensaje prueba/dir3/.mensaje'],
+        explica:'Al poner un punto delante del nombre, el archivo deja de aparecer en un <code>ls</code> normal.',
+        ejemplo:'mv prueba/dir3/mensaje prueba/dir3/.mensaje' },
+      { tarea:'Comprueba que el archivo oculto está en <code>dir3</code>.',
+        meta:{ muestra:'.mensaje' },
+        pista:['Usa ls con la opción -a.','La ruta es prueba/dir3.','ls -a prueba/dir3'],
+        explica:'<code>ls -a</code> sí muestra los nombres que empiezan por punto.',
+        ejemplo:'ls -a prueba/dir3' }
+    ]},
+
+  { id:"rafa-27", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 27", resumen:"Borrar dir1",
+    enunciado:'<p>Borrar los archivos y directorios de <code>dir1</code>, incluido el propio directorio.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1/dir11':'dir', '~/prueba/dir1/mensaje':'x', '~/prueba/dir2':'dir' } },
+    pasos:[
+      { tarea:'Borra <code>prueba/dir1</code> con todo lo que contiene.',
+        meta:{ noExiste:'prueba/dir1', existe:'prueba/dir2' },
+        pista:['rm borra archivos, pero para carpetas necesita -r.','La ruta que hay que borrar es prueba/dir1.','rm -r prueba/dir1'],
+        explica:'<code>rm -r</code> borra la carpeta y todo su contenido de forma recursiva.',
+        ejemplo:'rm -r prueba/dir1' }
+    ]},
+
+  { id:"rafa-28", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 28", resumen:"Copiar dispositivos filtrados",
+    enunciado:'<p>Copiar al directorio <code>dir312</code> los ficheros del directorio <code>/dev</code> que empiecen por <code>t</code>, acaben en una letra que vaya de la <code>a</code> a la <code>b</code> y tengan cinco letras en su nombre.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir3/dir31/dir312':'dir', '/dev/ttySa':'', '/dev/ttySb':'' } },
+    pasos:[
+      { tarea:'Copia en <code>prueba/dir3/dir31/dir312</code> los archivos de <code>/dev</code> con cinco letras, que empiecen por <code>t</code> y acaben en <code>a</code> o <code>b</code>.',
+        meta:{ existe:['prueba/dir3/dir31/dir312/ttySa','prueba/dir3/dir31/dir312/ttySb'], noExiste:'prueba/dir3/dir31/dir312/ttyS0' },
+        pista:['Necesitas cinco caracteres: t y cuatro más.','El último carácter debe estar en el rango [a-b].','cp /dev/t???[ab] prueba/dir3/dir31/dir312'],
+        explica:'<code>t???[ab]</code> exige una t, tres caracteres cualesquiera y una a o una b al final.',
+        ejemplo:'cp /dev/t???[ab] prueba/dir3/dir31/dir312' }
+    ]},
+
+  { id:"rafa-29", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 29", resumen:"Borrar con comodines",
+    enunciado:'<p>Borrar los archivos de <code>dir312</code> que no acaben en <code>b</code> y tengan una <code>q</code> como cuarta letra.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir3/dir31/dir312/ttyqa':'a', '~/prueba/dir3/dir31/dir312/ttyqb':'b', '~/prueba/dir3/dir31/dir312/ttyqc':'c' } },
+    pasos:[
+      { tarea:'Borra de <code>dir312</code> los archivos con <code>q</code> en cuarta posición que no acaben en <code>b</code>.',
+        meta:{ existe:'prueba/dir3/dir31/dir312/ttyqb', noExiste:['prueba/dir3/dir31/dir312/ttyqa','prueba/dir3/dir31/dir312/ttyqc'] },
+        pista:['Puedes combinar * con corchetes negados.','El patrón *q[!b] deja fuera los que acaban en b.','rm prueba/dir3/dir31/dir312/*q[!b]'],
+        explica:'<code>[!b]</code> acepta cualquier carácter que no sea b; por eso se conserva <code>ttyqb</code>.',
+        ejemplo:'rm prueba/dir3/dir31/dir312/*q[!b]' }
+    ]},
+
+  { id:"rafa-30", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 30", resumen:"Mover dir312",
+    enunciado:'<p>Mover el directorio <code>dir312</code> debajo de <code>dir3</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir3/dir31/dir312/ttyqb':'b' } },
+    pasos:[
+      { tarea:'Mueve <code>prueba/dir3/dir31/dir312</code> dentro de <code>prueba/dir3</code>.',
+        meta:{ existe:'prueba/dir3/dir312/ttyqb', noExiste:'prueba/dir3/dir31/dir312' },
+        pista:['mv mueve archivos y carpetas.','El destino es la carpeta dir3.','mv prueba/dir3/dir31/dir312 prueba/dir3'],
+        explica:'<code>mv</code> cambia de sitio la carpeta completa con su contenido.',
+        ejemplo:'mv prueba/dir3/dir31/dir312 prueba/dir3' }
+    ]},
+
+  { id:"rafa-31", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 31", resumen:"Enlace simbólico",
+    enunciado:'<p>Crear un enlace simbólico al directorio <code>dir1</code> dentro del directorio <code>dir3</code> llamado <code>enlacedir1</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~/prueba', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir3':'dir' } },
+    pasos:[
+      { tarea:'Crea el enlace <code>prueba/dir3/enlacedir1</code> apuntando a <code>prueba/dir1</code>.',
+        meta:{ enlace:[{ path:'~/prueba/dir3/enlacedir1', destino:'~/prueba/dir1' }] },
+        pista:['Un enlace simbólico se crea con ln -s.','Primero va el destino y después el nombre del enlace.','ln -s dir1 dir3/enlacedir1'],
+        explica:'<code>ln -s</code> crea un acceso directo que apunta al directorio indicado.',
+        ejemplo:'ln -s dir1 dir3/enlacedir1' }
+    ]},
+
+  { id:"rafa-32", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 32", resumen:"Crear a través del enlace",
+    enunciado:'<p>Posicionarse en <code>dir3</code> y, empleando el enlace creado en el ejercicio anterior, crear el directorio <code>nuevo1</code> dentro de <code>dir1</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~/prueba', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir3':'dir', '~/prueba/dir3/enlacedir1':{ tipo:'link', destino:'~/prueba/dir1' } } },
+    pasos:[
+      { tarea:'Entra en <code>dir3</code>, accede por el enlace y crea <code>nuevo1</code> dentro de <code>dir1</code>.',
+        meta:{ cwd:'~/prueba/dir1', existe:'nuevo1' },
+        pista:['Primero entra en dir3.','Después puedes entrar en enlacedir1 como si fuera dir1.','cd dir3; cd enlacedir1; mkdir nuevo1'],
+        explica:'Al entrar por <code>enlacedir1</code>, el directorio actual se resuelve a <code>dir1</code> y <code>nuevo1</code> se crea dentro.',
+        ejemplo:'cd dir3; cd enlacedir1; mkdir nuevo1' }
+    ]},
+
+  { id:"rafa-33", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 33", resumen:"Copiar a través del enlace",
+    enunciado:'<p>Utilizando el enlace creado copiar los archivos que empiecen por <code>u</code> del directorio <code>/bin</code> en directorio <code>nuevo1</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~/prueba', fs:{ '~/prueba/dir1/nuevo1':'dir', '~/prueba/dir3':'dir', '~/prueba/dir3/enlacedir1':{ tipo:'link', destino:'~/prueba/dir1' } } },
+    pasos:[
+      { tarea:'Entra por el enlace y copia en <code>nuevo1</code> los archivos de <code>/bin</code> que empiezan por <code>u</code>.',
+        meta:{ existe:['nuevo1/uname','nuevo1/uptime'] },
+        pista:['El comodín /bin/u* selecciona los archivos que empiezan por u.','Entra en dir3 y después en enlacedir1.','cd dir3; cd enlacedir1; cp /bin/u* nuevo1'],
+        explica:'El enlace lleva a <code>dir1</code>, donde está <code>nuevo1</code>; <code>cp</code> copia allí los dos archivos.',
+        ejemplo:'cd dir3; cd enlacedir1; cp /bin/u* nuevo1' }
+    ]},
+
+  { id:"rafa-34", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 34", resumen:"Enlaces duros",
+    enunciado:'<p>Crear dos enlaces duros del fichero <code>fich1</code>, llamarlo <code>enlace</code>, en los directorios <code>dir1</code> y <code>dir2</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1/fich1':'contenido de fich1\n', '~/prueba/dir2':'dir' } },
+    pasos:[
+      { tarea:'Crea <code>enlace</code> en <code>dir1</code> y en <code>dir2</code> como enlace duro de <code>fich1</code>.',
+        meta:{ existe:['prueba/dir1/enlace','prueba/dir2/enlace'], contenido:{ 'prueba/dir1/enlace':'contenido de fich1\n', 'prueba/dir2/enlace':'contenido de fich1\n' } },
+        pista:['Los enlaces duros se crean con ln, sin la opción -s.','Primero va el fichero original y después el nombre del enlace.','ln prueba/dir1/fich1 prueba/dir1/enlace; ln prueba/dir1/fich1 prueba/dir2/enlace'],
+        explica:'Cada enlace duro comparte el contenido y el inodo del fichero original.',
+        ejemplo:'ln prueba/dir1/fich1 prueba/dir1/enlace; ln prueba/dir1/fich1 prueba/dir2/enlace' }
+    ]},
+
+  { id:"rafa-35", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 35", resumen:"Borrar fich1 y copiar enlace",
+    enunciado:'<p>Borrar el archivo <code>fich1</code> y copiar <code>enlace</code> en <code>dir3</code>.</p>',
+    final:'¡Bien hecho!',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1/fich1':'contenido de fich1\n', '~/prueba/dir1/enlace':'contenido de fich1\n', '~/prueba/dir2/enlace':'contenido de fich1\n', '~/prueba/dir3':'dir' } },
+    pasos:[
+      { tarea:'Borra <code>prueba/dir1/fich1</code> y copia <code>prueba/dir2/enlace</code> en <code>prueba/dir3</code>.',
+        meta:{ noExiste:'prueba/dir1/fich1', existe:['prueba/dir3/enlace'], contenido:{ 'prueba/dir3/enlace':'contenido de fich1\n' } },
+        pista:['Puedes encadenar el borrado y la copia con punto y coma.','El enlace que se copia está en dir2.','rm prueba/dir1/fich1; cp prueba/dir2/enlace prueba/dir3'],
+        explica:'El enlace duro sigue existiendo aunque se borre <code>fich1</code>; después se copia en <code>dir3</code>.',
+        ejemplo:'rm prueba/dir1/fich1; cp prueba/dir2/enlace prueba/dir3' }
+    ]},
+
+  { id:"rafa-36", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 36", resumen:"Copiar mediante un enlace simbólico",
+    enunciado:'<p>Utiliza el enlace simbólico creado para copiar en <code>dir311</code> el fichero <code>fich1</code> de <code>dir2</code>.</p>',
+    final:'El enlace se puede usar como cualquier otra ruta.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'contenido de fich1\n', '~/prueba/dir3':'dir', '~/prueba/dir3/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir3/dir311':'dir' } },
+    pasos:[
+      { tarea:'Copia <code>prueba/dir2/enlace</code> en <code>prueba/dir3/dir311</code> usando el enlace <code>prueba/dir3/enlafich1</code>.',
+        meta:{ existe:['prueba/dir3/dir311/enlafich1'] },
+        pista:['Un enlace simbólico se utiliza escribiendo su ruta.','El destino es el directorio dir311.','cp prueba/dir3/enlafich1 prueba/dir3/dir311'],
+        explica:'<code>cp</code> sigue el enlace simbólico y copia el contenido del fichero apuntado.',
+        ejemplo:'cp prueba/dir3/enlafich1 prueba/dir3/dir311' }
+    ]},
+
+  { id:"rafa-37", grupo:"Ejercicios de Rafa", nivel:3, titulo:"Ejercicio 37", resumen:"Enlaces duros y wc",
+    enunciado:'<p>Conserva dos enlaces duros al mismo fichero y cuenta sus líneas mediante <code>wc</code>.</p>',
+    final:'Los enlaces duros comparten el mismo contenido.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir1/enlace':'línea uno\nlínea dos\n', '~/prueba/dir2/enlace':'línea uno\nlínea dos\n' } },
+    pasos:[
+      { tarea:'Muestra cuántas líneas tiene <code>prueba/dir2/enlace</code>.',
+        meta:{ muestra:'2' },
+        pista:['wc cuenta líneas, palabras y caracteres.','La opción -l pide solo líneas.','wc -l prueba/dir2/enlace'],
+        explica:'<code>wc -l</code> cuenta los saltos de línea del fichero.',
+        ejemplo:'wc -l prueba/dir2/enlace' }
+    ]},
+
+  { id:"rafa-38", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 38", resumen:"Leer un fichero a través del enlace",
+    enunciado:'<p>Usa el enlace simbólico para mostrar por pantalla el contenido del fichero.</p>',
+    final:'Una ruta simbólica también sirve para leer el fichero.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'línea uno\nlínea dos\n', '~/prueba/dir1/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' } } },
+    pasos:[
+      { tarea:'Muestra el contenido de <code>prueba/dir2/enlace</code> mediante <code>prueba/dir1/enlafich1</code>.',
+        meta:{ salida:'línea uno\nlínea dos' },
+        pista:['cat muestra el contenido de un fichero.','Escribe la ruta del enlace, no la del destino.','cat prueba/dir1/enlafich1'],
+        explica:'<code>cat</code> sigue el enlace y muestra el contenido del fichero original.',
+        ejemplo:'cat prueba/dir1/enlafich1' }
+    ]},
+
+  { id:"rafa-39", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 39", resumen:"Borrar el enlace original",
+    enunciado:'<p>Borra el nombre original <code>fich1</code>; el enlace duro debe seguir disponible.</p>',
+    final:'Borrar un nombre no elimina el contenido mientras quede otro enlace duro.',
+    inicio:{ cwd:'~', fs:{ '~/prueba/dir1':'dir', '~/prueba/dir1/fich1':'contenido de fich1\n', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'contenido de fich1\n' } },
+    pasos:[
+      { tarea:'Borra <code>prueba/dir1/fich1</code> y conserva <code>prueba/dir2/enlace</code>.',
+        meta:{ noExiste:'prueba/dir1/fich1', existe:['prueba/dir2/enlace'], contenido:{ 'prueba/dir2/enlace':'contenido de fich1\n' } },
+        pista:['rm elimina una entrada de directorio.','El enlace duro de dir2 no debe borrarse.','rm prueba/dir1/fich1'],
+        explica:'Los enlaces duros son nombres distintos para el mismo contenido.',
+        ejemplo:'rm prueba/dir1/fich1' }
+    ]},
+
+  { id:"rafa-40", grupo:"Ejercicios de Rafa", nivel:2, titulo:"Ejercicio 40", resumen:"Limpieza final",
+    enunciado:'<p>Borra todos los ficheros y directorios creados durante los ejercicios dentro de <code>prueba</code>.</p>',
+    final:'Actividad terminada: el entorno ha quedado limpio.',
+    inicio:{ cwd:'~', fs:{ '~/prueba':'dir', '~/prueba/dir1':'dir', '~/prueba/dir1/enlace':'x', '~/prueba/dir2':'dir', '~/prueba/dir2/enlace':'x', '~/prueba/dir3':'dir', '~/prueba/dir3/enlafich1':{ tipo:'link', destino:'~/prueba/dir2/enlace' }, '~/prueba/dir3/dir311':'dir', '~/prueba/dir3/dir311/fich1':'x' } },
+    pasos:[
+      { tarea:'Elimina el directorio <code>prueba</code> completo y todo su contenido.',
+        meta:{ noExiste:'prueba' },
+        pista:['rm puede borrar directorios de forma recursiva.','La opción -r incluye todo su contenido.','rm -r prueba'],
+        explica:'<code>rm -r</code> elimina el árbol indicado; úsalo con cuidado en un sistema real.',
+        ejemplo:'rm -r prueba' }
     ]}
-  
+
 );
