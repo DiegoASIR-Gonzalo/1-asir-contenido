@@ -2183,15 +2183,49 @@ function pistasInteligentes(paso){
     cd:'Usa cd para cambiar a la carpeta indicada.'
   };
   comandos.forEach(comando => añadir(ayuda[comando]));
-  if (tokens.includes('>')) añadir('Guarda la salida usando una redirección > hacia el fichero indicado.');
-  else if (tokens.includes('>>')) añadir('Añade la salida al final de un fichero usando >>.');
-  else if (tokens.includes('2>')) añadir('Guarda los errores en un fichero usando la redirección 2>.');
-  if (tokens.includes('|')) añadir('Conecta los comandos con una tubería: la salida del primero entra en el siguiente.');
-  if (comandos.includes('wc')){
-    if (tokens.includes('-w')) añadir('En wc, la opción -w cuenta palabras.');
-    else if (tokens.includes('-l')) añadir('En wc, la opción -l cuenta líneas.');
+  const opciones = {
+    '-p':'Usa la opción -p para crear también las carpetas intermedias.',
+    '-a':'Usa -a para incluir los nombres ocultos.',
+    '-A':'Usa -A para incluir los ocultos, sin mostrar . ni ...',
+    '-l':'Usa -l para trabajar con el listado detallado o contar líneas, según el comando.',
+    '-R':'Usa -R para recorrer también los subdirectorios.',
+    '-r':'Usa -r para invertir el orden o recorrer en sentido inverso, según el comando.',
+    '-n':'Usa -n para tratar los números como valores numéricos.',
+    '-w':'Usa -w para contar palabras con wc.',
+    '-c':'Usa -c para contar bytes con wc.',
+    '-d':'Indica con -d el delimitador que separa los campos.',
+    '-f':'Indica con -f el campo o campos que quieres extraer.',
+    '-i':'Usa -i para ignorar diferencias entre mayúsculas y minúsculas.',
+    '-v':'Usa -v para invertir el filtro y excluir las coincidencias.',
+    '-type':'Después de -type indica el tipo buscado, por ejemplo d para directorios o f para ficheros.',
+    '-name':'Después de -name escribe el patrón del nombre que quieres buscar.',
+    '-user':'Después de -user indica el usuario propietario que pide el ejercicio.',
+    '-group':'Después de -group indica el grupo propietario.',
+    '-exec':'Después de -exec indica el comando que se ejecutará sobre cada resultado.',
+    '-s':'Usa -s para mostrar solo el resumen o el total, según el comando.',
+    '-h':'Usa -h para mostrar tamaños en un formato fácil de leer.'
+  };
+  const opcionesConValor = new Set(['-d','-f','-type','-name','-user','-group','-exec','-n','-k']);
+  for (let i = 0; i < tokens.length; i++){
+    const token = tokens[i];
+    if (!/^-[A-Za-z]/.test(token)) continue;
+    const texto = opciones[token] || ('La opción que necesitas es ' + token + '.');
+    if (opcionesConValor.has(token) && tokens[i + 1] && !/^[|;&>]/.test(tokens[i + 1]))
+      añadir(texto + ' En este paso, el valor es ' + tokens[i + 1] + '.');
+    else añadir(texto);
   }
-  if (comandos.includes('sort') && tokens.includes('-n')) añadir('En sort, la opción -n ordena los valores numéricamente.');
+  const redir = tokens.findIndex(t => ['>', '>>', '2>'].includes(t));
+  if (redir >= 0){
+    const destino = tokens[redir + 1];
+    añadir('Guarda ' + (tokens[redir] === '2>' ? 'los errores' : 'la salida') + ' con ' + tokens[redir] + (destino ? ' en el fichero ' + destino + '.' : '.'));
+  }
+  if (tokens.includes('|')) añadir('Conecta los comandos con una tubería: la salida del primero entra en el siguiente.');
+  const valores = tokens.filter((token, i) => {
+    if (!token || /^[|;&>]/.test(token) || /^-[A-Za-z]/.test(token) || comandos.includes(token)) return false;
+    const anterior = tokens[i - 1];
+    return !opcionesConValor.has(anterior);
+  }).filter(token => /[/.~*?[\]{}]|\w+\.\w+/.test(token));
+  if (valores.length) añadir('El argumento o ruta que pide este paso es ' + valores[valores.length - 1] + '.');
   ['Relaciona el comando con el objetivo concreto del enunciado y completa sus argumentos.',
     'Comprueba qué dato debe producir el comando antes de elegir sus opciones.',
     'Usa la estructura del objetivo para decidir qué argumentos faltan.']
