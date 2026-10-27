@@ -17,4 +17,8 @@ assert(duelo.includes('onDisconnect'), 'la sala debe limpiar participantes desco
 assert(duelo.includes('fondo.hidden = true'), 'la ventana de partida debe empezar cerrada');
 assert(!/anonimo|Preguntas anónimas|MAX_PREGUNTAS/.test(duelo), 'no debe quedar el modo antiguo de preguntas anónimas');
 assert(!/modo === ['"]web['"]/.test(duelo), 'no debe quedar el modo web antiguo');
+assert(duelo.includes('d-mode-grid'), 'el menú debe presentar los modos como tarjetas');
+assert(duelo.includes('d-settings') && duelo.includes("htmlFor = 'd-nombre'"), 'la configuración debe estar agrupada y etiquetada');
+assert(duelo.includes('d-salas-cab') && duelo.includes('d-empty'), 'la lista de salas debe tener cabecera y estado vacío propio');
+assert(duelo.includes('d-crear') && duelo.includes('d-unirse'), 'las acciones de crear y unirse deben diferenciarse visualmente');
 console.log('✓ interfaz multijugador: 0 errores');
