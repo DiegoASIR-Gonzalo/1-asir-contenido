@@ -24,7 +24,7 @@
        { cmd:"mkdir -p a/b/c", out:"", exp:"<p>Con <code>-p</code> crea toda la ruta.</p>" }
    ]},
    ===================================================================== */
-const prompt = ruta => '<span class="u">usuario@1º-ASIR</span>:<span class="r">' + ruta + '</span>$ '; // texto antes del comando
+const promptHtml = ruta => '<span class="u">usuario@1º-ASIR</span>:<span class="r">' + ruta + '</span>$ '; // texto antes del comando
 
 // Imagen de fondo por defecto: ruta o URL, p. ej. "fondo.jpg" o "img/escritorio.png".
 // Déjala vacía ("") para usar el degradado de color. Desde el botón cuadriculado también se puede elegir otra imagen.
