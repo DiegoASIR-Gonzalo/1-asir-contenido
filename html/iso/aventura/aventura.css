@@ -104,6 +104,14 @@
 .av-chip--repaso{background:#fdf1c7;color:#7a5b00}
 .av-chip--ronda{background:#e3f6ea;color:#115c34}
 .av-chip--test{background:#e7e0f2;color:#5a3d7a}
+.av-chip--teclas{background:#fde8cf;color:#7a3c00}
+
+kbd{
+  display:inline-block;padding:2px 7px;border-radius:6px;
+  background:#fff;border:1px solid #cfc5bd;border-bottom-width:3px;
+  font:800 13px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#3a2f3b;
+  line-height:1.3;white-space:nowrap;
+}
 
 .av-kicker{
   margin-bottom:4px;font-size:12px;font-weight:800;letter-spacing:.1em;
@@ -132,6 +140,34 @@
   background:#fff;border:1px solid #ddd5cf;border-radius:8px;padding:5px 10px;
   font-size:15px;
 }
+
+/* ---------- Pantalla de atajos de teclado ---------- */
+.av-teclas-demo{
+  margin:6px 0 18px;padding:16px 18px;border-radius:16px;
+  background:var(--term,#300a24);border:1px solid #1f0517;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  min-height:74px;overflow:auto;
+}
+.av-teclas-linea{
+  font:14.5px/1.6 "Ubuntu Mono","DejaVu Sans Mono",monospace;
+  color:#f0e7ed;white-space:pre-wrap;
+}
+.av-teclas-demo--ok{border-color:#8ae234;box-shadow:inset 0 0 0 1px rgba(138,226,52,.35)}
+.av-tecla-zona{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:16px 18px;border:2px dashed #c9bcc5;border-radius:16px;
+  background:#faf8f5;color:#4a3f4b;font:inherit;font-size:16px;font-weight:700;
+  text-align:left;cursor:pointer;transition:background .15s ease,border-color .15s ease;
+}
+.av-tecla-zona:hover:not(:disabled){background:#fff;border-color:#a88f9e}
+.av-tecla-zona:focus-visible{outline:3px solid var(--marca,#c34113);outline-offset:3px}
+.av-tecla-zona:disabled{cursor:default;border-style:solid;border-color:#8ae234;background:#e9f8ee;color:#115c34}
+.av-tecla-icono{
+  flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:#f0e6d2;color:#8a5a00;
+}
+.av-tecla-icono .av-svg{width:22px;height:22px}
+.av-tecla-zona--ok .av-tecla-icono{background:#2e9e5b;color:#fff}
 
 /* ---------- Bloque de ejemplo (teoría) ---------- */
 .av-ejemplo{
@@ -459,6 +495,127 @@ details.av-porque[open] summary::before{content:"−"}
   text-decoration:underline;cursor:pointer;padding:8px;
 }
 .av-enlace:hover{color:#fff}
+.av-pie-sep{color:#6d5a68;padding:0 2px}
+.av-pie-nota{
+  max-width:520px;margin:2px auto 0;font-size:13px;line-height:1.5;
+  color:#c9b1c0;
+}
+.av-pie-nota[hidden]{display:none}
+
+/* ---------- Herramientas del mapa ---------- */
+.av-herramientas{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.av-herramientas .av-btn .av-svg{width:17px;height:17px}
+
+/* ---------- Reto de cada mundo ---------- */
+.av-reto{
+  display:flex;align-items:center;gap:12px;margin:10px 4px 4px;
+  padding:12px 14px;border-radius:15px;
+  background:rgba(255,255,255,.045);border:1px dashed rgba(255,255,255,.16);
+}
+.av-reto--listo{
+  background:rgba(246,211,45,.08);border-style:solid;
+  border-color:rgba(246,211,45,.34);
+  box-shadow:0 0 0 1px rgba(246,211,45,.08);
+}
+.av-reto-ico{
+  flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(246,211,45,.13);color:#f6d32d;border:1px solid rgba(246,211,45,.25);
+}
+.av-reto-ico .av-svg{width:20px;height:20px}
+.av-reto-txt{flex:1;min-width:0}
+.av-reto-txt b{display:block;font-size:14.5px;font-weight:800;color:#f4ecf1}
+.av-reto-txt small{display:block;font-size:12.5px;line-height:1.45;color:#bfaebb;margin-top:2px}
+.av-reto-btn{flex:none;font-size:14px;padding:9px 14px}
+.av-reto-btn .av-svg{width:15px;height:15px}
+.av-mundo-reset{
+  flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  color:#c9b6c4;font:inherit;font-size:16px;line-height:1;cursor:pointer;
+  transition:background .15s ease,color .15s ease;
+}
+.av-mundo-reset:hover{background:rgba(255,255,255,.14);color:#fff}
+
+/* ---------- Aviso de reto dentro de una pantalla ---------- */
+.av-reto-nota{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 14px;margin-bottom:16px;border-radius:12px;
+  background:#fdf3d8;border:1px solid #efd99a;color:#6b4d00;
+  font-size:14.5px;line-height:1.5;font-weight:600;
+}
+.av-reto-nota .av-svg{flex:none;width:18px;height:18px;margin-top:2px;color:#b8860b}
+.av-chip--reto{background:#fbe7a8;color:#6b4d00}
+.av-tarjeta--reto .av-kicker{color:#8a6b1e}
+.av-fin-reto{
+  width:118px;height:118px;margin:0 auto 14px;border-radius:50%;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 35%,#ffe9a0,#f6d32d 62%,#e0a800);
+  color:#7a5200;border:4px solid #fff3c4;
+  box-shadow:0 8px 0 #b8860b,0 16px 34px rgba(184,134,11,.35);
+  animation:av-latido 2.8s ease-in-out infinite;
+}
+.av-fin-reto .av-svg{width:58px;height:58px}
+
+/* ---------- Paneles: estadísticas y glosario ---------- */
+.av-panel{
+  background:var(--papel,#f6f5f4);color:var(--papel-txt,#241f31);
+  border-radius:22px;padding:30px 32px 28px;
+  border:1px solid #e5dfda;
+  box-shadow:0 6px 0 #d8d1cb,0 30px 70px rgba(0,0,0,.5);
+}
+.av-panel .av-kicker{color:#8a7a87}
+.av-panel .av-titulo{margin-bottom:8px}
+.av-panel-texto{font-size:16px;line-height:1.6;color:#4a424d;margin-bottom:20px;max-width:62ch}
+.av-volver{
+  color:#7a6b76;text-decoration:none;font-weight:700;font-size:13.5px;
+  padding:6px 10px;margin:0 0 12px -10px;border-radius:9px;
+}
+.av-volver:hover{background:#ece7e2;color:#3b3440}
+.av-panel-nota{font-size:13px;line-height:1.55;color:#7a6b76;margin-top:18px}
+
+.av-stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+}
+.av-stat{
+  display:flex;flex-direction:column;gap:2px;
+  padding:14px 15px;border-radius:15px;
+  background:#fff;border:1px solid #e5dfda;
+  box-shadow:0 3px 0 #e3dcd6;
+}
+.av-stat-ico{color:#b26a00;margin-bottom:4px}
+.av-stat-ico .av-svg{width:22px;height:22px}
+.av-stat-valor{font-size:24px;font-weight:800;line-height:1.1;color:#332d38}
+.av-stat-etiqueta{font-size:13px;font-weight:700;color:#6d5f6b;line-height:1.35}
+.av-stat-nota{font-size:11.5px;line-height:1.4;color:#91818c;margin-top:3px}
+
+.av-buscador{margin-bottom:14px}
+.av-buscador input{
+  width:100%;font:inherit;font-size:16px;padding:12px 15px;
+  border-radius:13px;border:2px solid #ddd5cf;background:#fff;color:#332d38;
+}
+.av-buscador input:focus{outline:0;border-color:var(--acento,#c34113);box-shadow:0 0 0 3px rgba(195,65,19,.14)}
+.av-glos-cuenta{font-size:12.5px;font-weight:700;color:#8a7a87;margin-bottom:10px}
+.av-glos-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.av-glos-item{
+  padding:13px 15px;border-radius:14px;background:#fff;border:1px solid #e5dfda;
+}
+.av-glos-item[hidden]{display:none}
+.av-glos-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.av-glos-term{
+  font:800 16px "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+  color:#8a2c0c;background:#fdece3;padding:2px 8px;border-radius:6px;
+}
+.av-glos-mundo{
+  font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  color:#8a7a87;white-space:nowrap;
+}
+.av-glos-sub{display:block;font-size:12.5px;font-weight:700;color:#6d5f6b;margin-top:5px}
+.av-glos-def{font-size:14.5px;line-height:1.55;color:#4a424d;margin-top:5px}
+.av-glos-vacio{
+  padding:22px 10px;text-align:center;font-size:15px;color:#7a6b76;
+}
+.av-glos-vacio[hidden]{display:none}
+
 
 /* ---------- Fin de ronda o de nodo ---------- */
 .av-tarjeta--fin{text-align:center;padding:32px 30px 30px}
@@ -550,6 +707,16 @@ details.av-porque[open] summary::before{content:"−"}
   .av-subnodo-txt b{font-size:12.5px}
   .av-subnodo-txt small{font-size:11.5px}
   .av-subnodo-estado{display:none}
+  .av-panel{padding:22px 18px;border-radius:18px;box-shadow:0 5px 0 #d8d1cb,0 20px 50px rgba(0,0,0,.4)}
+  .av-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .av-stat{padding:11px 12px}
+  .av-stat-valor{font-size:21px}
+  .av-stat-nota{display:none}
+  .av-reto{flex-wrap:wrap;padding:11px 12px}
+  .av-reto-txt{flex-basis:calc(100% - 54px)}
+  .av-reto-btn{width:100%;margin-top:2px}
+  .av-herramientas .av-btn{flex:1;min-width:0}
+  .av-glos-item{padding:11px 12px}
 }
 
 @media (max-width:380px){
@@ -562,5 +729,6 @@ details.av-porque[open] summary::before{content:"−"}
   .av-pill.av-pop{animation:none}
   .av-fx i,.av-mas{display:none}
   .av-prog i{transition:none}
+  .av-fin-reto{animation:none}
   .av-btn,.av-op,.av-nodo,.av-subnodo{transition:none}
 }

@@ -56,7 +56,11 @@
     carpeta: svg('<path d="M3 7.5A2.5 2.5 0 015.5 5H9l2 2h7.5A2.5 2.5 0 0121 9.5v8A2.5 2.5 0 0118.5 20h-13A2.5 2.5 0 013 17.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 11v6M9 14h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'),
     caja: svg('<path d="M4 8.5l8-4.2 8 4.2-8 4.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 8.5v8l8 4.2 8-4.2v-8M12 12.7v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>'),
     cono: svg('<path d="M12 3l7 13H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 16h14v3H5z" fill="currentColor"/>'),
-    llave: svg('<circle cx="8" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l8 8M16 16l3-3M14 18l2-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>')
+    llave: svg('<circle cx="8" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l8 8M16 16l3-3M14 18l2-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'),
+    lupa: svg('<circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L21 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+    grafico: svg('<path d="M5 20V10M10 20V4M15 20v-7M20 20V7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'),
+    descargar: svg('<path d="M12 3v12M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+    subir: svg('<path d="M12 17V5M7 10l5-5 5 5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')
   };
   const PINGUINO = '<svg class="av-svg av-pinguino" viewBox="0 0 64 64" aria-hidden="true">' +
     '<ellipse cx="32" cy="35" rx="19" ry="25" fill="#2b2330"/>' +
@@ -69,30 +73,34 @@
     '<ellipse cx="25" cy="59.5" rx="6" ry="2.4" fill="#f6a623"/>' +
     '<ellipse cx="39" cy="59.5" rx="6" ry="2.4" fill="#f6a623"/>' +
   '</svg>';
-  const iconoMundo = m => ({ orientarse: ICO.brujula, organizar: ICO.caja, shell: ICO.cono, avanzado: ICO.llave }[m.id] || ICO.estrella);
+  const iconoMundo = m => ({ orientarse: ICO.brujula, organizar: ICO.caja, shell: ICO.cono, avanzado: ICO.llave, buscar: ICO.lupa }[m.id] || ICO.estrella);
   const clonar = e => JSON.parse(JSON.stringify(e));
   const limpiar = h => String(h || '').replace(/<[^>]*>/g, '');
   const normalizar = t => String(t || '').trim().replace(/\s+/g, ' ');
+  const sinTildes = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   /* ---------------- Progreso guardado ---------------- */
   const TODOS = {};
   DATOS.mundos.forEach(m => m.lecciones.forEach(l => { TODOS[l.id] = l; }));
   const totalRondas = Object.values(TODOS).reduce((s, l) => s + l.rondas.length, 0);
 
-  function cargar() {
-    const base = { version: 2, xp: 0, racha: { dias: 0, ultima: '' }, lecciones: {} };
-    try {
-      const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
-      if (g && typeof g === 'object') {
-        base.xp = Math.max(0, Number(g.xp) || 0);
-        base.racha = { dias: Math.max(0, Number(g.racha && g.racha.dias) || 0), ultima: String((g.racha && g.racha.ultima) || '') };
-        base.lecciones = (g.lecciones && typeof g.lecciones === 'object') ? g.lecciones : {};
-      }
-    } catch (e) { /* sin localStorage: la aventura funciona igual, sin recordar */ }
-    // Migración del modelo viejo (una lección = una pantalla) al de rondas.
+  function normalizarDatos(g) {
+    const base = {
+      version: 3, xp: 0, racha: { dias: 0, ultima: '' }, lecciones: {}, retos: {},
+      stats: { intentos: 0, aciertos: 0, primerIntento: 0, primerAcierto: 0, tests: 0, testsOk: 0, ayudas: 0, segundos: 0 }
+    };
+    if (g && typeof g === 'object') {
+      base.xp = Math.max(0, Number(g.xp) || 0);
+      base.racha = { dias: Math.max(0, Number(g.racha && g.racha.dias) || 0), ultima: String((g.racha && g.racha.ultima) || '') };
+      base.lecciones = (g.lecciones && typeof g.lecciones === 'object') ? g.lecciones : {};
+      base.retos = (g.retos && typeof g.retos === 'object') ? g.retos : {};
+      base.stats = Object.assign(base.stats, (g.stats && typeof g.stats === 'object') ? g.stats : {});
+    }
+    // Se ignoran ids que ya no existen (contenido retirado) y se migra el
+    // modelo viejo (una lección = una pantalla) al de rondas.
     Object.keys(base.lecciones).forEach(id => {
       const def = TODOS[id], g = base.lecciones[id];
-      if (!def || !g || typeof g !== 'object') return;
+      if (!def || !g || typeof g !== 'object') { delete base.lecciones[id]; return; }
       if (g.rondasHechas == null){
         g.rondasHechas = g.hecha ? def.rondas.length : 0;
         g.ronda = 0;
@@ -101,11 +109,33 @@
       g.rondasHechas = Math.min(def.rondas.length, Math.max(0, Number(g.rondasHechas) || 0));
       g.ronda = Math.min(def.rondas.length - 1, Math.max(0, Number(g.ronda) || 0));
       g.pantalla = Math.max(0, Number(g.pantalla) || 0);
+      if (g.snapshot && typeof g.snapshot !== 'object') g.snapshot = null;
+      if (g.entrada != null) g.entrada = String(g.entrada);
+    });
+    Object.keys(base.retos).forEach(id => {
+      if (!DATOS.mundos.some(m => m.id === id)) delete base.retos[id];
+    });
+    Object.keys(base.stats).forEach(k => {
+      base.stats[k] = Math.max(0, Number(base.stats[k]) || 0);
     });
     return base;
   }
+  function cargar() {
+    let g = null;
+    try { g = JSON.parse(localStorage.getItem(CLAVE) || 'null'); }
+    catch (e) { /* sin localStorage: la aventura funciona igual, sin recordar */ }
+    return normalizarDatos(g);
+  }
   const av = cargar();
   const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(av)); } catch (e) {} };
+  let inicioSesion = 0;
+  function cerrarSesionTiempo() {
+    if (!inicioSesion) return;
+    const seg = Math.round((Date.now() - inicioSesion) / 1000);
+    inicioSesion = 0;
+    if (seg > 0) { av.stats.segundos = (av.stats.segundos || 0) + seg; guardar(); }
+  }
+  const cuenta = (campo, n) => { av.stats[campo] = Math.max(0, Number(av.stats[campo]) || 0) + (n == null ? 1 : n); };
 
   let sonido = true;
   try { sonido = localStorage.getItem(CLAVE_SONIDO) !== '0'; } catch (e) {}
@@ -289,10 +319,11 @@
   else document.querySelector('.barra').prepend(btn);
 
   /* ---------------- Estado de la vista ---------------- */
-  let vista = { tipo: 'mapa' };   // mapa | leccion | cierre
+  let vista = { tipo: 'mapa' };   // mapa | leccion | cierre | stats | glosario
   let lec = null;                 // nodo y ronda en curso
   let respuesta = '';             // lo escrito en la terminal, para no perderlo al repintar
   let montada = null;             // clave de la pantalla que ya está en el DOM
+  let retoActual = null;          // examen de mundo en curso: { i, def, aciertos }
 
   function abrir() {
     raiz.hidden = false;
@@ -300,11 +331,14 @@
     if (typeof alternarAct === 'function') alternarAct(false);
     vista = { tipo: 'mapa' };
     montada = null;
+    inicioSesion = Date.now();
     pintar();
     byId('av-cerrar').focus();
   }
 
   function cerrar() {
+    flushEntrada();
+    cerrarSesionTiempo();
     raiz.hidden = true;
     btn.setAttribute('aria-expanded', 'false');
     btn.focus();
@@ -330,7 +364,7 @@
       prog.setAttribute('aria-valuemin', '1');
       prog.setAttribute('aria-valuemax', String(total));
       prog.setAttribute('aria-valuenow', String(lec.pantalla + 1));
-      prog.setAttribute('aria-valuetext', 'Ronda ' + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length +
+      prog.setAttribute('aria-valuetext', (lec.examen ? 'Ejercicio ' : 'Ronda ') + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length +
         ', pantalla ' + (lec.pantalla + 1) + ' de ' + total);
     } else {
       prog.hidden = true;
@@ -340,6 +374,8 @@
   function pintar() {
     pintarCabecera();
     if (vista.tipo === 'mapa') return pintarMapa();
+    if (vista.tipo === 'stats') return pintarStats();
+    if (vista.tipo === 'glosario') return pintarGlosario();
     if (vista.tipo === 'cierre') return pintarCierre();
     return pintarLeccion();
   }
@@ -352,6 +388,7 @@
     const sig = siguientePendiente();
     const nHechas = hechas();
     const rHechas = rondasTotalesHechas();
+    const retosHechos = DATOS.mundos.filter(m => av.retos[m.id] && av.retos[m.id].hecho).length;
 
     let html =
       '<div class="av-mapa">' +
@@ -360,21 +397,28 @@
             '<span class="av-hero-mascota" aria-hidden="true">' + PINGUINO + '</span>' +
             '<div>' +
               '<p class="av-kicker">Repaso autónomo · 1.º ASIR</p>' +
-              '<h2 class="av-hero-titulo">' + (sig ? 'Tu aventura de Linux' : '¡Aventura terminada!') + '</h2>' +
+              '<h2 class="av-hero-titulo">' + (sig ? 'Tu aventura de Linux' : (retosHechos < DATOS.mundos.length ? 'Ahora, los retos' : '¡Aventura terminada!')) + '</h2>' +
             '</div>' +
           '</div>' +
           '<p class="av-hero-texto">' + (sig
             ? 'Cada comando es un nodo con varias rondas. La primera te lo explica y las siguientes te lo hacen practicar con variantes, cada vez un poco más difícil. El anillo se llena ronda a ronda. Sin prisa y sin castigos: si te atascas, pide ayuda.'
-            : 'Has completado todos los nodos. Puedes repetir cualquiera cuando quieras: no se borra nada.') + '</p>' +
+            : (retosHechos < DATOS.mundos.length
+              ? 'Has completado todos los nodos. Cada mundo tiene un reto final que mezcla lo aprendido, con menos pistas. No resta puntos: solo comprueba si de verdad te lo sabes.'
+              : 'Has completado todos los nodos y todos los retos. Puedes repetir cualquiera cuando quieras: no se borra nada.')) + '</p>' +
           '<div class="av-datos">' +
             '<span class="av-dato">' + ICO.estrella + ' <b>' + (av.xp || 0) + '</b> pts</span>' +
             '<span class="av-dato">' + ICO.fuego + ' <b>' + (av.racha.dias || 0) + '</b> ' + (av.racha.dias === 1 ? 'día' : 'días') + '</span>' +
             '<span class="av-dato">' + ICO.libro + ' <b>' + nHechas + '</b> / ' + totalLecciones + ' nodos</span>' +
             '<span class="av-dato">' + ICO.check + ' <b>' + rHechas + '</b> / ' + totalRondas + ' rondas</span>' +
+            '<span class="av-dato">' + ICO.trofeo + ' <b>' + retosHechos + '</b> / ' + DATOS.mundos.length + ' retos</span>' +
           '</div>' +
           '<button class="av-btn av-btn--principal av-btn--grande" type="button" id="av-seguir">' +
             (sig ? 'Continuar' + (nHechas ? ' donde lo dejaste' : '') : 'Repasar desde el principio') +
           '</button>' +
+          '<div class="av-herramientas">' +
+            '<button class="av-btn av-btn--fantasma" type="button" id="av-stats">' + ICO.grafico + ' Estadísticas</button>' +
+            '<button class="av-btn av-btn--fantasma" type="button" id="av-glosario">' + ICO.libro + ' Glosario</button>' +
+          '</div>' +
         '</section>' +
         '<ol class="av-camino">';
 
@@ -382,11 +426,15 @@
       const abierto = mundoAbierto(i);
       const listos = m.lecciones.filter(l => estaHecha(l.id)).length;
       const estado = !abierto ? 'bloqueado' : (listos === m.lecciones.length ? 'hecho' : 'actual');
+      const tieneProgreso = listos > 0 || !!(av.retos[m.id] && av.retos[m.id].hecho);
+      const reto = av.retos[m.id];
+      const retoListo = listos === m.lecciones.length;
       html +=
         '<li class="av-mundo" data-estado="' + estado + '">' +
           '<div class="av-mundo-cab">' +
             '<span class="av-mundo-emoji" aria-hidden="true">' + iconoMundo(m) + '</span>' +
             '<div class="av-mundo-txt"><h3>Mundo ' + (i + 1) + ' · ' + m.titulo + '</h3><p>' + m.resumen + '</p></div>' +
+            (tieneProgreso ? '<button class="av-mundo-reset" type="button" data-world-reset="' + i + '" title="Reiniciar solo este mundo" aria-label="Reiniciar el Mundo ' + (i + 1) + '">↺</button>' : '') +
             '<span class="av-mundo-prog">' + listos + '/' + m.lecciones.length + '</span>' +
           '</div>' +
           '<ol class="av-nodos">';
@@ -443,11 +491,33 @@
           '</li>';
       });
 
-      html += '</ol></li>';
+      html += '</ol>' +
+        '<div class="av-reto' + (retoListo ? ' av-reto--listo' : '') + '">' +
+          '<span class="av-reto-ico" aria-hidden="true">' + ICO.trofeo + '</span>' +
+          '<div class="av-reto-txt">' +
+            '<b>Reto · ' + m.titulo + '</b>' +
+            '<small>' + (reto && reto.hecho
+              ? 'Superado' + (reto.aciertos != null ? ' · ' + reto.aciertos + '/' + reto.total + ' a la primera' : '') + '. Puedes repetirlo.'
+              : (retoListo ? 'Mezcla lo aprendido en este mundo. Sin castigo y con menos pistas.' : 'Se abre al completar los ' + m.lecciones.length + ' nodos del mundo.')) + '</small>' +
+          '</div>' +
+          '<button class="av-btn ' + (retoListo ? 'av-btn--principal' : 'av-btn--fantasma') + ' av-reto-btn" type="button"' +
+            ' data-reto="' + i + '"' + (retoListo ? '' : ' disabled aria-disabled="true"') + '>' +
+            (reto && reto.hecho ? 'Repetir' : (retoListo ? 'Empezar' : ICO.candado + ' Bloqueado')) +
+          '</button>' +
+        '</div>' +
+      '</li>';
     });
 
     html += '</ol>' +
-      '<div class="av-mapa-pie"><button class="av-enlace" type="button" id="av-reiniciar">Reiniciar aventura y borrar el progreso</button></div>' +
+      '<div class="av-mapa-pie">' +
+        '<button class="av-enlace" type="button" id="av-exportar">' + ICO.descargar + ' Exportar progreso</button>' +
+        '<span class="av-pie-sep" aria-hidden="true">·</span>' +
+        '<button class="av-enlace" type="button" id="av-importar">' + ICO.subir + ' Importar</button>' +
+        '<span class="av-pie-sep" aria-hidden="true">·</span>' +
+        '<button class="av-enlace" type="button" id="av-reiniciar">Reiniciar aventura y borrar el progreso</button>' +
+      '</div>' +
+      '<p class="av-pie-nota" id="av-pie-nota" hidden></p>' +
+      '<input type="file" id="av-archivo" accept="application/json,.json" hidden>' +
       '</div>';
 
     cuerpo.innerHTML = html;
@@ -458,13 +528,25 @@
       if (s) abrirLeccion(s.i, s.j);
       else abrirLeccion(0, 0);
     };
+    byId('av-stats').onclick = () => { vista = { tipo: 'stats' }; pintar(); };
+    byId('av-glosario').onclick = () => { vista = { tipo: 'glosario' }; pintar(); };
+    byId('av-exportar').onclick = exportarProgreso;
+    byId('av-importar').onclick = () => byId('av-archivo').click();
+    byId('av-archivo').onchange = importarProgreso;
     byId('av-reiniciar').onclick = () => {
-      if (!window.confirm('¿Borrar el progreso de la aventura (rondas, puntos y racha)?')) return;
-      av.xp = 0; av.racha = { dias: 0, ultima: '' }; av.lecciones = {};
+      if (!window.confirm('¿Borrar el progreso de la aventura (rondas, puntos, retos, estadísticas y racha)?')) return;
+      av.xp = 0; av.racha = { dias: 0, ultima: '' }; av.lecciones = {}; av.retos = {};
+      av.stats = { intentos: 0, aciertos: 0, primerIntento: 0, primerAcierto: 0, tests: 0, testsOk: 0, ayudas: 0, segundos: 0 };
       guardar();
       pintar();
       decir('Progreso de la aventura borrado.');
     };
+    cuerpo.querySelectorAll('[data-world-reset]').forEach(b => {
+      b.onclick = () => reiniciarMundo(Number(b.dataset.worldReset));
+    });
+    cuerpo.querySelectorAll('.av-reto-btn').forEach(b => {
+      b.onclick = () => abrirExamen(Number(b.dataset.reto));
+    });
     cuerpo.querySelectorAll('.av-nodo').forEach(b => {
       b.onclick = () => abrirLeccion(Number(b.dataset.i), Number(b.dataset.j));
     });
@@ -480,14 +562,215 @@
     });
   }
 
+  /* ---- Pantalla: estadísticas ---- */
+  function duracion(seg) {
+    seg = Math.max(0, Math.round(seg));
+    const h = Math.floor(seg / 3600), m = Math.floor((seg % 3600) / 60), s = seg % 60;
+    if (h) return h + ' h ' + m + ' min';
+    if (m) return m + ' min ' + s + ' s';
+    return s + ' s';
+  }
+
+  function pintarStats() {
+    montada = null;
+    pie.hidden = true;
+    pie.innerHTML = '';
+    const st = av.stats;
+    const ahora = inicioSesion ? Math.round((Date.now() - inicioSesion) / 1000) : 0;
+    const seg = (Number(st.segundos) || 0) + ahora;
+    const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+    const precision = pct(st.aciertos, st.intentos);
+    const primer = pct(st.primerAcierto, st.primerIntento);
+    const tests = pct(st.testsOk, st.tests);
+    const nHechas = hechas(), rHechas = rondasTotalesHechas();
+    const retos = DATOS.mundos.filter(m => av.retos[m.id] && av.retos[m.id].hecho).length;
+
+    const tarjeta = (icono, valor, etiqueta, nota) =>
+      '<div class="av-stat">' +
+        '<span class="av-stat-ico" aria-hidden="true">' + icono + '</span>' +
+        '<b class="av-stat-valor">' + valor + '</b>' +
+        '<span class="av-stat-etiqueta">' + etiqueta + '</span>' +
+        (nota ? '<small class="av-stat-nota">' + nota + '</small>' : '') +
+      '</div>';
+
+    cuerpo.innerHTML =
+      '<section class="av-panel">' +
+        '<button class="av-enlace av-volver" type="button" id="av-volver">← Volver al mapa</button>' +
+        '<p class="av-kicker">Tu recorrido</p>' +
+        '<h2 class="av-titulo">Estadísticas</h2>' +
+        '<p class="av-panel-texto">Solo cuenta lo que haces en este navegador. Aquí no se resta nada: los fallos son intentos, no castigos.</p>' +
+        '<div class="av-stats-grid">' +
+          tarjeta(ICO.estrella, av.xp || 0, 'puntos', 'Se ganan con cada ronda y reto.') +
+          tarjeta(ICO.libro, nHechas + ' / ' + totalLecciones, 'nodos completados', 'Cada comando es un nodo.') +
+          tarjeta(ICO.check, rHechas + ' / ' + totalRondas, 'rondas superadas', 'Las rondas se llenan una a una.') +
+          tarjeta(ICO.trofeo, retos + ' / ' + DATOS.mundos.length, 'retos superados', 'Un reto por mundo.') +
+          tarjeta(ICO.grafico, precision + '%', 'aciertos al enviar', st.aciertos + ' de ' + st.intentos + ' comandos enviados.') +
+          tarjeta(ICO.bombilla, primer + '%', 'a la primera', st.primerAcierto + ' de ' + st.primerIntento + ' primeros intentos.') +
+          tarjeta(ICO.check, tests + '%', 'tests acertados', st.testsOk + ' de ' + st.tests + ' preguntas contestadas.') +
+          tarjeta(ICO.fuego, av.racha.dias || 0, av.racha.dias === 1 ? 'día seguido' : 'días seguidos', 'Se mantiene practicando cada día.') +
+          tarjeta(ICO.bombilla, st.ayudas || 0, 'ayudas pedidas', 'Pedir ayuda también es aprender.') +
+          tarjeta(ICO.brujula, duracion(seg), 'tiempo practicando', 'Tiempo con la aventura abierta.') +
+        '</div>' +
+        '<p class="av-panel-nota">Los datos se guardan en este navegador. Puedes exportarlos desde el mapa para no perderlos.</p>' +
+      '</section>';
+    cuerpo.scrollTop = 0;
+    byId('av-volver').onclick = irAlMapa;
+  }
+
+  /* ---- Pantalla: glosario buscable ---- */
+  const textoHtml = h => {
+    const d = document.createElement('div');
+    d.innerHTML = String(h == null ? '' : h).replace(/<\/(p|li|ul|ol|div|h[1-6]|details|pre)>/gi, ' ');
+    return (d.textContent || '').replace(/\s+/g, ' ').trim();
+  };
+  const recortar = (t, n) => {
+    t = String(t || '').trim();
+    return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t;
+  };
+  const primeraFrase = (t, n) => {
+    const m = /^(.+?[.!?])(\s|$)/.exec(t);
+    return recortar(m ? m[1] : t, n || 220);
+  };
+
+  let glosarioCache = null;
+  function glosario() {
+    if (glosarioCache) return glosarioCache;
+    const items = [], vistos = new Set();
+    const meter = (t, sub, mundo, d) => {
+      const clave = sinTildes(t);
+      if (!t || !d || vistos.has(clave)) return;
+      vistos.add(clave);
+      items.push({ t: t, sub: sub || '', mundo: mundo, d: d });
+    };
+
+    DATOS.mundos.forEach((m, i) => {
+      const etiquetaMundo = 'Mundo ' + (i + 1) + ' · ' + m.titulo;
+      m.lecciones.forEach(l => {
+        let descripcion = '';
+        const codigos = [];
+        l.rondas.forEach(r => r.pantallas.forEach(p => {
+          if (p.tipo !== 'teoria') return;
+          const texto = textoHtml(p.html);
+          if (!descripcion) descripcion = primeraFrase(texto, 240);
+          const re = /<code>([\s\S]*?)<\/code>/g;
+          let mm;
+          while ((mm = re.exec(p.html || ''))) {
+            const codigo = textoHtml(mm[1]);
+            const opcion = /^--?[A-Za-z][\w-]*$/.test(codigo) || codigo === '-0';
+            const variable = /^\$[A-Za-z_?][\w?]*$/.test(codigo);
+            const simbolo = ['{}', '{ }', '|', '>>', '2>', '&&', '||'].includes(codigo);
+            if (codigo && codigo.length <= 24 && (opcion || variable || simbolo)) codigos.push(codigo);
+          }
+        }));
+        meter(l.comando === 'teclado' ? l.titulo : l.comando, l.titulo, etiquetaMundo,
+          descripcion || l.resumen);
+
+        // Argumentos y piezas de código que aparecen en la teoría, con la
+        // frase que los explica. Así el glosario cubre -n, -exec, -print0...
+        codigos.forEach(codigo => {
+          if (codigo === l.comando) return;
+          l.rondas.forEach(r => r.pantallas.forEach(p => {
+            if (p.tipo !== 'teoria') return;
+            const texto = textoHtml(p.html);
+            const trozos = texto.split(/(?<=[.!?])\s+/);
+            const frase = trozos.find(t => t.includes(codigo));
+            if (frase) meter(codigo, l.titulo, etiquetaMundo, recortar(frase, 220));
+          }));
+        });
+
+        // Atajos de teclado: se buscan por su nombre y por su utilidad.
+        l.rondas.forEach(r => r.pantallas.forEach(p => {
+          if (p.tipo !== 'teclas') return;
+          const combo = comboTexto(p.combo).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+          meter(combo, p.titulo, etiquetaMundo, p.explica || p.pista || 'Atajo de teclado.');
+        }));
+      });
+    });
+
+    if (Array.isArray(DATOS.glosario)) {
+      DATOS.glosario.forEach(g => {
+        if (g && g.t) meter(g.t, g.sub || '', g.mundo || 'Extra', g.d || g.texto || '');
+      });
+    }
+    items.sort((a, b) => a.t.localeCompare(b.t, 'es', { numeric: true }));
+    glosarioCache = items;
+    return items;
+  }
+
+  function pintarGlosario() {
+    montada = null;
+    pie.hidden = true;
+    pie.innerHTML = '';
+    const items = glosario();
+    cuerpo.innerHTML =
+      '<section class="av-panel av-panel--glos">' +
+        '<button class="av-enlace av-volver" type="button" id="av-volver">← Volver al mapa</button>' +
+        '<p class="av-kicker">Consulta rápida</p>' +
+        '<h2 class="av-titulo">Glosario</h2>' +
+        '<p class="av-panel-texto">Comandos, argumentos y atajos que salen en la aventura. Busca sin tildes y sin preocuparte por las mayúsculas.</p>' +
+        '<div class="av-buscador">' +
+          '<label class="sr-only" for="av-glos-buscar">Buscar en el glosario</label>' +
+          '<input id="av-glos-buscar" type="search" autocomplete="off" placeholder="Busca: grep, -n, find, Ctrl+R…">' +
+        '</div>' +
+        '<p class="av-glos-cuenta" id="av-glos-cuenta">' + items.length + ' entradas</p>' +
+        '<ul class="av-glos-lista" id="av-glos-lista">' +
+          items.map(it =>
+            '<li class="av-glos-item" data-buscar="' + escapar(sinTildes(it.t + ' ' + it.sub + ' ' + it.mundo + ' ' + it.d) + ' ' + sinTildes(it.t).replace(/\s+/g, '')) + '">' +
+              '<div class="av-glos-cab">' +
+                '<b class="av-glos-term">' + escapar(it.t) + '</b>' +
+                '<span class="av-glos-mundo">' + escapar(it.mundo) + '</span>' +
+              '</div>' +
+              (it.sub ? '<small class="av-glos-sub">' + escapar(it.sub) + '</small>' : '') +
+              '<p class="av-glos-def">' + escapar(it.d) + '</p>' +
+            '</li>').join('') +
+        '</ul>' +
+        '<p class="av-glos-vacio" id="av-glos-vacio" hidden>No hay ninguna entrada que coincida. Prueba con otra palabra.</p>' +
+      '</section>';
+    cuerpo.scrollTop = 0;
+    byId('av-volver').onclick = irAlMapa;
+
+    const inp = byId('av-glos-buscar');
+    const cuenta = byId('av-glos-cuenta');
+    const lista = byId('av-glos-lista');
+    const vacio = byId('av-glos-vacio');
+    const filtrar = () => {
+      const q = sinTildes(inp.value.trim());
+      let n = 0;
+      lista.querySelectorAll('.av-glos-item').forEach(el => {
+        const vale = !q || el.dataset.buscar.includes(q);
+        el.hidden = !vale;
+        if (vale) n++;
+      });
+      cuenta.textContent = q
+        ? n + ' de ' + items.length + ' entradas'
+        : items.length + ' entradas';
+      vacio.hidden = n > 0;
+    };
+    inp.addEventListener('input', filtrar);
+    inp.addEventListener('search', filtrar);
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && inp.value) {
+        e.preventDefault();
+        e.stopPropagation();
+        inp.value = '';
+        filtrar();
+      }
+    });
+  }
+
   /* ---- Abrir un nodo o una ronda concreta ---- */
   function abrirLeccion(i, j, opciones) {
-    const def = leccionDe(i, j);
+    abrirNodo(leccionDe(i, j), i, j, opciones);
+  }
+
+  function abrirNodo(def, i, j, opciones) {
     const g = progresoDe(def.id);
     const total = def.rondas.length;
     const completado = rondasHechas(def.id) >= total;
+    const esExamen = !!(opciones && opciones.examen);
+    if (!esExamen) retoActual = null;
     const forzada = opciones && opciones.ronda != null;
-    const repaso = opciones ? !!opciones.repaso : completado;
+    const repaso = esExamen ? false : (opciones ? !!opciones.repaso : completado);
     const rondaIdx = forzada
       ? Math.min(total - 1, Math.max(0, Number(opciones.ronda) || 0))
       : (repaso ? 0 : Math.min(total - 1, Math.max(0, Number(g.ronda) || 0)));
@@ -498,26 +781,177 @@
 
     lec = {
       i: i, j: j, def: def, rondaIdx: rondaIdx, ronda: ronda, repaso: repaso,
+      examen: esExamen,
       baseHechas: completado ? total : rondasHechas(def.id),
       estado: crearEstado({ inicio: Object.assign({}, def.inicio || {}, ronda.inicio || {}) }),
       pantalla: pantalla,
       hist: [], mem: [], memI: 0,
       ayuda: 0, acierto: false, xp: 0, elegida: null, aviso: '', explica: '',
       ayudaTexto: '', histHTML: '', paso: false,
-      salidaAcum: '', intentos: 0, estadoInicial: null
+      salidaAcum: '', intentos: 0, testFallos: 0, testVisto: false, estadoInicial: null
     };
+
+    // Un ejercicio del reto puede necesitar el mundo que dejaron las
+    // prácticas anteriores de su ronda: se repiten en silencio.
+    if (esExamen && Array.isArray(ronda.previas) && ronda.previas.length) {
+      ejecutarEn(lec.estado, ronda.previas);
+    }
 
     // Al retomar una ronda, se repiten en silencio las prácticas ya hechas
     // para llegar al mismo mundo virtual en el que se quedó.
-    for (let k = 0; k < pantalla; k++) {
-      const p = ronda.pantallas[k];
-      if (p.tipo === 'practica') ejecutarEn(lec.estado, p.ejemplo);
+    if (!esExamen) {
+      for (let k = 0; k < pantalla; k++) {
+        const p = ronda.pantallas[k];
+        if (p.tipo === 'practica') ejecutarEn(lec.estado, p.ejemplo);
+      }
     }
 
-    respuesta = '';
+    // Reanudar exactamente donde se quedó: estado, terminal y respuesta.
+    const mismaPantalla = !esExamen && !repaso && !forzada && Number(g.ronda) === rondaIdx && Number(g.pantalla) === pantalla;
+    const snap = mismaPantalla && g.snapshot ? g.snapshot : null;
+    if (snap) {
+      if (snap.estado) lec.estado = clonar(snap.estado);
+      lec.hist = Array.isArray(snap.hist) ? snap.hist.slice() : [];
+      lec.mem = Array.isArray(snap.mem) ? snap.mem.slice() : [];
+      lec.memI = lec.mem.length;
+      lec.acierto = !!snap.acierto;
+      lec.elegida = snap.elegida != null ? snap.elegida : null;
+      lec.explica = snap.explica || '';
+      lec.ayuda = Number(snap.ayuda) || 0;
+      lec.ayudaTexto = snap.ayudaTexto || '';
+      lec.aviso = snap.aviso || '';
+      lec.paso = !!snap.paso;
+      lec.salidaAcum = snap.salidaAcum || '';
+      lec.intentos = Number(snap.intentos) || 0;
+      lec.testFallos = Number(snap.testFallos) || 0;
+      lec.histHTML = '';
+      respuesta = g.entrada != null ? String(g.entrada) : (snap.entrada != null ? String(snap.entrada) : '');
+    } else {
+      respuesta = mismaPantalla && g.entrada ? String(g.entrada) : '';
+    }
+
     montada = null;
     vista = { tipo: 'leccion' };
     pintar();
+  }
+
+  /* ---- Reto de mundo: examen con prácticas y tests mezclados ---- */
+  function construirExamen(i) {
+    const mundo = mundoDe(i);
+    const rondas = [];
+    mundo.lecciones.forEach(l => {
+      let elegida = null;
+      l.rondas.forEach(r => {
+        const previas = [];
+        r.pantallas.forEach(p => {
+          if (p.tipo !== 'practica') return;
+          elegida = { ronda: r, pantalla: p, previas: previas.slice() };
+          for (const c of [].concat(p.ejemplo)) previas.push(c);
+        });
+      });
+      if (!elegida) {
+        let test = null;
+        l.rondas.forEach(r => r.pantallas.forEach(p => { if (p.tipo === 'test') test = p; }));
+        if (!test) return;
+        rondas.push({
+          titulo: l.titulo,
+          resumen: l.resumen,
+          inicio: Object.assign({}, l.inicio || {}),
+          previas: [],
+          pantallas: [test]
+        });
+        return;
+      }
+      const pantallas = [elegida.pantalla];
+      let test = null;
+      l.rondas.forEach(r => r.pantallas.forEach(p => { if (p.tipo === 'test') test = p; }));
+      if (test) pantallas.push(test);
+      rondas.push({
+        titulo: l.titulo,
+        resumen: l.resumen,
+        inicio: Object.assign({}, l.inicio || {}, elegida.ronda.inicio || {}),
+        previas: elegida.previas,
+        pantallas: pantallas
+      });
+    });
+    return { id: 'reto-' + mundo.id, titulo: 'Reto · ' + mundo.titulo, rondas: rondas };
+  }
+
+  function abrirExamen(i) {
+    if (!mundoAbierto(i) || !mundoHecho(i)) return;
+    const def = construirExamen(i);
+    if (!def.rondas.length) return;
+    retoActual = { i: i, aciertos: 0 };
+    abrirNodo(def, i, null, { examen: true, ronda: 0 });
+  }
+
+  function reiniciarMundo(i) {
+    const mundo = mundoDe(i);
+    if (!mundo) return;
+    if (!window.confirm('¿Reiniciar solo el Mundo ' + (i + 1) + ' · ' + mundo.titulo + '?\n\nSe borran sus nodos, su reto y sus respuestas guardadas. Los puntos y las estadísticas se conservan.')) return;
+    mundo.lecciones.forEach(l => { delete av.lecciones[l.id]; });
+    delete av.retos[mundo.id];
+    guardar();
+    vista = { tipo: 'mapa' };
+    pintar();
+    notaPie('Mundo ' + (i + 1) + ' reiniciado. Los puntos siguen ahí.');
+    decir('Mundo ' + (i + 1) + ' reiniciado.');
+  }
+
+  /* ---- Copia de seguridad del progreso ---- */
+  function exportarProgreso() {
+    flushEntrada();
+    const sobre = { app: 'aventura-linux', version: 3, exportado: new Date().toISOString(), datos: av };
+    const blob = new Blob([JSON.stringify(sobre, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'aventura-linux-' + fecha(new Date()) + '.json';
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    notaPie('Progreso exportado. Guarda el archivo donde quieras.');
+    decir('Progreso exportado.');
+  }
+
+  function importarProgreso(ev) {
+    const input = ev && ev.target;
+    const archivo = input && input.files && input.files[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = () => {
+      let sobre = null;
+      try { sobre = JSON.parse(String(lector.result)); } catch (e) { sobre = null; }
+      const datos = sobre && sobre.app === 'aventura-linux' ? sobre.datos : null;
+      if (!datos || typeof datos !== 'object') {
+        window.alert('Ese archivo no es una copia de la aventura. Debe ser el JSON que genera «Exportar progreso».');
+        return;
+      }
+      if (!window.confirm('Se sustituirá el progreso actual por el del archivo.\n\n¿Continuar?')) return;
+      const nuevo = normalizarDatos(datos);
+      av.version = nuevo.version;
+      av.xp = nuevo.xp;
+      av.racha = nuevo.racha;
+      av.lecciones = nuevo.lecciones;
+      av.retos = nuevo.retos;
+      av.stats = nuevo.stats;
+      guardar();
+      lec = null;
+      retoActual = null;
+      vista = { tipo: 'mapa' };
+      pintar();
+      notaPie('Progreso importado correctamente.');
+      decir('Progreso importado.');
+    };
+    lector.onerror = () => window.alert('No se ha podido leer el archivo.');
+    lector.readAsText(archivo);
+    if (input) input.value = '';
+  }
+
+  function notaPie(texto) {
+    const nota = byId('av-pie-nota');
+    if (nota) { nota.textContent = texto; nota.hidden = false; }
   }
 
   function ejecutarEn(estado, cmds) {
@@ -552,7 +986,8 @@
     const mundo = mundoDe(lec.i);
     return '<span class="av-chip">' + iconoMundo(mundo) + ' Mundo ' + (lec.i + 1) + ' · ' + escapar(mundo.titulo) + '</span>' +
       '<span class="av-chip av-chip--suave">' + escapar(lec.def.titulo) + '</span>' +
-      '<span class="av-chip av-chip--ronda">Ronda ' + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length + '</span>' +
+      '<span class="av-chip av-chip--ronda">' + (lec.examen ? 'Ejercicio ' : 'Ronda ') + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length + '</span>' +
+      (lec.examen ? '<span class="av-chip av-chip--reto">Reto</span>' : '') +
       (lec.repaso ? '<span class="av-chip av-chip--repaso">Repaso</span>' : '');
   };
 
@@ -574,6 +1009,7 @@
 
   function montarPantalla(p) {
     cuerpo.scrollTop = 0;
+    lec.histHTML = '';
 
     if (p.tipo === 'teoria') {
       cuerpo.innerHTML =
@@ -581,10 +1017,32 @@
           '<div class="av-tarjeta-cab">' + chipMundo() + '</div>' +
           '<h2 class="av-titulo">' + p.titulo + '</h2>' +
           '<div class="av-texto">' + p.html + '</div>' +
-          bloqueEjemplo(p.ejemplo, lec.estado) +
+          (p.ejemplo ? bloqueEjemplo(p.ejemplo, lec.estado) : '') +
           (p.mas ? '<details class="av-porque"><summary>¿Por qué?</summary><div class="av-porque-txt">' + p.mas + '</div></details>' : '') +
         '</article>';
       montarPie('teoria');
+      return;
+    }
+
+    if (p.tipo === 'teclas') {
+      cuerpo.innerHTML =
+        '<article class="av-tarjeta av-nueva">' +
+          '<div class="av-tarjeta-cab">' + chipMundo() + '<span class="av-chip av-chip--teclas">Atajos</span></div>' +
+          '<h2 class="av-titulo">' + p.titulo + '</h2>' +
+          '<p class="av-pide">' + p.pide + '</p>' +
+          '<div class="av-teclas-demo" id="av-teclas-demo" aria-live="polite"></div>' +
+          '<button class="av-tecla-zona" id="av-tecla-zona" type="button">' +
+            '<span class="av-tecla-icono" aria-hidden="true">' + ICO.llave + '</span>' +
+            '<span id="av-tecla-zona-txt">Pulsa aquí y haz el atajo</span>' +
+          '</button>' +
+          '<div id="av-feedback"></div>' +
+        '</article>';
+      montarPie('teclas');
+      const zona = byId('av-tecla-zona');
+      if (zona) {
+        zona.focus();
+        zona.onkeydown = probarTecla;
+      }
       return;
     }
 
@@ -596,7 +1054,9 @@
           '<div class="av-tarjeta-cab">' + chipMundo() + '</div>' +
           '<h2 class="av-titulo">' + p.titulo + '</h2>' +
           '<p class="av-pide">' + p.pide + '</p>' +
-          '<p class="av-hazlo"><span>Escribe esto</span><code>' + ej + '</code></p>' +
+          (lec.examen
+            ? '<p class="av-reto-nota">' + ICO.trofeo + ' Reto: sin ejemplo. Usa lo que has aprendido; si te atascas, pide una pista.</p>'
+            : '<p class="av-hazlo"><span>Escribe esto</span><code>' + ej + '</code></p>') +
           '<div class="av-term">' +
             '<div class="av-term-cab">Terminal</div>' +
             '<div class="av-pantalla" id="av-pantalla"></div>' +
@@ -611,7 +1071,7 @@
       montarPie('practica');
       const inp = byId('av-in');
       inp.value = respuesta;
-      inp.oninput = () => { respuesta = inp.value; };
+      inp.oninput = () => { respuesta = inp.value; guardarEntrada(); };
       inp.onkeydown = teclaTerminal;
       inp.focus();
       inp.setSelectionRange(inp.value.length, inp.value.length);
@@ -643,6 +1103,41 @@
     if (p.tipo === 'teoria') {
       const sig = byId('av-sig');
       if (sig) sig.disabled = false;
+      return;
+    }
+
+    if (p.tipo === 'teclas') {
+      const demo = byId('av-teclas-demo');
+      if (demo) {
+        const lineas = lec.acierto ? (p.demo && p.demo.despues) : (p.demo && p.demo.antes);
+        demo.innerHTML = [].concat(lineas || [])
+          .map(l => '<div class="av-teclas-linea">' + escapar(l) + '</div>').join('');
+        demo.classList.toggle('av-teclas-demo--ok', !!lec.acierto);
+      }
+      const zona = byId('av-tecla-zona');
+      if (zona) {
+        zona.disabled = !!lec.acierto;
+        zona.classList.toggle('av-tecla-zona--ok', !!lec.acierto);
+        const txt = byId('av-tecla-zona-txt');
+        if (txt) txt.textContent = lec.acierto ? '¡Atajo correcto!' : 'Pulsa aquí y haz el atajo';
+      }
+      let fb = '';
+      if (lec.acierto) {
+        fb += '<div class="av-msg av-msg--ok"><span class="av-msg-icono" aria-hidden="true">' + ICO.check + '</span>' +
+          '<div><b>¡Eso es!</b> ' + (p.explica || 'Atajo correcto.') + '</div></div>';
+      } else if (lec.aviso) {
+        fb += '<div class="av-msg av-msg--paso"><span class="av-msg-icono" aria-hidden="true">i</span><div>' + lec.aviso + '</div></div>';
+      }
+      if (lec.ayudaTexto && !lec.acierto) {
+        fb += '<div class="av-msg av-msg--pista"><span class="av-msg-icono" aria-hidden="true">' + ICO.bombilla + '</span>' +
+          '<div><b>Pista.</b> ' + lec.ayudaTexto + '</div></div>';
+      }
+      const caja = byId('av-feedback');
+      if (caja && caja.innerHTML !== fb) caja.innerHTML = fb;
+      const ayuda = byId('av-ayuda-btn');
+      if (ayuda) ayuda.hidden = !!lec.acierto;
+      const sig = byId('av-sig');
+      if (sig) sig.disabled = !lec.acierto;
       return;
     }
 
@@ -734,12 +1229,12 @@
       '<div class="av-pie-int">' +
         '<div class="av-pie-izq">' +
           '<button class="av-btn av-btn--fantasma" type="button" id="av-mapa" title="Volver al mapa">← Mapa</button>' +
-          (tipo === 'practica' ? '<button class="av-btn av-btn--ayuda" type="button" id="av-ayuda-btn">' + ICO.bombilla + ' Ayuda</button>' : '') +
+          (tipo === 'practica' || tipo === 'teclas' ? '<button class="av-btn av-btn--ayuda" type="button" id="av-ayuda-btn">' + ICO.bombilla + ' Ayuda</button>' : '') +
         '</div>' +
         '<button class="av-btn av-btn--principal av-btn--sig" type="button" id="av-sig">Continuar</button>' +
       '</div>';
     byId('av-mapa').onclick = irAlMapa;
-    if (tipo === 'practica') byId('av-ayuda-btn').onclick = pedirAyuda;
+    if (tipo === 'practica' || tipo === 'teclas') byId('av-ayuda-btn').onclick = pedirAyuda;
     byId('av-sig').onclick = avanzar;
     if (tipo !== 'teoria') byId('av-sig').disabled = true;
   }
@@ -770,6 +1265,36 @@
         respuesta = '';
         pintar();
       }
+      else if (k === 'a') {
+        e.preventDefault();
+        inp.setSelectionRange(0, 0);
+      }
+      else if (k === 'e') {
+        e.preventDefault();
+        inp.setSelectionRange(inp.value.length, inp.value.length);
+      }
+      else if (k === 'u' || k === 'k') {
+        e.preventDefault();
+        const pos = inp.selectionStart == null ? inp.value.length : inp.selectionStart;
+        inp.value = k === 'u' ? inp.value.slice(pos) : inp.value.slice(0, pos);
+        respuesta = inp.value;
+        const nuevo = k === 'u' ? 0 : inp.value.length;
+        inp.setSelectionRange(nuevo, nuevo);
+      }
+      return;
+    }
+    if (e.altKey && e.key === '.') {
+      e.preventDefault();
+      const anterior = lec.mem[lec.mem.length - 1] || '';
+      const trozos = anterior.trim().split(/\s+/).filter(Boolean);
+      if (!trozos.length) return;
+      const ultimo = trozos[trozos.length - 1];
+      const ini = inp.selectionStart == null ? inp.value.length : inp.selectionStart;
+      const fin = inp.selectionEnd == null ? ini : inp.selectionEnd;
+      inp.value = inp.value.slice(0, ini) + ultimo + inp.value.slice(fin);
+      respuesta = inp.value;
+      const pos = ini + ultimo.length;
+      inp.setSelectionRange(pos, pos);
       return;
     }
     if (e.key === 'ArrowUp') {
@@ -799,6 +1324,8 @@
     lec.hist.push(promptHtml(rutaVisible(lec.estado.cwd)) + escapar(crudo) + '\n');
     lec.mem.push(crudo.trim()); lec.memI = lec.mem.length;
     lec.intentos++;
+    cuenta('intentos');
+    if (lec.intentos === 1) cuenta('primerIntento');
 
     const candidato = clonar(lec.estado);
     const r = ejecutarLinea(candidato, linea);
@@ -824,6 +1351,8 @@
       lec.aviso = '';
       lec.ayudaTexto = '';
       respuesta = '';
+      cuenta('aciertos');
+      if (lec.intentos === 1 && lec.ayuda === 0) cuenta('primerAcierto');
       const gana = lec.ayuda > 0 ? 6 : 10;
       if (!lec.repaso) { lec.xp += gana; sumarXp(gana); }
       celebrar(lec.repaso ? 0 : gana, false);
@@ -842,12 +1371,16 @@
       } else {
         respuesta = crudo;   // si el comando falla, se deja escrito para corregirlo
         lec.paso = false;
-        lec.aviso = p.error || ('Casi: ' + (vale.motivo || 'eso no es lo que pide esta pantalla.') +
-          ' <b>Mira el ejemplo de arriba y prueba otra vez.</b>');
+        lec.aviso = lec.examen
+          ? '<b>Todavía no.</b> ' + (vale.motivo || 'Ese comando no cumple el objetivo.') +
+            (lec.ayuda ? '' : ' Pulsa <b>Ayuda</b> si necesitas una pista.')
+          : (p.error || ('Casi: ' + (vale.motivo || 'eso no es lo que pide esta pantalla.') +
+            ' <b>Mira el ejemplo de arriba y prueba otra vez.</b>'));
       }
       decir('Todavía no. ' + limpiar(lec.aviso));
     }
     pintar();
+    guardarPunto();
     if (bien) byId('av-sig').focus();
   }
 
@@ -865,16 +1398,91 @@
     decir('Ejercicio reiniciado.');
   }
 
+  function comboTexto(combo){
+    const partes = [];
+    if (combo.ctrl) partes.push('<kbd>Ctrl</kbd>');
+    if (combo.alt) partes.push('<kbd>Alt</kbd>');
+    if (combo.shift) partes.push('<kbd>Mayús</kbd>');
+    const nombre = combo.key === 'ArrowUp' ? '↑' : combo.key === 'ArrowDown' ? '↓' :
+      (String(combo.key).length === 1 ? String(combo.key).toUpperCase() : combo.key);
+    partes.push('<kbd>' + escapar(nombre) + '</kbd>');
+    return partes.join(' + ');
+  }
+
+  function teclaNombre(e){
+    const partes = [];
+    if (e.ctrlKey) partes.push('Ctrl');
+    if (e.altKey) partes.push('Alt');
+    if (e.shiftKey) partes.push('Mayús');
+    const k = e.key === ' ' ? 'espacio' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
+    partes.push(k);
+    return partes.join(' + ');
+  }
+
+  function teclaCoincide(e, combo){
+    if (!combo || !combo.key) return false;
+    if (!!combo.ctrl !== !!e.ctrlKey || !!combo.alt !== !!e.altKey || !!combo.shift !== !!e.shiftKey) return false;
+    const normal = k => k.length === 1 ? k.toLowerCase() : k;
+    return normal(e.key) === normal(String(combo.key));
+  }
+
+  function probarTecla(e){
+    const p = lec.ronda.pantallas[lec.pantalla];
+    if (!p || p.tipo !== 'teclas' || lec.acierto) return;
+    if (['Control','Alt','Shift','Meta'].includes(e.key)) return;
+    e.preventDefault();
+    if (teclaCoincide(e, p.combo)) {
+      lec.acierto = true;
+      lec.aviso = '';
+      lec.ayudaTexto = '';
+      if (!lec.repaso) {
+        cuenta('intentos'); cuenta('aciertos');
+        if (!lec.paso && lec.ayuda === 0) { cuenta('primerIntento'); cuenta('primerAcierto'); }
+        else cuenta('primerIntento');
+      }
+      const gana = lec.ayuda > 0 ? 6 : 10;
+      if (!lec.repaso) { lec.xp += gana; sumarXp(gana); }
+      celebrar(lec.repaso ? 0 : gana, false);
+      decir('¡Atajo correcto!');
+      pintar();
+      const sig = byId('av-sig');
+      if (sig) sig.focus();
+      return;
+    }
+    lec.paso = true;
+    if (!lec.repaso) cuenta('intentos');
+    lec.aviso = 'Has pulsado <b>' + escapar(teclaNombre(e)) + '</b>. Ese no es el atajo de esta pantalla. ' +
+      (lec.ayuda ? '' : 'Pulsa <b>Ayuda</b> si no lo recuerdas.');
+    pintar();
+    const zona = byId('av-tecla-zona');
+    if (zona) zona.focus();
+  }
+
   function pedirAyuda() {
     const p = lec.ronda.pantallas[lec.pantalla];
+    if (p.tipo === 'teclas') {
+      lec.ayuda = 1;
+      lec.ayudaTexto = p.pista || ('El atajo es ' + comboTexto(p.combo) + '.');
+      pintar();
+      const zona = byId('av-tecla-zona');
+      if (zona) zona.focus();
+      return;
+    }
     if (lec.ayuda === 0) {
       lec.ayuda = 1;
       lec.ayudaTexto = p.pista || ('Fíjate en el ejemplo de arriba: <code>' + escapar([].concat(p.ejemplo).join(' ; ')) + '</code>');
+    } else if (lec.examen) {
+      // En el reto solo hay una pista: no se escribe la respuesta por ti.
+      lec.ayuda = 1;
+      lec.ayudaTexto = (p.pista || 'Repasa la teoría del nodo y prueba con lo que recuerdes.') +
+        ' <b>El reto no completa el comando por ti.</b>';
+      lec.aviso = '';
     } else {
       lec.ayuda = 2;
       lec.ayudaTexto = 'Te lo escribo yo: ya solo tienes que pulsar Enter.';
       respuesta = [].concat(p.ejemplo).join('; ');
     }
+    if (!lec.repaso) cuenta('ayudas');
     pintar();
     const inp = byId('av-in');
     if (inp) {
@@ -888,14 +1496,16 @@
     if (lec.acierto) return;   // ya resuelto: volver a pulsar no vuelve a dar puntos
     const p = lec.ronda.pantallas[lec.pantalla];
     const o = p.opciones[k];
+    if (!lec.testVisto) { lec.testVisto = true; if (!lec.repaso) cuenta('tests'); }
     lec.elegida = k;
     if (o.ok) {
       lec.acierto = true;
       lec.explica = o.porque;
-      if (!lec.repaso) { lec.xp += 5; sumarXp(5); }
+      if (!lec.repaso) { lec.xp += 5; sumarXp(5); cuenta('testsOk'); }
       celebrar(lec.repaso ? 0 : 5, false);
       decir('¡Correcto! ' + limpiar(o.porque));
     } else {
+      lec.testFallos++;
       lec.explica = o.porque;
       decir('No es esa. ' + limpiar(o.porque));
     }
@@ -904,14 +1514,53 @@
   }
 
   /* ---- Avanzar y cerrar la ronda ---- */
-  function guardarPunto() {
-    if (lec.repaso) return;
+  /* ---- Guardado exacto de la pantalla ---- */
+  let tEntrada = 0;
+  function guardarEntrada() {
+    if (!lec || lec.repaso || lec.examen) return;
+    clearTimeout(tEntrada);
+    tEntrada = setTimeout(flushEntrada, 300);
+  }
+  function flushEntrada() {
+    clearTimeout(tEntrada);
+    tEntrada = 0;
+    if (!lec || lec.repaso || lec.examen) return;
     const prev = progresoDe(lec.def.id);
-    av.lecciones[lec.def.id] = Object.assign({}, prev, {
+    av.lecciones[lec.def.id] = Object.assign({}, prev, { entrada: respuesta });
+    guardar();
+  }
+
+  function guardarPunto() {
+    if (!lec || lec.repaso || lec.examen) return;
+    const prev = progresoDe(lec.def.id);
+    const p = lec.ronda.pantallas[lec.pantalla];
+    const datos = {
       rondasHechas: Math.max(Number(prev.rondasHechas) || 0, lec.baseHechas),
       ronda: lec.rondaIdx,
       pantalla: lec.pantalla
-    });
+    };
+    if (p && p.tipo !== 'teoria') {
+      datos.snapshot = {
+        estado: lec.estado,
+        acierto: lec.acierto,
+        hist: lec.hist,
+        mem: lec.mem,
+        elegida: lec.elegida,
+        explica: lec.explica,
+        ayuda: lec.ayuda,
+        ayudaTexto: lec.ayudaTexto,
+        aviso: lec.aviso,
+        paso: lec.paso,
+        salidaAcum: lec.salidaAcum,
+        intentos: lec.intentos,
+        testFallos: lec.testFallos,
+        entrada: respuesta
+      };
+    } else {
+      datos.snapshot = null;
+      datos.entrada = '';
+    }
+    av.lecciones[lec.def.id] = Object.assign({}, prev, datos);
     guardar();
   }
 
@@ -922,6 +1571,7 @@
     lec.aviso = ''; lec.explica = ''; lec.paso = false;
     lec.hist = []; lec.mem = []; lec.memI = 0; lec.histHTML = '';
     lec.salidaAcum = ''; lec.intentos = 0; lec.estadoInicial = null;
+    lec.testVisto = false;
     respuesta = '';
     guardarPunto();
     montada = null;
@@ -930,14 +1580,47 @@
 
   function cerrarRonda() {
     const def = lec.def, total = def.rondas.length;
-    const nuevas = lec.repaso ? lec.baseHechas : Math.max(lec.baseHechas, lec.rondaIdx + 1);
     const ultima = lec.rondaIdx + 1 >= total;
+
+    if (lec.examen) {
+      if (retoActual) {
+        const p = lec.ronda.pantallas[lec.pantalla];
+        const primer = p && p.tipo === 'test'
+          ? (lec.testFallos === 0 && lec.ayuda === 0)
+          : (lec.intentos === 1 && lec.ayuda === 0);
+        if (primer) retoActual.aciertos++;
+      }
+      let gana = 10;
+      if (ultima) {
+        const mundo = mundoDe(lec.i);
+        const prev = av.retos[mundo.id];
+        if (!prev || !prev.hecho) gana += 50;
+        av.retos[mundo.id] = {
+          hecho: true,
+          total: total,
+          aciertos: retoActual ? retoActual.aciertos : 0,
+          fecha: fecha(new Date())
+        };
+      }
+      lec.xp += gana;
+      sumarXp(gana);
+      guardar();
+      celebrar(0, ultima && !sinMovimiento);
+      montada = null;
+      vista = { tipo: 'cierre', fin: ultima ? 'reto' : 'ronda' };
+      pintar();
+      return;
+    }
+
+    const nuevas = lec.repaso ? lec.baseHechas : Math.max(lec.baseHechas, lec.rondaIdx + 1);
 
     if (!lec.repaso) {
       av.lecciones[def.id] = Object.assign({}, progresoDe(def.id), {
         rondasHechas: nuevas,
         ronda: ultima ? total - 1 : lec.rondaIdx + 1,
-        pantalla: 0
+        pantalla: 0,
+        snapshot: null,
+        entrada: ''
       });
     }
 
@@ -960,40 +1643,57 @@
     const def = lec.def;
     const mundo = mundoDe(lec.i);
     const total = def.rondas.length;
-    const hechasNodo = lec.repaso ? total : rondasHechas(def.id);
+    const esReto = vista.fin === 'reto';
+    const hechasNodo = esReto ? (retoActual ? retoActual.aciertos : 0)
+      : (lec.examen ? lec.rondaIdx + 1 : (lec.repaso ? total : rondasHechas(def.id)));
     const finNodo = vista.fin === 'nodo';
-    const finMundo = !lec.repaso && finNodo && mundo.lecciones.every(l => estaHecha(l.id));
+    const finMundo = !lec.repaso && !lec.examen && !esReto && finNodo && mundo.lecciones.every(l => estaHecha(l.id));
     const sig = siguientePendiente();
     const todas = !sig;
 
-    const kicker = lec.repaso ? 'Ronda repasada'
-      : (finNodo ? (finMundo ? 'Mundo completado' : 'Nodo dominado') : 'Ronda completada');
-    const titulo = lec.repaso ? def.titulo : (finNodo ? def.titulo : lec.ronda.titulo);
+    const kicker = esReto ? 'Reto superado'
+      : (lec.examen ? 'Reto en marcha'
+      : (lec.repaso ? 'Ronda repasada'
+      : (finNodo ? (finMundo ? 'Mundo completado' : 'Nodo dominado') : 'Ronda completada')));
+    const titulo = (esReto || lec.examen) ? 'Reto · ' + mundo.titulo
+      : (lec.repaso ? def.titulo : (finNodo ? def.titulo : lec.ronda.titulo));
 
     cuerpo.innerHTML =
-      '<article class="av-tarjeta av-tarjeta--fin av-nueva">' +
-        '<div class="av-fin-anillo" aria-hidden="true">' +
-          anillo(hechasNodo, total, 'av-anillo--grande') +
-          '<span class="av-fin-anillo-txt"><b>' + hechasNodo + '</b><small>de ' + total + '</small></span>' +
-        '</div>' +
+      '<article class="av-tarjeta av-tarjeta--fin av-tarjeta--reto av-nueva">' +
+        (esReto
+          ? '<div class="av-fin-reto" aria-hidden="true">' + ICO.trofeo + '</div>'
+          : '<div class="av-fin-anillo" aria-hidden="true">' +
+              anillo(hechasNodo, total, 'av-anillo--grande') +
+              '<span class="av-fin-anillo-txt"><b>' + hechasNodo + '</b><small>de ' + total + '</small></span>' +
+            '</div>') +
         '<p class="av-kicker">' + kicker + '</p>' +
         '<h2 class="av-titulo">' + titulo + '</h2>' +
         '<p class="av-fin-xp">' + (lec.xp ? '+' + lec.xp + ' ' + ICO.estrella : 'Repaso: sin puntos nuevos') + '</p>' +
-        '<p class="av-fin-ronda">' + (lec.repaso
-          ? 'Repaso terminado. Nada que recuperar: el progreso sigue intacto.'
-          : (finNodo
-            ? 'Has completado las ' + total + ' rondas de <b>' + escapar(def.titulo) + '</b>.'
-            : 'Ronda ' + (lec.rondaIdx + 1) + ' de ' + total + ' lista. El anillo del nodo ya lo nota.')) + '</p>' +
+        '<p class="av-fin-ronda">' + (esReto
+          ? 'Has superado el reto de <b>Mundo ' + (lec.i + 1) + ' · ' + escapar(mundo.titulo) + '</b> con <b>' + hechasNodo + ' de ' + total + '</b> a la primera. Los fallos no restan: solo te dicen qué conviene repasar.'
+          : (lec.examen
+            ? 'Ejercicio ' + (lec.rondaIdx + 1) + ' de ' + total + ' superado. Quedan ' + (total - lec.rondaIdx - 1) + ' antes de la insignia del mundo.'
+            : (lec.repaso
+              ? 'Repaso terminado. Nada que recuperar: el progreso sigue intacto.'
+              : (finNodo
+                ? 'Has completado ' + (total === 1 ? 'la única ronda' : 'las ' + total + ' rondas') + ' de <b>' + escapar(def.titulo) + '</b>.'
+                : 'Ronda ' + (lec.rondaIdx + 1) + ' de ' + total + ' lista. El anillo del nodo ya lo nota.')))) + '</p>' +
         '<div class="av-datos">' +
           '<span class="av-dato">' + ICO.estrella + ' <b>' + (av.xp || 0) + '</b> pts en total</span>' +
           '<span class="av-dato">' + ICO.fuego + ' <b>' + (av.racha.dias || 0) + '</b> ' + (av.racha.dias === 1 ? 'día seguido' : 'días seguidos') + '</span>' +
           '<span class="av-dato">' + ICO.libro + ' <b>' + hechas() + '</b> / ' + totalLecciones + ' nodos</span>' +
+          (esReto ? '<span class="av-dato">' + ICO.trofeo + ' <b>' + DATOS.mundos.filter(m => av.retos[m.id] && av.retos[m.id].hecho).length + '</b> / ' + DATOS.mundos.length + ' retos</span>' : '') +
         '</div>' +
         (finMundo && !todas ? '<p class="av-fin-mundo">Has terminado <b>Mundo ' + (lec.i + 1) + ' · ' + mundo.titulo + '</b>. Se ha abierto el siguiente.</p>' : '') +
-        (!lec.repaso && todas ? '<p class="av-fin-mundo">Has terminado <b>toda la aventura</b>. Vuelve al mapa cuando quieras a repasar.</p>' : '') +
+        (esReto ? '<p class="av-fin-mundo">Insignia conseguida: <b>Reto de ' + escapar(mundo.titulo) + '</b>.</p>' : '') +
+        (!lec.repaso && !lec.examen && !esReto && todas ? '<p class="av-fin-mundo">Has terminado <b>toda la aventura</b>. Vuelve al mapa cuando quieras a repasar.</p>' : '') +
       '</article>';
 
-    const etiqueta = vista.fin === 'ronda' ? 'Siguiente ronda' : (lec.repaso ? 'Volver al mapa' : (todas ? 'Volver al mapa' : 'Siguiente nodo'));
+    let etiqueta;
+    if (esReto) etiqueta = 'Volver al mapa';
+    else if (vista.fin === 'ronda') etiqueta = lec.examen ? 'Siguiente ejercicio' : 'Siguiente ronda';
+    else if (lec.repaso || todas) etiqueta = 'Volver al mapa';
+    else etiqueta = 'Siguiente nodo';
     pie.hidden = false;
     pie.innerHTML =
       '<div class="av-pie-int">' +
@@ -1004,7 +1704,10 @@
       '</div>';
     byId('av-mapa').onclick = irAlMapa;
     byId('av-sig').onclick = () => {
-      if (vista.fin === 'ronda') return abrirLeccion(lec.i, lec.j, { ronda: lec.rondaIdx + 1, repaso: lec.repaso });
+      if (esReto) return irAlMapa();
+      if (vista.fin === 'ronda') return lec.examen
+        ? abrirNodo(lec.def, lec.i, null, { ronda: lec.rondaIdx + 1, examen: true })
+        : abrirLeccion(lec.i, lec.j, { ronda: lec.rondaIdx + 1, repaso: lec.repaso });
       if (lec.repaso || todas) return irAlMapa();
       const s = siguientePendiente();
       if (s) abrirLeccion(s.i, s.j);
@@ -1030,6 +1733,14 @@
 
   byId('av-cerrar').onclick = cerrar;
   btn.onclick = () => { if (raiz.hidden) abrir(); else cerrar(); };
+
+  // Al cerrar la pestaña o cambiar de aplicación se guarda lo escrito y el
+  // tiempo, sin esperar a que el alumno pulse cerrar.
+  window.addEventListener('pagehide', () => { flushEntrada(); cerrarSesionTiempo(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { flushEntrada(); cerrarSesionTiempo(); }
+    else if (!raiz.hidden && !inicioSesion) inicioSesion = Date.now();
+  });
 
   /* Lleva el scroll de la terminal al final, para ver siempre lo último. */
   function destino(id) {
