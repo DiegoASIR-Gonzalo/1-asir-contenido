@@ -72,10 +72,10 @@ if (!AVENTURA || !Array.isArray(AVENTURA.mundos)){
 }
 
 /* ---------- 3) Utilidades ---------- */
-const TIPOS = ['teoria', 'practica', 'test'];
+const TIPOS = ['teoria', 'practica', 'test', 'teclas'];
 const ids = new Set();
 const comandosUsados = new Set();
-let nodos = 0, rondas = 0, practicas = 0, teorias = 0, tests = 0;
+let nodos = 0, rondas = 0, practicas = 0, teorias = 0, tests = 0, atajos = 0;
 
 const clonar = e => JSON.parse(JSON.stringify(e));
 
@@ -145,13 +145,22 @@ AVENTURA.mundos.forEach((mundo, mi) => {
           teorias++;
           comprobar(() => assert(p.titulo, 'falta título'), suyo);
           comprobar(() => assert(p.html, 'falta explicación'), suyo);
-          comprobar(() => assert(p.ejemplo, 'falta ejemplo'), suyo);
-          comprobar(() => {
+          if (p.ejemplo) comprobar(() => {
             const alias = aliasDe(p.ejemplo);
             for (const c of [].concat(p.ejemplo)) comandosDe(c).filter(x => !alias.has(x)).forEach(x => comandosUsados.add(x));
             const r = ejecutarEn(clonar(estado), p.ejemplo);
             assert.strictEqual(r.code, 0, 'el ejemplo "' + [].concat(p.ejemplo).join('; ') + '" termina en error');
           }, suyo + ' (ejemplo de teoría)');
+        }
+
+        if (p.tipo === 'teclas'){
+          atajos++;
+          comprobar(() => assert(p.titulo, 'falta título'), suyo);
+          comprobar(() => assert(p.pide, 'falta el enunciado "pide"'), suyo);
+          comprobar(() => assert(p.combo && p.combo.key, 'falta el atajo "combo"'), suyo);
+          comprobar(() => assert(p.demo && p.demo.antes && p.demo.despues, 'falta la demostración "demo"'), suyo);
+          comprobar(() => assert(p.pista, 'falta pista'), suyo);
+          comprobar(() => assert(p.explica, 'falta explicación del atajo'), suyo);
         }
 
         if (p.tipo === 'practica'){
@@ -251,7 +260,22 @@ comprobar(() => {
   assert(/^\d{4}-\d{2}-\d{2}$/.test(f.out), 'la sustitución de comandos debe funcionar');
 }, 'variables');
 
-/* ---------- 7) rmdir se comporta como en Linux ---------- */
+/* ---------- 7) find -print0 | xargs -0 conserva los bytes nulos ---------- */
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio: { base: 'vacio', fs: {
+    '~/proyecto': 'dir',
+    '~/proyecto/notas.txt': 'hola\nAdios\nOtra\n',
+    '~/proyecto/errores.txt': 'error\nbien\nerror\n',
+    '~/proyecto/vacio.txt': ''
+  } } });
+  const r = ctx.ejecutarLinea(e, 'find ~/proyecto -name "*.txt" -print0 | xargs -0 wc -l');
+  assert.strictEqual(r.code, 0, 'la tubería con bytes nulos no debe fallar');
+  assert(/3 .*notas\.txt/.test(r.out), 'wc debe contar notas.txt por separado');
+  assert(/3 .*errores\.txt/.test(r.out), 'wc debe contar errores.txt por separado');
+  assert(/0 .*vacio\.txt/.test(r.out), 'wc debe contar vacio.txt por separado');
+}, 'find -print0 | xargs -0');
+
+/* ---------- 8) rmdir se comporta como en Linux ---------- */
 comprobar(() => {
   const e = ctx.crearEstado({ inicio: { fs: { '~/llena': 'dir', '~/llena/x': 'y', '~/vacia': 'dir' } } });
   const no = ctx.ejecutarLinea(e, 'rmdir llena');
@@ -270,4 +294,4 @@ if (fallos.length){
 }
 console.log(verde('✓ Aventura correcta'));
 console.log(gris('  ' + AVENTURA.mundos.length + ' mundos · ' + nodos + ' nodos · ' + rondas + ' rondas · ' +
-  teorias + ' teorías · ' + practicas + ' prácticas · ' + tests + ' tests'));
+  teorias + ' teorías · ' + practicas + ' prácticas · ' + tests + ' tests · ' + atajos + ' atajos'));

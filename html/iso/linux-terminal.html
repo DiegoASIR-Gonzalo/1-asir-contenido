@@ -1195,7 +1195,7 @@ function mundoBase(){
   file(MUNDO_HOME + '/Descargas/BinarioFH.pdf', 'PDF');
   file(MUNDO_HOME + '/Descargas/Conceptos UD 1.pdf', 'PDF');
   dir('/bin');
-  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','rmdir','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/bin/' + c, '', '755'));
+  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','rmdir','sort','tail','touch','tree','uname','uptime','wc','whoami','tee','xargs','locate','which','updatedb'].forEach(c => file('/bin/' + c, '', '755'));
   dir('/etc');
   file('/etc/hostname', 'usuario');
   file('/etc/hosts', '127.0.0.1 localhost');
@@ -1211,7 +1211,7 @@ function mundoBase(){
   dir('/tmp'); dir('/tmp/cache');
   dir('/dev');
   ['null','random','zero','tty','tty0','tty1','tty2','tty3','tty4','ttyS0'].forEach(d => file('/dev/' + d, '', ['null','random','zero'].includes(d) ? '666' : '620'));
-  dir('/usr'); dir('/usr/bin'); ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','rmdir','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/usr/bin/' + c, '', '755')); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
+  dir('/usr'); dir('/usr/bin'); ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','rmdir','sort','tail','touch','tree','uname','uptime','wc','whoami','tee','xargs','locate','which','updatedb'].forEach(c => file('/usr/bin/' + c, '', '755')); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
   dir('/home/rafa'); dir('/home/rafa/Documentos'); dir('/home/rafa/Descargas');
   file('/home/rafa/Documentos/nota.txt', 'Notas de Rafa\n');
   file('/home/rafa/Descargas/apuntes.txt', 'Apuntes\n');
@@ -1233,13 +1233,18 @@ function crearEstado(act = {}){
   Object.entries(ini.fs || {}).forEach(([raw, v]) => {
     const p = rutaAbs(raw, MUNDO_HOME);
     if (v === null){ delete e.fs[p]; return; }
+    const copiarMeta = obj => {
+      for (const k of ['mtime','atime','ctime','inodo','propietario','grupo','enlaces'])
+        if (v && v[k] != null) obj[k] = v[k];
+      return obj;
+    };
     if (v === 'dir'){ crearPadres(p); return; }
-    if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; return; }
-    if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = { tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }; return; }
+    if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; copiarMeta(e.fs[p]); return; }
+    if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = copiarMeta({ tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }); return; }
     const contenido = typeof v === 'string' ? v : (v && v.contenido) || '';
     const modo = (v && v.modo) || '644';
     crearPadres(padreDe(p));
-    e.fs[p] = { tipo:'file', contenido, modo };
+    e.fs[p] = copiarMeta({ tipo:'file', contenido, modo });
   });
   e.cwd = rutaAbs(ini.cwd || '~', MUNDO_HOME);
   return e;
@@ -1808,81 +1813,398 @@ function cmd_tree(e, args){
   lineas.push('', dirs + (dirs === 1 ? ' directorio' : ' directorios') + ', ' + files + (files === 1 ? ' archivo' : ' archivos'));
   return exito(lineas.join('\n'));
 }
-function cmd_find(e, args){
-  let inicio = '.', name = null, tipo = null, usuario = null, grupo = null;
-  let execCmd = null, execArgs = [];
-  const falta = opcion => fallo("find: falta un argumento para '" + opcion + "'");
-  for (let i = 0; i < args.length; i++){
-    if (args[i] === '-name'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-name');
-      name = args[++i];
-    }
-    else if (args[i] === '-type'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-type');
-      tipo = args[++i];
-      if (!/^[fd]$/.test(tipo)) return fallo("find: tipo '" + tipo + "' no válido (usa f o d)");
-    }
-    else if (args[i] === '-user'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-user');
-      usuario = args[++i];
-    }
-    else if (args[i] === '-group'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-group');
-      grupo = args[++i];
-    }
-    else if (args[i] === '-exec'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-exec');
-      execCmd = args[++i];
-      while (i + 1 < args.length && args[i + 1] !== '+' && args[i + 1] !== ';') execArgs.push(args[++i]);
-      if (i + 1 >= args.length) return fallo("find: falta ';' o '+' después de -exec");
-      if (args[i + 1] === '+' || args[i + 1] === ';') i++;
-    }
-    else if (!args[i].startsWith('-')) inicio = args[i];
+/* ---- find: criterios del temario y acciones ---- */
+function findMs(v){
+  if (v == null) return 0;
+  if (typeof v === 'number') return v;
+  const t = Date.parse(v);
+  return Number.isFinite(t) ? t : 0;
+}
+function findFechaHumana(txt){
+  const s = String(txt || '').trim().toLowerCase();
+  const ahora = Date.now();
+  if (s === 'yesterday' || s === 'ayer') return ahora - 86400000;
+  const m = /^(\d+)\s+(minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\s+ago$/.exec(s);
+  if (m){
+    const n = Number(m[1]), u = m[2];
+    const ms = u.startsWith('minute') ? 60000 : u.startsWith('hour') ? 3600000 : u.startsWith('day') ? 86400000 :
+      u.startsWith('week') ? 604800000 : u.startsWith('month') ? 2592000000 : 31536000000;
+    return ahora - n * ms;
   }
-  const p = rutaAbs(inicio, e.cwd);
-  if (!e.fs[p]) return fallo("find: '" + inicio + "': No such file or directory");
-  const re = name ? patronRegex(name) : null, out = [];
-  const rec = x => {
+  const t = Date.parse(txt);
+  return Number.isFinite(t) ? t : 0;
+}
+function findTam(it){
+  if (!it) return 0;
+  if (it.tipo === 'dir') return 4096;
+  if (it.tipo === 'link') return 0;
+  return (it.contenido || '').length;
+}
+function findEnlaces(e, p){
+  const it = e.fs[p];
+  if (it && it.enlaces != null) return Number(it.enlaces);
+  const ino = inodoDe(p, it);
+  return Object.keys(e.fs).filter(x => {
+    const y = e.fs[x];
+    return y && inodoDe(x, y) === ino;
+  }).length;
+}
+function findNumero(valor, spec, unidad){
+  const m = /^([+-]?)(\d+(?:\.\d+)?)([ckMG]?)$/.exec(String(spec || ''));
+  if (!m) return false;
+  const factor = m[3] === 'c' ? 1 : m[3] === 'k' ? 1024 : m[3] === 'M' ? 1048576 : m[3] === 'G' ? 1073741824 : (unidad || 1);
+  const n = Number(m[2]) * factor;
+  const v = Number(valor) || 0;
+  if (m[1] === '+') return v > n;
+  if (m[1] === '-') return v < n;
+  return v === n;
+}
+function findPermiso(modo, spec){
+  const m = /^([-\/]?)([0-7]{3,4})$/.exec(String(spec || ''));
+  if (m){
+    const objetivo = parseInt(m[2].slice(-3), 8), actual = parseInt(modo, 8);
+    if (m[1] === '-') return (actual & objetivo) === objetivo;
+    if (m[1] === '/') return (actual & objetivo) !== 0;
+    return actual === objetivo;
+  }
+  // Forma simbólica sencilla: u+w, g+rw, o=x, a+r...
+  const partes = String(spec || '').replace(/^\//, '').split(',');
+  let mascara = 0;
+  const bits = { r:4, w:2, x:1 };
+  for (const parte of partes){
+    const mm = /^([ugoa]+)([+=-])([rwx]+)$/.exec(parte.trim());
+    if (!mm) continue;
+    let quien = 0;
+    if (mm[1].includes('u') || mm[1].includes('a')) quien |= 0o700;
+    if (mm[1].includes('g') || mm[1].includes('a')) quien |= 0o070;
+    if (mm[1].includes('o') || mm[1].includes('a')) quien |= 0o007;
+    let valor = 0;
+    for (const c of mm[3]) valor |= bits[c] || 0;
+    mascara |= (valor * 0x49) & quien;
+  }
+  const actual = parseInt(modo, 8);
+  return String(spec || '').startsWith('/') ? (actual & mascara) !== 0 : (actual & mascara) === mascara;
+}
+function cmd_find(e, args){
+  let pos = 0, maxdepth = Infinity;
+  const rutas = [];
+  while (pos < args.length && !args[pos].startsWith('-')) rutas.push(args[pos++]);
+  let expr = args.slice(pos);
+  const limpio = [];
+  for (let i = 0; i < expr.length; i++){
+    if (expr[i] === '-maxdepth'){
+      if (i + 1 >= expr.length || !/^\d+$/.test(expr[i + 1])) return fallo("find: falta un número después de '-maxdepth'");
+      maxdepth = Number(expr[++i]);
+    } else limpio.push(expr[i]);
+  }
+  expr = limpio;
+  if (!rutas.length) rutas.push('.');
+  if (!expr.length) expr = ['-print'];
+  let p = 0;
+  const falta = op => fallo("find: falta un argumento para '" + op + "'");
+  const toma = () => expr[p++];
+  function parseOr(){
+    let izq = parseAnd();
+    while (expr[p] === '-o' || expr[p] === '-or'){
+      p++;
+      izq = { op:'or', izq, der: parseAnd() };
+    }
+    return izq;
+  }
+  function parseAnd(){
+    let izq = parseNot();
+    while (p < expr.length && !['-o','-or',')'].includes(expr[p])){
+      if (expr[p] === '-a' || expr[p] === '-and'){ p++; continue; }
+      izq = { op:'and', izq, der: parseNot() };
+    }
+    return izq;
+  }
+  function parseNot(){
+    if (expr[p] === '!' || expr[p] === '-not'){ p++; return { op:'not', nodo: parseNot() }; }
+    if (expr[p] === '('){ p++; const n = parseOr(); if (expr[p] === ')') p++; return n; }
+    return parseTest();
+  }
+  function parseTest(){
+    const t = toma();
+    if (['-name','-iname','-type','-user','-group','-size','-mtime','-atime','-ctime','-mmin','-amin','-cmin','-newer','-newermt','-perm','-links','-inum'].includes(t)){
+      if (p >= expr.length) throw falta(t);
+      return { op:t, val: toma() };
+    }
+    if (['-empty','-print','-print0','-ls'].includes(t)){
+      if (t === '-empty') return { op:t };
+      return { op:t.slice(1) };
+    }
+    if (t === '-exec' || t === '-ok'){
+      const cmd = [];
+      while (p < expr.length && expr[p] !== ';' && expr[p] !== '+' && expr[p] !== '\u0001;') cmd.push(toma());
+      if (p >= expr.length) throw fallo("find: falta ';' o '+' después de '" + t + "'");
+      const ultimo = toma();
+      const fin = ultimo === '\u0001;' ? ';' : ultimo;
+      if (!cmd.length) throw falta(t);
+      return { op:t.slice(1), cmd, fin };
+    }
+    if (t === '-true') return { op:'true' };
+    throw fallo("find: opción desconocida '" + t + "'");
+  }
+  let ast;
+  try { ast = parseOr(); }
+  catch (err){ return fallo(err.message); }
+  if (p < expr.length) return fallo("find: expresión incompleta cerca de '" + expr[p] + "'");
+
+  const acciones = [];
+  const evaluar = (nodo, x) => {
+    if (!nodo) return true;
+    if (nodo.op === 'and') return evaluar(nodo.izq, x) && evaluar(nodo.der, x);
+    if (nodo.op === 'or') return evaluar(nodo.izq, x) || evaluar(nodo.der, x);
+    if (nodo.op === 'not') return !evaluar(nodo.nodo, x);
+    if (['print','print0','ls','exec','ok'].includes(nodo.op)){ acciones.push({ nodo, path:x }); return true; }
+    if (nodo.op === 'true') return true;
     const it = e.fs[x];
-    const valeTipo = !tipo || (tipo === 'd' ? it.tipo === 'dir' : tipo === 'f' ? it.tipo === 'file' : true);
-    const propietario = propietarioDe(x, it), pertenece = propietario === usuario || propietario === grupo;
-    if (valeTipo && (!re || re.test(nombreDe(x))) && (!usuario && !grupo || pertenece)) out.push(x);
-    if (it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h);
+    if (!it) return false;
+    const nombre = nombreDe(x);
+    if (nodo.op === '-name') return patronRegex(nodo.val).test(nombre);
+    if (nodo.op === '-iname') return new RegExp(patronRegex(nodo.val).source, 'i').test(nombre);
+    if (nodo.op === '-type') return nodo.val === 'f' ? it.tipo === 'file' : nodo.val === 'd' ? it.tipo === 'dir' : nodo.val === 'l' ? it.tipo === 'link' : false;
+    if (nodo.op === '-user') return propietarioDe(x, it) === nodo.val;
+    if (nodo.op === '-group') return String(it.grupo || (x.startsWith('/home/') ? 'usuario' : 'root')) === nodo.val;
+    if (nodo.op === '-size') return findNumero(findTam(it), nodo.val, 512);
+    if (nodo.op === '-empty') return it.tipo === 'file' ? !(it.contenido || '') : (it.tipo === 'dir' ? listarHijos(e, x, true).length === 0 : false);
+    if (nodo.op === '-inum') return inodoDe(x, it) === String(nodo.val);
+    if (nodo.op === '-links') return findNumero(findEnlaces(e, x), nodo.val, 1);
+    if (nodo.op === '-perm') return findPermiso(modoDe(it), nodo.val);
+    if (nodo.op === '-newer'){
+      const ref = e.fs[rutaAbs(nodo.val, e.cwd)];
+      return !!ref && findMs(it.mtime) > findMs(ref.mtime);
+    }
+    if (nodo.op === '-newermt') return findMs(it.mtime) > findFechaHumana(nodo.val);
+    if (['-mtime','-atime','-ctime','-mmin','-amin','-cmin'].includes(nodo.op)){
+      const campo = nodo.op.includes('mtime') || nodo.op.includes('mmin') ? 'mtime' : nodo.op.includes('atime') || nodo.op.includes('amin') ? 'atime' : 'ctime';
+      const unidad = nodo.op.endsWith('min') ? 60000 : 86400000;
+      const dias = Math.floor((Date.now() - findMs(it[campo])) / unidad);
+      return findNumero(dias, nodo.val, 1);
+    }
+    return false;
   };
-  rec(p);
-  if (execCmd === 'file') return exito(out.map(x => cmd_file(e, [x]).out).join('\n'));
-  return exito(out.map(rutaVisible).join('\n'));
+
+  const accionesPorDefecto = !JSON.stringify(expr).includes('"-print"') && !JSON.stringify(expr).includes('"-ls"') &&
+    !JSON.stringify(expr).includes('"-print0"') && !JSON.stringify(expr).includes('"-exec"') && !JSON.stringify(expr).includes('"-ok"');
+  for (const raw of rutas){
+    const inicio = rutaAbs(raw, e.cwd);
+    if (!e.fs[inicio]) return fallo("find: '" + raw + "': No such file or directory");
+    const rec = (x, prof) => {
+      if (prof > maxdepth) return;
+      if (evaluar(ast, x) && accionesPorDefecto) acciones.push({ nodo:{ op:'print' }, path:x });
+      const it = e.fs[x];
+      if (it && it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h, prof + 1);
+    };
+    rec(inicio, 0);
+  }
+
+  let out = '', err = '';
+  const lotes = new Map();
+  for (const a of acciones){
+    if (a.nodo.op === 'print') out += (out && !out.endsWith('\n') ? '\n' : '') + rutaVisible(a.path);
+    else if (a.nodo.op === 'print0') out += rutaVisible(a.path) + '\0';
+    else if (a.nodo.op === 'ls') {
+      const r = cmd_ls(e, ['-l', a.path]);
+      out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    } else {
+      const clave = JSON.stringify(a.nodo.cmd) + '|' + a.nodo.fin;
+      if (!lotes.has(clave)) lotes.set(clave, { nodo:a.nodo, paths:[] });
+      lotes.get(clave).paths.push(a.path);
+    }
+  }
+  for (const { nodo, paths } of lotes.values()){
+    if (nodo.fin === '+'){
+      const tokens = [];
+      for (const t of nodo.cmd){
+        if (t === '{}') tokens.push(...paths.map(rutaVisible));
+        else tokens.push(t);
+      }
+      const r = ejecutarSimple(e, tokens, '');
+      if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+      if (r.err) err += r.err;
+    } else {
+      for (const x of paths){
+        const tokens = nodo.cmd.map(t => t === '{}' ? rutaVisible(x) : t);
+        const r = ejecutarSimple(e, tokens, '');
+        if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+        if (r.err) err += r.err;
+      }
+    }
+  }
+  return { out, err, code: err ? 1 : 0 };
 }
 function cmd_grep(e, args, stdin){
   let i = 0;
-  const flags = { i:false, v:false, c:false, n:false };
-  while (i < args.length && args[i].startsWith('-')){ for (const c of args[i].slice(1)) flags[c] = true; i++; }
-  const patron = args[i++];
+  const flags = { i:false, v:false, c:false, n:false, r:false, l:false, w:false, E:false, F:false, q:false };
+  const patrones = [], resto = [];
+  for (let j = 0; j < args.length; j++){
+    const a = args[j];
+    if (a === '-e' || a === '--regexp'){
+      if (j + 1 >= args.length) return fallo('grep: falta el patrón después de ' + a);
+      patrones.push(args[++j]);
+      continue;
+    }
+    if (a === '--color' || a.startsWith('--color=')) continue;
+    if (a.length > 1 && a.startsWith('-')){ for (const c of a.slice(1)) flags[c] = true; continue; }
+    resto.push(a);
+  }
+  const patron = patrones.length ? patrones.join('|') : resto.shift();
   if (patron == null) return fallo('grep: falta el patrón');
+  let cuerpo = flags.F ? patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : patron;
+  if (flags.w) cuerpo = '\\b(?:' + cuerpo + ')\\b';
   let re;
-  try { re = new RegExp(patron, flags.i ? 'i' : ''); }
+  try { re = new RegExp(cuerpo, flags.i ? 'i' : ''); }
   catch { re = new RegExp(patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags.i ? 'i' : ''); }
-  const archivos = args.slice(i), lineas = [];
+  let archivos = resto;
+  if (flags.r && !archivos.length) archivos = ['.'];
+  const lineas = [];
   let total = 0;
-  const procesar = (texto, prefijo) => {
+  const procesar = (texto, prefijo, nombre) => {
     const ls = texto.split('\n');
     if (ls.length && ls[ls.length - 1] === '') ls.pop();
+    let cuenta = 0;
     ls.forEach((linea, n) => {
       const coincide = re.test(linea) !== flags.v;
       if (!coincide) return;
-      total++;
-      if (!flags.c) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
+      cuenta++;
+      if (!flags.c && !flags.l && !flags.q) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
     });
+    total += cuenta;
+    if (flags.c && !flags.l && !flags.q && cuenta) lineas.push((prefijo || '') + cuenta);
+    if (flags.l && cuenta && !flags.q) lineas.push(nombre);
+  };
+  const recorrer = (p, raw) => {
+    const it = e.fs[p];
+    if (!it) return;
+    if (it.tipo === 'file'){
+      procesar(it.contenido || '', archivos.length > 1 || flags.r ? raw + ':' : '', raw);
+      return;
+    }
+    if (it.tipo === 'dir' && flags.r){
+      for (const h of listarHijos(e, p, true)) recorrer(h, raw.replace(/\/$/, '') + '/' + nombreDe(h));
+    }
   };
   if (archivos.length){
-    for (const raw of archivos){
-      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
-      if (!it || it.tipo !== 'file') continue;
-      procesar(it.contenido || '', archivos.length > 1 ? raw + ':' : '');
-    }
-  } else procesar(stdin || '', '');
-  return exito(flags.c ? String(total) : lineas.join('\n'));
+    for (const raw of archivos) recorrer(rutaAbs(raw, e.cwd), raw);
+  } else procesar(stdin || '', '', '');
+  if (flags.q) return exito('');
+  return exito(flags.c && archivos.length <= 1 && !flags.r ? String(total) : lineas.join('\n'));
 }
+function cmd_tee(e, args, stdin){
+  const append = args.includes('-a') || args.includes('--append');
+  const files = args.filter(a => !a.startsWith('-'));
+  if (!files.length) return fallo('tee: falta un fichero');
+  const texto = stdin || '';
+  for (const raw of files){
+    const p = rutaAbs(raw, e.cwd);
+    if (!esDir(e, padreDe(p))) return fallo('tee: ' + raw + ': No such file or directory');
+    const anterior = append && e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+    e.fs[p] = { tipo:'file', contenido: anterior + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
+  }
+  return exito(texto + (texto && !texto.endsWith('\n') ? '\n' : ''));
+}
+function cmd_xargs(e, args, stdin){
+  let n = 0, repl = null, delim = null, cero = false, mostrar = false;
+  const resto = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-0' || a === '--null'){ cero = true; continue; }
+    if (a === '-t' || a === '--verbose'){ mostrar = true; continue; }
+    if (a === '-r' || a === '--no-run-if-empty') continue;
+    if (a === '-n' || a === '--max-args'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('xargs: falta un número después de ' + a);
+      n = Number(args[++i]); continue;
+    }
+    if (/^-n\d+$/.test(a)){ n = Number(a.slice(2)); continue; }
+    if (a === '-I' || a === '--replace'){
+      if (i + 1 >= args.length) return fallo('xargs: falta el texto a reemplazar después de ' + a);
+      repl = args[++i]; continue;
+    }
+    if (/^-I.+/.test(a)){ repl = a.slice(2); continue; }
+    if (a === '-d' || a === '--delimiter'){
+      if (i + 1 >= args.length) return fallo('xargs: falta el delimitador después de ' + a);
+      delim = args[++i]; continue;
+    }
+    if (a.startsWith('-')) continue;
+    resto.push(...args.slice(i));
+    break;
+  }
+  const cmd = resto.length ? resto : ['echo'];
+  const bruto = stdin || '';
+  let items;
+  if (cero) items = bruto.split('\0').filter(Boolean);
+  else if (delim != null) items = bruto.split(delim).map(s => s.trim()).filter(Boolean);
+  else items = bruto.split(/\s+/).filter(Boolean);
+  if (!items.length) return exito('');
+  let out = '', err = '', code = 0;
+  const lanzar = lista => {
+    const tokens = lista.filter(t => t !== '');
+    if (mostrar) out += (out && !out.endsWith('\n') ? '\n' : '') + tokens.join(' ') + '\n';
+    const r = ejecutarSimple(e, tokens, '');
+    if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    if (r.err) err += r.err;
+    code = r.code || code;
+  };
+  if (repl != null){
+    for (const it of items) lanzar(cmd.map(t => t.split(repl).join(it)));
+  } else if (n > 0){
+    for (let i = 0; i < items.length; i += n) lanzar(cmd.concat(items.slice(i, i + n)));
+  } else lanzar(cmd.concat(items));
+  return { out, err, code };
+}
+function cmd_locate(e, args){
+  let contar = false, ignora = false, regex = false, soloBase = false, limite = 0;
+  const patrones = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-c' || a === '--count'){ contar = true; continue; }
+    if (a === '-i' || a === '--ignore-case'){ ignora = true; continue; }
+    if (a === '-r' || a === '--regex' || a === '--regexp'){ regex = true; continue; }
+    if (a === '-b' || a === '--basename'){ soloBase = true; continue; }
+    if (a === '-l' || a === '-n' || a === '--limit'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('locate: falta un número después de ' + a);
+      limite = Number(args[++i]); continue;
+    }
+    if (a.startsWith('-')) continue;
+    patrones.push(a);
+  }
+  if (!patrones.length) return fallo('locate: falta el patrón');
+  const aRegex = pat => {
+    const esc = pat.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
+    try { return new RegExp(regex ? pat : esc, ignora ? 'i' : ''); } catch { return null; }
+  };
+  const res = [];
+  for (const p of Object.keys(e.fs).sort()){
+    const vis = rutaVisible(p), base = nombreDe(p);
+    const vale = patrones.some(pat => {
+      const re = aRegex(pat);
+      return !!re && re.test(soloBase ? base : vis);
+    });
+    if (vale) res.push(vis);
+  }
+  if (contar) return exito(String(res.length));
+  return exito(res.slice(0, limite || res.length).join('\n'));
+}
+function cmd_which(e, args){
+  if (!args.length) return fallo('which: falta un operando');
+  const dirs = String((e.vars && e.vars.PATH) || '/usr/local/bin:/usr/bin:/bin').split(':');
+  const out = [], err = [];
+  for (const nombre of args){
+    if (e.funciones && e.funciones.includes(nombre)){ out.push(nombre + ' () { ... }'); continue; }
+    if (e.alias && e.alias[nombre]){ out.push("alias " + nombre + "='" + e.alias[nombre] + "'"); continue; }
+    let hallado = null;
+    for (const d of dirs){
+      const p = rutaAbs(d.replace(/\/$/, '') + '/' + nombre, MUNDO_HOME);
+      const it = e.fs[p];
+      if (it && it.tipo === 'file' && /[1357]$/.test(String(it.modo || '644'))){ hallado = d.replace(/\/$/, '') + '/' + nombre; break; }
+    }
+    if (hallado) out.push(hallado); else err.push(nombre + ' no encontrado');
+  }
+  return { out: out.join('\n'), err: err.join('\n'), code: err.length ? 1 : 0 };
+}
+
 function cmd_wc(e, args, stdin){
   const flags = { l:false, w:false, c:false }, files = [];
   for (const a of args){ if (a.startsWith('-')) for (const c of a.slice(1)) flags[c] = true; else files.push(a); }
@@ -2132,11 +2454,37 @@ const WHEREIS = {
   rm: '/usr/bin/rm /usr/share/man/man1/rm.1.gz',
   cat: '/usr/bin/cat /usr/share/man/man1/cat.1.gz',
   chmod: '/usr/bin/chmod /usr/share/man/man1/chmod.1.gz',
-  tree: '/usr/bin/tree /usr/share/man/man1/tree.1.gz'
+  tree: '/usr/bin/tree /usr/share/man/man1/tree.1.gz',
+  find: '/usr/bin/find /usr/share/man/man1/find.1.gz',
+  grep: '/usr/bin/grep /usr/share/man/man1/grep.1.gz',
+  wc: '/usr/bin/wc /usr/share/man/man1/wc.1.gz',
+  sort: '/usr/bin/sort /usr/share/man/man1/sort.1.gz',
+  head: '/usr/bin/head /usr/share/man/man1/head.1.gz',
+  tail: '/usr/bin/tail /usr/share/man/man1/tail.1.gz',
+  cut: '/usr/bin/cut /usr/share/man/man1/cut.1.gz',
+  tee: '/usr/bin/tee /usr/share/man/man1/tee.1.gz',
+  xargs: '/usr/bin/xargs /usr/share/man/man1/xargs.1.gz',
+  locate: '/usr/bin/locate /usr/share/man/man1/locate.1.gz',
+  which: '/usr/bin/which /usr/share/man/man1/which.1.gz'
 };
 function cmd_whereis(e, args){
-  if (!args.length) return fallo('whereis: falta un operando');
-  return exito(args.map(a => a + ': ' + (WHEREIS[a] || '')).join('\n'));
+  const flags = { b:false, m:false, s:false };
+  const nombres = [];
+  for (const a of args){
+    if (a.startsWith('-') && a.length > 1){ for (const c of a.slice(1)) flags[c] = true; continue; }
+    nombres.push(a);
+  }
+  if (!nombres.length) return fallo('whereis: falta un operando');
+  const pedirBin = flags.b || (!flags.m && !flags.s);
+  const pedirMan = flags.m || (!flags.b && !flags.s);
+  const pedirSrc = flags.s;
+  return exito(nombres.map(nombre => {
+    const rutas = (WHEREIS[nombre] || '').split(' ').filter(Boolean);
+    const partes = rutas.filter(r => pedirBin && !r.includes('/man/') && !r.endsWith('.c') && !r.endsWith('.h'))
+      .concat(rutas.filter(r => pedirMan && r.includes('/man/') && !r.endsWith('.c') && !r.endsWith('.h')))
+      .concat(pedirSrc ? [] : []);
+    return nombre + ': ' + partes.join(' ');
+  }).join('\n'));
 }
 function cmd_source(e, args){
   const raw = args[0] || '~/.bashrc';
@@ -2160,7 +2508,8 @@ const CMD_SIM = {
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
   whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), who: cmd_who, users: cmd_users, ps: cmd_ps, cut: cmd_cut, time: cmd_time, date: cmd_date, umask: cmd_umask,
-  history: cmd_history, stat: cmd_stat, basename: cmd_basename, dirname: cmd_dirname, cal: cmd_cal, alias: cmd_alias, unalias: cmd_unalias
+  history: cmd_history, stat: cmd_stat, basename: cmd_basename, dirname: cmd_dirname, cal: cmd_cal, alias: cmd_alias, unalias: cmd_unalias,
+  tee: cmd_tee, xargs: cmd_xargs, locate: cmd_locate, which: cmd_which, updatedb: () => exito('')
 };
 
 /* ---- Intérprete de una línea ---- */
@@ -2183,6 +2532,7 @@ function tokenizar(linea){
     if (ch === '"' || ch === "'"){ comilla = ch; continue; }
     if (ch === '\\' && i + 1 < linea.length){
       const sig = linea[i + 1];
+      if (sig === ';' && actual === ''){ out.push('\u0001;'); i++; continue; }
       actual += ('ntb\\'.includes(sig)) ? '\\' + sig : sig;
       i++;
       continue;
@@ -2239,7 +2589,9 @@ function ejecutarPipeline(e, tokens, stdin = ''){
     const r = ejecutarSimple(e, s, entrada);
     out = r.out; err += r.err; code = r.code;
     if (code !== 0) break;
-    entrada = quitarHtml(out);
+    // find -print0 produce bytes nulos: no deben pasar por innerHTML, que los
+    // eliminaría y pegaría todas las rutas en una sola.
+    entrada = out.indexOf('\0') !== -1 ? out : quitarHtml(out);
   }
   e._tuberia = false;
   if (redir && (code === 0 || redir === '2>')){
@@ -3053,8 +3405,8 @@ function enviarAct(){
 /* ---- Tab: completa comandos, opciones y rutas, como bash ---- */
 const OPCIONES_CMD = {
   ls:'-a -A -l -h -r -R -1 -t -i', cd:'-P', mkdir:'-p', rm:'-r -f', cp:'-r', ln:'-s', chmod:'-R',
-  grep:'-i -r -n -v', find:'-name -type -user -group -exec -maxdepth', head:'-n', tail:'-n', sort:'-r -n -k',
-  du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t'
+  grep:'-i -r -n -v -c -l -w -F -E', find:'-name -type -user -group -exec -maxdepth -size -mtime -perm -print -ls', head:'-n', tail:'-n', sort:'-r -n -k',
+  du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t', tee:'-a', xargs:'-n -I -d -0 -t', locate:'-c -i -r -b -l', whereis:'-b -m -s'
 };
 const COMANDOS_TAB = () => ['clear', 'history', 'mkcd'].concat(Object.keys(CMD_SIM).filter(x => x !== '.')).sort((a, b) => a.localeCompare(b, 'es'));
 

@@ -52,6 +52,72 @@ window.AVENTURA = {
       lecciones: [
 
         {
+          id: 'teclas-orientarse',
+          titulo: 'Teclas básicas',
+          resumen: 'Tab, Ctrl+L y flechas',
+          comando: 'teclado',
+          rondas: [
+            {
+              titulo: 'Moverte sin miedo',
+              resumen: 'Los atajos que más vas a usar desde el primer día',
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'La terminal también se maneja con teclas',
+                  html: '<p>No hace falta escribir todo perfecto: la terminal te ayuda. <kbd>Tab</kbd> completa nombres, <kbd>Ctrl</kbd> + <kbd>L</kbd> limpia la pantalla y las flechas <kbd>↑</kbd> <kbd>↓</kbd> recuperan comandos anteriores.</p><p>Son las mismas teclas en cualquier Linux. Aprenderlas te ahorra tiempo y errores.</p>',
+                  mas: '<p>Si algo se queda a medias, <kbd>Ctrl</kbd> + <kbd>C</kbd> cancela. Lo verás en el mundo 3.</p>'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Completar con Tab',
+                  pide: 'Escribe <code>cd Doc</code> y pulsa <kbd>Tab</kbd> para que se complete el nombre de la carpeta.',
+                  combo: { key: 'Tab' },
+                  demo: {
+                    antes: ['usuario@linux:~$ cd Doc▏'],
+                    despues: ['usuario@linux:~$ cd Documentos/▏']
+                  },
+                  pista: 'Es la tecla de la izquierda, encima de Bloq Mayús.',
+                  explica: 'Tab completa nombres de comandos, carpetas y ficheros. Si hay varias opciones, pulsa Tab dos veces para verlas.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Limpiar la pantalla',
+                  pide: 'La pantalla está llena. Pulsa <kbd>Ctrl</kbd> + <kbd>L</kbd> para dejarla limpia sin borrar el historial.',
+                  combo: { ctrl: true, key: 'l' },
+                  demo: {
+                    antes: ['usuario@linux:~$ ls -l', 'total 0', 'drwxr-xr-x 2 usuario usuario 4096 Documentos', 'usuario@linux:~$ ▏'],
+                    despues: ['usuario@linux:~$ ▏']
+                  },
+                  pista: 'Ctrl + la letra de <i>clear</i>.',
+                  explica: 'Ctrl+L limpia la vista, pero tus comandos siguen en el historial: puedes recuperarlos con ↑.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Recuperar el comando anterior',
+                  pide: 'Pulsa <kbd>↑</kbd> para volver a poner el último comando que escribiste.',
+                  combo: { key: 'ArrowUp' },
+                  demo: {
+                    antes: ['usuario@linux:~$ ls Documentos', 'usuario@linux:~$ ▏'],
+                    despues: ['usuario@linux:~$ ls Documentos▏']
+                  },
+                  pista: 'Es la flecha hacia arriba.',
+                  explica: 'Con ↑ y ↓ recorres el historial sin volver a escribir. Es uno de los atajos que más usarás.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: 'Estás escribiendo <code>cd Doc</code> y quieres que se complete solo. ¿Qué tecla pulsas?',
+                  opciones: [
+                    { t: 'Tab', ok: true, porque: 'Tab completa nombres de comandos, carpetas y ficheros.' },
+                    { t: 'Enter', porque: 'Enter ejecuta lo que hay escrito, no lo completa.' },
+                    { t: 'Ctrl + L', porque: 'Ctrl+L limpia la pantalla.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
           id: 'pwd',
           titulo: '¿Dónde estoy?',
           resumen: 'pwd',
@@ -753,6 +819,84 @@ window.AVENTURA = {
       lecciones: [
 
         {
+          id: 'teclas-organizar',
+          titulo: 'Editar la línea',
+          resumen: 'Ctrl+A, Ctrl+E, Ctrl+U y Alt+.',
+          comando: 'teclado',
+          rondas: [
+            {
+              titulo: 'Corregir sin borrar todo',
+              resumen: 'Mover el cursor y recuperar el último argumento',
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'El cursor no es el final de la línea',
+                  html: '<p>Puedes moverte por lo que estás escribiendo. <kbd>Ctrl</kbd> + <kbd>A</kbd> lleva el cursor al principio, <kbd>Ctrl</kbd> + <kbd>E</kbd> al final y <kbd>Ctrl</kbd> + <kbd>U</kbd> borra desde el cursor hasta el principio.</p><p><kbd>Alt</kbd> + <kbd>.</kbd> repite el último argumento del comando anterior: perfecto para no reescribir una ruta larga.</p>',
+                  mas: '<p>Si te equivocas a mitad, no borres con la tecla de borrar veinte veces. Mueve el cursor y usa Ctrl+U.</p>'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Cursor al principio',
+                  pide: 'Tienes el cursor al final. Pulsa <kbd>Ctrl</kbd> + <kbd>A</kbd> para llevarlo al principio de la línea.',
+                  combo: { ctrl: true, key: 'a' },
+                  demo: {
+                    antes: ['usuario@linux:~$ cd Documentos▏'],
+                    despues: ['usuario@linux:~$ ▏cd Documentos']
+                  },
+                  pista: 'Ctrl + la primera letra del abecedario.',
+                  explica: 'Ctrl+A va al principio de la línea. Ctrl+E vuelve al final.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Cursor al final',
+                  pide: 'Ahora el cursor está al principio. Pulsa <kbd>Ctrl</kbd> + <kbd>E</kbd> para volver al final.',
+                  combo: { ctrl: true, key: 'e' },
+                  demo: {
+                    antes: ['usuario@linux:~$ ▏cd Documentos'],
+                    despues: ['usuario@linux:~$ cd Documentos▏']
+                  },
+                  pista: 'Ctrl + la letra de <i>end</i>.',
+                  explica: 'Ctrl+E te devuelve al final para seguir escribiendo sin usar las flechas.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Borrar hasta el principio',
+                  pide: 'El comando está mal escrito. Pulsa <kbd>Ctrl</kbd> + <kbd>U</kbd> para borrar desde el cursor hasta el principio.',
+                  combo: { ctrl: true, key: 'u' },
+                  demo: {
+                    antes: ['usuario@linux:~$ comando equivocado▏'],
+                    despues: ['usuario@linux:~$ ▏']
+                  },
+                  pista: 'Ctrl + la letra de <i>undo</i> en la línea.',
+                  explica: 'Ctrl+U borra la parte izquierda de la línea. Si el cursor está al final, borra todo lo escrito.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Repetir el último argumento',
+                  pide: 'Acabas de listar <code>Documentos</code>. Escribe <code>cd </code> y pulsa <kbd>Alt</kbd> + <kbd>.</kbd> para recuperar ese argumento sin escribirlo.',
+                  combo: { alt: true, key: '.' },
+                  demo: {
+                    antes: ['usuario@linux:~$ ls Documentos', 'usuario@linux:~$ cd ▏'],
+                    despues: ['usuario@linux:~$ ls Documentos', 'usuario@linux:~$ cd Documentos▏']
+                  },
+                  pista: 'Alt + el punto del teclado.',
+                  explica: 'Alt+. inserta el último argumento del comando anterior. Si la ruta es larga, te salva.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué atajo borra desde el cursor hasta el principio de la línea?',
+                  opciones: [
+                    { t: 'Ctrl + U', ok: true, porque: 'Ctrl+U borra hacia la izquierda del cursor.' },
+                    { t: 'Ctrl + A', porque: 'Ctrl+A solo mueve el cursor al principio.' },
+                    { t: 'Alt + .', porque: 'Alt+. repite el último argumento.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
           id: 'mkdir',
           titulo: 'Crear carpetas',
           resumen: 'mkdir',
@@ -1324,6 +1468,60 @@ window.AVENTURA = {
       emoji: '💬',
       resumen: 'Texto, variables, comodines, operadores y redirecciones',
       lecciones: [
+
+        {
+          id: 'teclas-shell',
+          titulo: 'Controlar el prompt',
+          resumen: 'Ctrl+C, Ctrl+R y doble Tab',
+          comando: 'teclado',
+          rondas: [
+            {
+              titulo: 'Cuando algo se atasca',
+              resumen: 'Cancelar, buscar en el historial y ver opciones',
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Tres teclas de emergencia',
+                  html: '<p><kbd>Ctrl</kbd> + <kbd>C</kbd> corta el comando que está corriendo y te devuelve el prompt. <kbd>Ctrl</kbd> + <kbd>R</kbd> busca en el historial mientras escribes. Y si escribes <code>ls --</code> y pulsas <kbd>Tab</kbd> dos veces, ves todas las opciones disponibles.</p>',
+                  mas: '<p>Ctrl+C no cierra la terminal: solo interrumpe lo que se está ejecutando. Es la tecla para salir de un comando que se queda colgado.</p>'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Cortar un comando colgado',
+                  pide: 'El comando <code>sleep 100</code> se ha quedado pillado. Pulsa <kbd>Ctrl</kbd> + <kbd>C</kbd> para cortarlo y recuperar el prompt.',
+                  combo: { ctrl: true, key: 'c' },
+                  demo: {
+                    antes: ['usuario@linux:~$ sleep 100', '▏'],
+                    despues: ['usuario@linux:~$ sleep 100', '^C', 'usuario@linux:~$ ▏']
+                  },
+                  pista: 'Ctrl + la letra de <i>cancel</i>.',
+                  explica: 'Ctrl+C interrumpe el proceso y devuelve el control. No borra nada de lo que ya está guardado.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Ver todas las opciones',
+                  pide: 'Escribe <code>ls --</code> y pulsa <kbd>Tab</kbd> dos veces para que aparezcan las opciones del comando.',
+                  combo: { key: 'Tab' },
+                  demo: {
+                    antes: ['usuario@linux:~$ ls --▏'],
+                    despues: ['usuario@linux:~$ ls --', '--all  --almost-all  --directory  --human-readable  --recursive  ...']
+                  },
+                  pista: 'La misma tecla que completa nombres.',
+                  explica: 'Un Tab completa lo que pueda; dos Tab seguidos muestran todas las posibilidades. Funciona con comandos, opciones y rutas.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: 'Un comando lleva un rato sin responder. ¿Qué pulsas para cortarlo?',
+                  opciones: [
+                    { t: 'Ctrl + C', ok: true, porque: 'Ctrl+C interrumpe el proceso y vuelve al prompt.' },
+                    { t: 'Ctrl + L', porque: 'Ctrl+L solo limpia la pantalla.' },
+                    { t: 'Ctrl + U', porque: 'Ctrl+U borra lo escrito en la línea, no corta el proceso.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
 
         {
           id: 'echo',
@@ -1942,6 +2140,60 @@ window.AVENTURA = {
       lecciones: [
 
         {
+          id: 'teclas-avanzado',
+          titulo: 'Atajos de nivel',
+          resumen: 'Ctrl+Z, Ctrl+D y Ctrl+Alt+E',
+          comando: 'teclado',
+          rondas: [
+            {
+              titulo: 'Suspender, cerrar y editar',
+              resumen: 'Las teclas que quedan para dominar la terminal',
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Cuando el comando no es el problema',
+                  html: '<p><kbd>Ctrl</kbd> + <kbd>Z</kbd> suspende el proceso en vez de matarlo. <kbd>Ctrl</kbd> + <kbd>D</kbd> indica el final de la entrada: sirve para cerrar una sesión o terminar un texto. Y <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>E</kbd> abre la línea actual en un editor para escribir comandos largos con comodidad.</p>',
+                  mas: '<p>No son teclas para memorizar de golpe. Quédate con la idea: la terminal tiene atajos para casi todo.</p>'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Suspender sin matar',
+                  pide: 'Pulsa <kbd>Ctrl</kbd> + <kbd>Z</kbd> para suspender el proceso y devolver el control al prompt.',
+                  combo: { ctrl: true, key: 'z' },
+                  demo: {
+                    antes: ['usuario@linux:~$ sleep 100', '▏'],
+                    despues: ['usuario@linux:~$ sleep 100', '^Z', '[1]+  Stopped                 sleep 100', 'usuario@linux:~$ ▏']
+                  },
+                  pista: 'Ctrl + la última letra del abecedario.',
+                  explica: 'Ctrl+Z no borra el proceso: lo deja en pausa. Se puede recuperar con <code>fg</code>. Ctrl+C, en cambio, lo termina.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Editar la línea en nano',
+                  pide: 'La línea es larga. Pulsa <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>E</kbd> para abrirla en el editor.',
+                  combo: { ctrl: true, alt: true, key: 'e' },
+                  demo: {
+                    antes: ['usuario@linux:~$ for i in {A..Z}; do touch fich$i.txt; done▏'],
+                    despues: ['[editor abierto: escribe con calma y guarda al salir]']
+                  },
+                  pista: 'Ctrl + Alt + la letra de <i>edit</i>.',
+                  explica: 'Ctrl+Alt+E abre la línea en nano. Al guardar y salir, el comando vuelve al prompt listo para ejecutarse.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué diferencia hay entre Ctrl+C y Ctrl+Z?',
+                  opciones: [
+                    { t: 'Ctrl+C termina el proceso; Ctrl+Z lo suspende.', ok: true, porque: 'Ctrl+C interrumpe y Ctrl+Z deja el proceso en pausa.' },
+                    { t: 'Son lo mismo, pero una funciona en nano.', porque: 'No son equivalentes: una termina y la otra suspende.' },
+                    { t: 'Ctrl+Z cierra la terminal.', porque: 'Ctrl+Z suspende el proceso; no cierra la terminal.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
           id: 'ln',
           titulo: 'Enlaces',
           resumen: 'ln y ln -s',
@@ -2524,6 +2776,643 @@ window.AVENTURA = {
                     { t: 'notas', ok: true, porque: 'Correcto: quita la carpeta y después el sufijo .txt.' },
                     { t: '/home/usuario', porque: 'Eso lo devuelve <code>dirname</code>.' },
                     { t: 'notas.txt', porque: 'Ese sería el resultado sin el segundo argumento.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+
+      ]
+    },
+
+    /* ================= MUNDO 5 · BUSCAR Y FILTRAR ================= */
+    {
+      id: 'buscar',
+      titulo: 'Buscar y filtrar',
+      emoji: '🔎',
+      resumen: 'grep, wc, find, tee, xargs, locate y which',
+      lecciones: [
+
+        {
+          id: 'teclas-buscar',
+          titulo: 'Buscar sin ratón',
+          resumen: 'Ctrl+R y Ctrl+G',
+          comando: 'teclado',
+          rondas: [
+            {
+              titulo: 'Encontrar en el historial',
+              resumen: 'Buscar un comando antiguo y salir de la búsqueda',
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'El historial también se busca',
+                  html: '<p>No hace falta recorrer el historial con <kbd>↑</kbd> veinte veces. <kbd>Ctrl</kbd> + <kbd>R</kbd> abre una búsqueda inversa: escribes un trozo del comando y la shell te enseña el más reciente que coincide.</p><p>Si no era ese, vuelves a pulsar <kbd>Ctrl</kbd> + <kbd>R</kbd> para ir al anterior. Y <kbd>Ctrl</kbd> + <kbd>G</kbd> cancela la búsqueda sin ejecutar nada.</p>',
+                  mas: '<p>Cuando encuentras el comando, pulsa <kbd>Enter</kbd> para ejecutarlo o <kbd>→</kbd> para editarlo antes.</p>'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Buscar en el historial',
+                  pide: 'Quieres recuperar un comando que llevaba <code>grep</code>. Pulsa <kbd>Ctrl</kbd> + <kbd>R</kbd> para abrir la búsqueda inversa.',
+                  combo: { ctrl: true, key: 'r' },
+                  demo: {
+                    antes: ['usuario@linux:~$ ▏'],
+                    despues: ['(reverse-i-search)`grep\': grep -r TODO ~/proyecto▏']
+                  },
+                  pista: 'Ctrl + la letra de <i>reverse</i>.',
+                  explica: 'Ctrl+R busca hacia atrás en el historial mientras escribes. Es la forma rápida de repetir un comando largo.'
+                },
+                {
+                  tipo: 'teclas',
+                  titulo: 'Cancelar la búsqueda',
+                  pide: 'La búsqueda no ha encontrado lo que querías. Pulsa <kbd>Ctrl</kbd> + <kbd>G</kbd> para cancelarla y volver al prompt.',
+                  combo: { ctrl: true, key: 'g' },
+                  demo: {
+                    antes: ['(reverse-i-search)`xyz\': ▏'],
+                    despues: ['usuario@linux:~$ ▏']
+                  },
+                  pista: 'Ctrl + la letra de <i>give up</i>.',
+                  explica: 'Ctrl+G sale de la búsqueda sin ejecutar el comando que hubiera encontrado.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Para qué sirve <kbd>Ctrl</kbd> + <kbd>R</kbd>?',
+                  opciones: [
+                    { t: 'Para buscar comandos en el historial.', ok: true, porque: 'Abre la búsqueda inversa del historial.' },
+                    { t: 'Para borrar todo el historial.', porque: 'Eso se hace con <code>history -c</code>.' },
+                    { t: 'Para reiniciar la terminal.', porque: 'Ctrl+R no cierra ni reinicia la sesión.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'grep',
+          titulo: 'Filtrar líneas',
+          resumen: 'grep y sus opciones',
+          comando: 'grep',
+          rondas: [
+            {
+              titulo: 'Buscar dentro de un fichero',
+              resumen: 'El patrón, -i, -n, -v y -c',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/errores.txt': 'error 404\nTodo bien\nerror 500\n',
+                '~/proyecto/src': { tipo: 'dir' },
+                '~/proyecto/src/main.c': 'int main(){ return 0; }\n// TODO revisar\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'grep enseña solo lo que coincide',
+                  html: '<p><code>grep mundo ~/proyecto/notas.txt</code> muestra las líneas que contienen <code>mundo</code>. No cambia el fichero: solo filtra lo que aparece en pantalla.</p><p>Opciones que vas a usar siempre:</p><ul><li><code>-i</code>: ignora mayúsculas y minúsculas.</li><li><code>-n</code>: pone delante el número de línea.</li><li><code>-v</code>: muestra las líneas que <b>no</b> coinciden.</li><li><code>-c</code>: cuenta las líneas que coinciden.</li></ul>',
+                  ejemplo: ['grep mundo ~/proyecto/notas.txt', 'grep -in mundo ~/proyecto/notas.txt', 'grep -v mundo ~/proyecto/notas.txt'],
+                  mas: '<p>El patrón es una expresión regular. Un punto <code>.</code> significa «cualquier carácter»; si quieres buscar un punto literal, escríbelo como <code>\\.</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Con número de línea',
+                  pide: 'Busca <code>mundo</code> en <code>~/proyecto/notas.txt</code> y muestra el número de cada línea.',
+                  ejemplo: 'grep -n mundo ~/proyecto/notas.txt',
+                  meta: { muestra: ['1:hola mundo', '2:Adios mundo'], noMuestra: '3:' },
+                  pista: 'Añade <code>-n</code> a <code>grep mundo</code>.',
+                  error: 'Casi. Sería <code>grep -n mundo ~/proyecto/notas.txt</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Lo que no es un error',
+                  pide: 'Muestra las líneas de <code>~/proyecto/errores.txt</code> que <b>no</b> contienen <code>error</code>.',
+                  ejemplo: 'grep -v error ~/proyecto/errores.txt',
+                  meta: { muestra: 'Todo bien', noMuestra: 'error 404' },
+                  pista: 'La opción que invierte el filtro es <code>-v</code>.',
+                  error: 'Casi. Sería <code>grep -v error ~/proyecto/errores.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué muestra <code>grep -c mundo fichero.txt</code>?',
+                  opciones: [
+                    { t: 'El número de líneas que contienen mundo.', ok: true, porque: '<code>-c</code> cuenta las líneas que coinciden.' },
+                    { t: 'Todas las líneas, pero numeradas.', porque: 'Para numerarlas se usa <code>-n</code>.' },
+                    { t: 'El contenido del fichero sin filtrar.', porque: '<code>grep</code> siempre filtra por el patrón.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Recorrer carpetas y tuberías',
+              resumen: '-r, -l, -w, -F, -E y grep detrás de una tubería',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/errores.txt': 'error 404\nTodo bien\nerror 500\n',
+                '~/proyecto/src': { tipo: 'dir' },
+                '~/proyecto/src/main.c': 'int main(){ return 0; }\n// TODO revisar\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'grep puede entrar en carpetas',
+                  html: '<p><code>grep -r TODO ~/proyecto</code> busca dentro de todos los ficheros de la carpeta, en todos sus niveles. <code>-r</code> significa <i>recursive</i>.</p><p>Más opciones:</p><ul><li><code>-l</code>: solo enseña el nombre de los ficheros donde aparece.</li><li><code>-w</code>: obliga a que coincida la palabra completa.</li><li><code>-F</code>: busca el texto tal cual, sin interpretar expresiones regulares.</li><li><code>-E</code>: permite expresiones regulares extendidas con <code>|</code>.</li></ul>',
+                  ejemplo: ['grep -r TODO ~/proyecto', 'grep -rl TODO ~/proyecto', 'grep -E "error|TODO" ~/proyecto/notas.txt'],
+                  mas: '<p><code>grep</code> también lee de la entrada estándar: <code>ls ~/proyecto | grep txt</code> filtra la lista sin abrir ningún fichero.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo los nombres',
+                  pide: 'Busca <code>TODO</code> en toda la carpeta <code>~/proyecto</code> y muestra solo el nombre del fichero que lo contiene.',
+                  ejemplo: 'grep -rl TODO ~/proyecto',
+                  meta: { muestra: '~/proyecto/src/main.c', noMuestra: 'TODO revisar' },
+                  pista: 'Combina <code>-r</code> con <code>-l</code>.',
+                  error: 'Casi. Sería <code>grep -rl TODO ~/proyecto</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Filtrar una lista',
+                  pide: 'Lista <code>~/proyecto</code> y quédate solo con las líneas que contienen <code>txt</code>.',
+                  ejemplo: 'ls ~/proyecto | grep txt',
+                  meta: { muestra: ['notas.txt', 'errores.txt'], noMuestra: 'src' },
+                  pista: 'Usa una tubería: <code>ls ~/proyecto | grep txt</code>.',
+                  error: 'Casi. Sería <code>ls ~/proyecto | grep txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué añade <code>-l</code> a <code>grep -r</code>?',
+                  opciones: [
+                    { t: 'Muestra solo los nombres de los ficheros con coincidencias.', ok: true, porque: 'Con <code>-l</code> no imprime las líneas, solo el fichero.' },
+                    { t: 'Cuenta las coincidencias.', porque: 'Para contar está <code>-c</code>.' },
+                    { t: 'Ignora las mayúsculas.', porque: 'Para eso está <code>-i</code>.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'wc',
+          titulo: 'Contar con wc',
+          resumen: 'Líneas, palabras y bytes',
+          comando: 'wc',
+          rondas: [
+            {
+              titulo: 'Tres números por defecto',
+              resumen: 'wc, -l, -w, -c y tuberías',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/lista.txt': 'uno\ndos\ntres\ncuatro\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'wc cuenta lo que le des',
+                  html: '<p><code>wc ~/proyecto/notas.txt</code> muestra tres números: líneas, palabras y bytes (en ese orden). Con una opción eliges uno solo:</p><ul><li><code>-l</code>: líneas.</li><li><code>-w</code>: palabras.</li><li><code>-c</code>: bytes.</li></ul>',
+                  ejemplo: ['wc ~/proyecto/notas.txt', 'wc -l ~/proyecto/notas.txt', 'wc -w ~/proyecto/notas.txt', 'wc -c ~/proyecto/notas.txt'],
+                  mas: '<p>Si no le pasas ningún fichero, <code>wc</code> lee de la entrada estándar. Por eso funciona tan bien al final de una tubería.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo las líneas',
+                  pide: 'Cuenta las líneas de <code>~/proyecto/notas.txt</code>.',
+                  ejemplo: 'wc -l ~/proyecto/notas.txt',
+                  meta: { muestra: /^3\s/ },
+                  pista: 'Es <code>wc -l</code> y la ruta.',
+                  error: 'Casi. Sería <code>wc -l ~/proyecto/notas.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'wc al final de una tubería',
+                  html: '<p>Muchas veces no quieres contar un fichero, sino la salida de otro comando. <code>cat ~/proyecto/lista.txt | wc -l</code> cuenta las líneas que salen de <code>cat</code>.</p>',
+                  ejemplo: ['cat ~/proyecto/lista.txt | wc -l', 'ls ~/proyecto | wc -l'],
+                  mas: '<p>La tubería <code>|</code> conecta la salida del primero con la entrada del segundo.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Contar palabras',
+                  pide: 'Cuenta las palabras de <code>~/proyecto/notas.txt</code> pasando el fichero por <code>cat</code>.',
+                  ejemplo: 'cat ~/proyecto/notas.txt | wc -w',
+                  meta: { salida: '6' },
+                  pista: 'Es <code>cat ~/proyecto/notas.txt | wc -w</code>.',
+                  error: 'Casi. Sería <code>cat ~/proyecto/notas.txt | wc -w</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué cuenta <code>wc -c</code>?',
+                  opciones: [
+                    { t: 'Bytes.', ok: true, porque: '<code>-c</code> cuenta bytes.' },
+                    { t: 'Palabras.', porque: 'Para palabras está <code>-w</code>.' },
+                    { t: 'Líneas.', porque: 'Para líneas está <code>-l</code>.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'find',
+          titulo: 'Buscar ficheros con find',
+          resumen: 'Criterios y acciones',
+          comando: 'find',
+          rondas: [
+            {
+              titulo: 'Por nombre y por tipo',
+              resumen: '-name, -iname, -type y -maxdepth',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/errores.txt': 'error 404\nTodo bien\nerror 500\n',
+                '~/proyecto/vacio.txt': '',
+                '~/proyecto/README': 'Instrucciones\n',
+                '~/proyecto/src': { tipo: 'dir' },
+                '~/proyecto/src/main.c': 'int main(){ return 0; }\n// TODO revisar\n',
+                '~/proyecto/src/util.c': 'void util(){}\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'find recorre el árbol',
+                  html: '<p><code>find ~/proyecto</code> enseña todo lo que hay dentro, incluida la propia carpeta. Para quedarte con algo concreto se añaden criterios:</p><ul><li><code>-name "*.txt"</code>: nombre que coincide con el patrón.</li><li><code>-iname "*.TXT"</code>: igual, sin distinguir mayúsculas.</li><li><code>-type f</code>: solo ficheros; <code>-type d</code>: solo carpetas; <code>-type l</code>: enlaces.</li><li><code>-maxdepth 1</code>: no bajar más de un nivel.</li></ul>',
+                  ejemplo: ['find ~/proyecto', 'find ~/proyecto -name "*.txt"', 'find ~/proyecto -type d', 'find ~/proyecto -maxdepth 1 -type f'],
+                  mas: '<p>Las comillas evitan que la shell expanda el <code>*</code> antes de que lo reciba <code>find</code>. Son importantes.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Todos los .txt',
+                  pide: 'Busca en <code>~/proyecto</code> los ficheros cuyo nombre acabe en <code>.txt</code>.',
+                  ejemplo: 'find ~/proyecto -name "*.txt"',
+                  meta: { muestra: ['notas.txt', 'errores.txt', 'vacio.txt'], noMuestra: 'main.c' },
+                  pista: 'Usa <code>-name "*.txt"</code>.',
+                  error: 'Casi. Sería <code>find ~/proyecto -name "*.txt"</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo carpetas',
+                  pide: 'Muestra solo las carpetas que hay dentro de <code>~/proyecto</code>.',
+                  ejemplo: 'find ~/proyecto -type d',
+                  meta: { muestra: ['~/proyecto', '~/proyecto/src'], noMuestra: 'notas.txt' },
+                  pista: 'El criterio de tipo es <code>-type d</code>.',
+                  error: 'Casi. Sería <code>find ~/proyecto -type d</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué diferencia hay entre <code>-name</code> y <code>-iname</code>?',
+                  opciones: [
+                    { t: 'Que -iname no distingue mayúsculas de minúsculas.', ok: true, porque: 'La i significa <i>insensitive</i>.' },
+                    { t: 'Que -iname busca solo en la carpeta actual.', porque: 'Para limitar la profundidad está <code>-maxdepth</code>.' },
+                    { t: 'Que -name solo busca carpetas.', porque: 'El tipo se elige con <code>-type</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Tamaño, fechas y propietario',
+              resumen: '-size, -mtime, -user, -perm, -links, -inum y -empty',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/errores.txt': 'error 404\nTodo bien\nerror 500\n',
+                '~/proyecto/vacio.txt': '',
+                '~/proyecto/README': 'Instrucciones\n',
+                '~/proyecto/src': { tipo: 'dir' },
+                '~/proyecto/src/main.c': 'int main(){ return 0; }\n// TODO revisar\n',
+                '~/proyecto/src/util.c': 'void util(){}\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Tamaño y fechas',
+                  html: '<p><code>-size</code> compara tamaño. Sin sufijo cuenta bloques de 512 bytes; con <code>c</code> son bytes, con <code>k</code> KiB y con <code>M</code> MiB. Se puede pedir exacto (<code>-size 10c</code>), mayor (<code>+10c</code>) o menor (<code>-10c</code>).</p><p>Para fechas: <code>-mtime</code> (modificación), <code>-atime</code> (acceso) y <code>-ctime</code> (cambio), en días. <code>-mmin</code>, <code>-amin</code> y <code>-cmin</code> hacen lo mismo en minutos. <code>-newer fichero</code> compara con la fecha de otro fichero y <code>-newermt "ayer"</code> con una fecha escrita.</p>',
+                  ejemplo: ['find ~/proyecto -type f -empty', 'find ~/proyecto -type f -size +10c', 'find ~/proyecto -type f -mtime -1'],
+                  mas: '<p>Los signos se leen así: <code>+30</code> es «más de 30», <code>-30</code> es «menos de 30» y <code>30</code> es «exactamente 30».</p>'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Dueño, permisos y vínculos',
+                  html: '<p><code>-user usuario</code> filtra por propietario y <code>-group grupo</code> por grupo. <code>-perm 644</code> pide permisos exactos; <code>-perm -644</code> pide que estén incluidos y <code>-perm /111</code> que tengan algún bit de ejecución.</p><p><code>-links N</code> filtra por número de enlaces duros, <code>-inum N</code> por número de inodo y <code>-empty</code> por ficheros o carpetas vacías.</p>',
+                  ejemplo: ['find ~/proyecto -type f -user usuario', 'find ~/proyecto -type f -perm -644', 'find ~/proyecto -type f -links +1'],
+                  mas: '<p><code>-inum</code> es la forma de encontrar todos los enlaces duros de un mismo fichero: comparten inodo.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Ficheros vacíos',
+                  pide: 'Encuentra los ficheros vacíos dentro de <code>~/proyecto</code>.',
+                  ejemplo: 'find ~/proyecto -type f -empty',
+                  meta: { muestra: '~/proyecto/vacio.txt', noMuestra: 'notas.txt' },
+                  pista: 'El criterio es <code>-empty</code>, junto con <code>-type f</code>.',
+                  error: 'Casi. Sería <code>find ~/proyecto -type f -empty</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Más de 10 bytes',
+                  pide: 'Busca los ficheros de <code>~/proyecto</code> que pesen más de 10 bytes.',
+                  ejemplo: 'find ~/proyecto -type f -size +10c',
+                  meta: { muestra: ['notas.txt', 'errores.txt'], noMuestra: 'vacio.txt' },
+                  pista: 'Usa <code>-size +10c</code>.',
+                  error: 'Casi. Sería <code>find ~/proyecto -type f -size +10c</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué significa <code>-mtime +30</code>?',
+                  opciones: [
+                    { t: 'Modificados hace más de 30 días.', ok: true, porque: 'El signo + significa «más de».' },
+                    { t: 'Modificados hace menos de 30 días.', porque: 'Para «menos de» se usa <code>-30</code>.' },
+                    { t: 'Modificados hace exactamente 30 minutos.', porque: 'Para minutos está <code>-mmin</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Qué hacer con lo encontrado',
+              resumen: '-print, -ls, -exec, -ok y -print0',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/errores.txt': 'error 404\nTodo bien\nerror 500\n',
+                '~/proyecto/vacio.txt': '',
+                '~/proyecto/README': 'Instrucciones\n',
+                '~/proyecto/src': { tipo: 'dir' },
+                '~/proyecto/src/main.c': 'int main(){ return 0; }\n// TODO revisar\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Acciones de find',
+                  html: '<p>Por defecto <code>find</code> imprime las rutas, como si llevara <code>-print</code>. Puedes cambiarlo:</p><ul><li><code>-ls</code>: enseña la información detallada, como <code>ls -l</code>.</li><li><code>-exec comando {} \\;</code>: ejecuta el comando una vez por cada resultado. <code>{}</code> se sustituye por la ruta y el <code>\\;</code> cierra la orden.</li><li><code>-exec comando {} +</code>: agrupa muchos resultados en una sola ejecución.</li><li><code>-ok comando {} \\;</code>: como <code>-exec</code>, pero pregunta antes de cada uno.</li><li><code>-print0</code>: separa con un byte nulo, ideal para <code>xargs -0</code>.</li></ul>',
+                  ejemplo: ['find ~/proyecto -type f -name "*.txt" -ls', 'find ~/proyecto -type f -name "*.txt" -exec wc -l {} \\;'],
+                  mas: '<p>El <code>\\;</code> lleva barra para que la shell no lo confunda con el punto y coma que separa comandos.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Contar cada fichero',
+                  pide: 'Busca los <code>.txt</code> de <code>~/proyecto</code> y ejecuta <code>wc -l</code> con cada uno.',
+                  ejemplo: 'find ~/proyecto -type f -name "*.txt" -exec wc -l {} \\;',
+                  meta: { muestra: ['3 /home/usuario/proyecto/notas.txt', '3 /home/usuario/proyecto/errores.txt', '0 /home/usuario/proyecto/vacio.txt'] },
+                  pista: 'Añade <code>-exec wc -l {} \\;</code> al final.',
+                  error: 'Casi. Sería <code>find ~/proyecto -type f -name "*.txt" -exec wc -l {} \\;</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Borrar los vacíos',
+                  pide: 'Borra el fichero vacío que hay en <code>~/proyecto</code> usando <code>find</code> y <code>-exec</code>.',
+                  ejemplo: 'find ~/proyecto -type f -empty -exec rm {} \\;',
+                  meta: { noExiste: '~/proyecto/vacio.txt', existe: ['~/proyecto/notas.txt'] },
+                  pista: 'Primero encuentra con <code>-empty</code> y después añade <code>-exec rm {} \\;</code>.',
+                  error: 'Casi. Sería <code>find ~/proyecto -type f -empty -exec rm {} \\;</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué diferencia hay entre <code>-exec ... \\;</code> y <code>-exec ... +</code>?',
+                  opciones: [
+                    { t: 'Con + se agrupan varios resultados en una sola ejecución.', ok: true, porque: 'Eso lo hace más rápido cuando hay muchos ficheros.' },
+                    { t: 'Con + se pide confirmación antes de ejecutar.', porque: 'Para confirmar está <code>-ok</code>.' },
+                    { t: 'No hay diferencia: son sinónimos.', porque: 'Cambia cómo se pasan los argumentos al comando.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'tee',
+          titulo: 'Ver y guardar con tee',
+          resumen: 'tee y tee -a',
+          comando: 'tee',
+          rondas: [
+            {
+              titulo: 'La salida por duplicado',
+              resumen: 'Guardar sin perder lo que se ve',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\n',
+                '~/proyecto/errores.txt': 'error 404\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'tee escribe en pantalla y en fichero',
+                  html: '<p>Una redirección normal (<code>&gt;</code>) manda la salida solo al fichero. <code>tee</code> la enseña <b>y</b> la guarda: <code>ls ~/proyecto | tee lista.txt</code>.</p><p>Con <code>-a</code> añade al final en vez de sobrescribir: <code>... | tee -a lista.txt</code>. Y puedes pasar varios ficheros: <code>... | tee uno.txt dos.txt</code>.</p>',
+                  ejemplo: ['ls ~/proyecto | tee ~/proyecto/lista.txt', 'echo otra | tee -a ~/proyecto/lista.txt'],
+                  mas: '<p><code>tee</code> viene de la tubería en forma de T: la entrada se divide en dos salidas.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Guardar una lista',
+                  pide: 'Lista <code>~/proyecto</code> y guarda el resultado en <code>~/proyecto/lista.txt</code> sin dejar de verlo.',
+                  ejemplo: 'ls ~/proyecto | tee ~/proyecto/lista.txt',
+                  meta: { existe: '~/proyecto/lista.txt', muestra: ['notas.txt', 'errores.txt'], contenido: { '~/proyecto/lista.txt': 'errores.txt\nnotas.txt\n' } },
+                  pista: 'Es <code>ls ~/proyecto | tee ~/proyecto/lista.txt</code>.',
+                  error: 'Casi. Sería <code>ls ~/proyecto | tee ~/proyecto/lista.txt</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Añadir sin borrar',
+                  pide: 'Guarda <code>primera</code> en <code>~/registro.txt</code> y después añade <code>segunda</code> con <code>tee -a</code>.',
+                  ejemplo: 'echo primera | tee ~/registro.txt; echo segunda | tee -a ~/registro.txt',
+                  meta: { contenido: { '~/registro.txt': 'primera\nsegunda\n' } },
+                  pista: 'La segunda vez usa <code>tee -a ~/registro.txt</code>.',
+                  error: 'Casi. Sería <code>echo primera | tee ~/registro.txt; echo segunda | tee -a ~/registro.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>tee -a</code>?',
+                  opciones: [
+                    { t: 'Añade al final del fichero sin borrar lo anterior.', ok: true, porque: 'La a viene de <i>append</i>.' },
+                    { t: 'Borra el fichero antes de escribir.', porque: 'Eso es lo que hace <code>&gt;</code>.' },
+                    { t: 'Manda la salida solo al fichero.', porque: '<code>tee</code> siempre enseña y guarda.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'xargs',
+          titulo: 'Convertir líneas en argumentos',
+          resumen: 'xargs, -n, -I, -d y -0',
+          comando: 'xargs',
+          rondas: [
+            {
+              titulo: 'De la entrada a los argumentos',
+              resumen: 'El comando por defecto, -n, -I, -d, -0 y -t',
+              inicio: { base: 'vacio', fs: {
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/notas.txt': 'hola mundo\nAdios mundo\nOtra linea\n',
+                '~/proyecto/errores.txt': 'error 404\nTodo bien\nerror 500\n',
+                '~/proyecto/vacio.txt': ''
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'xargs lee y ejecuta',
+                  html: '<p><code>xargs</code> toma palabras de la entrada estándar y las pone como argumentos de otro comando. Si no le dices qué comando, usa <code>echo</code>: <code>echo "a b c d" | xargs</code> imprime <code>a b c d</code>.</p><ul><li><code>-n 2</code>: pasa como mucho dos argumentos por ejecución.</li><li><code>-I {}</code>: sustituye <code>{}</code> por cada elemento; sirve para comandos con dos argumentos.</li><li><code>-d ":"</code>: usa <code>:</code> como separador.</li><li><code>-0</code>: separa por byte nulo, para usar con <code>find -print0</code>.</li><li><code>-t</code>: enseña el comando que va a ejecutar.</li></ul>',
+                  ejemplo: ['echo "a b c d" | xargs -n 2', 'echo "a:b:c:d" | xargs -d : echo', 'find ~/proyecto -name "*.txt" -print0 | xargs -0 wc -l'],
+                  mas: '<p><code>xargs</code> es imprescindible cuando la lista es tan larga que no cabe en una línea de comandos o cuando los nombres llevan espacios.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Dos argumentos por línea',
+                  pide: 'Pasa <code>a b c d</code> a <code>xargs</code> y ejecuta el comando por defecto con dos argumentos cada vez.',
+                  ejemplo: 'echo "a b c d" | xargs -n 2',
+                  meta: { salida: 'a b\nc d' },
+                  pista: 'Es <code>echo "a b c d" | xargs -n 2</code>.',
+                  error: 'Casi. Sería <code>echo "a b c d" | xargs -n 2</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Separador personalizado',
+                  pide: 'Usa <code>:</code> como separador para convertir <code>a:b:c:d</code> en cuatro argumentos de <code>echo</code>.',
+                  ejemplo: 'echo "a:b:c:d" | xargs -d : echo',
+                  meta: { salida: 'a b c d' },
+                  pista: 'Añade <code>-d :</code> a <code>xargs echo</code>.',
+                  error: 'Casi. Sería <code>echo "a:b:c:d" | xargs -d : echo</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Nombres con espacios',
+                  pide: 'Cuenta las líneas de los <code>.txt</code> de <code>~/proyecto</code> usando <code>find -print0</code> y <code>xargs -0</code>.',
+                  ejemplo: 'find ~/proyecto -name "*.txt" -print0 | xargs -0 wc -l',
+                  meta: { muestra: ['3 /home/usuario/proyecto/notas.txt', '3 /home/usuario/proyecto/errores.txt', '0 /home/usuario/proyecto/vacio.txt'] },
+                  pista: 'Enlaza <code>find ... -print0</code> con <code>xargs -0 wc -l</code>.',
+                  error: 'Casi. Sería <code>find ~/proyecto -name "*.txt" -print0 | xargs -0 wc -l</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Para qué sirve <code>-I {}</code> en xargs?',
+                  opciones: [
+                    { t: 'Para sustituir {} por cada elemento en el comando.', ok: true, porque: 'Así puedes colocar el argumento donde quieras.' },
+                    { t: 'Para ignorar los errores.', porque: 'Eso no lo hace <code>-I</code>.' },
+                    { t: 'Para ordenar la entrada.', porque: 'Para ordenar está <code>sort</code>.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'locate',
+          titulo: 'El índice de locate',
+          resumen: 'locate, updatedb, -c, -i y --regex',
+          comando: 'locate',
+          rondas: [
+            {
+              titulo: 'Buscar sin recorrer el disco',
+              resumen: 'La base de datos de nombres',
+              inicio: { base: 'vacio', fs: {
+                '~/Documentos': { tipo: 'dir' },
+                '~/Documentos/nota.txt': 'una nota\n',
+                '~/Documentos/Apuntes.txt': 'apuntes\n',
+                '~/proyecto': { tipo: 'dir' },
+                '~/proyecto/src': { tipo: 'dir' },
+                '~/proyecto/src/main.c': 'int main(){}\n'
+              } },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'locate consulta un índice',
+                  html: '<p><code>find</code> recorre el disco cada vez. <code>locate</code> consulta una base de datos de nombres que se actualiza con <code>updatedb</code>. Por eso es casi instantáneo, pero puede no ver un fichero recién creado hasta la siguiente actualización.</p><p>Opciones:</p><ul><li><code>-c</code>: cuenta los resultados.</li><li><code>-i</code>: ignora mayúsculas.</li><li><code>--regex</code>: usa una expresión regular.</li><li>Los comodines <code>*</code> y <code>?</code> funcionan en el patrón.</li></ul>',
+                  ejemplo: ['updatedb', 'locate nota.txt', 'locate -c txt', 'locate -i apuntes', 'locate --regex ".*\\.txt$"'],
+                  mas: '<p><code>locate</code> busca en la ruta completa, no solo en el nombre. Por eso <code>locate bin/wc</code> encuentra el ejecutable.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Encontrar una nota',
+                  pide: 'Busca con <code>locate</code> el fichero <code>nota.txt</code>.',
+                  ejemplo: 'locate nota.txt',
+                  meta: { muestra: '~/Documentos/nota.txt' },
+                  pista: 'Es <code>locate nota.txt</code>.',
+                  error: 'Casi. Sería <code>locate nota.txt</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Sin importar mayúsculas',
+                  pide: 'Busca <code>apuntes</code> aunque el fichero se llame <code>Apuntes.txt</code>.',
+                  ejemplo: 'locate -i apuntes',
+                  meta: { muestra: '~/Documentos/Apuntes.txt' },
+                  pista: 'Añade <code>-i</code>.',
+                  error: 'Casi. Sería <code>locate -i apuntes</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Contar resultados',
+                  pide: 'Cuenta cuántas rutas contienen <code>txt</code>.',
+                  ejemplo: 'locate -c txt',
+                  meta: { salida: '2' },
+                  pista: 'Es <code>locate -c txt</code>.',
+                  error: 'Casi. Sería <code>locate -c txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>updatedb</code>?',
+                  opciones: [
+                    { t: 'Actualiza la base de datos que consulta locate.', ok: true, porque: 'Sin actualizar, locate puede no ver los ficheros nuevos.' },
+                    { t: 'Borra todos los ficheros duplicados.', porque: 'No borra nada: solo genera el índice.' },
+                    { t: 'Busca un fichero en todo el disco.', porque: 'Eso lo hace <code>locate</code>.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          id: 'which',
+          titulo: '¿Dónde está el programa?',
+          resumen: 'which y whereis',
+          comando: 'which',
+          rondas: [
+            {
+              titulo: 'Ejecutables, manuales y fuentes',
+              resumen: 'which y whereis con -b, -m y -s',
+              inicio: { base: 'completo' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'which y whereis buscan programas',
+                  html: '<p><code>which grep</code> dice qué ejecutable se usaría al escribir <code>grep</code>, mirando las carpetas del <code>PATH</code>.</p><p><code>whereis grep</code> busca más cosas: el binario y su página de manual. Puedes limitarlo con <code>-b</code> (solo binarios), <code>-m</code> (solo manuales) y <code>-s</code> (solo fuentes).</p>',
+                  ejemplo: ['which grep', 'whereis grep', 'whereis -b grep', 'whereis -m grep'],
+                  mas: '<p>Si <code>which</code> no encuentra nada, el comando no está en el <code>PATH</code> o no está instalado. <code>locate</code> busca ficheros por nombre; <code>which</code> busca programas ejecutables.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'El ejecutable de grep',
+                  pide: 'Averigua con <code>which</code> dónde está el ejecutable de <code>grep</code>.',
+                  ejemplo: 'which grep',
+                  meta: { salida: '/usr/bin/grep' },
+                  pista: 'Es <code>which grep</code>.',
+                  error: 'Casi. Sería <code>which grep</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo el binario',
+                  pide: 'Pregunta a <code>whereis</code> por <code>grep</code>, pero muestra solo la ruta del binario.',
+                  ejemplo: 'whereis -b grep',
+                  meta: { salida: 'grep: /usr/bin/grep' },
+                  pista: 'La opción de binarios es <code>-b</code>.',
+                  error: 'Casi. Sería <code>whereis -b grep</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo el manual',
+                  pide: 'Muestra solo la página de manual de <code>grep</code>.',
+                  ejemplo: 'whereis -m grep',
+                  meta: { salida: 'grep: /usr/share/man/man1/grep.1.gz' },
+                  pista: 'La opción de manuales es <code>-m</code>.',
+                  error: 'Casi. Sería <code>whereis -m grep</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué busca <code>which</code>?',
+                  opciones: [
+                    { t: 'Un ejecutable dentro de las carpetas del PATH.', ok: true, porque: 'Es lo que se ejecuta al escribir ese nombre.' },
+                    { t: 'Cualquier fichero con ese nombre en todo el disco.', porque: 'Para eso está <code>locate</code> o <code>find</code>.' },
+                    { t: 'El contenido de un fichero.', porque: 'Para mirar contenido está <code>cat</code> o <code>grep</code>.' }
                   ]
                 }
               ]
