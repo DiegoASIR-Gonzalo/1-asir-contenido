@@ -60,7 +60,8 @@
     lupa: svg('<circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L21 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
     grafico: svg('<path d="M5 20V10M10 20V4M15 20v-7M20 20V7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'),
     descargar: svg('<path d="M12 3v12M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
-    subir: svg('<path d="M12 17V5M7 10l5-5 5 5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')
+    subir: svg('<path d="M12 17V5M7 10l5-5 5 5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+    corona: svg('<path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M6 20h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>')
   };
   const PINGUINO = '<svg class="av-svg av-pinguino" viewBox="0 0 64 64" aria-hidden="true">' +
     '<ellipse cx="32" cy="35" rx="19" ry="25" fill="#2b2330"/>' +
@@ -87,6 +88,7 @@
   function normalizarDatos(g) {
     const base = {
       version: 3, xp: 0, racha: { dias: 0, ultima: '' }, lecciones: {}, retos: {},
+      modoRey: false,
       stats: { intentos: 0, aciertos: 0, primerIntento: 0, primerAcierto: 0, tests: 0, testsOk: 0, ayudas: 0, segundos: 0 }
     };
     if (g && typeof g === 'object') {
@@ -94,6 +96,7 @@
       base.racha = { dias: Math.max(0, Number(g.racha && g.racha.dias) || 0), ultima: String((g.racha && g.racha.ultima) || '') };
       base.lecciones = (g.lecciones && typeof g.lecciones === 'object') ? g.lecciones : {};
       base.retos = (g.retos && typeof g.retos === 'object') ? g.retos : {};
+      base.modoRey = !!g.modoRey;
       base.stats = Object.assign(base.stats, (g.stats && typeof g.stats === 'object') ? g.stats : {});
     }
     // Se ignoran ids que ya no existen (contenido retirado) y se migra el
@@ -172,8 +175,9 @@
   };
   const estaHecha = id => !!TODOS[id] && rondasHechas(id) >= TODOS[id].rondas.length;
   const mundoHecho = i => mundoDe(i).lecciones.every(l => estaHecha(l.id));
-  const mundoAbierto = i => i === 0 || mundoHecho(i - 1);
-  const leccionAbierta = (i, j) => mundoAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id));
+  const modoRey = () => !!av.modoRey;
+  const mundoAbierto = i => modoRey() || i === 0 || mundoHecho(i - 1);
+  const leccionAbierta = (i, j) => modoRey() || (mundoAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id)));
   const totalLecciones = Object.keys(TODOS).length;
   const hechas = () => Object.keys(TODOS).filter(estaHecha).length;
   const rondasTotalesHechas = () => Object.keys(TODOS).reduce((s, id) => s + rondasHechas(id), 0);
@@ -198,7 +202,7 @@
   }
 
   function sumarXp(n) {
-    if (!n) return;
+    if (!n || modoRey()) return 0;
     av.xp = Math.max(0, (av.xp || 0) + n);
     guardar();
     pintarCabecera();
@@ -208,6 +212,7 @@
       void pill.offsetWidth;   // reinicia la animación sin recrear el elemento
       pill.classList.add('av-pop');
     }
+    return n;
   }
 
   /* ---------------- Interfaz: se crea una sola vez ---------------- */
@@ -391,7 +396,7 @@
     const retosHechos = DATOS.mundos.filter(m => av.retos[m.id] && av.retos[m.id].hecho).length;
 
     let html =
-      '<div class="av-mapa">' +
+      '<div class="av-mapa' + (modoRey() ? ' av-mapa--rey' : '') + '">' +
         '<section class="av-hero">' +
           '<div class="av-hero-cab">' +
             '<span class="av-hero-mascota" aria-hidden="true">' + PINGUINO + '</span>' +
@@ -405,6 +410,9 @@
             : (retosHechos < DATOS.mundos.length
               ? 'Has completado todos los nodos. Cada mundo tiene un reto final que mezcla lo aprendido, con menos pistas. No resta puntos: solo comprueba si de verdad te lo sabes.'
               : 'Has completado todos los nodos y todos los retos. Puedes repetir cualquiera cuando quieras: no se borra nada.')) + '</p>' +
+          (modoRey()
+            ? '<p class="av-rey-aviso">' + ICO.corona + '<span><b>Modo rey activo.</b> Puedes abrir cualquier mundo, nodo, ronda o reto sin desbloquearlo. En este modo no se ganan puntos, pero sí se guarda lo que completes.</span></p>'
+            : '') +
           '<div class="av-datos">' +
             '<span class="av-dato">' + ICO.estrella + ' <b>' + (av.xp || 0) + '</b> pts</span>' +
             '<span class="av-dato">' + ICO.fuego + ' <b>' + (av.racha.dias || 0) + '</b> ' + (av.racha.dias === 1 ? 'día' : 'días') + '</span>' +
@@ -428,7 +436,9 @@
       const estado = !abierto ? 'bloqueado' : (listos === m.lecciones.length ? 'hecho' : 'actual');
       const tieneProgreso = listos > 0 || !!(av.retos[m.id] && av.retos[m.id].hecho);
       const reto = av.retos[m.id];
-      const retoListo = listos === m.lecciones.length;
+      const retoCompleto = listos === m.lecciones.length;
+      const retoHecho = !!(reto && reto.hecho);
+      const retoListo = abierto && (modoRey() || retoCompleto || retoHecho);
       html +=
         '<li class="av-mundo" data-estado="' + estado + '">' +
           '<div class="av-mundo-cab">' +
@@ -452,11 +462,12 @@
         const subnodos = l.rondas.map((r, k) => {
           const hechaR = hechaL || k < hechasL;
           const actualR = !hechaL && abiertaL && k === hechasL;
-          const estadoR = hechaR ? 'hecha' : (actualR ? 'actual' : 'bloqueada');
-          const abiertaR = abiertaL && (hechaR || actualR);
+          const reyR = modoRey() && !hechaR && !actualR;
+          const estadoR = hechaR ? 'hecha' : (actualR ? 'actual' : (reyR ? 'rey' : 'bloqueada'));
+          const abiertaR = modoRey() || (abiertaL && (hechaR || actualR));
           const etiquetaR = 'Ronda ' + (k + 1) + ' de ' + total + ': ' + r.titulo + '. ' + r.resumen +
-            (hechaR ? '. Ya hecha: pulsa para repasarla.' : (actualR ? '. Es tu siguiente ronda.' : '. Bloqueada.'));
-          const estadoTxt = hechaR ? 'Hecha' : (actualR ? 'Ahora' : 'Bloqueada');
+            (hechaR ? '. Ya hecha: pulsa para repasarla.' : (actualR ? '. Es tu siguiente ronda.' : (reyR ? '. Abierta con Modo rey.' : '. Bloqueada.')));
+          const estadoTxt = hechaR ? 'Hecha' : (actualR ? 'Ahora' : (reyR ? 'Modo rey' : 'Bloqueada'));
           const iconoR = abiertaR ? (hechaR ? ICO.check : ICO.play) : ICO.candado;
           return '<li class="av-subnodo-fila">' +
             '<button class="av-subnodo av-subnodo--' + estadoR + '" type="button"' +
@@ -498,7 +509,8 @@
             '<b>Reto · ' + m.titulo + '</b>' +
             '<small>' + (reto && reto.hecho
               ? 'Superado' + (reto.aciertos != null ? ' · ' + reto.aciertos + '/' + reto.total + ' a la primera' : '') + '. Puedes repetirlo.'
-              : (retoListo ? 'Mezcla lo aprendido en este mundo. Sin castigo y con menos pistas.' : 'Se abre al completar los ' + m.lecciones.length + ' nodos del mundo.')) + '</small>' +
+              : (retoCompleto ? 'Mezcla lo aprendido en este mundo. Sin castigo y con menos pistas.'
+                : (modoRey() ? 'Disponible con Modo rey. No da puntos.' : 'Se abre al completar los ' + m.lecciones.length + ' nodos del mundo.'))) + '</small>' +
           '</div>' +
           '<button class="av-btn ' + (retoListo ? 'av-btn--principal' : 'av-btn--fantasma') + ' av-reto-btn" type="button"' +
             ' data-reto="' + i + '"' + (retoListo ? '' : ' disabled aria-disabled="true"') + '>' +
@@ -515,6 +527,10 @@
         '<button class="av-enlace" type="button" id="av-importar">' + ICO.subir + ' Importar</button>' +
         '<span class="av-pie-sep" aria-hidden="true">·</span>' +
         '<button class="av-enlace" type="button" id="av-reiniciar">Reiniciar aventura y borrar el progreso</button>' +
+        '<span class="av-pie-sep" aria-hidden="true">·</span>' +
+        '<button class="av-enlace av-enlace--rey" type="button" id="av-modo-rey" aria-pressed="' + modoRey() + '">' +
+          ICO.corona + ' ' + (modoRey() ? 'Salir del Modo rey' : 'Modo rey') +
+        '</button>' +
       '</div>' +
       '<p class="av-pie-nota" id="av-pie-nota" hidden></p>' +
       '<input type="file" id="av-archivo" accept="application/json,.json" hidden>' +
@@ -534,12 +550,23 @@
     byId('av-importar').onclick = () => byId('av-archivo').click();
     byId('av-archivo').onchange = importarProgreso;
     byId('av-reiniciar').onclick = () => {
-      if (!window.confirm('¿Borrar el progreso de la aventura (rondas, puntos, retos, estadísticas y racha)?')) return;
+      const extra = modoRey() ? '\n\nTambién se desactivará el Modo rey.' : '';
+      if (!window.confirm('¿Borrar el progreso de la aventura (rondas, puntos, retos, estadísticas y racha)?' + extra)) return;
       av.xp = 0; av.racha = { dias: 0, ultima: '' }; av.lecciones = {}; av.retos = {};
+      av.modoRey = false;
       av.stats = { intentos: 0, aciertos: 0, primerIntento: 0, primerAcierto: 0, tests: 0, testsOk: 0, ayudas: 0, segundos: 0 };
       guardar();
       pintar();
       decir('Progreso de la aventura borrado.');
+    };
+    byId('av-modo-rey').onclick = () => {
+      av.modoRey = !modoRey();
+      guardar();
+      pintar();
+      notaPie(av.modoRey
+        ? 'Modo rey activado: todos los niveles abiertos y sin puntos.'
+        : 'Modo rey desactivado.');
+      decir(av.modoRey ? 'Modo rey activado.' : 'Modo rey desactivado.');
     };
     cuerpo.querySelectorAll('[data-world-reset]').forEach(b => {
       b.onclick = () => reiniciarMundo(Number(b.dataset.worldReset));
@@ -599,6 +626,7 @@
         '<p class="av-kicker">Tu recorrido</p>' +
         '<h2 class="av-titulo">Estadísticas</h2>' +
         '<p class="av-panel-texto">Solo cuenta lo que haces en este navegador. Aquí no se resta nada: los fallos son intentos, no castigos.</p>' +
+        (modoRey() ? '<p class="av-rey-aviso av-rey-aviso--panel">' + ICO.corona + '<span><b>Modo rey activo:</b> las rondas y retos completados sí cuentan, pero no suman puntos.</span></p>' : '') +
         '<div class="av-stats-grid">' +
           tarjeta(ICO.estrella, av.xp || 0, 'puntos', 'Se ganan con cada ronda y reto.') +
           tarjeta(ICO.libro, nHechas + ' / ' + totalLecciones, 'nodos completados', 'Cada comando es un nodo.') +
@@ -878,7 +906,8 @@
   }
 
   function abrirExamen(i) {
-    if (!mundoAbierto(i) || !mundoHecho(i)) return;
+    const hecho = !!(av.retos[mundoDe(i).id] && av.retos[mundoDe(i).id].hecho);
+    if (!modoRey() && (!mundoAbierto(i) || (!mundoHecho(i) && !hecho))) return;
     const def = construirExamen(i);
     if (!def.rondas.length) return;
     retoActual = { i: i, aciertos: 0 };
@@ -935,6 +964,7 @@
       av.racha = nuevo.racha;
       av.lecciones = nuevo.lecciones;
       av.retos = nuevo.retos;
+      av.modoRey = nuevo.modoRey;
       av.stats = nuevo.stats;
       guardar();
       lec = null;
@@ -988,7 +1018,8 @@
       '<span class="av-chip av-chip--suave">' + escapar(lec.def.titulo) + '</span>' +
       '<span class="av-chip av-chip--ronda">' + (lec.examen ? 'Ejercicio ' : 'Ronda ') + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length + '</span>' +
       (lec.examen ? '<span class="av-chip av-chip--reto">Reto</span>' : '') +
-      (lec.repaso ? '<span class="av-chip av-chip--repaso">Repaso</span>' : '');
+      (lec.repaso ? '<span class="av-chip av-chip--repaso">Repaso</span>' : '') +
+      (modoRey() ? '<span class="av-chip av-chip--rey">' + ICO.corona + ' Modo rey</span>' : '');
   };
 
   /* ---- Pantalla: lección ---- */
@@ -1354,8 +1385,9 @@
       cuenta('aciertos');
       if (lec.intentos === 1 && lec.ayuda === 0) cuenta('primerAcierto');
       const gana = lec.ayuda > 0 ? 6 : 10;
-      if (!lec.repaso) { lec.xp += gana; sumarXp(gana); }
-      celebrar(lec.repaso ? 0 : gana, false);
+      const puntos = lec.repaso ? 0 : sumarXp(gana);
+      lec.xp += puntos;
+      celebrar(puntos, false);
       decir('¡Correcto!');
     } else {
       const ejecutado = r.code === 0 || !!p.toleraError;
@@ -1441,8 +1473,9 @@
         else cuenta('primerIntento');
       }
       const gana = lec.ayuda > 0 ? 6 : 10;
-      if (!lec.repaso) { lec.xp += gana; sumarXp(gana); }
-      celebrar(lec.repaso ? 0 : gana, false);
+      const puntos = lec.repaso ? 0 : sumarXp(gana);
+      lec.xp += puntos;
+      celebrar(puntos, false);
       decir('¡Atajo correcto!');
       pintar();
       const sig = byId('av-sig');
@@ -1501,8 +1534,10 @@
     if (o.ok) {
       lec.acierto = true;
       lec.explica = o.porque;
-      if (!lec.repaso) { lec.xp += 5; sumarXp(5); cuenta('testsOk'); }
-      celebrar(lec.repaso ? 0 : 5, false);
+      const puntos = lec.repaso ? 0 : sumarXp(5);
+      lec.xp += puntos;
+      if (!lec.repaso) cuenta('testsOk');
+      celebrar(puntos, false);
       decir('¡Correcto! ' + limpiar(o.porque));
     } else {
       lec.testFallos++;
@@ -1602,8 +1637,7 @@
           fecha: fecha(new Date())
         };
       }
-      lec.xp += gana;
-      sumarXp(gana);
+      lec.xp += sumarXp(gana);
       guardar();
       celebrar(0, ultima && !sinMovimiento);
       montada = null;
@@ -1627,8 +1661,7 @@
     let gana = 0;
     if (!lec.repaso) gana += 10;                       // ronda terminada
     if (!lec.repaso && nuevas >= total) gana += 30;    // nodo dominado
-    lec.xp += gana;
-    if (gana) sumarXp(gana);
+    lec.xp += sumarXp(gana);
     if (!lec.repaso && ultima) tocarRacha();
     guardar();
 
@@ -1668,7 +1701,7 @@
             '</div>') +
         '<p class="av-kicker">' + kicker + '</p>' +
         '<h2 class="av-titulo">' + titulo + '</h2>' +
-        '<p class="av-fin-xp">' + (lec.xp ? '+' + lec.xp + ' ' + ICO.estrella : 'Repaso: sin puntos nuevos') + '</p>' +
+        '<p class="av-fin-xp">' + (lec.xp ? '+' + lec.xp + ' ' + ICO.estrella : (modoRey() ? 'Modo rey: sin puntos' : 'Repaso: sin puntos nuevos')) + '</p>' +
         '<p class="av-fin-ronda">' + (esReto
           ? 'Has superado el reto de <b>Mundo ' + (lec.i + 1) + ' · ' + escapar(mundo.titulo) + '</b> con <b>' + hechasNodo + ' de ' + total + '</b> a la primera. Los fallos no restan: solo te dicen qué conviene repasar.'
           : (lec.examen
@@ -1715,7 +1748,7 @@
     };
     byId('av-sig').focus();
     cuerpo.scrollTop = 0;
-    decir(kicker + '. ' + (lec.xp ? 'Has ganado ' + lec.xp + ' puntos.' : ''));
+    decir(kicker + '. ' + (lec.xp ? 'Has ganado ' + lec.xp + ' puntos.' : (modoRey() ? 'Modo rey: sin puntos.' : '')));
   }
 
   /* ---- Saltar el foco dentro de la ventana ---- */
