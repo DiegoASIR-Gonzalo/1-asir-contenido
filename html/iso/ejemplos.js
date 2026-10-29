@@ -220,6 +220,34 @@ const GRUPOS = [
     ]}
   ]},
 
+  { titulo:"Busqueda de Ficheros", comandos:[
+    { nombre:"find", resumen:"Buscar archivos", diapositivas:[
+      { pasos:[
+          { cmd:"find /home/usuario/Prueba -name ʺ*.txtʺ", out:'/home/usuario/Prueba/fich-4.txt\n/home/usuario/Prueba/fich-5.txt\n/home/usuario/Prueba/fich-1.txt\n/home/usuario/Prueba/fich-3.txt\n/home/usuario/Prueba/fich-7.txt'}
+        ],
+        exp:'<h3>find</h3><p>Comando que nos servira para buscar ficheros con diferentes parametros que nos permite hacer busquedas más complejas.</p>' },
+      { pasos:[
+          { cmd:"find . -type f -name ʺ*.jpgʺ", out:'./PruebasComandos/ficha.jpg\n./PruebasComandos/fichb.jpg\n./PruebasComandos/fichb.jpg'},
+          { cmd:"find /home/usuario/Descargas -size +100k -ls", out:'  9179683    332 -rw-rw-r--   1 usuario  usuario    337292 oct 29 08:22 /home/usuario/Descargas/02\ -\ Estructuras\ selectivas.pdf\n9180817    344 -rw-rw-r--   1 usuario  usuario    350461 sep 22 10:25 /home/usuario/Descargas/tema0breve\ historia\ de\ las\ comunicaciones1213.pdf\n1062560   1880 -rw-rw-r--   1 usuario  usuario   1922497 oct 28 14:04 /home/usuario/Descargas/1-asir-contenido-main/pdfs/UD2_BD.pdf'},
+        ],
+        exp:'<h3>find | Parametros</h3><p>Podemos usar diferentes parametros con este comandos como:<p><ul><li><code>-name</code> = Para buscar por un nombre en especifico.<li><code>-iname</code> = Lo mismo pero omitiendo si es mayuscula o minuscula<li><code>-type</code> = Para especificar el tipo de fichero, tenemos desde tipo de bloque, directorio, ordinario, simbolico, etc...<li><code>-user</code> = Busca por propietario de usuario (lo mismo se haría con <code>-group</code> pero con un grupo.</li><li><code>-size</code> = Busqueda por tamaño</ul></p>' },
+      { pasos:[
+          { cmd:"find /home/usuario/Descargas/ -type f -a -size +500M -ls", out:'  9181023 787460 -rw-rw-r--   1 libvirt-qemu libvirt-qemu 806354944 sep 17 14:29 /home/usuario/Descargas/debian-trixie-DI-rc1-amd64-netinst.iso\n  9188911 4936856 -rw-rw-r--   1 libvirt-qemu libvirt-qemu 5055336448 oct  7 14:13 /home/usuario/Descargas/wserver22.iso'},
+          { cmd:"find . -type l -o -type d -ls", out:'  9175056      4 drwxr-xr-x   4 usuario  usuario      4096 oct 29 09:22 /home/usuario/Descargas/\n  1062476      4 drwxrwxr-x   5 usuario  usuario      4096 oct 28 14:04 /home/usuario/Descargas/1-asir-contenido-main\n  1062495      4 drwxrwxr-x   3 usuario  usuario      4096 oct 28 14:04 /home/usuario/Descargas/1-asir-contenido-main/docs'},
+          { cmd:"find /home/usuario/Descargas/ ! -name ”p*” -print", out:'/home/usuario/Descargas/\n/home/usuario/Descargas/02 - Estructuras selectivas.pdf\n/home/usuario/Descargas/tema0breve historia de las comunicaciones1213.pdf\n/home/usuario/Descargas/Practica_DML_Mensajeria_Streaming_26-27.pdf'}
+        ],
+        exp:'<h3>find | Criterios</h3><p>Podemos buscar con unos criterios especificos como:<ul><li>AND (<code>-a</code> y tambien <code>-and</code>) = Como en Python es un operador lógico.</li><li>OR (<code>-o</code> y tambien <code>-or</code>)</li><li>NOT (<code>-not</code>)</li></ul></p>' }
+    ]},
+    { nombre:"Ejemplo 2", resumen:"", diapositivas:[
+      { pasos:[
+          { cmd:"cd Prueba", out:'', ruta:'~/Prueba'},
+          { cmd:"touch fich-{1..10}.txt", out:''},
+          { cmd:"ls", out:'fich-10.txt  fich-2.txt  fich-4.txt  fich-6.txt  fich-8.txt\nfich-1.txt   fich-3.txt  fich-5.txt  fich-7.txt  fich-9.txt' }
+        ],
+        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>No es muy complicado ya que únicamente usamos los simbolos <code>{ }</code> para poder crear varios ficheros de golpe.</p>' }
+    ]}
+  ]},
+
   { titulo:"Varios Comandos", comandos:[
     { nombre:"SoftLink", resumen:"Accesos Directos", diapositivas:[
       { pasos:[
