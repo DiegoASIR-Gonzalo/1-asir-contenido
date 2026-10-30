@@ -318,7 +318,7 @@
   .act-item.hecha .act-num{animation:palomita .55s ease}
   @media (prefers-reduced-motion:reduce){.act-fx,.act-mas{display:none}}
 
-  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}.aviso,.ventana{transition:none}}
+  @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}.aviso,.ventana{transition:none}.globo,.cmd{transition:none}}
 </style>
 <!-- Aventura guiada: pantalla completa con lecciones cortas (contenido en aventura/aventura-datos.js) -->
 <link rel="stylesheet" href="aventura/aventura.css">
@@ -648,16 +648,18 @@ async function pintar(){
   const instantaneo = reducido || ajustes.vel === 0;
   const p = $('pantalla'); let hecho = '', ruta = '~';
   for (const paso of pasos){
+    ocultarGlobo();
     p.innerHTML = hecho + promptHtml(ruta) + '<span id="tec"></span><span class="cursor"></span>';
     const tec = $('tec');
     if (instantaneo) tec.textContent = paso.cmd;
     else for (const ch of paso.cmd){ if (mio !== turno) return; tec.textContent += ch; await espera(ajustes.vel); }
-    hecho += promptHtml(ruta) + esc(paso.cmd) + '\n' + (paso.out ? paso.out + '\n' : '');
+    hecho += promptHtml(ruta) + comandoHtml(paso, esc) + '\n' + (paso.out ? paso.out + '\n' : '');
     if (paso.ruta) ruta = paso.ruta;
     p.innerHTML = hecho; p.scrollTop = p.scrollHeight;
     if (!instantaneo){ await espera(350); } // pausa entre comandos de la cadena
     if (mio !== turno) return;
   }
+  ocultarGlobo();
   p.innerHTML = hecho + promptHtml(ruta) + '<span class="cursor"></span>';
   p.scrollTop = p.scrollHeight;
   if (mio === turno) $('anuncio').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' de ' + cm.nombre + ', diapositiva ' + (s + 1) + ' de ' + cm.diapositivas.length + '.';
