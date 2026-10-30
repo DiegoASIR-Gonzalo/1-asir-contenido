@@ -178,6 +178,10 @@
   const modoRey = () => !!av.modoRey;
   const mundoAbierto = i => modoRey() || i === 0 || mundoHecho(i - 1);
   const leccionAbierta = (i, j) => modoRey() || (mundoAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id)));
+  // Sin contar el Modo rey: sirve para marcar cuál sería el siguiente nodo/ronda
+  // de verdad. Así el mapa sigue teniendo un solo "Ahora" y el resto se ve en amarillo.
+  const mundoBaseAbierto = i => i === 0 || mundoHecho(i - 1);
+  const leccionBaseAbierta = (i, j) => mundoBaseAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id));
   const totalLecciones = Object.keys(TODOS).length;
   const hechas = () => Object.keys(TODOS).filter(estaHecha).length;
   const rondasTotalesHechas = () => Object.keys(TODOS).reduce((s, id) => s + rondasHechas(id), 0);
@@ -454,14 +458,15 @@
         const hechasL = rondasHechas(l.id);
         const hechaL = hechasL >= total;
         const abiertaL = leccionAbierta(i, j);
-        const clase = hechaL ? 'hecha' : (abiertaL ? 'actual' : 'bloqueada');
+        const baseAbiertaL = leccionBaseAbierta(i, j);
+        const clase = hechaL ? 'hecha' : (baseAbiertaL ? 'actual' : (abiertaL ? 'rey' : 'bloqueada'));
         const icono = hechaL ? ICO.check : (abiertaL ? ICO.play : ICO.candado);
         const etiqueta = abiertaL
           ? (hechaL ? 'Repasar ' : (hechasL ? 'Continuar ' : 'Empezar ')) + l.titulo + '. ' + hechasL + ' de ' + total + ' rondas.'
           : 'Nodo bloqueado: ' + l.titulo;
         const subnodos = l.rondas.map((r, k) => {
           const hechaR = hechaL || k < hechasL;
-          const actualR = !hechaL && abiertaL && k === hechasL;
+          const actualR = !hechaL && baseAbiertaL && k === hechasL;
           const reyR = modoRey() && !hechaR && !actualR;
           const estadoR = hechaR ? 'hecha' : (actualR ? 'actual' : (reyR ? 'rey' : 'bloqueada'));
           const abiertaR = modoRey() || (abiertaL && (hechaR || actualR));

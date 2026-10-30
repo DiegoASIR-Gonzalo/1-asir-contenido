@@ -423,6 +423,9 @@ details.av-porque[open] summary::before{content:"−"}
   box-shadow:0 4px 0 #8a2c0c,0 0 0 6px rgba(195,65,19,.16);
   animation:av-latido 2.6s ease-in-out infinite;
 }
+.av-nodo--rey .av-nodo-circulo{
+  background:rgba(246,211,45,.1);border-color:rgba(246,211,45,.45);color:#f6d32d;
+}
 .av-nodo--hecha .av-nodo-circulo{
   background:#2e9e5b;border-color:#7fd3a0;box-shadow:0 4px 0 #1c6038;
 }

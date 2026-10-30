@@ -286,7 +286,97 @@ comprobar(() => {
   assert(!e.fs['/home/usuario/vacia'], 'rmdir debe borrar la carpeta vacía');
 }, 'rmdir');
 
-/* ---------- 8) Resultado ---------- */
+/* ---------- 8) Motor ampliado: redirecciones, fechas y permisos ---------- */
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio: { base:'vacio', fs:{ '~/a.txt':'uno\ndos\ntres\n' } } });
+  assert.strictEqual(ctx.ejecutarLinea(e, 'wc -l < a.txt').out.trim(), '3', 'la entrada redirigida debe leerse del fichero');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'cat < a.txt').out, 'uno\ndos\ntres\n', 'cat < fichero debe mostrar su contenido');
+  assert.notStrictEqual(ctx.ejecutarLinea(e, 'cat < noexiste').code, 0, 'un fichero de entrada inexistente debe fallar');
+}, 'redirección de entrada <');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  ctx.ejecutarLinea(e, 'ls noexiste > todo.log 2>&1');
+  const todo = e.fs['/home/usuario/todo.log'];
+  assert(todo && /No such file/.test(todo.contenido), '> f 2>&1 debe guardar también los errores');
+  ctx.ejecutarLinea(e, 'ls noexiste &> ambos.log');
+  assert(/No such file/.test(e.fs['/home/usuario/ambos.log'].contenido), '&> debe guardar salida y errores');
+  ctx.ejecutarLinea(e, 'ls noexiste 2>> ambos.log');
+  const lineas = e.fs['/home/usuario/ambos.log'].contenido.trim().split('\n');
+  assert.strictEqual(lineas.length, 2, '2>> debe añadir sin borrar');
+}, 'redirecciones 2>&1, &> y 2>>');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  const r = ctx.ejecutarLinea(e, 'ls noexiste 2> /dev/null');
+  assert.strictEqual(r.err, '', '2> /dev/null debe descartar el error');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'ls > /dev/null').out, '', '> /dev/null debe descartar la salida');
+  assert(!e.fs['/dev/null'], 'no debe crearse un fichero /dev/null');
+}, '/dev/null');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  const p = n => String(n).padStart(2, '0');
+  const manana = new Date(); manana.setDate(manana.getDate() + 1);
+  const esperado = manana.getFullYear() + '-' + p(manana.getMonth() + 1) + '-' + p(manana.getDate());
+  assert.strictEqual(ctx.ejecutarLinea(e, 'date -d tomorrow +%F').out, esperado, 'date -d tomorrow debe sumar un día');
+  assert(/^(domingo|lunes|martes|miércoles|jueves|viernes|sábado)$/.test(ctx.ejecutarLinea(e, 'date +%A').out), 'date +%A debe dar el día de la semana');
+  assert(/^\d{2}$/.test(ctx.ejecutarLinea(e, 'date +%H').out), 'date +%H debe dar la hora');
+  assert(/^\d{2}$/.test(ctx.ejecutarLinea(e, 'date +%M').out), 'date +%M debe dar los minutos');
+}, 'date con formatos y -d');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ fs:{ '~/lista':'c 3\na 10\nb 2\n' } } });
+  assert.strictEqual(ctx.ejecutarLinea(e, 'sort -k2 -n lista').out, 'b 2\nc 3\na 10', 'sort -k2 -n debe ordenar por el campo 2');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'sort -r -k1 lista').out, 'c 3\nb 2\na 10', 'sort -r debe invertir');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'sort -k2 -n -t " " lista').out.split('\n')[0], 'b 2', 'sort -t debe usar el separador');
+}, 'sort por campos');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio', fs:{ '~/d/x':'x\n' } } });
+  ctx.ejecutarLinea(e, 'touch f');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'chmod ug+rw f').code, 0, 'chmod debe aceptar varios sujetos');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'chmod go-w f').code, 0, 'chmod debe aceptar varias cláusulas');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'chmod u=rwx,go=rx f').code, 0, 'chmod debe aceptar listas de cláusulas');
+  assert.strictEqual(e.fs['/home/usuario/f'].modo, '755', 'chmod u=rwx,go=rx debe dejar 755');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'chmod -R 600 d').code, 0, 'chmod -R debe funcionar');
+  assert.strictEqual(e.fs['/home/usuario/d/x'].modo, '600', 'chmod -R debe bajar a los hijos');
+  assert.notStrictEqual(ctx.ejecutarLinea(e, 'chmod inventado f').code, 0, 'un modo inválido debe fallar');
+}, 'chmod simbólico, octal y recursivo');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  assert.strictEqual(ctx.ejecutarLinea(e, 'touch -- -i').code, 0, 'touch -- debe crear un fichero que empieza por guion');
+  assert(e.fs['/home/usuario/-i'], 'debe existir el fichero -i');
+  assert(ctx.ejecutarLinea(e, 'ls -- -i').out.includes('-i'), 'ls -- debe listar el fichero -i');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'rm -- -i').code, 0, 'rm -- debe borrar el fichero -i');
+  assert(!e.fs['/home/usuario/-i'], 'el fichero -i debe haber desaparecido');
+}, 'fin de opciones --');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio', fs:{
+    '~/viejo.txt':{ contenido:'viejo\n', mtime:1000 },
+    '~/nuevo.txt':{ contenido:'nuevo\n', mtime:2000 }
+  } } });
+  ctx.ejecutarLinea(e, 'mv -u viejo.txt nuevo.txt');
+  assert(e.fs['/home/usuario/viejo.txt'], 'mv -u no debe mover si el destino es más nuevo');
+  assert.strictEqual(e.fs['/home/usuario/nuevo.txt'].contenido, 'nuevo\n', 'mv -u no debe pisar un fichero más nuevo');
+  e.fs['/home/usuario/viejo.txt'].mtime = 3000;
+  ctx.ejecutarLinea(e, 'mv -u viejo.txt nuevo.txt');
+  assert(!e.fs['/home/usuario/viejo.txt'], 'mv -u debe mover si el origen es más nuevo');
+  assert.strictEqual(e.fs['/home/usuario/nuevo.txt'].contenido, 'viejo\n', 'mv -u debe actualizar el destino');
+}, 'mv -u');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  ctx.ejecutarLinea(e, 'umask 077');
+  ctx.ejecutarLinea(e, 'touch privado.txt');
+  ctx.ejecutarLinea(e, 'mkdir privada');
+  assert.strictEqual(e.fs['/home/usuario/privado.txt'].modo, '600', 'umask 077 debe crear ficheros 600');
+  assert.strictEqual(e.fs['/home/usuario/privada'].modo, '700', 'umask 077 debe crear carpetas 700');
+}, 'umask en ficheros nuevos');
+
+/* ---------- 9) Resultado ---------- */
 if (fallos.length){
   console.error(rojo('\n✗ ' + fallos.length + ' problema(s):'));
   fallos.forEach(f => console.error(rojo('  · ') + f));

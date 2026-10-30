@@ -1104,6 +1104,54 @@ window.AVENTURA = {
                   ]
                 }
               ]
+            },
+            {
+              titulo: 'Nombres que empiezan por guion',
+              resumen: 'El fin de opciones --',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'touch -i no crea un fichero -i',
+                  html: '<p>Un nombre que empieza por <code>-</code> se confunde con una opción: <code>touch -i</code> intenta usar la opción <code>-i</code>, no crear un fichero.</p><p>El doble guion <code>--</code> marca el final de las opciones: todo lo que va detrás son nombres.</p>',
+                  ejemplo: ['touch -- -i', 'ls -- -i'],
+                  mas: '<p>También puedes escribir la ruta relativa: <code>touch ./-i</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Crea el fichero -i',
+                  pide: 'Crea un fichero llamado <code>-i</code> usando <code>--</code>.',
+                  ejemplo: 'touch -- -i',
+                  meta: { existe: '~/-i' },
+                  pista: 'Es <code>touch -- -i</code>.',
+                  error: 'Casi. Sería <code>touch -- -i</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Borrarlo también necesita --',
+                  html: '<p>Para borrarlo pasa lo mismo: <code>rm -i</code> sería la opción de preguntar. Se usa <code>rm -- -i</code> o <code>rm ./-i</code>.</p>',
+                  ejemplo: ['rm -- -i', 'ls'],
+                  mas: '<p>Este truco vale para cualquier comando: <code>--</code> significa «lo que viene ahora son datos, no opciones».</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Borra el fichero -i',
+                  pide: 'Borra el fichero <code>-i</code> sin que <code>rm</code> lo confunda con una opción.',
+                  ejemplo: 'rm -- -i',
+                  meta: { noExiste: '~/-i' },
+                  pista: 'Es <code>rm -- -i</code>.',
+                  error: 'Casi. Sería <code>rm -- -i</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Para qué sirve <code>--</code> en un comando?',
+                  opciones: [
+                    { t: 'Para marcar el final de las opciones y tratar lo siguiente como nombres.', ok: true, porque: 'Así se pueden usar nombres que empiezan por guion.' },
+                    { t: 'Para pedir ayuda sobre el comando.', porque: 'La ayuda suele ser <code>--help</code>.' },
+                    { t: 'Para ejecutar el comando dos veces.', porque: 'No tiene nada que ver con repetir.' }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1124,7 +1172,7 @@ window.AVENTURA = {
                   titulo: 'cp copia un fichero',
                   html: '<p><code>cp origen destino</code> copia el fichero. El original sigue donde estaba.</p>',
                   ejemplo: ['cp a.txt b.txt', 'ls'],
-                  mas: '<p>Si el destino ya existe, <b>se sobrescribe</b> sin preguntar. Por eso existe la opción <code>-i</code>: pregunta antes de pisar.</p>'
+                  mas: '<p>Si el destino ya existe, <b>se sobrescribe</b> sin preguntar. Por eso existe la opción <code>-i</code>: en un Linux real pregunta antes de pisar. Este simulador no hace preguntas, así que aquí la opción se acepta pero no cambia nada.</p>'
                 },
                 {
                   tipo: 'practica',
@@ -1196,7 +1244,7 @@ window.AVENTURA = {
                   titulo: 'Conservar y actualizar',
                   html: '<p><code>-p</code> conserva permisos y fechas. <code>-a</code> es como <code>-r</code> y <code>-p</code> juntos. <code>-u</code> solo copia si el original es más nuevo.</p>',
                   ejemplo: ['cp -rp proyecto copia2', 'ls -l copia2'],
-                  mas: '<p><code>-i</code> pide confirmación antes de sobrescribir y <code>-f</code> fuerza la copia.</p>'
+                  mas: '<p><code>-i</code> pide confirmación antes de sobrescribir y <code>-f</code> fuerza la copia. El simulador no pregunta, así que <code>-i</code> no cambia el resultado aquí.</p>'
                 },
                 {
                   tipo: 'practica',
@@ -1384,7 +1432,7 @@ window.AVENTURA = {
                   opciones: [
                     { t: 'No: rm no usa papelera.', ok: true, porque: 'Correcto: el borrado es directo.' },
                     { t: 'Sí, está en la papelera del escritorio.', porque: 'La papelera es del entorno gráfico; <code>rm</code> no pasa por ella.' },
-                    { t: 'Sí, con <code>rm -u</code>.', porque: '<code>-u</code> no existe para recuperar; es para actualizar.' }
+                    { t: 'Sí, con <code>rm -u</code>.', porque: '<code>rm</code> no tiene esa opción: <code>-u</code> es de <code>cp</code> y <code>mv</code>, y solo evita pisar lo más nuevo.' }
                   ]
                 }
               ]
@@ -1445,12 +1493,319 @@ window.AVENTURA = {
                   error: 'Casi. Sería <code>rm -rf llena</code>.'
                 },
                 {
+                  tipo: 'teoria',
+                  titulo: '-i pregunta, -f no',
+                  html: '<p><code>rm -i fichero</code> pide confirmación antes de borrar, y <code>rm -f</code> fuerza el borrado sin avisar. Juntas, <code>-rf</code> borra una carpeta entera sin preguntar.</p>',
+                  ejemplo: ['rm -f llena'],
+                  mas: '<p>Este simulador no hace preguntas: acepta <code>-i</code>, pero borra igual. En un Linux real sí espera un <code>s</code> o una <code>n</code>.</p>'
+                },
+                {
                   tipo: 'test',
                   pregunta: '¿Qué hace <code>rm -rf carpeta</code>?',
                   opciones: [
                     { t: 'Borra la carpeta y todo su contenido sin preguntar.', ok: true, porque: 'Correcto: <code>-r</code> baja por la estructura y <code>-f</code> fuerza sin preguntar.' },
                     { t: 'Borra solo los ficheros vacíos.', porque: 'Borra todo lo que haya dentro.' },
                     { t: 'Mueve la carpeta a la papelera.', porque: 'No hay papelera: el borrado es definitivo.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        /* ---------------- PERMISOS · chmod ---------------- */
+        {
+          id: 'chmod',
+          titulo: 'Cambiar permisos',
+          resumen: 'chmod simbólico y octal',
+          comando: 'chmod',
+          rondas: [
+            {
+              titulo: 'Leer los permisos',
+              resumen: 'rwx, dueño, grupo y otros',
+              inicio: {
+                base: 'vacio',
+                fs: {
+                  '~/nota.txt': { contenido: 'hola\n', modo: '644' },
+                  '~/privado': { tipo: 'dir', modo: '700' }
+                }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'rwx: quién puede qué',
+                  html: '<p>En <code>ls -l</code>, los permisos son nueve letras en tres grupos: <b>dueño</b>, <b>grupo</b> y <b>otros</b>. Cada grupo tiene <code>r</code> (leer), <code>w</code> (escribir) y <code>x</code> (ejecutar).</p><p>En una carpeta, <code>x</code> significa <b>entrar</b> y <code>r</code> significa <b>listar</b> lo que hay dentro.</p>',
+                  ejemplo: ['ls -l nota.txt'],
+                  mas: '<p><code>-rw-r--r--</code> se lee así: fichero, dueño <code>rw-</code>, grupo <code>r--</code>, otros <code>r--</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Lee los permisos',
+                  pide: 'Muestra los permisos de <code>nota.txt</code> en formato largo.',
+                  ejemplo: 'ls -l nota.txt',
+                  meta: { muestra: '-rw-r--r--' },
+                  pista: 'La opción del formato largo es <code>-l</code>.',
+                  error: 'Casi. Sería <code>ls -l nota.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Los mismos permisos en números',
+                  html: '<p>Cada permiso vale un número: <code>r</code> = 4, <code>w</code> = 2 y <code>x</code> = 1. Se suman por grupo.</p><p>Así, <code>644</code> es <code>rw-r--r--</code> y <code>755</code> es <code>rwxr-xr-x</code>.</p>',
+                  ejemplo: ['ls -ld privado'],
+                  mas: '<p><code>-ld</code> enseña la carpeta en sí, no lo que tiene dentro.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Comprueba la carpeta',
+                  pide: 'Muestra los permisos de la carpeta <code>privado</code>, no su contenido.',
+                  ejemplo: 'ls -ld privado',
+                  meta: { muestra: 'drwx------' },
+                  pista: 'Combina <code>-l</code> con <code>-d</code>.',
+                  error: 'Casi. Sería <code>ls -ld privado</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: 'En una carpeta, ¿qué permite el permiso <code>x</code>?',
+                  opciones: [
+                    { t: 'Entrar en ella y acceder a lo que hay dentro.', ok: true, porque: 'Sin <code>x</code> no se puede atravesar la carpeta.' },
+                    { t: 'Ejecutar la carpeta como si fuera un programa.', porque: 'Las carpetas no se ejecutan: la <code>x</code> permite entrar.' },
+                    { t: 'Cambiarle el nombre.', porque: 'Para renombrar hace falta escribir en la carpeta que la contiene.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Cambiar con letras',
+              resumen: 'u, g, o, a y los signos + - =',
+              inicio: {
+                base: 'vacio',
+                fs: {
+                  '~/informe.txt': { contenido: 'datos\n', modo: '644' },
+                  '~/carpeta': { tipo: 'dir', modo: '700' }
+                }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'chmod habla de dueño, grupo y otros',
+                  html: '<p><code>chmod</code> cambia los permisos. Se elige a quién afecta: <code>u</code> (dueño), <code>g</code> (grupo), <code>o</code> (otros) o <code>a</code> (todos).</p><p>Después va el signo: <code>+</code> añade, <code>-</code> quita y <code>=</code> deja exactamente esos permisos.</p>',
+                  ejemplo: ['chmod u+x informe.txt', 'ls -l informe.txt'],
+                  mas: '<p><code>chmod u+x</code> añade ejecución al dueño. <code>chmod o-r</code> quita lectura a los demás.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Quita la lectura a los demás',
+                  pide: 'Quita el permiso de lectura al grupo y a otros en <code>informe.txt</code>. El dueño no cambia.',
+                  ejemplo: 'chmod go-r informe.txt',
+                  meta: { modo: { '~/informe.txt': '600' } },
+                  pista: 'Puedes juntar grupo y otros: <code>go-r</code>.',
+                  error: 'Casi. Sería <code>chmod go-r informe.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Varios sujetos y varias cláusulas',
+                  html: '<p>Puedes juntar letras: <code>ug+rw</code> da lectura y escritura al dueño y al grupo. También puedes separar varias órdenes con comas: <code>u=rwx,go=rx</code>.</p>',
+                  ejemplo: ['chmod u=rwx,go=rx carpeta'],
+                  mas: '<p><code>chmod a-w fichero</code> quita la escritura a todo el mundo de una vez.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Prepara la carpeta',
+                  pide: 'Deja <code>carpeta</code> con todos los permisos para el dueño y lectura y entrada para grupo y otros.',
+                  ejemplo: 'chmod u=rwx,go=rx carpeta',
+                  meta: { modo: { '~/carpeta': '755' } },
+                  pista: 'Es <code>chmod u=rwx,go=rx carpeta</code>.',
+                  error: 'Casi. Sería <code>chmod u=rwx,go=rx carpeta</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo lectura',
+                  pide: 'Deja <code>informe.txt</code> con lectura para todos y nada más: sin escritura ni ejecución.',
+                  ejemplo: 'chmod a=r informe.txt',
+                  meta: { modo: { '~/informe.txt': '444' } },
+                  pista: 'El signo <code>=</code> deja exactamente lo que pidas: <code>a=r</code>.',
+                  error: 'Casi. Sería <code>chmod a=r informe.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>chmod g+w fichero</code>?',
+                  opciones: [
+                    { t: 'Añade escritura al grupo, sin tocar al dueño ni a otros.', ok: true, porque: 'La <code>g</code> limita el cambio al grupo y el <code>+</code> lo añade.' },
+                    { t: 'Quita escritura al grupo.', porque: 'Para quitar se usa <code>-</code>, no <code>+</code>.' },
+                    { t: 'Da escritura a todo el mundo.', porque: 'Para todos se usa <code>a</code>, no <code>g</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Cambiar con números',
+              resumen: 'chmod 600, 640, 755 y -R',
+              inicio: {
+                base: 'vacio',
+                fs: {
+                  '~/clave.txt': { contenido: 'secreto\n', modo: '644' },
+                  '~/publico': { tipo: 'dir', modo: '700' },
+                  '~/proyecto': { tipo: 'dir', modo: '700' },
+                  '~/proyecto/sub': { tipo: 'dir', modo: '700' },
+                  '~/proyecto/nota.txt': { contenido: 'x\n', modo: '600' },
+                  '~/proyecto/sub/dato.txt': { contenido: 'y\n', modo: '600' }
+                }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Tres cifras, tres grupos',
+                  html: '<p><code>chmod 600 clave.txt</code> pone los permisos de golpe. La primera cifra es el dueño, la segunda el grupo y la tercera los demás.</p><p><code>600</code> = <code>rw-------</code>, <code>640</code> = <code>rw-r-----</code> y <code>755</code> = <code>rwxr-xr-x</code>.</p>',
+                  ejemplo: ['chmod 600 clave.txt', 'ls -l clave.txt'],
+                  mas: '<p>Para una carpeta, <code>755</code> es lo habitual: el dueño puede todo y los demás entrar y leer.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo el dueño',
+                  pide: 'Deja <code>clave.txt</code> para que solo el dueño pueda leer y escribir.',
+                  ejemplo: 'chmod 600 clave.txt',
+                  meta: { modo: { '~/clave.txt': '600' } },
+                  pista: 'El dueño tiene <code>rw-</code>: 4 + 2 = 6. Los demás, nada.',
+                  error: 'Casi. Sería <code>chmod 600 clave.txt</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Carpeta compartida',
+                  pide: 'Deja <code>publico</code> con permisos <code>755</code>.',
+                  ejemplo: 'chmod 755 publico',
+                  meta: { modo: { '~/publico': '755' } },
+                  pista: 'Dueño <code>rwx</code> (7), grupo y otros <code>r-x</code> (5).',
+                  error: 'Casi. Sería <code>chmod 755 publico</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Cambiar una carpeta y todo lo de dentro: -R',
+                  html: '<p><code>chmod -R</code> aplica el cambio a la carpeta y a todo su contenido. Úsalo con cuidado: si quitas la <code>x</code> a una carpeta, ya no podrás entrar en ella.</p>',
+                  ejemplo: ['chmod -R a+r proyecto'],
+                  mas: '<p>Para dar lectura sin tocar lo demás, <code>a+r</code> es más seguro que <code>chmod -R 644</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Lectura para todos',
+                  pide: 'Da lectura a todos en <code>proyecto</code> y en todo lo que hay dentro, sin cambiar el resto de permisos.',
+                  ejemplo: 'chmod -R a+r proyecto',
+                  meta: { modo: { '~/proyecto': '744', '~/proyecto/nota.txt': '644', '~/proyecto/sub/dato.txt': '644' } },
+                  pista: 'Añade <code>-R</code> y usa <code>a+r</code>: <code>chmod -R a+r proyecto</code>.',
+                  error: 'Casi. Sería <code>chmod -R a+r proyecto</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué permisos deja <code>chmod 750 carpeta</code>?',
+                  opciones: [
+                    { t: 'Dueño todo; grupo lectura y entrada; otros nada.', ok: true, porque: '7 = <code>rwx</code>, 5 = <code>r-x</code> y 0 = <code>---</code>.' },
+                    { t: 'Dueño todo; grupo y otros lectura y entrada.', porque: 'Eso sería <code>755</code>.' },
+                    { t: 'Solo el dueño puede leer.', porque: '7 incluye leer, escribir y ejecutar.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        /* ---------------- PERMISOS · umask ---------------- */
+        {
+          id: 'umask',
+          titulo: 'La máscara umask',
+          resumen: 'umask y permisos por defecto',
+          comando: 'umask',
+          rondas: [
+            {
+              titulo: 'Permisos al nacer',
+              resumen: 'umask 022, 644 y 755',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'umask recorta los permisos nuevos',
+                  html: '<p>Cuando creas un fichero o una carpeta, Linux les pone permisos automáticamente. La <code>umask</code> decide cuáles se recortan.</p><p>Con la umask habitual <code>022</code>, los ficheros nacen <code>644</code> y las carpetas <code>755</code>.</p>',
+                  ejemplo: ['umask', 'touch nuevo.txt', 'ls -l nuevo.txt'],
+                  mas: '<p>Los ficheros parten de <code>666</code> y las carpetas de <code>777</code>; la umask quita bits a esa base.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Mira la máscara',
+                  pide: 'Muestra la umask actual.',
+                  ejemplo: 'umask',
+                  meta: { salida: '0022' },
+                  pista: 'Es solo el comando <code>umask</code>.',
+                  error: 'Casi. Sería <code>umask</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'El cálculo, sin misterio',
+                  html: '<p>Se resta bit a bit: <code>666</code> menos <code>022</code> da <code>644</code>; <code>777</code> menos <code>022</code> da <code>755</code>.</p>',
+                  ejemplo: ['mkdir nueva', 'ls -ld nueva'],
+                  mas: '<p>La umask no se resta como en matemáticas: se apagan los permisos que coinciden con sus bits.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Crea y comprueba',
+                  pide: 'Crea <code>normal.txt</code> y comprueba que nace con permisos <code>644</code>.',
+                  ejemplo: 'touch normal.txt; ls -l normal.txt',
+                  meta: { modo: { '~/normal.txt': '644' } },
+                  pista: 'Crea el fichero con <code>touch</code> y míralo con <code>ls -l</code>.',
+                  error: 'Casi. Sería <code>touch normal.txt; ls -l normal.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: 'Con <code>umask 022</code>, ¿qué permisos tiene una carpeta nueva?',
+                  opciones: [
+                    { t: '755: dueño todo, grupo y otros lectura y entrada.', ok: true, porque: '<code>777</code> menos <code>022</code> deja <code>755</code>.' },
+                    { t: '644: lectura y escritura para el dueño.', porque: 'Eso es lo que recibe un fichero nuevo, no una carpeta.' },
+                    { t: '777: todos los permisos.', porque: 'La umask recorta algo: no deja <code>777</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Cambiar la máscara',
+              resumen: 'umask 077, 600 y 700',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'umask 077 cierra la puerta',
+                  html: '<p><code>umask 077</code> hace que los ficheros nuevos nazcan <code>600</code> y las carpetas <code>700</code>: solo el dueño tiene acceso.</p>',
+                  ejemplo: ['umask 077', 'touch privado.txt', 'ls -l privado.txt'],
+                  mas: '<p>Es útil para datos personales, pero cuidado: otros usuarios no podrán ni leerlos.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Cierra la puerta',
+                  pide: 'Cambia la umask a <code>077</code> y crea <code>diario.txt</code>.',
+                  ejemplo: 'umask 077; touch diario.txt',
+                  meta: { umask: '077', modo: { '~/diario.txt': '600' } },
+                  pista: 'Primero <code>umask 077</code> y después <code>touch diario.txt</code>.',
+                  error: 'Casi. Sería <code>umask 077; touch diario.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'La umask no cambia lo ya creado',
+                  html: '<p>Cambiar la umask solo afecta a los ficheros y carpetas <b>nuevos</b>. Los que ya existen conservan sus permisos.</p>',
+                  ejemplo: ['umask 022'],
+                  mas: '<p>Para cambiar permisos de algo que ya existe se usa <code>chmod</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Vuelve a lo normal',
+                  pide: 'Deja la umask en <code>022</code> y crea <code>compartido.txt</code>.',
+                  ejemplo: 'umask 022; touch compartido.txt',
+                  meta: { umask: '022', modo: { '~/compartido.txt': '644' } },
+                  pista: 'Primero <code>umask 022</code> y después <code>touch compartido.txt</code>.',
+                  error: 'Casi. Sería <code>umask 022; touch compartido.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: 'Si cambias la umask, ¿qué pasa con los ficheros que ya existían?',
+                  opciones: [
+                    { t: 'Nada: conservan sus permisos.', ok: true, porque: 'La umask solo se aplica al crear cosas nuevas.' },
+                    { t: 'Pierden los permisos que recorta la nueva umask.', porque: 'Eso no ocurre: para cambiarlos hay que usar <code>chmod</code>.' },
+                    { t: 'Se borran y se vuelven a crear.', porque: 'La umask no toca el contenido ni los ficheros existentes.' }
                   ]
                 }
               ]
@@ -2124,6 +2479,128 @@ window.AVENTURA = {
                   ]
                 }
               ]
+            },
+
+            {
+              titulo: 'Leer de un fichero',
+              resumen: 'La entrada con <',
+              inicio: {
+                base: 'vacio',
+                fs: { '~/colores.txt': 'rojo\nverde\nazul\n' }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: '< da la entrada desde un fichero',
+                  html: '<p>Hasta ahora has redirigido la salida. <code>&lt;</code> hace lo contrario: mete un fichero como entrada del comando.</p><p><code>wc -l &lt; colores.txt</code> cuenta sus líneas sin que tengas que escribir el nombre detrás de <code>wc</code>.</p>',
+                  ejemplo: ['wc -l < colores.txt', 'cat < colores.txt'],
+                  mas: '<p>El fichero no se modifica: solo se lee. Para escribir se usa <code>&gt;</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Cuenta sin pasar el nombre',
+                  pide: 'Cuenta las líneas de <code>colores.txt</code> usando <code>&lt;</code>, sin poner el nombre detrás de <code>wc</code>.',
+                  ejemplo: 'wc -l < colores.txt',
+                  meta: { salida: '3' },
+                  pista: 'Es <code>wc -l &lt; colores.txt</code>.',
+                  error: 'Casi. Sería <code>wc -l &lt; colores.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'La diferencia con pasar el fichero',
+                  html: '<p><code>wc -l colores.txt</code> escribe el nombre del fichero en la salida. <code>wc -l &lt; colores.txt</code> solo da el número, porque el nombre se lo das a la shell, no al comando.</p>',
+                  ejemplo: ['cat < colores.txt'],
+                  mas: '<p>Esa diferencia importa cuando quieres guardar solo el número en una variable o en un fichero.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Lee el fichero',
+                  pide: 'Muestra <code>colores.txt</code> con <code>cat</code> y una redirección de entrada.',
+                  ejemplo: 'cat < colores.txt',
+                  meta: { salida: 'rojo\nverde\nazul' },
+                  pista: 'Es <code>cat &lt; colores.txt</code>.',
+                  error: 'Casi. Sería <code>cat &lt; colores.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>&lt;</code> en <code>wc -l &lt; fichero</code>?',
+                  opciones: [
+                    { t: 'Mete el fichero como entrada del comando.', ok: true, porque: 'Redirige la entrada estándar desde ese fichero.' },
+                    { t: 'Guarda la salida en el fichero.', porque: 'Para guardar se usa <code>&gt;</code>.' },
+                    { t: 'Añade al final del fichero.', porque: 'Eso es <code>&gt;&gt;</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Errores y /dev/null',
+              resumen: '2>&1, &>, 2>> y el agujero negro',
+              inicio: {
+                base: 'vacio',
+                fs: { '~/a.txt': 'a\n' }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: '2>&1 junta salida y errores',
+                  html: '<p><code>ls noexiste &gt; todo.log 2&gt;&amp;1</code> guarda en <code>todo.log</code> tanto la salida normal como los errores. El orden importa: primero se redirige la salida y después se manda el error a donde está la salida.</p>',
+                  ejemplo: ['ls noexiste > todo.log 2>&1', 'cat todo.log'],
+                  mas: '<p><code>&amp;&gt;</code> es el atajo: <code>ls noexiste &amp;&gt; todo.log</code> hace lo mismo.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Todo junto',
+                  pide: 'Intenta listar <code>noexiste</code> y guarda salida y error en <code>todo.log</code>.',
+                  ejemplo: 'ls noexiste > todo.log 2>&1',
+                  toleraError: true,
+                  meta: { existe: '~/todo.log' },
+                  pista: 'Primero <code>&gt; todo.log</code> y después <code>2&gt;&amp;1</code>.',
+                  error: 'Casi. Sería <code>ls noexiste &gt; todo.log 2&gt;&amp;1</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: '&> y 2>>',
+                  html: '<p><code>&amp;&gt;</code> guarda las dos salidas de golpe. <code>2&gt;&gt;</code> añade los errores al final de un fichero, sin borrar lo que ya había.</p>',
+                  ejemplo: ['ls noexiste &> ambos.log', 'cat ambos.log'],
+                  mas: '<p><code>&amp;&gt;&gt;</code> sería el equivalente de añadir con el atajo.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Con el atajo',
+                  pide: 'Guarda el error de <code>noexiste</code> en <code>ambos.log</code> usando <code>&amp;&gt;</code>.',
+                  ejemplo: 'ls noexiste &> ambos.log',
+                  toleraError: true,
+                  meta: { existe: '~/ambos.log' },
+                  pista: 'Es <code>ls noexiste &amp;&gt; ambos.log</code>.',
+                  error: 'Casi. Sería <code>ls noexiste &amp;&gt; ambos.log</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: '/dev/null: el agujero negro',
+                  html: '<p><code>/dev/null</code> es un fichero especial que descarta todo lo que recibe. <code>ls noexiste 2&gt; /dev/null</code> ejecuta el comando pero no enseña el error.</p><p>También se usa para tirar la salida que no te interesa.</p>',
+                  ejemplo: ['ls noexiste 2> /dev/null', 'echo silencio'],
+                  mas: '<p>Ojo: <code>/dev/null</code> no es una papelera. Lo que envías ahí se pierde para siempre, no se puede recuperar.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Silencia un error',
+                  pide: 'Lista <code>a.txt</code> y <code>noexiste</code>, tira el error a <code>/dev/null</code> y guarda la salida en <code>lista.txt</code>.',
+                  ejemplo: 'ls a.txt noexiste 2> /dev/null > lista.txt',
+                  toleraError: true,
+                  meta: { contenido: { '~/lista.txt': 'a.txt\n' } },
+                  pista: 'Añade <code>2&gt; /dev/null</code> y <code>&gt; lista.txt</code>.',
+                  error: 'Casi. Sería <code>ls a.txt noexiste 2&gt; /dev/null &gt; lista.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>2&gt;&amp;1</code>?',
+                  opciones: [
+                    { t: 'Manda los errores al mismo sitio que la salida normal.', ok: true, porque: 'Duplica el canal de error sobre el de salida.' },
+                    { t: 'Manda la salida normal a los errores.', porque: 'Es al revés: el 2 es el error y el 1 la salida.' },
+                    { t: 'Crea un fichero llamado 1.', porque: '<code>&amp;1</code> es una referencia al canal 1, no un nombre.' }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -2566,6 +3043,15 @@ window.AVENTURA = {
                   error: 'Casi. Sería <code>date +%d%m%y</code>.'
                 },
                 {
+                  tipo: 'practica',
+                  titulo: 'El día de la semana',
+                  pide: 'Muestra el día de la semana actual en palabras.',
+                  ejemplo: 'date +%A',
+                  meta: { muestra: /^(domingo|lunes|martes|miércoles|jueves|viernes|sábado)$/ },
+                  pista: 'El formato del día es <code>%A</code>.',
+                  error: 'Casi. Sería <code>date +%A</code>.'
+                },
+                {
                   tipo: 'test',
                   pregunta: '¿Qué formato da <code>date +%F</code>?',
                   opciones: [
@@ -2673,6 +3159,54 @@ window.AVENTURA = {
                   ]
                 }
               ]
+            },
+            {
+              titulo: 'Fechas relativas',
+              resumen: 'date -d y sus frases',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'date -d calcula otra fecha',
+                  html: '<p><code>date -d</code> acepta una frase y calcula la fecha: <code>date -d tomorrow</code>, <code>date -d "next friday"</code> o <code>date -d "1 week ago"</code>.</p><p>Si añades un formato detrás, ves solo lo que te interesa.</p>',
+                  ejemplo: ['date -d tomorrow +%F', 'date -d "next friday" +%F', 'date -d "1 week ago" +%F'],
+                  mas: '<p>Las frases van en inglés en un Linux real. También puedes escribir una fecha concreta: <code>date -d "2026-01-31" +%F</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Mañana',
+                  pide: 'Muestra la fecha de mañana en formato <code>AAAA-MM-DD</code>.',
+                  ejemplo: 'date -d tomorrow +%F',
+                  meta: { muestra: /^\d{4}-\d{2}-\d{2}$/ },
+                  pista: 'Es <code>date -d tomorrow +%F</code>.',
+                  error: 'Casi. Sería <code>date -d tomorrow +%F</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Hace una semana',
+                  pide: 'Muestra la fecha de hace una semana en formato <code>AAAA-MM-DD</code>.',
+                  ejemplo: 'date -d "1 week ago" +%F',
+                  meta: { muestra: /^\d{4}-\d{2}-\d{2}$/ },
+                  pista: 'Usa <code>date -d "1 week ago" +%F</code>.',
+                  error: 'Casi. Sería <code>date -d "1 week ago" +%F</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Una fecha concreta también vale',
+                  html: '<p>No hace falta que la frase sea relativa: <code>date -d "2026-01-31" +%A</code> dice qué día de la semana fue esa fecha.</p>',
+                  ejemplo: ['date -d "2026-01-31" +%A'],
+                  mas: '<p>Es una forma cómoda de comprobar fechas de exámenes, entregas o exámenes pasados.</p>'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué muestra <code>date -d tomorrow +%F</code>?',
+                  opciones: [
+                    { t: 'La fecha de mañana en formato AAAA-MM-DD.', ok: true, porque: '<code>-d tomorrow</code> calcula mañana y <code>+%F</code> le da ese formato.' },
+                    { t: 'La fecha de hoy sin más.', porque: 'Para hoy basta con <code>date +%F</code>.' },
+                    { t: 'La hora de mañana.', porque: '<code>%F</code> es fecha; para la hora están <code>%H</code> y <code>%M</code>.' }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -2776,6 +3310,160 @@ window.AVENTURA = {
                     { t: 'notas', ok: true, porque: 'Correcto: quita la carpeta y después el sufijo .txt.' },
                     { t: '/home/usuario', porque: 'Eso lo devuelve <code>dirname</code>.' },
                     { t: 'notas.txt', porque: 'Ese sería el resultado sin el segundo argumento.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        /* ---------------- USUARIOS Y PROCESOS ---------------- */
+        {
+          id: 'usuarios',
+          titulo: 'Usuarios y procesos',
+          resumen: 'who, users, ps y time',
+          comando: 'who',
+          rondas: [
+            {
+              titulo: 'Quién está conectado',
+              resumen: 'who, users y whoami',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'who enseña las sesiones abiertas',
+                  html: '<p><code>who</code> muestra cada usuario conectado, su terminal y la hora en que entró. Es la forma rápida de saber si alguien más está usando el sistema.</p>',
+                  ejemplo: ['who', 'users'],
+                  mas: '<p>En un servidor puede haber varias sesiones del mismo usuario en terminales distintas.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Quién está conectado',
+                  pide: 'Muestra las sesiones conectadas con <code>who</code>.',
+                  ejemplo: 'who',
+                  meta: { muestra: ['usuario', 'tty1'] },
+                  pista: 'Es solo el comando <code>who</code>.',
+                  error: 'Casi. Sería <code>who</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'users y whoami',
+                  html: '<p><code>users</code> da una lista compacta de nombres, sin terminales ni horas. <code>whoami</code> dice solo quién eres tú.</p>',
+                  ejemplo: ['users', 'whoami'],
+                  mas: '<p><code>whoami</code> es útil dentro de un script para comprobar con qué usuario se está ejecutando.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Tu usuario',
+                  pide: 'Muestra solo el nombre de tu usuario.',
+                  ejemplo: 'whoami',
+                  meta: { salida: 'usuario' },
+                  pista: 'El comando empieza por <i>who</i>.',
+                  error: 'Casi. Sería <code>whoami</code>.'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Cuenta las sesiones',
+                  pide: 'Cuenta cuántas líneas devuelve <code>who</code> usando una tubería.',
+                  ejemplo: 'who | wc -l',
+                  meta: { salida: '1' },
+                  pista: 'Conecta <code>who</code> y <code>wc -l</code> con <code>|</code>.',
+                  error: 'Casi. Sería <code>who | wc -l</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué diferencia hay entre <code>who</code> y <code>users</code>?',
+                  opciones: [
+                    { t: 'who da detalles de cada sesión; users solo los nombres.', ok: true, porque: '<code>who</code> añade terminal y hora de entrada.' },
+                    { t: 'who muestra procesos; users muestra usuarios.', porque: 'Para procesos está <code>ps</code>.' },
+                    { t: 'Son exactamente iguales.', porque: '<code>users</code> es la versión compacta.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Procesos',
+              resumen: 'ps, PID, TTY, TIME y CMD',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'ps enseña los procesos',
+                  html: '<p><code>ps</code> lista los procesos de la sesión. Cada línea tiene cuatro columnas: <b>PID</b> (número del proceso), <b>TTY</b> (terminal), <b>TIME</b> (tiempo de CPU) y <b>CMD</b> (comando).</p>',
+                  ejemplo: ['ps'],
+                  mas: '<p>El proceso <code>ps</code> también aparece en la lista: es el que estás ejecutando en ese momento.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Mira los procesos',
+                  pide: 'Muestra los procesos con <code>ps</code>.',
+                  ejemplo: 'ps',
+                  meta: { muestra: ['PID', 'bash', 'ps'] },
+                  pista: 'Son dos letras: <code>p</code> y <code>s</code>.',
+                  error: 'Casi. Sería <code>ps</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'El PID identifica el proceso',
+                  html: '<p>El <b>PID</b> es el número con el que el sistema identifica cada proceso. Sirve para seguirlo, pararlo o saber cuál consume recursos.</p>',
+                  ejemplo: ['ps'],
+                  mas: '<p>Los PID cambian cada vez que arrancas un proceso; no son fijos.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Cuenta los procesos',
+                  pide: 'Cuenta las líneas de <code>ps</code>, incluida la cabecera.',
+                  ejemplo: 'ps | wc -l',
+                  meta: { salida: '3' },
+                  pista: 'Pasa la salida de <code>ps</code> a <code>wc -l</code>.',
+                  error: 'Casi. Sería <code>ps | wc -l</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué es el PID de un proceso?',
+                  opciones: [
+                    { t: 'Su número de identificación en el sistema.', ok: true, porque: 'Con ese número el sistema distingue unos procesos de otros.' },
+                    { t: 'El tiempo que lleva ejecutándose.', porque: 'Eso está en la columna <code>TIME</code>.' },
+                    { t: 'La terminal donde se ejecuta.', porque: 'Eso es la columna <code>TTY</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Cuánto tarda',
+              resumen: 'time y el tiempo real',
+              inicio: { base: 'vacio' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'time mide la duración',
+                  html: '<p><code>time who</code> ejecuta <code>who</code> y además dice cuánto ha tardado. La línea <code>real</code> es el tiempo de reloj: lo que has esperado de verdad.</p>',
+                  ejemplo: ['time who'],
+                  mas: '<p>En un Linux real también aparecen <code>user</code> y <code>sys</code>; aquí basta con <code>real</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Mide who',
+                  pide: 'Mide cuánto tarda <code>who</code>.',
+                  ejemplo: 'time who',
+                  meta: { muestra: /real 0m/ },
+                  pista: 'Pon <code>time</code> delante del comando.',
+                  error: 'Casi. Sería <code>time who</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Para comparar comandos',
+                  html: '<p><code>time</code> sirve para comparar alternativas: dos formas de buscar lo mismo, dos scripts, dos comandos. El que tarde menos, mejor.</p>',
+                  ejemplo: ['time ps'],
+                  mas: '<p>No confundas <code>time</code> con la columna <code>TIME</code> de <code>ps</code>: una mide el reloj y la otra el tiempo de CPU acumulado.</p>'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué mide la línea <code>real</code> de <code>time</code>?',
+                  opciones: [
+                    { t: 'El tiempo de reloj que ha durado el comando.', ok: true, porque: 'Es lo que has esperado desde que pulsaste Enter.' },
+                    { t: 'El número de procesos creados.', porque: 'Eso no lo cuenta <code>time</code>.' },
+                    { t: 'Los permisos del comando.', porque: 'Para permisos está <code>ls -l</code> o <code>stat</code>.' }
                   ]
                 }
               ]
@@ -3012,6 +3700,237 @@ window.AVENTURA = {
           ]
         },
 
+        /* ---------------- ORDENAR · sort ---------------- */
+        {
+          id: 'sort',
+          titulo: 'Ordenar con sort',
+          resumen: 'Alfabético, numérico y por campos',
+          comando: 'sort',
+          rondas: [
+            {
+              titulo: 'Ordenar líneas',
+              resumen: 'sort y sort -r',
+              inicio: {
+                base: 'vacio',
+                fs: { '~/frutas.txt': 'pera\nmanzana\nkiwi\n' }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'sort ordena alfabéticamente',
+                  html: '<p><code>sort frutas.txt</code> muestra las líneas ordenadas de la A a la Z. No cambia el fichero: solo enseña el resultado ordenado.</p>',
+                  ejemplo: ['sort frutas.txt'],
+                  mas: '<p>Si no le pasas fichero, <code>sort</code> ordena lo que llegue por la entrada, así que funciona al final de una tubería.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'De la A a la Z',
+                  pide: 'Muestra <code>frutas.txt</code> ordenado alfabéticamente.',
+                  ejemplo: 'sort frutas.txt',
+                  meta: { orden: ['kiwi', 'manzana', 'pera'] },
+                  pista: 'Es <code>sort</code> y el nombre del fichero.',
+                  error: 'Casi. Sería <code>sort frutas.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: '-r invierte el orden',
+                  html: '<p><code>sort -r frutas.txt</code> ordena de la Z a la A. La <code>r</code> viene de <i>reverse</i>.</p>',
+                  ejemplo: ['sort -r frutas.txt'],
+                  mas: '<p>Puedes combinar <code>-r</code> con las demás opciones: <code>sort -rn</code> ordena números de mayor a menor.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Al revés',
+                  pide: 'Muestra <code>frutas.txt</code> en orden inverso.',
+                  ejemplo: 'sort -r frutas.txt',
+                  meta: { orden: ['pera', 'manzana', 'kiwi'] },
+                  pista: 'Añade <code>-r</code> a <code>sort</code>.',
+                  error: 'Casi. Sería <code>sort -r frutas.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>sort -r</code>?',
+                  opciones: [
+                    { t: 'Ordena en orden inverso.', ok: true, porque: '<code>-r</code> significa <i>reverse</i>.' },
+                    { t: 'Ordena solo los números.', porque: 'Para números está <code>-n</code>.' },
+                    { t: 'Borra las líneas repetidas.', porque: 'Para quitar repetidos se usa <code>sort -u</code>, que no vemos aquí.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'Números y campos',
+              resumen: '-n, -k y -t',
+              inicio: {
+                base: 'vacio',
+                fs: {
+                  '~/numeros.txt': '30\n5\n45\n',
+                  '~/gastos.txt': 'luz 30\nagua 5\ninternet 45\n'
+                }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Los números no se ordenan como letras',
+                  html: '<p>Por defecto, <code>sort</code> compara texto: <code>30</code> iría antes que <code>5</code> porque el carácter <code>3</code> va antes que el <code>5</code>. Con <code>-n</code> compara valores numéricos.</p>',
+                  ejemplo: ['sort numeros.txt', 'sort -n numeros.txt'],
+                  mas: '<p>Con <code>-n</code>, <code>5</code> va antes que <code>30</code> y que <code>45</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'De menor a mayor',
+                  pide: 'Ordena <code>numeros.txt</code> de menor a mayor.',
+                  ejemplo: 'sort -n numeros.txt',
+                  meta: { orden: ['5', '30', '45'] },
+                  pista: 'Añade <code>-n</code> para comparar números.',
+                  error: 'Casi. Sería <code>sort -n numeros.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: '-k elige la columna',
+                  html: '<p><code>-k2</code> ordena por el segundo campo. Los campos se separan por espacios o tabuladores; con <code>-t</code> eliges otro separador, por ejemplo <code>sort -t : -k3</code>.</p>',
+                  ejemplo: ['sort -k2 gastos.txt', 'sort -k2 -n gastos.txt'],
+                  mas: '<p>Sin <code>-n</code>, el campo se compara como texto. Para importes o cantidades, añade <code>-n</code>.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Ordena por importe',
+                  pide: 'Ordena <code>gastos.txt</code> por el segundo campo, de menor a mayor.',
+                  ejemplo: 'sort -k2 -n gastos.txt',
+                  meta: { orden: ['agua 5', 'luz 30', 'internet 45'] },
+                  pista: 'Combina <code>-k2</code> con <code>-n</code>.',
+                  error: 'Casi. Sería <code>sort -k2 -n gastos.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué ordena <code>sort -k2 -n</code>?',
+                  opciones: [
+                    { t: 'Por el segundo campo, comparando números.', ok: true, porque: '<code>-k2</code> elige el campo y <code>-n</code> lo trata como número.' },
+                    { t: 'Por la segunda línea del fichero.', porque: '<code>-k</code> habla de campos, no de líneas.' },
+                    { t: 'Solo las dos primeras columnas.', porque: '<code>-k</code> no recorta la salida; solo decide el orden.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        /* ---------------- CORTAR · cut ---------------- */
+        {
+          id: 'cut',
+          titulo: 'Cortar con cut',
+          resumen: 'Campos, delimitadores y tuberías',
+          comando: 'cut',
+          rondas: [
+            {
+              titulo: 'Quedarse con campos',
+              resumen: 'cut -d y -f',
+              inicio: {
+                base: 'vacio',
+                fs: { '~/agenda.txt': 'ana:1234:ana@mail\nluis:5678:luis@mail\n' }
+              },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'cut separa por un delimitador',
+                  html: '<p><code>cut -d : -f 1 agenda.txt</code> parte cada línea por <code>:</code> y se queda con el campo 1. <code>-d</code> elige el delimitador y <code>-f</code> el campo.</p>',
+                  ejemplo: ['cut -d : -f 1 agenda.txt'],
+                  mas: '<p>Sin <code>-d</code>, el delimitador por defecto es el tabulador.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Solo los nombres',
+                  pide: 'Muestra el primer campo de <code>agenda.txt</code> usando <code>:</code> como separador.',
+                  ejemplo: 'cut -d : -f 1 agenda.txt',
+                  meta: { salida: 'ana\nluis' },
+                  pista: 'Es <code>cut -d : -f 1 agenda.txt</code>.',
+                  error: 'Casi. Sería <code>cut -d : -f 1 agenda.txt</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Varios campos a la vez',
+                  html: '<p>Puedes pedir más de un campo separándolos con comas: <code>cut -d : -f 1,3</code> devuelve el primero y el tercero, unidos por el mismo delimitador.</p>',
+                  ejemplo: ['cut -d : -f 1,3 agenda.txt'],
+                  mas: '<p>También se pueden pedir rangos: <code>-f 1-3</code> devuelve del primero al tercero.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Nombre y correo',
+                  pide: 'Muestra el primer y el tercer campo de <code>agenda.txt</code>.',
+                  ejemplo: 'cut -d : -f 1,3 agenda.txt',
+                  meta: { salida: 'ana:ana@mail\nluis:luis@mail' },
+                  pista: 'Usa <code>-f 1,3</code>.',
+                  error: 'Casi. Sería <code>cut -d : -f 1,3 agenda.txt</code>.'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>cut -d : -f 2</code>?',
+                  opciones: [
+                    { t: 'Se queda con el segundo campo de cada línea, separando por :', ok: true, porque: '<code>-d</code> elige el separador y <code>-f</code> el campo.' },
+                    { t: 'Corta las dos primeras líneas.', porque: '<code>-f</code> habla de campos, no de líneas.' },
+                    { t: 'Ordena por el segundo campo.', porque: 'Para ordenar está <code>sort -k2</code>.' }
+                  ]
+                }
+              ]
+            },
+            {
+              titulo: 'cut dentro de una tubería',
+              resumen: 'cut, wc y sort sobre /etc/passwd',
+              inicio: { base: 'normal' },
+              pantallas: [
+                {
+                  tipo: 'teoria',
+                  titulo: 'Cortar /etc/passwd',
+                  html: '<p><code>/etc/passwd</code> guarda los usuarios del sistema separados por <code>:</code>. El primer campo es el nombre de usuario, y el último su shell.</p>',
+                  ejemplo: ['cut -d : -f 1 /etc/passwd'],
+                  mas: '<p><code>cut -d : -f 1,7 /etc/passwd</code> enseña usuario y shell en la misma línea.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Usuarios del sistema',
+                  pide: 'Muestra los nombres de usuario de <code>/etc/passwd</code>: primer campo, separador <code>:</code>.',
+                  ejemplo: 'cut -d : -f 1 /etc/passwd',
+                  meta: { muestra: ['root', 'usuario'] },
+                  pista: 'Es <code>cut -d : -f 1 /etc/passwd</code>.',
+                  error: 'Casi. Sería <code>cut -d : -f 1 /etc/passwd</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Contar después de cortar',
+                  html: '<p><code>cut -d : -f 1 /etc/passwd | wc -l</code> cuenta cuántos usuarios hay. La tubería pasa la lista de nombres a <code>wc</code>.</p>',
+                  ejemplo: ['cut -d : -f 1 /etc/passwd | wc -l'],
+                  mas: '<p>Así se responde a la pregunta «cuántos usuarios tiene el sistema» sin contarlos a mano.</p>'
+                },
+                {
+                  tipo: 'practica',
+                  titulo: 'Cuenta los usuarios',
+                  pide: 'Cuenta cuántos usuarios hay en <code>/etc/passwd</code> usando <code>cut</code> y <code>wc</code>.',
+                  ejemplo: 'cut -d : -f 1 /etc/passwd | wc -l',
+                  meta: { salida: '2' },
+                  pista: 'Primero corta el campo 1 y después cuenta líneas.',
+                  error: 'Casi. Sería <code>cut -d : -f 1 /etc/passwd | wc -l</code>.'
+                },
+                {
+                  tipo: 'teoria',
+                  titulo: 'Ordenar lo que has cortado',
+                  html: '<p>Las tuberías se encadenan: <code>cut -d : -f 1 /etc/passwd | sort -r</code> corta los nombres y los ordena al revés.</p>',
+                  ejemplo: ['cut -d : -f 1 /etc/passwd | sort -r'],
+                  mas: '<p>Cada comando hace una cosa y pasa el resultado al siguiente. Esa es la gracia de la terminal.</p>'
+                },
+                {
+                  tipo: 'test',
+                  pregunta: '¿Qué hace <code>cut -d : -f 1 /etc/passwd | sort</code>?',
+                  opciones: [
+                    { t: 'Saca los nombres de usuario y los ordena alfabéticamente.', ok: true, porque: 'Primero corta el campo 1 y después lo ordena <code>sort</code>.' },
+                    { t: 'Ordena el fichero /etc/passwd y lo guarda.', porque: 'No hay redirección: solo se muestra por pantalla.' },
+                    { t: 'Cuenta los usuarios del sistema.', porque: 'Para contar hace falta <code>wc -l</code>.' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
         {
           id: 'find',
           titulo: 'Buscar ficheros con find',
@@ -3085,7 +4004,7 @@ window.AVENTURA = {
                 {
                   tipo: 'teoria',
                   titulo: 'Tamaño y fechas',
-                  html: '<p><code>-size</code> compara tamaño. Sin sufijo cuenta bloques de 512 bytes; con <code>c</code> son bytes, con <code>k</code> KiB y con <code>M</code> MiB. Se puede pedir exacto (<code>-size 10c</code>), mayor (<code>+10c</code>) o menor (<code>-10c</code>).</p><p>Para fechas: <code>-mtime</code> (modificación), <code>-atime</code> (acceso) y <code>-ctime</code> (cambio), en días. <code>-mmin</code>, <code>-amin</code> y <code>-cmin</code> hacen lo mismo en minutos. <code>-newer fichero</code> compara con la fecha de otro fichero y <code>-newermt "ayer"</code> con una fecha escrita.</p>',
+                  html: '<p><code>-size</code> compara tamaño. Sin sufijo cuenta bloques de 512 bytes; con <code>c</code> son bytes, con <code>k</code> KiB y con <code>M</code> MiB. Se puede pedir exacto (<code>-size 10c</code>), mayor (<code>+10c</code>) o menor (<code>-10c</code>).</p><p>Para fechas: <code>-mtime</code> (modificación), <code>-atime</code> (acceso) y <code>-ctime</code> (cambio), en días. <code>-mmin</code>, <code>-amin</code> y <code>-cmin</code> hacen lo mismo en minutos. <code>-newer fichero</code> compara con la fecha de otro fichero y <code>-newermt</code> con una fecha escrita. En un GNU find real usa <code>-newermt "yesterday"</code> o una fecha ISO; el simulador también acepta «ayer».</p>',
                   ejemplo: ['find ~/proyecto -type f -empty', 'find ~/proyecto -type f -size +10c', 'find ~/proyecto -type f -mtime -1'],
                   mas: '<p>Los signos se leen así: <code>+30</code> es «más de 30», <code>-30</code> es «menos de 30» y <code>30</code> es «exactamente 30».</p>'
                 },

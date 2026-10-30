@@ -1463,8 +1463,10 @@ function cmd_cd(e, args){
 }
 function cmd_ls(e, args){
   const flags = new Set(), rutas = [];
+  let finOpciones = false;
   for (const a of args){
-    if (a.startsWith('-') && a !== '-') for (const c of a.slice(1)) flags.add(c);
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a.startsWith('-') && a !== '-') for (const c of a.slice(1)) flags.add(c);
     else rutas.push(a);
   }
   const larga = flags.has('l'), ocultos = flags.has('a');
@@ -1512,16 +1514,17 @@ function cmd_ls(e, args){
   return { out: salidas.join('\n'), err: errores.join('\n'), code: errores.length && !salidas.length ? 1 : 0 };
 }
 function cmd_mkdir(e, args){
-  let padres = false, modo = null;
+  let padres = false, modo = null, finOpciones = false;
   const rutas = [];
   for (let i = 0; i < args.length; i++){
     const a = args[i];
-    if (a === '-p') padres = true;
-    else if (a === '-m'){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-p') padres = true;
+    else if (!finOpciones && a === '-m'){
       if (i + 1 >= args.length || args[i + 1].startsWith('-')) return fallo('mkdir: falta el modo después de -m');
       modo = String(args[++i]);
     }
-    else if (!a.startsWith('-')) rutas.push(a);
+    else if (finOpciones || !a.startsWith('-')) rutas.push(a);
   }
   if (!rutas.length) return fallo('mkdir: falta un operando');
   let err = '';
@@ -1581,17 +1584,18 @@ function fechaDeMarca(txt){
   return ahora;
 }
 function cmd_touch(e, args){
-  let tocaAcceso = true, tocaModificacion = true, fecha = null, referencia = null;
+  let tocaAcceso = true, tocaModificacion = true, fecha = null, referencia = null, finOpciones = false;
   const rutas = [];
   for (let i = 0; i < args.length; i++){
     const a = args[i];
-    if (a === '-a'){ tocaModificacion = false; continue; }
-    if (a === '-m'){ tocaAcceso = false; continue; }
-    if (a === '-h') continue;
-    if (a === '-d'){ referencia = null; fecha = fechaDeTexto(args[++i] || ''); continue; }
-    if (a === '-t'){ referencia = null; fecha = fechaDeMarca(args[++i] || ''); continue; }
-    if (a === '-r'){ referencia = args[++i] || ''; continue; }
-    if (a.startsWith('-')) continue;
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-a'){ tocaModificacion = false; continue; }
+    if (!finOpciones && a === '-m'){ tocaAcceso = false; continue; }
+    if (!finOpciones && a === '-h') continue;
+    if (!finOpciones && a === '-d'){ referencia = null; fecha = fechaDeTexto(args[++i] || ''); continue; }
+    if (!finOpciones && a === '-t'){ referencia = null; fecha = fechaDeMarca(args[++i] || ''); continue; }
+    if (!finOpciones && a === '-r'){ referencia = args[++i] || ''; continue; }
+    if (!finOpciones && a.startsWith('-')) continue;
     rutas.push(a);
   }
   if (!rutas.length) return fallo('touch: falta un operando');
@@ -1619,12 +1623,13 @@ function cmd_touch(e, args){
 }
 function borrarRec(e, p){ for (const k of Object.keys(e.fs)) if (k === p || k.startsWith(p + '/')) delete e.fs[k]; }
 function cmd_rm(e, args){
-  let rec = false, force = false;
+  let rec = false, force = false, finOpciones = false;
   const rutas = [];
   for (const a of args){
-    if (a === '-r' || a === '-R') rec = true;
-    else if (a === '-f') force = true;
-    else if (a.startsWith('-')) for (const c of a.slice(1)){ if (c === 'r' || c === 'R') rec = true; if (c === 'f') force = true; }
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && (a === '-r' || a === '-R')) rec = true;
+    else if (!finOpciones && a === '-f') force = true;
+    else if (!finOpciones && a.startsWith('-')) for (const c of a.slice(1)){ if (c === 'r' || c === 'R') rec = true; if (c === 'f') force = true; }
     else rutas.push(a);
   }
   if (!rutas.length) return fallo('rm: falta un operando');
@@ -1657,15 +1662,16 @@ function cmd_rmdir(e, args){
   return { out:'', err, code: err ? 1 : 0 };
 }
 function cmd_cp(e, args){
-  let rec = false, conservar = false, soloNuevo = false;
+  let rec = false, conservar = false, soloNuevo = false, finOpciones = false;
   const ops = [];
   for (const a of args){
-    if (a.startsWith('-') && a !== '-') for (const c of a.slice(1)){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a.startsWith('-') && a !== '-') for (const c of a.slice(1)){
       if (c === 'r' || c === 'R' || c === 'a') rec = true;
       if (c === 'p' || c === 'a') conservar = true;
       if (c === 'u') soloNuevo = true;
     }
-    else if (!a.startsWith('-')) ops.push(a);
+    else if (finOpciones || !a.startsWith('-')) ops.push(a);
   }
   if (ops.length < 2) return fallo('cp: faltan operandos');
   const destinos = ops[ops.length - 1], fuentes = ops.slice(0, -1);
@@ -1689,7 +1695,14 @@ function cmd_cp(e, args){
   return { out:'', err, code: err ? 1 : 0 };
 }
 function cmd_mv(e, args){
-  const ops = args.filter(a => !a.startsWith('-'));
+  let actualizar = false, finOpciones = false;
+  const ops = [];
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-u'){ actualizar = true; continue; }
+    if (!finOpciones && a.startsWith('-')) continue;
+    ops.push(a);
+  }
   if (ops.length < 2) return fallo('mv: faltan operandos');
   const src = rutaAbs(ops[0], e.cwd);
   if (!e.fs[src]) return fallo("mv: no se puede acceder a '" + ops[0] + "': No such file or directory");
@@ -1697,13 +1710,21 @@ function cmd_mv(e, args){
   if (e.fs[dst] && e.fs[dst].tipo === 'dir') dst += '/' + nombreDe(src);
   if (!esDir(e, padreDe(dst))) return fallo("mv: no se puede mover '" + ops[0] + "': No such file or directory");
   if (src === dst) return exito();
+  if (actualizar && e.fs[dst] && (e.fs[src].mtime || 0) <= (e.fs[dst].mtime || 0)) return exito();
   for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')){ e.fs[dst + k.slice(src.length)] = e.fs[k]; delete e.fs[k]; }
   return exito();
 }
 function cmd_cat(e, args, stdin){
-  if (!args.length) return exito(stdin || '');
+  let finOpciones = false;
+  const rutas = [];
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a.startsWith('-')) continue;
+    rutas.push(a);
+  }
+  if (!rutas.length) return exito(stdin || '');
   let out = '', err = '';
-  for (const raw of args){
+  for (const raw of rutas){
     let p = rutaAbs(raw, e.cwd);
     if (e.fs[p] && e.fs[p].tipo === 'link') p = resolverEnlace(e, p);
     const it = e.fs[p];
@@ -1723,14 +1744,79 @@ function cmd_echo(e, args){
   }
   return exito(texto);
 }
+const DIAS_LARGOS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function formatearFecha(d, fmt){
+  const p = n => String(n).padStart(2, '0');
+  return String(fmt).replace(/%([A-Za-z%])/g, (m, c) => {
+    switch (c){
+      case 'F': return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+      case 'Y': return String(d.getFullYear());
+      case 'y': return p(d.getFullYear() % 100);
+      case 'm': return p(d.getMonth() + 1);
+      case 'd': return p(d.getDate());
+      case 'H': return p(d.getHours());
+      case 'M': return p(d.getMinutes());
+      case 'S': return p(d.getSeconds());
+      case 'B': return MESES_LARGOS[d.getMonth()];
+      case 'A': return DIAS_LARGOS[d.getDay()];
+      case '%': return '%';
+      default: return m;
+    }
+  });
+}
+// Fechas relativas de `date -d`: "next friday", "tomorrow", "4 weeks ago"...
+function fechaRelativa(txt, base){
+  const s = String(txt || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  let d = new Date(base.getTime());
+  const dias = { domingo:0, lunes:1, martes:2, miercoles:3, 'miércoles':3, jueves:4, viernes:5, sabado:6, 'sábado':6,
+    sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 };
+  const m = /^(next|last|proximo|próximo|ultimo|último)\s+([a-záéíóú]+)$/.exec(s);
+  if (m && dias[m[2]] != null){
+    const objetivo = dias[m[2]], actual = d.getDay();
+    let salto = (objetivo - actual + 7) % 7;
+    if (m[1].startsWith('last') || m[1].startsWith('ult') || m[1].startsWith('últ')) salto = salto === 0 ? -7 : salto - 7;
+    if (salto === 0 && m[1].startsWith('next')) salto = 7;
+    d.setDate(d.getDate() + salto);
+    return d;
+  }
+  if (s === 'tomorrow' || s === 'mañana' || s === 'manana'){ d.setDate(d.getDate() + 1); return d; }
+  if (s === 'yesterday' || s === 'ayer'){ d.setDate(d.getDate() - 1); return d; }
+  if (s === 'today' || s === 'hoy') return d;
+  const unidades = {
+    minute:60000, minutes:60000, minuto:60000, minutos:60000,
+    hour:3600000, hours:3600000, hora:3600000, horas:3600000,
+    day:86400000, days:86400000, dia:86400000, 'día':86400000, dias:86400000, 'días':86400000,
+    week:604800000, weeks:604800000, semana:604800000, semanas:604800000,
+    month:2592000000, months:2592000000, mes:2592000000, meses:2592000000,
+    year:31536000000, years:31536000000, ano:31536000000, 'año':31536000000, anos:31536000000, 'años':31536000000
+  };
+  const re = /(\d+)\s*([a-záéíóúñ]+)(?:\s+(ago))?/g;
+  let hubo = false, mm;
+  while ((mm = re.exec(s))){
+    const n = Number(mm[1]), u = unidades[mm[2]];
+    if (!u) continue;
+    hubo = true;
+    const signo = mm[3] ? -1 : 1;
+    if (mm[2].startsWith('mes') || mm[2] === 'month' || mm[2] === 'months') d.setMonth(d.getMonth() + signo * n);
+    else if (mm[2].startsWith('año') || mm[2].startsWith('ano') || mm[2] === 'year' || mm[2] === 'years') d.setFullYear(d.getFullYear() + signo * n);
+    else d = new Date(d.getTime() + signo * n * u);
+  }
+  if (hubo) return d;
+  const t = Date.parse(txt);
+  return Number.isFinite(t) ? new Date(t) : null;
+}
 function cmd_date(e, args){
-  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const p = n => String(n).padStart(2, '0');
   const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const formato = args[0] || '';
-  if (formato === '+%F') return exito(d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()));
-  if (formato === '+%d%m%y') return exito(p(d.getDate()) + p(d.getMonth() + 1) + p(d.getFullYear() % 100));
-  if (formato === '+%B') return exito(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][d.getMonth()]);
+  let d = new Date(), formato = null;
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-d' || a === '--date'){ const f = fechaRelativa(args[++i], d); if (f) d = f; }
+    else if (a.startsWith('+')) formato = a.slice(1);
+  }
+  if (formato != null) return exito(formatearFecha(d, formato));
   return exito(dias[d.getDay()] + ' ' + p(d.getDate()) + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' UTC');
 }
 function cmd_ln(e, args){
@@ -1749,31 +1835,49 @@ function cmd_ln(e, args){
   }
   return exito();
 }
-function cmd_chmod(e, args){
-  if (args.length < 2) return fallo('chmod: faltan operandos');
-  const modo = args[0], rutas = args.slice(1);
-  let err = '';
-  for (const raw of rutas){
-    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
-    if (!it){ err += "chmod: no se puede acceder a '" + raw + "': No such file or directory\n"; continue; }
-    if (/^[0-7]{3,4}$/.test(modo)) it.modo = modo.slice(-3);
-    else {
-      let quien = 'a', m = modo;
-      if (/^[ugoa][+-=]/.test(m)){ quien = m[0]; m = m.slice(1); }
-      const op = m[0], perms = m.slice(1), actual = modoDe(it).split('').map(Number);
-      const idxs = quien === 'a' ? [0,1,2] : [{u:0,g:1,o:2}[quien]];
-      for (const idx of idxs){
-        if (idx == null) continue;
-        for (const c of perms){
-          const bit = { r:4, w:2, x:1 }[c] || 0;
-          if (op === '+') actual[idx] |= bit;
-          else if (op === '-') actual[idx] &= ~bit;
-          else if (op === '=') actual[idx] = bit;
-        }
+function modoSimbolico(actualStr, expr){
+  const actual = actualStr.split('').map(Number);
+  for (const clausula of expr.split(',')){
+    const m = /^([ugoa]*)([+-=])([rwxst]*)$/.exec(clausula);
+    if (!m) return null;
+    const quienes = m[1] || 'a', op = m[2], perms = m[3];
+    const idxs = quienes.includes('a') ? [0,1,2] : [...new Set(quienes.split('').map(c => ({ u:0, g:1, o:2 }[c])).filter(x => x != null))];
+    for (const idx of idxs){
+      if (op === '=') actual[idx] = 0;
+      for (const c of perms){
+        const bit = { r:4, w:2, x:1, X:1 }[c] || 0;
+        if (op === '+') actual[idx] |= bit;
+        else if (op === '-') actual[idx] &= ~bit;
+        else actual[idx] |= bit;
       }
-      it.modo = actual.join('');
     }
   }
+  return actual.join('');
+}
+function cmd_chmod(e, args){
+  let recursivo = false, finOpciones = false;
+  const resto = [];
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && (a === '-R' || a === '--recursive')){ recursivo = true; continue; }
+    resto.push(a);
+  }
+  if (resto.length < 2) return fallo('chmod: faltan operandos');
+  const modo = resto[0], rutas = resto.slice(1);
+  if (!/^[0-7]{3,4}$/.test(modo) && modoSimbolico('000', modo) == null)
+    return fallo("chmod: modo no válido: '" + modo + "'");
+  let err = '';
+  const aplicar = raw => {
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it){ err += "chmod: no se puede acceder a '" + raw + "': No such file or directory\n"; return; }
+    it.modo = /^[0-7]{3,4}$/.test(modo) ? modo.slice(-3) : modoSimbolico(modoDe(it), modo);
+    if (recursivo && it.tipo === 'dir')
+      for (const k of Object.keys(e.fs)) if (k.startsWith(p + '/')) {
+        const hijo = e.fs[k];
+        if (hijo.tipo !== 'link') hijo.modo = /^[0-7]{3,4}$/.test(modo) ? modo.slice(-3) : modoSimbolico(modoDe(hijo), modo);
+      }
+  };
+  rutas.forEach(aplicar);
   return { out:'', err, code: err ? 1 : 0 };
 }
 function cmd_umask(e, args){
@@ -2262,27 +2366,47 @@ function cmd_tail(e, args, stdin){
   return exito(ls.slice(-n).join('\n'));
 }
 function cmd_sort(e, args, stdin){
-  const rev = args.includes('-r'), numeric = args.includes('-n');
-  let campo = 0;
+  let rev = false, numeric = false, campo = -1, delimitador = null, finOpciones = false;
+  const files = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-k'){
+    const a = args[i];
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-r'){ rev = true; continue; }
+    if (!finOpciones && a === '-n'){ numeric = true; continue; }
+    if (!finOpciones && a === '-k'){
       if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('sort: falta un campo válido después de -k');
       campo = Math.max(0, Number(args[++i]) - 1);
+      continue;
     }
-    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1);
+    if (!finOpciones && /^-k\d+$/.test(a)){ campo = Math.max(0, Number(a.slice(2)) - 1); continue; }
+    if (!finOpciones && a === '-t'){
+      if (i + 1 >= args.length) return fallo('sort: falta el separador después de -t');
+      delimitador = args[++i];
+      continue;
+    }
+    if (!finOpciones && a.startsWith('-')) continue;
+    files.push(a);
   }
-  const files = args.filter(a => !a.startsWith('-'));
   const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  const clave = linea => {
+    if (campo < 0) return linea;
+    const partes = delimitador ? linea.split(delimitador) : linea.trim().split(/\s+/);
+    return partes[campo] || '';
+  };
+  const numero = s => {
+    const m = /^\s*(-?\d+(?:\.\d+)?)/.exec(s);
+    return m ? Number(m[1]) : NaN;
+  };
   const ls = texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1);
   ls.sort((a, b) => {
-    const aa = a.trim().split(/\s+/)[campo], bb = b.trim().split(/\s+/)[campo];
+    const aa = clave(a), bb = clave(b);
     if (numeric){
-      const na = Number(aa), nb = Number(bb);
+      const na = numero(aa), nb = numero(bb);
       if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
       if (Number.isFinite(na)) return -1;
       if (Number.isFinite(nb)) return 1;
     }
-    return a.localeCompare(b, 'es');
+    return aa.localeCompare(bb, 'es');
   });
   if (rev) ls.reverse();
   return exito(ls.join('\n'));
@@ -2542,9 +2666,16 @@ function tokenizar(linea){
     if (ch === '|' && linea[i + 1] === '|'){ empujar(); out.push('||'); i++; continue; }
     if (ch === '|'){ empujar(); out.push('|'); continue; }
     if (ch === ';'){ empujar(); out.push(';'); continue; }
+    if (ch === '2' && linea.slice(i, i + 4) === '2>&1'){ empujar(); out.push('2>&1'); i += 3; continue; }
+    if (ch === '&' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('&>>'); i += 2; continue; }
+    if (ch === '&' && linea[i + 1] === '>'){ empujar(); out.push('&>'); i++; continue; }
+    if (ch === '2' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('2>>'); i += 2; continue; }
+    if (ch === '1' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('1>>'); i += 2; continue; }
+    if (ch === '1' && linea[i + 1] === '>'){ empujar(); out.push('1>'); i++; continue; }
     if (ch === '2' && linea[i + 1] === '>'){ empujar(); out.push('2>'); i++; continue; }
     if (ch === '>' && linea[i + 1] === '>'){ empujar(); out.push('>>'); i++; continue; }
     if (ch === '>'){ empujar(); out.push('>'); continue; }
+    if (ch === '<'){ empujar(); out.push('<'); continue; }
     actual += ch;
   }
   empujar();
@@ -2556,32 +2687,63 @@ function ejecutarSimple(e, tokens, stdin = ''){
   let args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
   // Los comodines se expanden como en bash para los comandos que reciben ficheros.
   // find y grep quedan fuera porque sus patrones no son rutas.
-  if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd))
+  if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd)){
+    let modoChmodVisto = false;
     args = args.flatMap((a, i) => {
-      if (cmd === 'chmod' && i === 0) return [a];
+      if (cmd === 'chmod' && !a.startsWith('-') && !modoChmodVisto){ modoChmodVisto = true; return [a]; }
       if (cmd === 'touch' && i > 0 && ['-d','-t','-r'].includes(args[i - 1])) return [a];
       return a.startsWith('-') ? [a] : expandirGlob(e, a);
     });
+  }
   if (cmd === 'mkcd' && e.funciones.includes('mkcd')) return cmd_mkcd(e, args);
   if (e.alias && e.alias[cmd]) return ejecutarSimple(e, tokenizar(e.alias[cmd]).concat(tokens.slice(1)), stdin);
   const fn = CMD_SIM[cmd];
   if (!fn) return fallo('bash: ' + cmd + ': orden no encontrada');
   return fn(e, args, stdin);
 }
+const REDIRS_SALIDA = new Set(['>', '>>', '1>', '1>>', '2>', '2>>', '&>', '&>>']);
+// Separa las redirecciones de los tokens. Se admite más de una por línea
+// (por ejemplo `ls > todo.log 2>&1`), y se respeta el orden en que aparecen.
+function extraerRedirecciones(tokens){
+  const resto = [], redirs = [];
+  for (let i = 0; i < tokens.length; i++){
+    const t = tokens[i];
+    if (t === '2>&1'){ redirs.push({ tipo:'dup' }); continue; }
+    if (!REDIRS_SALIDA.has(t) && t !== '<'){ resto.push(t); continue; }
+    const destino = tokens[++i];
+    if (!destino) return { error:'bash: falta el fichero de redirección' };
+    if (t === '<') redirs.push({ tipo:'in', destino });
+    else redirs.push({ tipo:'out', fd:t.startsWith('2') ? 2 : 1, ambos:t.startsWith('&'), append:/>>$/.test(t), destino });
+  }
+  return { resto, redirs };
+}
+function escribirSalida(e, destino, texto){
+  if (destino.destino === '/dev/null') return null;
+  texto = quitarHtml(texto || '');
+  const p = rutaAbs(destino.destino, e.cwd), padre = padreDe(p);
+  if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino.destino + ': No such file or directory', code:1 };
+  const anterior = destino.append && e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+  e.fs[p] = { tipo:'file', contenido: anterior + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
+  return null;
+}
 function ejecutarPipeline(e, tokens, stdin = ''){
-  let redir = null, idx = -1;
-  for (let i = 0; i < tokens.length; i++) if (tokens[i] === '>' || tokens[i] === '>>' || tokens[i] === '2>'){ redir = tokens[i]; idx = i; break; }
-  let destino = null;
-  if (redir){
-    destino = tokens[idx + 1];
-    tokens = tokens.slice(0, idx).concat(tokens.slice(idx + 2));
-    if (!destino) return { out:'', err:'bash: falta el fichero de redirección', code:1 };
+  const analisis = extraerRedirecciones(tokens);
+  if (analisis.error) return { out:'', err:analisis.error, code:1 };
+  tokens = analisis.resto;
+  // Entrada redirigida: se lee el fichero antes de ejecutar la tubería.
+  let entradaInicial = stdin;
+  for (const r of analisis.redirs){
+    if (r.tipo !== 'in') continue;
+    if (r.destino === '/dev/null'){ entradaInicial = ''; continue; }
+    const p = rutaAbs(r.destino, e.cwd), it = e.fs[p];
+    if (!it || it.tipo === 'dir') return { out:'', err:'bash: ' + r.destino + ': No such file or directory', code:1 };
+    entradaInicial = it.contenido || '';
   }
   const segmentos = [];
   let seg = [];
   for (const t of tokens){ if (t === '|'){ segmentos.push(seg); seg = []; } else seg.push(t); }
   segmentos.push(seg);
-  let out = '', err = '', code = 0, entrada = stdin;
+  let out = '', err = '', code = 0, entrada = entradaInicial;
   for (let i = 0; i < segmentos.length; i++){
     const s = segmentos[i];
     if (!s.length) continue;
@@ -2594,13 +2756,26 @@ function ejecutarPipeline(e, tokens, stdin = ''){
     entrada = out.indexOf('\0') !== -1 ? out : quitarHtml(out);
   }
   e._tuberia = false;
-  if (redir && (code === 0 || redir === '2>')){
-    const p = rutaAbs(destino, e.cwd), padre = padreDe(p);
-    if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino + ': No such file or directory', code:1 };
-    const texto = redir === '2>' ? quitarHtml(err) : quitarHtml(out);
-    const anterior = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
-    e.fs[p] = { tipo:'file', contenido: (redir === '>>' ? anterior : '') + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
-    if (redir === '2>') err = ''; else out = '';
+  let destinoOut = null, destinoErr = null;
+  for (const r of analisis.redirs){
+    if (r.tipo === 'dup'){
+      // 2>&1: los errores pasan a donde vaya la salida en ese momento.
+      destinoErr = destinoOut ? { destino: destinoOut.destino, append: destinoOut.append, compartido: true } : null;
+      continue;
+    }
+    if (r.tipo !== 'out') continue;
+    if (r.ambos){ destinoOut = { destino:r.destino, append:r.append }; destinoErr = destinoOut; continue; }
+    if (r.fd === 1) destinoOut = { destino:r.destino, append:r.append };
+    else destinoErr = { destino:r.destino, append:r.append };
+  }
+  const mismo = destinoOut && destinoErr && destinoOut.destino === destinoErr.destino;
+  if (mismo){
+    const fallo = escribirSalida(e, destinoOut, out + err);
+    if (fallo) return fallo;
+    out = ''; err = '';
+  } else {
+    if (destinoOut){ const fallo = escribirSalida(e, destinoOut, out); if (fallo) return fallo; out = ''; }
+    if (destinoErr){ const fallo = escribirSalida(e, destinoErr, err); if (fallo) return fallo; err = ''; }
   }
   return { out, err, code };
 }
