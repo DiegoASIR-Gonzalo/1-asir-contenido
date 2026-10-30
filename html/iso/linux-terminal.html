@@ -1241,16 +1241,18 @@ function crearEstado(act = {}){
     if (v === 'dir'){ crearPadres(p); return; }
     if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; copiarMeta(e.fs[p]); return; }
     if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = copiarMeta({ tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }); return; }
+    if (v && v.tipo === 'fifo'){ crearPadres(padreDe(p)); e.fs[p] = copiarMeta({ tipo:'fifo', contenido:(v.contenido || ''), modo:v.modo || '644' }); return; }
     const contenido = typeof v === 'string' ? v : (v && v.contenido) || '';
     const modo = (v && v.modo) || '644';
     crearPadres(padreDe(p));
     e.fs[p] = copiarMeta({ tipo:'file', contenido, modo });
   });
   e.cwd = rutaAbs(ini.cwd || '~', MUNDO_HOME);
+  e.fds = {};
   return e;
 }
 
-const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones, umask: e.umask || '022', vars: e.vars || {}, alias: e.alias || {}, historial: e.historial || [], ultimoCodigo: e.ultimoCodigo || 0 }));
+const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones, umask: e.umask || '022', vars: e.vars || {}, alias: e.alias || {}, fds: e.fds || {}, historial: e.historial || [], ultimoCodigo: e.ultimoCodigo || 0 }));
 // Permisos con los que nace un fichero o carpeta según la umask actual (por defecto 022 → 644 y 755).
 const modoConUmask = (base, e) => ((base & ~parseInt(e.umask || '022', 8)) & 0o777).toString(8).padStart(3, '0');
 
@@ -1356,7 +1358,7 @@ function columnas(e, hijos, flags){
   return lineas.join('\n');
 }
 function lineaLarga(e, p, it, verInodo){
-  const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : '-';
+  const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : it.tipo === 'fifo' ? 'p' : '-';
   const tam = it.tipo === 'file' ? String((it.contenido || '').length) : '4096';
   const extra = it.tipo === 'link' ? ' -> ' + escaparHtml(it.destino) : '';
   const linea = tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
@@ -1731,6 +1733,8 @@ function cmd_cat(e, args, stdin){
     if (!it){ err += "cat: " + raw + ": No such file or directory\n"; continue; }
     if (it.tipo === 'dir'){ err += "cat: " + raw + ": Es un directorio\n"; continue; }
     out += it.contenido || '';
+    // Leer una tubería con nombre consume lo que hubiera dentro, como en Linux.
+    if (it.tipo === 'fifo') it.contenido = '';
     if (out && !out.endsWith('\n')) out += '\n';
   }
   return { out, err, code: err ? 1 : 0 };
@@ -2535,6 +2539,101 @@ function cmd_cal(e, args){
   else meses = [{ m: ahora.getMonth(), y: ahora.getFullYear() }];
   return exito(meses.map(x => calendarioMes(x.y, x.m)).join('\n\n'));
 }
+// Semanas en vertical, como ncal: una fila por día de la semana.
+function semanaIso(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  const inicio = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil((((t - inicio) / 86400000) + 1) / 7);
+}
+function calendarioNcal(anio, mes, verSemana){
+  const dias = new Date(anio, mes + 1, 0).getDate();
+  const primero = (new Date(anio, mes, 1).getDay() + 6) % 7;
+  const lineas = [(MESES_CAL[mes] + ' ' + anio).padStart(20)];
+  const nombres = ['lu','ma','mi','ju','vi','sá','do'];
+  if (verSemana) lineas.push('sem         ');
+  // Se agrupan los días por semana (columnas) y se reparten por día de la semana.
+  const semanas = [];
+  let semana = new Array(7).fill(null);
+  for (let d = 1; d <= dias; d++){
+    semana[(primero + d - 1) % 7] = d;
+    if ((primero + d) % 7 === 0){ semanas.push(semana); semana = new Array(7).fill(null); }
+  }
+  if (semana.some(Boolean)) semanas.push(semana);
+  const prefijo = verSemana ? 'sem ' : '';
+  if (verSemana) lineas.push(prefijo + semanas.map(s => String(semanaIso(new Date(anio, mes, s.find(Boolean)))).padStart(4)).join(''));
+  for (let w = 0; w < 7; w++){
+    let fila = nombres[w].padStart(3);
+    for (const s of semanas) fila += (s[w] == null ? '   ' : String(s[w]).padStart(4).slice(-3) + ' ');
+    lineas.push(fila.replace(/\s+$/, ''));
+  }
+  return lineas.join('\n');
+}
+function cmd_ncal(e, args){
+  const verSemana = args.includes('-w');
+  const nums = args.filter(a => /^\d+$/.test(a)).map(Number);
+  const ahora = new Date();
+  let meses = [{ m: ahora.getMonth(), y: ahora.getFullYear() }];
+  if (args.includes('-3')){
+    const base = nums.length >= 2 ? new Date(nums[1], nums[0] - 1, 1) : new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    meses = [-1, 0, 1].map(salto => {
+      const d = new Date(base.getFullYear(), base.getMonth() + salto, 1);
+      return { m: d.getMonth(), y: d.getFullYear() };
+    });
+  }
+  else if (nums.length >= 2) meses = [{ m: nums[0] - 1, y: nums[1] }];
+  else if (nums.length === 1) meses = [{ m: ahora.getMonth(), y: nums[0] }];
+  return exito(meses.map(x => calendarioNcal(x.y, x.m, verSemana)).join('\n\n'));
+}
+function cmd_hwclock(e, args){
+  if (args.includes('-w') || args.includes('--systohc')) return exito('');
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const off = -d.getTimezoneOffset(), signo = off >= 0 ? '+' : '-', abs = Math.abs(off);
+  return exito(d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' +
+    p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '.000000' +
+    signo + p(Math.floor(abs / 60)) + ':' + p(abs % 60));
+}
+function cmd_readlink(e, args){
+  const canonico = args.includes('-f') || args.includes('--canonicalize');
+  const rutas = args.filter(a => !a.startsWith('-'));
+  if (!rutas.length) return fallo('readlink: falta un operando');
+  let out = '', err = '', code = 0;
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (canonico){
+      if (!it){ err += 'readlink: ' + raw + ': No such file or directory\n'; code = 1; continue; }
+      out += resolverEnlace(e, p) + '\n';
+      continue;
+    }
+    if (!it || it.tipo !== 'link'){ code = 1; continue; }
+    out += it.destino + '\n';
+  }
+  return { out, err, code };
+}
+function cmd_mkfifo(e, args){
+  let modo = null, finOpciones = false;
+  const rutas = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-m'){
+      if (i + 1 >= args.length) return fallo('mkfifo: falta el modo después de -m');
+      modo = String(args[++i]); continue;
+    }
+    if (!finOpciones && a.startsWith('-')) continue;
+    rutas.push(a);
+  }
+  if (!rutas.length) return fallo('mkfifo: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd);
+    if (e.fs[p]){ err += (err ? '\n' : '') + "mkfifo: no se puede crear '" + raw + "': El fichero ya existe"; continue; }
+    if (!esDir(e, padreDe(p))){ err += (err ? '\n' : '') + "mkfifo: no se puede crear '" + raw + "': No such file or directory"; continue; }
+    const modoFifo = modo && /^[0-7]{3,4}$/.test(modo) ? modo.slice(-3) : modoConUmask(0o666, e);
+    e.fs[p] = { tipo:'fifo', contenido:'', modo:modoFifo };
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
 function cmd_history(e, args){
   const h = e.historial || [];
   if (args[0] === '-c'){ e.historial = []; return exito(); }
@@ -2632,7 +2731,7 @@ const CMD_SIM = {
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
   whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), who: cmd_who, users: cmd_users, ps: cmd_ps, cut: cmd_cut, time: cmd_time, date: cmd_date, umask: cmd_umask,
-  history: cmd_history, stat: cmd_stat, basename: cmd_basename, dirname: cmd_dirname, cal: cmd_cal, alias: cmd_alias, unalias: cmd_unalias,
+  history: cmd_history, stat: cmd_stat, basename: cmd_basename, dirname: cmd_dirname, cal: cmd_cal, ncal: cmd_ncal, hwclock: cmd_hwclock, readlink: cmd_readlink, mkfifo: cmd_mkfifo, alias: cmd_alias, unalias: cmd_unalias,
   tee: cmd_tee, xargs: cmd_xargs, locate: cmd_locate, which: cmd_which, updatedb: () => exito('')
 };
 
@@ -2673,6 +2772,8 @@ function tokenizar(linea){
     if (ch === '1' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('1>>'); i += 2; continue; }
     if (ch === '1' && linea[i + 1] === '>'){ empujar(); out.push('1>'); i++; continue; }
     if (ch === '2' && linea[i + 1] === '>'){ empujar(); out.push('2>'); i++; continue; }
+    if (ch === '>' && linea[i + 1] === '&' && /[0-9]/.test(linea[i + 2] || '')){ empujar(); out.push('>&' + linea[i + 2]); i += 2; continue; }
+    if (ch === '<' && linea[i + 1] === '&' && /[0-9]/.test(linea[i + 2] || '')){ empujar(); out.push('<&' + linea[i + 2]); i += 2; continue; }
     if (ch === '>' && linea[i + 1] === '>'){ empujar(); out.push('>>'); i++; continue; }
     if (ch === '>'){ empujar(); out.push('>'); continue; }
     if (ch === '<'){ empujar(); out.push('<'); continue; }
@@ -2709,6 +2810,9 @@ function extraerRedirecciones(tokens){
   for (let i = 0; i < tokens.length; i++){
     const t = tokens[i];
     if (t === '2>&1'){ redirs.push({ tipo:'dup' }); continue; }
+    const fdOut = /^>&([3-9])$/.exec(t), fdIn = /^<&([3-9])$/.exec(t);
+    if (fdOut){ redirs.push({ tipo:'fd', origen:Number(fdOut[1]) }); continue; }
+    if (fdIn){ redirs.push({ tipo:'fdin', origen:Number(fdIn[1]) }); continue; }
     if (!REDIRS_SALIDA.has(t) && t !== '<'){ resto.push(t); continue; }
     const destino = tokens[++i];
     if (!destino) return { error:'bash: falta el fichero de redirección' };
@@ -2722,8 +2826,11 @@ function escribirSalida(e, destino, texto){
   texto = quitarHtml(texto || '');
   const p = rutaAbs(destino.destino, e.cwd), padre = padreDe(p);
   if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino.destino + ': No such file or directory', code:1 };
-  const anterior = destino.append && e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
-  e.fs[p] = { tipo:'file', contenido: anterior + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
+  const previo = e.fs[p];
+  // Escribir en una tubería con nombre la rellena en vez de convertirla en fichero.
+  const tipo = previo && previo.tipo === 'fifo' ? 'fifo' : 'file';
+  const anterior = destino.append && previo && (previo.tipo === 'file' || previo.tipo === 'fifo') ? previo.contenido : '';
+  e.fs[p] = { tipo, contenido: anterior + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:(previo && previo.modo) || '644' };
   return null;
 }
 function ejecutarPipeline(e, tokens, stdin = ''){
@@ -2733,6 +2840,14 @@ function ejecutarPipeline(e, tokens, stdin = ''){
   // Entrada redirigida: se lee el fichero antes de ejecutar la tubería.
   let entradaInicial = stdin;
   for (const r of analisis.redirs){
+    if (r.tipo === 'fdin'){
+      const fd = e.fds && e.fds[r.origen];
+      if (!fd || fd.tipo !== 'in') return { out:'', err:'bash: ' + r.origen + ': Bad file descriptor', code:1 };
+      const it = e.fs[fd.destino];
+      if (!it) return { out:'', err:'bash: ' + r.origen + ': Bad file descriptor', code:1 };
+      entradaInicial = it.contenido || '';
+      continue;
+    }
     if (r.tipo !== 'in') continue;
     if (r.destino === '/dev/null'){ entradaInicial = ''; continue; }
     const p = rutaAbs(r.destino, e.cwd), it = e.fs[p];
@@ -2763,6 +2878,12 @@ function ejecutarPipeline(e, tokens, stdin = ''){
       destinoErr = destinoOut ? { destino: destinoOut.destino, append: destinoOut.append, compartido: true } : null;
       continue;
     }
+    if (r.tipo === 'fd'){
+      const fd = e.fds && e.fds[r.origen];
+      if (!fd || fd.tipo !== 'out') return { out:'', err:'bash: ' + r.origen + ': Bad file descriptor', code:1 };
+      destinoOut = { destino: fd.destino, append: fd.append };
+      continue;
+    }
     if (r.tipo !== 'out') continue;
     if (r.ambos){ destinoOut = { destino:r.destino, append:r.append }; destinoErr = destinoOut; continue; }
     if (r.fd === 1) destinoOut = { destino:r.destino, append:r.append };
@@ -2788,12 +2909,93 @@ function expandirVariables(e, tokens){
   return tokens.map(t => t.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*|\?)\}|\$([A-Za-z_][A-Za-z0-9_]*|\?)/g,
     (m, a, b) => valor(a || b)));
 }
-function ejecutarLinea(e, linea, _sub){
+/* ---- Canales (exec 5> fichero, >&5, <&5) ---- */
+function ejecutarExec(e, linea){
+  const m = /^\s*exec\s+([3-9])\s*(>>|>|<)\s*(\S+)\s*$/.exec(linea);
+  if (!m) return null;
+  const fd = Number(m[1]), op = m[2], arg = m[3];
+  e.fds = e.fds || {};
+  if (arg === '&-'){ delete e.fds[fd]; return exito(''); }
+  const p = rutaAbs(arg, e.cwd);
+  if (op === '<'){
+    const it = e.fs[p];
+    if (!it || it.tipo === 'dir') return fallo('bash: ' + arg + ': No such file or directory');
+    e.fds[fd] = { tipo:'in', destino:p };
+    return exito('');
+  }
+  if (!esDir(e, padreDe(p))) return fallo('bash: ' + arg + ': No such file or directory');
+  const previo = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+  e.fs[p] = { tipo:'file', contenido: op === '>>' ? previo : '', modo:(e.fs[p] && e.fs[p].modo) || '644' };
+  e.fds[fd] = { tipo:'out', destino:p, append: op === '>>' };
+  return exito('');
+}
+
+/* ---- Bucles for de una línea: for i in {a..z}; do ...; done ---- */
+function expandirListaFor(e, texto){
+  let lista = expandirVariables(e, tokenizar(texto));
+  lista = lista.flatMap(a => expandirLlaves(a));
+  lista = lista.flatMap(a => /[*?[]/.test(a) ? expandirGlob(e, a) : [a]);
+  return lista;
+}
+function ejecutarFor(e, linea, _sub){
+  const m = /^\s*for\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\s+([\s\S]*?)\s*;?\s*do\s+([\s\S]*?)\s*;?\s*done\s*$/.exec(linea);
+  if (!m) return null;
+  const lista = expandirListaFor(e, m[2]);
+  let out = '', err = '', code = 0;
+  e.vars = e.vars || {};
+  for (const valor of lista){
+    e.vars[m[1]] = valor;
+    const r = ejecutarLinea(e, m[3], true);
+    if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    if (r.err) err += (err && !err.endsWith('\n') ? '\n' : '') + r.err;
+    code = r.code;
+    if (code !== 0) break;
+  }
+  return { out, err, code };
+}
+
+/* ---- Here-documents: cat <<EOF ... EOF ---- */
+function delimitadorHeredoc(linea){
+  const m = /<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/.exec(linea);
+  return m ? m[2] : null;
+}
+function ejecutarGuion(e, texto){
+  const lineas = String(texto).replace(/\r\n?/g, '\n').split('\n');
+  let out = '', err = '', code = 0, i = 0;
+  const sumar = r => {
+    if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    if (r.err) err += (err && !err.endsWith('\n') ? '\n' : '') + r.err;
+    code = r.code;
+  };
+  while (i < lineas.length){
+    const linea = lineas[i];
+    const delim = delimitadorHeredoc(linea);
+    if (!delim){ sumar(ejecutarLinea(e, linea)); i++; continue; }
+    const cuerpo = [];
+    i++;
+    while (i < lineas.length && lineas[i].replace(/^\t+/, '').trimEnd() !== delim) cuerpo.push(lineas[i++]);
+    i++;   // salta el delimitador
+    const orden = linea.replace(/<<-?\s*(['"]?)[A-Za-z_][A-Za-z0-9_]*\1/, '');
+    sumar(ejecutarLinea(e, orden, false, cuerpo.join('\n') + (cuerpo.length ? '\n' : '')));
+  }
+  return { out, err, code };
+}
+function ejecutarEntrada(e, texto){
+  return /<<-?\s*['"]?[A-Za-z_]/.test(texto) || /\n/.test(texto)
+    ? ejecutarGuion(e, texto)
+    : ejecutarLinea(e, texto);
+}
+
+function ejecutarLinea(e, linea, _sub, stdin){
   if (!_sub){
     e.historial = e.historial || [];
     e.historial.push(String(linea));
     if (e.historial.length > 500) e.historial.shift();
   }
+  const canal = ejecutarExec(e, linea);
+  if (canal) return canal;
+  const bucle = ejecutarFor(e, linea, _sub);
+  if (bucle) return bucle;
   // Sustitución de comandos: $(comando) se cambia por su salida.
   linea = String(linea).replace(/\$\(([^()]*)\)/g, (m, inner) =>
     quitarHtml((ejecutarLinea(e, inner, true).out || '')).trim());
@@ -2812,7 +3014,7 @@ function ejecutarLinea(e, linea, _sub){
         e.vars[asignacion[1]] = asignacion[2];
         code = 0;
       } else {
-        const r = ejecutarPipeline(e, t);
+        const r = ejecutarPipeline(e, t, stdin);
         if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
         if (r.err) err += (err && !err.endsWith('\n') ? '\n' : '') + r.err;
         code = r.code;
@@ -2912,7 +3114,7 @@ function validarPaso(paso, estado, t){
   const aprendizaje = comprobarAprendizaje(paso, t);
   if (!aprendizaje.ok) return { ok:false, estado, salida:'', error: aprendizaje.mensaje, diagnostico: aprendizaje.mensaje };
   const candidato = estado ? clonarEstado(estado) : null;
-  const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
+  const r = candidato ? ejecutarEntrada(candidato, t) : { out:'', err:'', code:0 };
   if (r.code !== 0){
     const diagnostico = enriquecerDiagnostico(paso, r.err || 'El comando no se pudo ejecutar.');
     return { ok:false, estado, salida:'', error: diagnostico, diagnostico };
@@ -3109,8 +3311,8 @@ let act = null,          // actividad abierta (objeto de ORDEN_ACT)
     pistaIdx = 0,        // pistas del paso actual ya enseñadas (cada petición muestra la siguiente)
     ayudaAct = false,    // true si en este paso se pidió "Ver solución" (da menos puntos)
     hechaAct = false,    // true cuando se ha superado el último paso
-    mem = [], memI = 0;  // historial de comandos escritos (flechas ↑ ↓) y posición en él
-
+    mem = [], memI = 0,  // historial de comandos escritos (flechas ↑ ↓) y posición en él
+    heredocAct = null;   // here-document a medio escribir: { orden, delim, cuerpo }
 // ---- Panel lateral: subapartados desplegables con buscador ----
 const estadoGrupos = new Map();   // título del subapartado → ¿desplegado? (se recuerda aunque la lista se vuelva a dibujar)
 const sinTildes = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();  // buscar sin distinguir tildes ni mayúsculas
@@ -3444,7 +3646,7 @@ aplicarMapa();
 
 // Abre la actividad retomando el paso guardado (si lo hay) y su mundo virtual.
 function cargarAct(){
-  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; heredocAct = null; rutaAct = null;
   estadoAct = crearEstado(act);
   const g = progreso[act.id];
   if (progresoValido(g) && g.paso > 0){
@@ -3462,7 +3664,7 @@ function cargarAct(){
 
 // Vuelve al paso 1 con la terminal limpia y borra el progreso guardado de esta actividad.
 function reiniciarAct(){
-  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; heredocAct = null; rutaAct = null;
   estadoAct = crearEstado(act);
   delete progreso[act.id]; guardarProgreso(); construirLista();
   histAct = AYUDA_ACT;
@@ -3532,9 +3734,29 @@ const aceptado = (paso, t) => patronesDe(paso).some(o => {
 // del mundo virtual y solo guarda el estado nuevo si cumple el objetivo (meta) del paso.
 function enviarAct(){
   if (hechaAct) return;
-  const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
+  let crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
+  let eco = true;
+  if (heredocAct){
+    // Segunda línea en adelante de un here-document: se acumula hasta el delimitador.
+    histAct += '> ' + escapar(crudo) + '\n';
+    heredocAct.cuerpo.push(crudo);
+    entradaAct.value = '';
+    if (crudo.trim() !== heredocAct.delim){ pintarAct(); return; }
+    const texto = [heredocAct.orden].concat(heredocAct.cuerpo).join('\n');
+    heredocAct = null;
+    entradaAct.value = texto; crudo = texto; t = texto.trim(); eco = false;
+  } else {
+    const delim = delimitadorHeredoc(t);
+    if (delim){
+      heredocAct = { orden: crudo, delim, cuerpo: [] };
+      histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
+      entradaAct.value = '';
+      pintarAct();
+      return;
+    }
+  }
   entradaAct.value = '';
-  histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
+  if (eco) histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
   if (t){ mem.push(crudo.trim()); memI = mem.length; }
   if (!t){ /* línea vacía: solo avanza el prompt */ }
   else if (t === 'clear'){ histAct = ''; }

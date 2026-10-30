@@ -992,7 +992,7 @@
   function ejecutarEn(estado, cmds) {
     let out = '';
     for (const c of [].concat(cmds)) {
-      const r = ejecutarLinea(estado, c);
+      const r = ejecutarEntrada(estado, c);
       const trozo = (r.out || '') + (r.err || '');
       if (trozo && out && !out.endsWith('\n')) out += '\n';
       out += trozo;
@@ -1370,18 +1370,38 @@
     const inp = byId('av-in');
     if (!inp) return;
     const p = lec.ronda.pantallas[lec.pantalla];
-    const crudo = inp.value;
-    const linea = normalizar(crudo);
+    let crudo = inp.value;
+    let linea = normalizar(crudo);
+    let eco = true;
+    if (lec.heredoc) {
+      // Here-document en curso: se acumulan líneas hasta el delimitador.
+      lec.hist.push('&gt; ' + escapar(crudo) + '\n');
+      lec.heredoc.cuerpo.push(crudo);
+      inp.value = '';
+      if (crudo.trim() !== lec.heredoc.delim) { pintar(); return; }
+      const texto = [lec.heredoc.orden].concat(lec.heredoc.cuerpo).join('\n');
+      lec.heredoc = null;
+      inp.value = texto; crudo = texto; linea = texto.trim(); eco = false;
+    } else {
+      const delim = delimitadorHeredoc(linea);
+      if (delim) {
+        lec.heredoc = { orden: crudo, delim, cuerpo: [] };
+        lec.hist.push(promptHtml(rutaVisible(lec.estado.cwd)) + escapar(crudo) + '\n');
+        inp.value = '';
+        pintar();
+        return;
+      }
+    }
     if (!linea) return;
 
-    lec.hist.push(promptHtml(rutaVisible(lec.estado.cwd)) + escapar(crudo) + '\n');
+    if (eco) lec.hist.push(promptHtml(rutaVisible(lec.estado.cwd)) + escapar(crudo) + '\n');
     lec.mem.push(crudo.trim()); lec.memI = lec.mem.length;
     lec.intentos++;
     cuenta('intentos');
     if (lec.intentos === 1) cuenta('primerIntento');
 
     const candidato = clonar(lec.estado);
-    const r = ejecutarLinea(candidato, linea);
+    const r = ejecutarEntrada(candidato, linea);
     const salida = (r.out || '') + (r.err || '');
     lec.hist.push(salida ? salida + '\n' : '');
     if (lec.hist.join('').split('\n').length > 220) lec.hist = lec.hist.slice(-120);

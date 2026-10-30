@@ -376,6 +376,62 @@ comprobar(() => {
   assert.strictEqual(e.fs['/home/usuario/privada'].modo, '700', 'umask 077 debe crear carpetas 700');
 }, 'umask en ficheros nuevos');
 
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  assert.strictEqual(ctx.ejecutarLinea(e, 'for i in {a..c}; do touch fich$i.txt; done').code, 0, 'el bucle for debe ejecutarse');
+  ['a','b','c'].forEach(l => assert(e.fs['/home/usuario/fich' + l + '.txt'], 'debe crear fich' + l + '.txt'));
+  assert.strictEqual(ctx.ejecutarLinea(e, 'for i in {A..B}; do for j in {1..2}; do touch $i$j.txt; done; done').code, 0, 'los bucles anidados deben ejecutarse');
+  ['A1','A2','B1','B2'].forEach(n => assert(e.fs['/home/usuario/' + n + '.txt'], 'debe crear ' + n + '.txt'));
+}, 'bucles for con llaves y anidados');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  const r = ctx.ejecutarGuion(e, 'cat <<EOF\nhola\nmundo\nEOF');
+  assert.strictEqual(r.out, 'hola\nmundo\n', 'el heredoc debe pasar su cuerpo como entrada');
+  ctx.ejecutarGuion(e, 'cat <<FIN > mensaje.txt\nprimera línea\nFIN');
+  assert.strictEqual(e.fs['/home/usuario/mensaje.txt'].contenido, 'primera línea\n', 'el heredoc debe poder redirigirse a un fichero');
+}, 'here-documents');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  const out = ctx.ejecutarLinea(e, 'ncal 10 2026').out;
+  assert(/oct/i.test(out), 'ncal debe mostrar el mes pedido');
+  assert(/^\s*lu/m.test(out), 'ncal debe poner los días en vertical, empezando por lu');
+  assert(/sem/.test(ctx.ejecutarLinea(e, 'ncal -w 10 2026').out), 'ncal -w debe mostrar el número de semana');
+  assert(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(ctx.ejecutarLinea(e, 'hwclock').out), 'hwclock debe mostrar la fecha y hora');
+}, 'ncal y hwclock');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  ctx.ejecutarLinea(e, 'mkdir real');
+  ctx.ejecutarLinea(e, 'touch real/f');
+  ctx.ejecutarLinea(e, 'ln -s real/f enlace');
+  assert(ctx.ejecutarLinea(e, 'readlink enlace').out.includes('real/f'), 'readlink debe mostrar el destino del enlace');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'readlink -f enlace').out.trim(), '/home/usuario/real/f', 'readlink -f debe resolver la ruta completa');
+  assert.notStrictEqual(ctx.ejecutarLinea(e, 'readlink real').code, 0, 'readlink debe fallar si no es un enlace');
+}, 'readlink');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  assert.strictEqual(ctx.ejecutarLinea(e, 'mkfifo tuberia').code, 0, 'mkfifo debe crear la tubería');
+  assert.strictEqual(e.fs['/home/usuario/tuberia'].tipo, 'fifo', 'la entrada debe ser una tubería con nombre');
+  assert(/^p/.test(ctx.ejecutarLinea(e, 'ls -l tuberia').out), 'ls -l debe marcar la tubería con p');
+  ctx.ejecutarLinea(e, 'echo hola > tuberia');
+  assert(ctx.ejecutarLinea(e, 'cat tuberia').out.includes('hola'), 'cat debe leer lo escrito en la tubería');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'cat tuberia').out, '', 'leer la tubería debe vaciarla');
+}, 'mkfifo y tuberías con nombre');
+
+comprobar(() => {
+  const e = ctx.crearEstado({ inicio:{ base:'vacio' } });
+  assert.strictEqual(ctx.ejecutarLinea(e, 'exec 5> canal5.txt').code, 0, 'exec 5> debe abrir el canal');
+  ctx.ejecutarLinea(e, 'echo primera >&5');
+  assert(ctx.ejecutarLinea(e, 'cat canal5.txt').out.includes('primera'), '>&5 debe escribir en el fichero del canal');
+  assert.strictEqual(ctx.ejecutarLinea(e, 'exec 6< canal5.txt').code, 0, 'exec 6< debe abrir el canal de entrada');
+  assert(ctx.ejecutarLinea(e, 'cat <&6').out.includes('primera'), '<&6 debe leer del canal');
+  ctx.ejecutarLinea(e, 'exec 5>&-');
+  assert.notStrictEqual(ctx.ejecutarLinea(e, 'echo x >&5').code, 0, 'un canal cerrado debe dar error');
+}, 'canales con exec y redirecciones >&N / <&N');
+
 /* ---------- 9) Respaldo de atajos que captura el navegador ---------- */
 comprobar(() => {
   const UI = fs.readFileSync(path.join(RAIZ, 'aventura', 'aventura.js'), 'utf8');
