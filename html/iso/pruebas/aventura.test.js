@@ -376,7 +376,29 @@ comprobar(() => {
   assert.strictEqual(e.fs['/home/usuario/privada'].modo, '700', 'umask 077 debe crear carpetas 700');
 }, 'umask en ficheros nuevos');
 
-/* ---------- 9) Resultado ---------- */
+/* ---------- 9) Respaldo de atajos que captura el navegador ---------- */
+comprobar(() => {
+  const UI = fs.readFileSync(path.join(RAIZ, 'aventura', 'aventura.js'), 'utf8');
+  assert(/av-teclas-respaldo/.test(UI) && /pulsarTeclaFalsa/.test(UI),
+    'la pantalla de atajos debe ofrecer el teclado en pantalla de respaldo');
+  const m = /ATAJOS_DEL_NAVEGADOR = new Set\(\[([^\]]*)\]\)/.exec(UI);
+  assert(m, 'no se encuentra la lista ATAJOS_DEL_NAVEGADOR');
+  const cubiertos = new Set([...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]));
+  // Atajos que Chrome y Firefox se quedan para sí: la página no los recibe.
+  const reservados = new Set(['e', 'g', 'l', 'r', 't', 'u', 'w', 'n']);
+  const faltan = [];
+  AVENTURA.mundos.forEach((mundo, mi) => mundo.lecciones.forEach(lec => lec.rondas.forEach((ronda, ri) =>
+    ronda.pantallas.forEach((p, pi) => {
+      if (p.tipo !== 'teclas' || !p.combo || !p.combo.ctrl || p.combo.alt || p.combo.shift) return;
+      const tecla = String(p.combo.key).toLowerCase();
+      if (reservados.has(tecla) && !cubiertos.has(tecla))
+        faltan.push('mundo ' + (mi + 1) + ', ' + lec.id + ', ronda ' + (ri + 1) + ', pantalla ' + (pi + 1) + ': Ctrl+' + tecla.toUpperCase());
+    })
+  )));
+  assert.deepStrictEqual(faltan, [], 'atajos sin respaldo: ' + faltan.join(' · '));
+}, 'respaldo para atajos que captura el navegador');
+
+/* ---------- 10) Resultado ---------- */
 if (fallos.length){
   console.error(rojo('\n✗ ' + fallos.length + ' problema(s):'));
   fallos.forEach(f => console.error(rojo('  · ') + f));

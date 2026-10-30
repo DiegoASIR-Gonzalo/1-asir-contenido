@@ -1046,6 +1046,7 @@
   function montarPantalla(p) {
     cuerpo.scrollTop = 0;
     lec.histHTML = '';
+    if (anuncio) anuncio.textContent = '';
 
     if (p.tipo === 'teoria') {
       cuerpo.innerHTML =
@@ -1061,6 +1062,18 @@
     }
 
     if (p.tipo === 'teclas') {
+      lec.falsas = [];
+      const respaldo = comboReservado(p.combo)
+        ? '<div class="av-teclas-respaldo">' +
+            '<p class="av-teclas-respaldo-txt">Algunos navegadores se quedan con ' + comboTexto(p.combo) +
+              ' y no lo dejan llegar a la página. Si al pulsarlo no pasa nada, usa este teclado:</p>' +
+            '<div class="av-teclas-fila" role="group" aria-label="Teclado en pantalla para el atajo">' +
+              partesDelCombo(p.combo).map(parte =>
+                '<button class="av-tecla-falsa" type="button" data-tecla="' + parte.id + '">' + escapar(parte.txt) + '</button>'
+              ).join('<span class="av-teclas-mas" aria-hidden="true">+</span>') +
+            '</div>' +
+          '</div>'
+        : '';
       cuerpo.innerHTML =
         '<article class="av-tarjeta av-nueva">' +
           '<div class="av-tarjeta-cab">' + chipMundo() + '<span class="av-chip av-chip--teclas">Atajos</span></div>' +
@@ -1071,6 +1084,7 @@
             '<span class="av-tecla-icono" aria-hidden="true">' + ICO.llave + '</span>' +
             '<span id="av-tecla-zona-txt">Pulsa aquí y haz el atajo</span>' +
           '</button>' +
+          respaldo +
           '<div id="av-feedback"></div>' +
         '</article>';
       montarPie('teclas');
@@ -1079,6 +1093,9 @@
         zona.focus();
         zona.onkeydown = probarTecla;
       }
+      cuerpo.querySelectorAll('.av-tecla-falsa').forEach(b => {
+        b.onclick = () => pulsarTeclaFalsa(b);
+      });
       return;
     }
 
@@ -1463,30 +1480,48 @@
     return normal(e.key) === normal(String(combo.key));
   }
 
+  // El navegador se queda con algunos atajos (Ctrl+L va a la barra de
+  // direcciones, Ctrl+R recarga…) y la página nunca los recibe. Para esos
+  // casos se ofrece un teclado en pantalla: se pulsa Ctrl y luego la letra.
+  const ATAJOS_DEL_NAVEGADOR = new Set(['e', 'g', 'l', 'r', 't', 'u', 'w', 'n']);
+  const comboReservado = combo => !!combo && !!combo.ctrl && !combo.alt && !combo.shift &&
+    ATAJOS_DEL_NAVEGADOR.has(String(combo.key).toLowerCase());
+  function partesDelCombo(combo){
+    const partes = [];
+    if (combo.ctrl) partes.push({ id:'ctrl', txt:'Ctrl' });
+    if (combo.alt) partes.push({ id:'alt', txt:'Alt' });
+    if (combo.shift) partes.push({ id:'shift', txt:'Mayús' });
+    const k = combo.key === 'ArrowUp' ? '↑' : combo.key === 'ArrowDown' ? '↓' :
+      (String(combo.key).length === 1 ? String(combo.key).toUpperCase() : String(combo.key));
+    partes.push({ id:'key', txt:k });
+    return partes;
+  }
+
+  function acertarTecla(){
+    lec.acierto = true;
+    lec.aviso = '';
+    lec.ayudaTexto = '';
+    if (!lec.repaso) {
+      cuenta('intentos'); cuenta('aciertos');
+      if (!lec.paso && lec.ayuda === 0) { cuenta('primerIntento'); cuenta('primerAcierto'); }
+      else cuenta('primerIntento');
+    }
+    const gana = lec.ayuda > 0 ? 6 : 10;
+    const puntos = lec.repaso ? 0 : sumarXp(gana);
+    lec.xp += puntos;
+    celebrar(puntos, false);
+    decir('¡Atajo correcto!');
+    pintar();
+    const sig = byId('av-sig');
+    if (sig) sig.focus();
+  }
+
   function probarTecla(e){
     const p = lec.ronda.pantallas[lec.pantalla];
     if (!p || p.tipo !== 'teclas' || lec.acierto) return;
     if (['Control','Alt','Shift','Meta'].includes(e.key)) return;
     e.preventDefault();
-    if (teclaCoincide(e, p.combo)) {
-      lec.acierto = true;
-      lec.aviso = '';
-      lec.ayudaTexto = '';
-      if (!lec.repaso) {
-        cuenta('intentos'); cuenta('aciertos');
-        if (!lec.paso && lec.ayuda === 0) { cuenta('primerIntento'); cuenta('primerAcierto'); }
-        else cuenta('primerIntento');
-      }
-      const gana = lec.ayuda > 0 ? 6 : 10;
-      const puntos = lec.repaso ? 0 : sumarXp(gana);
-      lec.xp += puntos;
-      celebrar(puntos, false);
-      decir('¡Atajo correcto!');
-      pintar();
-      const sig = byId('av-sig');
-      if (sig) sig.focus();
-      return;
-    }
+    if (teclaCoincide(e, p.combo)) { acertarTecla(); return; }
     lec.paso = true;
     if (!lec.repaso) cuenta('intentos');
     lec.aviso = 'Has pulsado <b>' + escapar(teclaNombre(e)) + '</b>. Ese no es el atajo de esta pantalla. ' +
@@ -1494,6 +1529,26 @@
     pintar();
     const zona = byId('av-tecla-zona');
     if (zona) zona.focus();
+  }
+
+  // Pulsación con ratón en el teclado de respaldo, en el mismo orden que el atajo.
+  function pulsarTeclaFalsa(boton){
+    const p = lec.ronda.pantallas[lec.pantalla];
+    if (!p || p.tipo !== 'teclas' || lec.acierto) return;
+    const partes = partesDelCombo(p.combo);
+    const id = boton.dataset.tecla;
+    const siguiente = partes[lec.falsas.length];
+    if (!siguiente || siguiente.id !== id){
+      lec.falsas = [];
+      cuerpo.querySelectorAll('.av-tecla-falsa--pulsada').forEach(b => b.classList.remove('av-tecla-falsa--pulsada'));
+      lec.aviso = 'Empieza por <b>' + escapar(partes[0].txt) + '</b> y sigue el orden del atajo.';
+      pintar();
+      return;
+    }
+    lec.falsas.push(id);
+    boton.classList.add('av-tecla-falsa--pulsada');
+    if (lec.falsas.length === partes.length){ acertarTecla(); return; }
+    pintar();
   }
 
   function pedirAyuda() {

@@ -172,6 +172,24 @@ kbd{
 }
 .av-tecla-icono .av-svg{width:22px;height:22px}
 .av-tecla-zona--ok .av-tecla-icono{background:#2e9e5b;color:#fff}
+/* Respaldo para atajos que el navegador captura (Ctrl+L, Ctrl+R…) */
+.av-teclas-respaldo{
+  margin-top:14px;padding:12px 14px;border-radius:14px;
+  background:#f6f1ec;border:1px solid #e2d8d0;
+}
+.av-teclas-respaldo-txt{margin:0 0 10px;font-size:13.5px;line-height:1.5;color:#6a5d68}
+.av-teclas-fila{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.av-teclas-mas{font-weight:800;color:#8a7a87}
+.av-tecla-falsa{
+  min-width:52px;padding:9px 14px;border-radius:10px;cursor:pointer;
+  background:#fff;border:1px solid #cfc5bd;border-bottom:3px solid #b8aaa2;
+  font:800 15px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#3a2f3b;
+  transition:transform .08s ease,background .15s ease;
+}
+.av-tecla-falsa:hover{background:#fffdf9;border-color:#a88f9e}
+.av-tecla-falsa:active{transform:translateY(1px);border-bottom-width:2px}
+.av-tecla-falsa--pulsada{background:#e9f8ee;border-color:#8ae234;color:#115c34}
+.av-tecla-falsa:focus-visible{outline:3px solid var(--marca,#c34113);outline-offset:2px}
 
 /* ---------- Bloque de ejemplo (teoría) ---------- */
 .av-ejemplo{
