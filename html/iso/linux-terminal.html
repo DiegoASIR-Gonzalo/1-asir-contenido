@@ -306,6 +306,8 @@
 
   @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}.aviso,.ventana{transition:none}}
 </style>
+<!-- Aventura guiada: pantalla completa con lecciones cortas (contenido en aventura/aventura-datos.js) -->
+<link rel="stylesheet" href="aventura/aventura.css">
 </head>
 <body>
 <noscript><p class="sinjs">Esta guía necesita JavaScript para mostrar la terminal y las actividades. Actívalo y recarga la página.</p></noscript>
@@ -1181,7 +1183,9 @@ const permisosDe = it => {
 };
 
 function mundoBase(){
-  const e = { cwd: MUNDO_HOME, fs: {}, funciones: [], umask: '022' };
+  const e = { cwd: MUNDO_HOME, fs: {}, funciones: [], umask: '022', vars: {}, alias: {}, historial: [], ultimoCodigo: 0 };
+  e.vars.HOME = MUNDO_HOME; e.vars.PWD = MUNDO_HOME; e.vars.USER = 'usuario';
+  e.vars.HOSTNAME = 'debian'; e.vars.HISTSIZE = '1000';
   const dir = p => { e.fs[p] = { tipo:'dir', modo:'755' }; };
   const file = (p, c = '', modo = '644') => { e.fs[p] = { tipo:'file', contenido:c, modo }; };
   dir('/'); dir('/home'); dir(MUNDO_HOME);
@@ -1191,7 +1195,7 @@ function mundoBase(){
   file(MUNDO_HOME + '/Descargas/BinarioFH.pdf', 'PDF');
   file(MUNDO_HOME + '/Descargas/Conceptos UD 1.pdf', 'PDF');
   dir('/bin');
-  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/bin/' + c, '', '755'));
+  ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','rmdir','sort','tail','touch','tree','uname','uptime','wc','whoami','tee','xargs','locate','which','updatedb'].forEach(c => file('/bin/' + c, '', '755'));
   dir('/etc');
   file('/etc/hostname', 'usuario');
   file('/etc/hosts', '127.0.0.1 localhost');
@@ -1207,7 +1211,7 @@ function mundoBase(){
   dir('/tmp'); dir('/tmp/cache');
   dir('/dev');
   ['null','random','zero','tty','tty0','tty1','tty2','tty3','tty4','ttyS0'].forEach(d => file('/dev/' + d, '', ['null','random','zero'].includes(d) ? '666' : '620'));
-  dir('/usr'); dir('/usr/bin'); ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','sort','tail','touch','tree','uname','uptime','wc','whoami'].forEach(c => file('/usr/bin/' + c, '', '755')); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
+  dir('/usr'); dir('/usr/bin'); ['bash','cat','chmod','cp','date','echo','file','find','grep','head','ln','ls','mkdir','mv','pwd','rm','rmdir','sort','tail','touch','tree','uname','uptime','wc','whoami','tee','xargs','locate','which','updatedb'].forEach(c => file('/usr/bin/' + c, '', '755')); dir('/usr/share'); dir('/usr/share/man'); dir('/usr/share/man/man1');
   dir('/home/rafa'); dir('/home/rafa/Documentos'); dir('/home/rafa/Descargas');
   file('/home/rafa/Documentos/nota.txt', 'Notas de Rafa\n');
   file('/home/rafa/Descargas/apuntes.txt', 'Apuntes\n');
@@ -1229,19 +1233,26 @@ function crearEstado(act = {}){
   Object.entries(ini.fs || {}).forEach(([raw, v]) => {
     const p = rutaAbs(raw, MUNDO_HOME);
     if (v === null){ delete e.fs[p]; return; }
+    const copiarMeta = obj => {
+      for (const k of ['mtime','atime','ctime','inodo','propietario','grupo','enlaces'])
+        if (v && v[k] != null) obj[k] = v[k];
+      return obj;
+    };
     if (v === 'dir'){ crearPadres(p); return; }
-    if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; return; }
-    if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = { tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }; return; }
+    if (v && v.tipo === 'dir'){ crearPadres(p); e.fs[p].modo = v.modo || '755'; copiarMeta(e.fs[p]); return; }
+    if (v && v.tipo === 'link'){ crearPadres(padreDe(p)); e.fs[p] = copiarMeta({ tipo:'link', destino: rutaAbs(v.destino, MUNDO_HOME) }); return; }
+    if (v && v.tipo === 'fifo'){ crearPadres(padreDe(p)); e.fs[p] = copiarMeta({ tipo:'fifo', contenido:(v.contenido || ''), modo:v.modo || '644' }); return; }
     const contenido = typeof v === 'string' ? v : (v && v.contenido) || '';
     const modo = (v && v.modo) || '644';
     crearPadres(padreDe(p));
-    e.fs[p] = { tipo:'file', contenido, modo };
+    e.fs[p] = copiarMeta({ tipo:'file', contenido, modo });
   });
   e.cwd = rutaAbs(ini.cwd || '~', MUNDO_HOME);
+  e.fds = {};
   return e;
 }
 
-const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones, umask: e.umask || '022' }));
+const clonarEstado = e => JSON.parse(JSON.stringify({ cwd: e.cwd, fs: e.fs, funciones: e.funciones, umask: e.umask || '022', vars: e.vars || {}, alias: e.alias || {}, fds: e.fds || {}, historial: e.historial || [], ultimoCodigo: e.ultimoCodigo || 0 }));
 // Permisos con los que nace un fichero o carpeta según la umask actual (por defecto 022 → 644 y 755).
 const modoConUmask = (base, e) => ((base & ~parseInt(e.umask || '022', 8)) & 0o777).toString(8).padStart(3, '0');
 
@@ -1288,7 +1299,9 @@ function expandirGlob(e, raw){
   const objetivo = resolverEnlace(e, padre);
   if (!esDir(e, objetivo)) return [p];
   const re = patronRegex(base);
-  const hijos = listarHijos(e, objetivo, true).filter(k => re.test(nombreDe(k)));
+  const soloDirs = /\/$/.test(raw);
+  let hijos = listarHijos(e, objetivo, true).filter(k => re.test(nombreDe(k)));
+  if (soloDirs) hijos = hijos.filter(k => e.fs[k].tipo === 'dir');
   return hijos.length ? hijos : [p];
 }
 function expandirLlaves(s){
@@ -1303,7 +1316,16 @@ function expandirLlaves(s){
     opciones = [];
     if (a <= b) for (let i = a; i <= b; i += paso) opciones.push(String(i));
     else for (let i = a; i >= b; i -= paso) opciones.push(String(i));
-  } else opciones = dentro.split(',');
+  } else {
+    const letras = dentro.match(/^([A-Za-z])\.\.([A-Za-z])(?:\.\.(-?\d+))?$/);
+    if (letras){
+      const a = letras[1].charCodeAt(0), b = letras[2].charCodeAt(0);
+      const paso = Math.abs(Number(letras[3]) || (a <= b ? 1 : -1));
+      opciones = [];
+      if (a <= b) for (let i = a; i <= b; i += paso) opciones.push(String.fromCharCode(i));
+      else for (let i = a; i >= b; i -= paso) opciones.push(String.fromCharCode(i));
+    } else opciones = dentro.split(',');
+  }
   return opciones.flatMap(o => expandirLlaves(s.slice(0, m.index) + o + s.slice(m.index + m[0].length)));
 }
 
@@ -1336,7 +1358,7 @@ function columnas(e, hijos, flags){
   return lineas.join('\n');
 }
 function lineaLarga(e, p, it, verInodo){
-  const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : '-';
+  const tipo = it.tipo === 'dir' ? 'd' : it.tipo === 'link' ? 'l' : it.tipo === 'fifo' ? 'p' : '-';
   const tam = it.tipo === 'file' ? String((it.contenido || '').length) : '4096';
   const extra = it.tipo === 'link' ? ' -> ' + escaparHtml(it.destino) : '';
   const linea = tipo + permisosDe(it) + ' 1 usuario usuario ' + tam.padStart(5) + ' 27 oct 00:00 ' + escaparHtml(nombreDe(p)) + extra;
@@ -1443,11 +1465,14 @@ function cmd_cd(e, args){
 }
 function cmd_ls(e, args){
   const flags = new Set(), rutas = [];
+  let finOpciones = false;
   for (const a of args){
-    if (a.startsWith('-') && a !== '-') for (const c of a.slice(1)) flags.add(c);
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a.startsWith('-') && a !== '-') for (const c of a.slice(1)) flags.add(c);
     else rutas.push(a);
   }
   const larga = flags.has('l'), ocultos = flags.has('a');
+  const conBarra = rutas.some(r => /\/$/.test(r));
   let objetivos = [];
   for (const r of (rutas.length ? rutas : ['.'])) objetivos.push(...expandirGlob(e, r));
   if (!objetivos.length) objetivos = [rutaAbs('.', e.cwd)];
@@ -1464,7 +1489,11 @@ function cmd_ls(e, args){
       salidas.push(larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags));
       continue;
     }
-    if (flags.has('d')){ salidas.push(larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags)); continue; }
+    if (flags.has('d')){
+      const nombre = larga ? lineaLarga(e, p, it, flags.has('i')) : nombreConInodo(e, p, it, flags);
+      salidas.push(!larga && conBarra ? nombre + '/' : nombre);
+      continue;
+    }
     if (total > 1 && !flags.has('R')) salidas.push(escaparHtml(p0) + ':');
     if (flags.has('R')){
       const recorrer = (dir, nivel) => {
@@ -1481,21 +1510,23 @@ function cmd_ls(e, args){
     const hijos = listarHijos(e, p, ocultos);
     if (flags.has('r')) hijos.reverse();
     if (larga) for (const h of hijos) salidas.push(lineaLarga(e, h, e.fs[h], flags.has('i')));
+    else if (hijos.length && e._tuberia) for (const h of hijos) salidas.push(nombreConInodo(e, h, e.fs[h], flags));
     else if (hijos.length) salidas.push(columnas(e, hijos, flags));
   }
   return { out: salidas.join('\n'), err: errores.join('\n'), code: errores.length && !salidas.length ? 1 : 0 };
 }
 function cmd_mkdir(e, args){
-  let padres = false, modo = null;
+  let padres = false, modo = null, finOpciones = false;
   const rutas = [];
   for (let i = 0; i < args.length; i++){
     const a = args[i];
-    if (a === '-p') padres = true;
-    else if (a === '-m'){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-p') padres = true;
+    else if (!finOpciones && a === '-m'){
       if (i + 1 >= args.length || args[i + 1].startsWith('-')) return fallo('mkdir: falta el modo después de -m');
       modo = String(args[++i]);
     }
-    else if (!a.startsWith('-')) rutas.push(a);
+    else if (finOpciones || !a.startsWith('-')) rutas.push(a);
   }
   if (!rutas.length) return fallo('mkdir: falta un operando');
   let err = '';
@@ -1519,29 +1550,88 @@ function cmd_mkdir(e, args){
   }
   return { out:'', err, code: err ? 1 : 0 };
 }
-function cmd_touch(e, args){
-  if (!args.length) return fallo('touch: falta un operando');
-  let err = '';
-  for (const raw of args){
-    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
-    if (it){
-      if (it.tipo === 'dir') err += (err ? '\n' : '') + "touch: no se puede tocar '" + raw + "': Es un directorio";
-      continue;
+const MESES_CORTOS = { ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11, jan:0, apr:3, aug:7, dec:11 };
+function fechaDeTexto(txt){
+  const s = String(txt).trim().toLowerCase();
+  const ahora = new Date();
+  if (!s || s === 'now') return ahora;
+  if (s === 'tomorrow'){ const d = new Date(ahora); d.setDate(d.getDate() + 1); return d; }
+  if (s === 'yesterday'){ const d = new Date(ahora); d.setDate(d.getDate() - 1); return d; }
+  if (s.startsWith('next ')){
+    const dias = { sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6,
+      domingo:0, lunes:1, martes:2, miercoles:3, miércoles:3, jueves:4, viernes:5, sabado:6, sábado:6 };
+    const objetivo = dias[s.slice(5)];
+    if (objetivo != null){
+      const d = new Date(ahora); const salto = ((objetivo - d.getDay() + 7) % 7) || 7;
+      d.setDate(d.getDate() + salto); return d;
     }
+  }
+  let m = /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/.exec(s);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+  m = /^(\d{1,2})-([a-záéíóú]{3})-(\d{4})$/.exec(s);
+  if (m && MESES_CORTOS[m[2]] != null) return new Date(+m[3], MESES_CORTOS[m[2]], +m[1]);
+  m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(s);
+  if (m){ const d = new Date(ahora); d.setHours(+m[1], +m[2], +(m[3] || 0), 0); return d; }
+  const libre = new Date(s);
+  return isNaN(libre.getTime()) ? ahora : libre;
+}
+function fechaDeMarca(txt){
+  const s = String(txt).replace(/\./g, '').replace(/[^0-9]/g, '');
+  const ahora = new Date();
+  if (s.length === 8) return new Date(ahora.getFullYear(), +s.slice(0,2) - 1, +s.slice(2,4), +s.slice(4,6), +s.slice(6,8));
+  if (s.length === 10) return new Date(2000 + +s.slice(0,2), +s.slice(2,4) - 1, +s.slice(4,6), +s.slice(6,8), +s.slice(8,10));
+  if (s.length === 12) return new Date(+s.slice(0,4), +s.slice(4,6) - 1, +s.slice(6,8), +s.slice(8,10), +s.slice(10,12));
+  return ahora;
+}
+function cmd_touch(e, args){
+  let tocaAcceso = true, tocaModificacion = true, fecha = null, referencia = null, finOpciones = false;
+  const rutas = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-a'){ tocaModificacion = false; continue; }
+    if (!finOpciones && a === '-m'){ tocaAcceso = false; continue; }
+    if (!finOpciones && a === '-h') continue;
+    if (!finOpciones && a === '-d'){ referencia = null; fecha = fechaDeTexto(args[++i] || ''); continue; }
+    if (!finOpciones && a === '-t'){ referencia = null; fecha = fechaDeMarca(args[++i] || ''); continue; }
+    if (!finOpciones && a === '-r'){ referencia = args[++i] || ''; continue; }
+    if (!finOpciones && a.startsWith('-')) continue;
+    rutas.push(a);
+  }
+  if (!rutas.length) return fallo('touch: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd); let it = e.fs[p];
+    if (it && it.tipo === 'dir'){ err += (err ? '\n' : '') + "touch: no se puede tocar '" + raw + "': Es un directorio"; continue; }
     const padre = padreDe(p);
-    if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "touch: no se puede crear '" + raw + "': No such file or directory"; continue; }
-    e.fs[p] = { tipo:'file', contenido:'', modo: modoConUmask(0o666, e) };
+    if (!it){
+      if (!e.fs[padre] || e.fs[padre].tipo !== 'dir'){ err += (err ? '\n' : '') + "touch: no se puede crear '" + raw + "': No such file or directory"; continue; }
+      e.fs[p] = { tipo:'file', contenido:'', modo: modoConUmask(0o666, e) };
+      it = e.fs[p];
+    }
+    let cuando = Date.now();
+    if (referencia){
+      const ref = rutaAbs(referencia, e.cwd);
+      cuando = (e.fs[ref] && (e.fs[ref].mtime || e.fs[ref].ctime)) || Date.now();
+    }
+    if (fecha) cuando = fecha.getTime();
+    if (tocaModificacion) it.mtime = cuando;
+    if (tocaAcceso) it.atime = cuando;
+    if (!it.ctime) it.ctime = cuando;
   }
   return { out:'', err, code: err ? 1 : 0 };
 }
 function borrarRec(e, p){ for (const k of Object.keys(e.fs)) if (k === p || k.startsWith(p + '/')) delete e.fs[k]; }
 function cmd_rm(e, args){
-  let rec = false, force = false;
+  let rec = false, force = false, finOpciones = false;
   const rutas = [];
   for (const a of args){
-    if (a === '-r' || a === '-R') rec = true;
-    else if (a === '-f') force = true;
-    else if (a.startsWith('-')) for (const c of a.slice(1)){ if (c === 'r' || c === 'R') rec = true; if (c === 'f') force = true; }
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && (a === '-r' || a === '-R')) rec = true;
+    else if (!finOpciones && a === '-f') force = true;
+    else if (!finOpciones && a.startsWith('-')) for (const c of a.slice(1)){ if (c === 'r' || c === 'R') rec = true; if (c === 'f') force = true; }
     else rutas.push(a);
   }
   if (!rutas.length) return fallo('rm: falta un operando');
@@ -1558,10 +1648,33 @@ function cmd_rm(e, args){
   }
   return { out:'', err, code: err ? 1 : 0 };
 }
+// rmdir: solo borra directorios vacíos (como en Linux real).
+function cmd_rmdir(e, args){
+  const rutas = args.filter(a => !a.startsWith('-'));
+  if (!rutas.length) return fallo('rmdir: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it){ err += (err ? '\n' : '') + "rmdir: no se puede borrar '" + raw + "': No such file or directory"; continue; }
+    if (it.tipo !== 'dir'){ err += (err ? '\n' : '') + "rmdir: no se puede borrar '" + raw + "': No es un directorio"; continue; }
+    if (p === '/' || p === MUNDO_HOME){ err += (err ? '\n' : '') + 'rmdir: no se puede borrar ' + raw + ': Operación no permitida'; continue; }
+    if (Object.keys(e.fs).some(k => k !== p && k.startsWith(p + '/'))){ err += (err ? '\n' : '') + "rmdir: no se puede borrar '" + raw + "': El directorio no está vacío"; continue; }
+    delete e.fs[p];
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
 function cmd_cp(e, args){
-  let rec = false;
+  let rec = false, conservar = false, soloNuevo = false, finOpciones = false;
   const ops = [];
-  for (const a of args){ if (a === '-r' || a === '-R') rec = true; else if (!a.startsWith('-')) ops.push(a); }
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a.startsWith('-') && a !== '-') for (const c of a.slice(1)){
+      if (c === 'r' || c === 'R' || c === 'a') rec = true;
+      if (c === 'p' || c === 'a') conservar = true;
+      if (c === 'u') soloNuevo = true;
+    }
+    else if (finOpciones || !a.startsWith('-')) ops.push(a);
+  }
   if (ops.length < 2) return fallo('cp: faltan operandos');
   const destinos = ops[ops.length - 1], fuentes = ops.slice(0, -1);
   const dstBase = rutaAbs(destinos, e.cwd);
@@ -1574,12 +1687,24 @@ function cmd_cp(e, args){
     if (it.tipo === 'dir' && !rec){ err += (err ? '\n' : '') + "cp: -r no especificado; se omite el directorio '" + raw + "'"; continue; }
     const dst = dstEsDir ? dstBase + '/' + nombreDe(src) : dstBase;
     if (!esDir(e, padreDe(dst))){ err += (err ? '\n' : '') + "cp: no se puede crear '" + destinos + "': No such file or directory"; continue; }
-    for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')) e.fs[dst + k.slice(src.length)] = JSON.parse(JSON.stringify(e.fs[k]));
+    if (soloNuevo && e.fs[dst] && (e.fs[dst].mtime || 0) > (it.mtime || 0)) continue;
+    for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')){
+      const copia = JSON.parse(JSON.stringify(e.fs[k]));
+      if (!conservar && copia.tipo === 'file') copia.mtime = Date.now();
+      e.fs[dst + k.slice(src.length)] = copia;
+    }
   }
   return { out:'', err, code: err ? 1 : 0 };
 }
 function cmd_mv(e, args){
-  const ops = args.filter(a => !a.startsWith('-'));
+  let actualizar = false, finOpciones = false;
+  const ops = [];
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-u'){ actualizar = true; continue; }
+    if (!finOpciones && a.startsWith('-')) continue;
+    ops.push(a);
+  }
   if (ops.length < 2) return fallo('mv: faltan operandos');
   const src = rutaAbs(ops[0], e.cwd);
   if (!e.fs[src]) return fallo("mv: no se puede acceder a '" + ops[0] + "': No such file or directory");
@@ -1587,32 +1712,115 @@ function cmd_mv(e, args){
   if (e.fs[dst] && e.fs[dst].tipo === 'dir') dst += '/' + nombreDe(src);
   if (!esDir(e, padreDe(dst))) return fallo("mv: no se puede mover '" + ops[0] + "': No such file or directory");
   if (src === dst) return exito();
+  if (actualizar && e.fs[dst] && (e.fs[src].mtime || 0) <= (e.fs[dst].mtime || 0)) return exito();
   for (const k of Object.keys(e.fs)) if (k === src || k.startsWith(src + '/')){ e.fs[dst + k.slice(src.length)] = e.fs[k]; delete e.fs[k]; }
   return exito();
 }
 function cmd_cat(e, args, stdin){
-  if (!args.length) return exito(stdin || '');
+  let finOpciones = false;
+  const rutas = [];
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a.startsWith('-')) continue;
+    rutas.push(a);
+  }
+  if (!rutas.length) return exito(stdin || '');
   let out = '', err = '';
-  for (const raw of args){
+  for (const raw of rutas){
     let p = rutaAbs(raw, e.cwd);
     if (e.fs[p] && e.fs[p].tipo === 'link') p = resolverEnlace(e, p);
     const it = e.fs[p];
     if (!it){ err += "cat: " + raw + ": No such file or directory\n"; continue; }
     if (it.tipo === 'dir'){ err += "cat: " + raw + ": Es un directorio\n"; continue; }
     out += it.contenido || '';
+    // Leer una tubería con nombre consume lo que hubiera dentro, como en Linux.
+    if (it.tipo === 'fifo') it.contenido = '';
     if (out && !out.endsWith('\n')) out += '\n';
   }
   return { out, err, code: err ? 1 : 0 };
 }
-function cmd_echo(e, args){ return exito(args.join(' ')); }
+function cmd_echo(e, args){
+  let interpretar = false;
+  if (args[0] === '-e'){ interpretar = true; args = args.slice(1); }
+  let texto = args.join(' ');
+  if (interpretar){
+    texto = texto.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
+  }
+  return exito(texto);
+}
+const DIAS_LARGOS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function formatearFecha(d, fmt){
+  const p = n => String(n).padStart(2, '0');
+  return String(fmt).replace(/%([A-Za-z%])/g, (m, c) => {
+    switch (c){
+      case 'F': return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+      case 'Y': return String(d.getFullYear());
+      case 'y': return p(d.getFullYear() % 100);
+      case 'm': return p(d.getMonth() + 1);
+      case 'd': return p(d.getDate());
+      case 'H': return p(d.getHours());
+      case 'M': return p(d.getMinutes());
+      case 'S': return p(d.getSeconds());
+      case 'B': return MESES_LARGOS[d.getMonth()];
+      case 'A': return DIAS_LARGOS[d.getDay()];
+      case '%': return '%';
+      default: return m;
+    }
+  });
+}
+// Fechas relativas de `date -d`: "next friday", "tomorrow", "4 weeks ago"...
+function fechaRelativa(txt, base){
+  const s = String(txt || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  let d = new Date(base.getTime());
+  const dias = { domingo:0, lunes:1, martes:2, miercoles:3, 'miércoles':3, jueves:4, viernes:5, sabado:6, 'sábado':6,
+    sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 };
+  const m = /^(next|last|proximo|próximo|ultimo|último)\s+([a-záéíóú]+)$/.exec(s);
+  if (m && dias[m[2]] != null){
+    const objetivo = dias[m[2]], actual = d.getDay();
+    let salto = (objetivo - actual + 7) % 7;
+    if (m[1].startsWith('last') || m[1].startsWith('ult') || m[1].startsWith('últ')) salto = salto === 0 ? -7 : salto - 7;
+    if (salto === 0 && m[1].startsWith('next')) salto = 7;
+    d.setDate(d.getDate() + salto);
+    return d;
+  }
+  if (s === 'tomorrow' || s === 'mañana' || s === 'manana'){ d.setDate(d.getDate() + 1); return d; }
+  if (s === 'yesterday' || s === 'ayer'){ d.setDate(d.getDate() - 1); return d; }
+  if (s === 'today' || s === 'hoy') return d;
+  const unidades = {
+    minute:60000, minutes:60000, minuto:60000, minutos:60000,
+    hour:3600000, hours:3600000, hora:3600000, horas:3600000,
+    day:86400000, days:86400000, dia:86400000, 'día':86400000, dias:86400000, 'días':86400000,
+    week:604800000, weeks:604800000, semana:604800000, semanas:604800000,
+    month:2592000000, months:2592000000, mes:2592000000, meses:2592000000,
+    year:31536000000, years:31536000000, ano:31536000000, 'año':31536000000, anos:31536000000, 'años':31536000000
+  };
+  const re = /(\d+)\s*([a-záéíóúñ]+)(?:\s+(ago))?/g;
+  let hubo = false, mm;
+  while ((mm = re.exec(s))){
+    const n = Number(mm[1]), u = unidades[mm[2]];
+    if (!u) continue;
+    hubo = true;
+    const signo = mm[3] ? -1 : 1;
+    if (mm[2].startsWith('mes') || mm[2] === 'month' || mm[2] === 'months') d.setMonth(d.getMonth() + signo * n);
+    else if (mm[2].startsWith('año') || mm[2].startsWith('ano') || mm[2] === 'year' || mm[2] === 'years') d.setFullYear(d.getFullYear() + signo * n);
+    else d = new Date(d.getTime() + signo * n * u);
+  }
+  if (hubo) return d;
+  const t = Date.parse(txt);
+  return Number.isFinite(t) ? new Date(t) : null;
+}
 function cmd_date(e, args){
-  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const p = n => String(n).padStart(2, '0');
   const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const formato = args[0] || '';
-  if (formato === '+%F') return exito(d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()));
-  if (formato === '+%d%m%y') return exito(p(d.getDate()) + p(d.getMonth() + 1) + p(d.getFullYear() % 100));
-  if (formato === '+%B') return exito(['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][d.getMonth()]);
+  let d = new Date(), formato = null;
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-d' || a === '--date'){ const f = fechaRelativa(args[++i], d); if (f) d = f; }
+    else if (a.startsWith('+')) formato = a.slice(1);
+  }
+  if (formato != null) return exito(formatearFecha(d, formato));
   return exito(dias[d.getDay()] + ' ' + p(d.getDate()) + ' ' + meses[d.getMonth()] + ' ' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' UTC');
 }
 function cmd_ln(e, args){
@@ -1631,31 +1839,49 @@ function cmd_ln(e, args){
   }
   return exito();
 }
-function cmd_chmod(e, args){
-  if (args.length < 2) return fallo('chmod: faltan operandos');
-  const modo = args[0], rutas = args.slice(1);
-  let err = '';
-  for (const raw of rutas){
-    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
-    if (!it){ err += "chmod: no se puede acceder a '" + raw + "': No such file or directory\n"; continue; }
-    if (/^[0-7]{3,4}$/.test(modo)) it.modo = modo.slice(-3);
-    else {
-      let quien = 'a', m = modo;
-      if (/^[ugoa][+-=]/.test(m)){ quien = m[0]; m = m.slice(1); }
-      const op = m[0], perms = m.slice(1), actual = modoDe(it).split('').map(Number);
-      const idxs = quien === 'a' ? [0,1,2] : [{u:0,g:1,o:2}[quien]];
-      for (const idx of idxs){
-        if (idx == null) continue;
-        for (const c of perms){
-          const bit = { r:4, w:2, x:1 }[c] || 0;
-          if (op === '+') actual[idx] |= bit;
-          else if (op === '-') actual[idx] &= ~bit;
-          else if (op === '=') actual[idx] = bit;
-        }
+function modoSimbolico(actualStr, expr){
+  const actual = actualStr.split('').map(Number);
+  for (const clausula of expr.split(',')){
+    const m = /^([ugoa]*)([+-=])([rwxst]*)$/.exec(clausula);
+    if (!m) return null;
+    const quienes = m[1] || 'a', op = m[2], perms = m[3];
+    const idxs = quienes.includes('a') ? [0,1,2] : [...new Set(quienes.split('').map(c => ({ u:0, g:1, o:2 }[c])).filter(x => x != null))];
+    for (const idx of idxs){
+      if (op === '=') actual[idx] = 0;
+      for (const c of perms){
+        const bit = { r:4, w:2, x:1, X:1 }[c] || 0;
+        if (op === '+') actual[idx] |= bit;
+        else if (op === '-') actual[idx] &= ~bit;
+        else actual[idx] |= bit;
       }
-      it.modo = actual.join('');
     }
   }
+  return actual.join('');
+}
+function cmd_chmod(e, args){
+  let recursivo = false, finOpciones = false;
+  const resto = [];
+  for (const a of args){
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && (a === '-R' || a === '--recursive')){ recursivo = true; continue; }
+    resto.push(a);
+  }
+  if (resto.length < 2) return fallo('chmod: faltan operandos');
+  const modo = resto[0], rutas = resto.slice(1);
+  if (!/^[0-7]{3,4}$/.test(modo) && modoSimbolico('000', modo) == null)
+    return fallo("chmod: modo no válido: '" + modo + "'");
+  let err = '';
+  const aplicar = raw => {
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (!it){ err += "chmod: no se puede acceder a '" + raw + "': No such file or directory\n"; return; }
+    it.modo = /^[0-7]{3,4}$/.test(modo) ? modo.slice(-3) : modoSimbolico(modoDe(it), modo);
+    if (recursivo && it.tipo === 'dir')
+      for (const k of Object.keys(e.fs)) if (k.startsWith(p + '/')) {
+        const hijo = e.fs[k];
+        if (hijo.tipo !== 'link') hijo.modo = /^[0-7]{3,4}$/.test(modo) ? modo.slice(-3) : modoSimbolico(modoDe(hijo), modo);
+      }
+  };
+  rutas.forEach(aplicar);
   return { out:'', err, code: err ? 1 : 0 };
 }
 function cmd_umask(e, args){
@@ -1681,7 +1907,7 @@ function cmd_tree(e, args){
   if (!it) return fallo('tree: ' + raw + ': No such file or directory');
   if (it.tipo !== 'dir') return exito(nombreHtml(e, p, it));
   let dirs = 0, files = 0;
-  const lineas = [nombreHtml(e, p, it)];
+  const lineas = [escaparHtml(raw)];
   const rec = (dir, pref) => {
     const hs = listarHijos(e, dir, false);
     hs.forEach((h, i) => {
@@ -1695,81 +1921,398 @@ function cmd_tree(e, args){
   lineas.push('', dirs + (dirs === 1 ? ' directorio' : ' directorios') + ', ' + files + (files === 1 ? ' archivo' : ' archivos'));
   return exito(lineas.join('\n'));
 }
-function cmd_find(e, args){
-  let inicio = '.', name = null, tipo = null, usuario = null, grupo = null;
-  let execCmd = null, execArgs = [];
-  const falta = opcion => fallo("find: falta un argumento para '" + opcion + "'");
-  for (let i = 0; i < args.length; i++){
-    if (args[i] === '-name'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-name');
-      name = args[++i];
-    }
-    else if (args[i] === '-type'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-type');
-      tipo = args[++i];
-      if (!/^[fd]$/.test(tipo)) return fallo("find: tipo '" + tipo + "' no válido (usa f o d)");
-    }
-    else if (args[i] === '-user'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-user');
-      usuario = args[++i];
-    }
-    else if (args[i] === '-group'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-group');
-      grupo = args[++i];
-    }
-    else if (args[i] === '-exec'){
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) return falta('-exec');
-      execCmd = args[++i];
-      while (i + 1 < args.length && args[i + 1] !== '+' && args[i + 1] !== ';') execArgs.push(args[++i]);
-      if (i + 1 >= args.length) return fallo("find: falta ';' o '+' después de -exec");
-      if (args[i + 1] === '+' || args[i + 1] === ';') i++;
-    }
-    else if (!args[i].startsWith('-')) inicio = args[i];
+/* ---- find: criterios del temario y acciones ---- */
+function findMs(v){
+  if (v == null) return 0;
+  if (typeof v === 'number') return v;
+  const t = Date.parse(v);
+  return Number.isFinite(t) ? t : 0;
+}
+function findFechaHumana(txt){
+  const s = String(txt || '').trim().toLowerCase();
+  const ahora = Date.now();
+  if (s === 'yesterday' || s === 'ayer') return ahora - 86400000;
+  const m = /^(\d+)\s+(minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\s+ago$/.exec(s);
+  if (m){
+    const n = Number(m[1]), u = m[2];
+    const ms = u.startsWith('minute') ? 60000 : u.startsWith('hour') ? 3600000 : u.startsWith('day') ? 86400000 :
+      u.startsWith('week') ? 604800000 : u.startsWith('month') ? 2592000000 : 31536000000;
+    return ahora - n * ms;
   }
-  const p = rutaAbs(inicio, e.cwd);
-  if (!e.fs[p]) return fallo("find: '" + inicio + "': No such file or directory");
-  const re = name ? patronRegex(name) : null, out = [];
-  const rec = x => {
+  const t = Date.parse(txt);
+  return Number.isFinite(t) ? t : 0;
+}
+function findTam(it){
+  if (!it) return 0;
+  if (it.tipo === 'dir') return 4096;
+  if (it.tipo === 'link') return 0;
+  return (it.contenido || '').length;
+}
+function findEnlaces(e, p){
+  const it = e.fs[p];
+  if (it && it.enlaces != null) return Number(it.enlaces);
+  const ino = inodoDe(p, it);
+  return Object.keys(e.fs).filter(x => {
+    const y = e.fs[x];
+    return y && inodoDe(x, y) === ino;
+  }).length;
+}
+function findNumero(valor, spec, unidad){
+  const m = /^([+-]?)(\d+(?:\.\d+)?)([ckMG]?)$/.exec(String(spec || ''));
+  if (!m) return false;
+  const factor = m[3] === 'c' ? 1 : m[3] === 'k' ? 1024 : m[3] === 'M' ? 1048576 : m[3] === 'G' ? 1073741824 : (unidad || 1);
+  const n = Number(m[2]) * factor;
+  const v = Number(valor) || 0;
+  if (m[1] === '+') return v > n;
+  if (m[1] === '-') return v < n;
+  return v === n;
+}
+function findPermiso(modo, spec){
+  const m = /^([-\/]?)([0-7]{3,4})$/.exec(String(spec || ''));
+  if (m){
+    const objetivo = parseInt(m[2].slice(-3), 8), actual = parseInt(modo, 8);
+    if (m[1] === '-') return (actual & objetivo) === objetivo;
+    if (m[1] === '/') return (actual & objetivo) !== 0;
+    return actual === objetivo;
+  }
+  // Forma simbólica sencilla: u+w, g+rw, o=x, a+r...
+  const partes = String(spec || '').replace(/^\//, '').split(',');
+  let mascara = 0;
+  const bits = { r:4, w:2, x:1 };
+  for (const parte of partes){
+    const mm = /^([ugoa]+)([+=-])([rwx]+)$/.exec(parte.trim());
+    if (!mm) continue;
+    let quien = 0;
+    if (mm[1].includes('u') || mm[1].includes('a')) quien |= 0o700;
+    if (mm[1].includes('g') || mm[1].includes('a')) quien |= 0o070;
+    if (mm[1].includes('o') || mm[1].includes('a')) quien |= 0o007;
+    let valor = 0;
+    for (const c of mm[3]) valor |= bits[c] || 0;
+    mascara |= (valor * 0x49) & quien;
+  }
+  const actual = parseInt(modo, 8);
+  return String(spec || '').startsWith('/') ? (actual & mascara) !== 0 : (actual & mascara) === mascara;
+}
+function cmd_find(e, args){
+  let pos = 0, maxdepth = Infinity;
+  const rutas = [];
+  while (pos < args.length && !args[pos].startsWith('-')) rutas.push(args[pos++]);
+  let expr = args.slice(pos);
+  const limpio = [];
+  for (let i = 0; i < expr.length; i++){
+    if (expr[i] === '-maxdepth'){
+      if (i + 1 >= expr.length || !/^\d+$/.test(expr[i + 1])) return fallo("find: falta un número después de '-maxdepth'");
+      maxdepth = Number(expr[++i]);
+    } else limpio.push(expr[i]);
+  }
+  expr = limpio;
+  if (!rutas.length) rutas.push('.');
+  if (!expr.length) expr = ['-print'];
+  let p = 0;
+  const falta = op => fallo("find: falta un argumento para '" + op + "'");
+  const toma = () => expr[p++];
+  function parseOr(){
+    let izq = parseAnd();
+    while (expr[p] === '-o' || expr[p] === '-or'){
+      p++;
+      izq = { op:'or', izq, der: parseAnd() };
+    }
+    return izq;
+  }
+  function parseAnd(){
+    let izq = parseNot();
+    while (p < expr.length && !['-o','-or',')'].includes(expr[p])){
+      if (expr[p] === '-a' || expr[p] === '-and'){ p++; continue; }
+      izq = { op:'and', izq, der: parseNot() };
+    }
+    return izq;
+  }
+  function parseNot(){
+    if (expr[p] === '!' || expr[p] === '-not'){ p++; return { op:'not', nodo: parseNot() }; }
+    if (expr[p] === '('){ p++; const n = parseOr(); if (expr[p] === ')') p++; return n; }
+    return parseTest();
+  }
+  function parseTest(){
+    const t = toma();
+    if (['-name','-iname','-type','-user','-group','-size','-mtime','-atime','-ctime','-mmin','-amin','-cmin','-newer','-newermt','-perm','-links','-inum'].includes(t)){
+      if (p >= expr.length) throw falta(t);
+      return { op:t, val: toma() };
+    }
+    if (['-empty','-print','-print0','-ls'].includes(t)){
+      if (t === '-empty') return { op:t };
+      return { op:t.slice(1) };
+    }
+    if (t === '-exec' || t === '-ok'){
+      const cmd = [];
+      while (p < expr.length && expr[p] !== ';' && expr[p] !== '+' && expr[p] !== '\u0001;') cmd.push(toma());
+      if (p >= expr.length) throw fallo("find: falta ';' o '+' después de '" + t + "'");
+      const ultimo = toma();
+      const fin = ultimo === '\u0001;' ? ';' : ultimo;
+      if (!cmd.length) throw falta(t);
+      return { op:t.slice(1), cmd, fin };
+    }
+    if (t === '-true') return { op:'true' };
+    throw fallo("find: opción desconocida '" + t + "'");
+  }
+  let ast;
+  try { ast = parseOr(); }
+  catch (err){ return fallo(err.message); }
+  if (p < expr.length) return fallo("find: expresión incompleta cerca de '" + expr[p] + "'");
+
+  const acciones = [];
+  const evaluar = (nodo, x) => {
+    if (!nodo) return true;
+    if (nodo.op === 'and') return evaluar(nodo.izq, x) && evaluar(nodo.der, x);
+    if (nodo.op === 'or') return evaluar(nodo.izq, x) || evaluar(nodo.der, x);
+    if (nodo.op === 'not') return !evaluar(nodo.nodo, x);
+    if (['print','print0','ls','exec','ok'].includes(nodo.op)){ acciones.push({ nodo, path:x }); return true; }
+    if (nodo.op === 'true') return true;
     const it = e.fs[x];
-    const valeTipo = !tipo || (tipo === 'd' ? it.tipo === 'dir' : tipo === 'f' ? it.tipo === 'file' : true);
-    const propietario = propietarioDe(x, it), pertenece = propietario === usuario || propietario === grupo;
-    if (valeTipo && (!re || re.test(nombreDe(x))) && (!usuario && !grupo || pertenece)) out.push(x);
-    if (it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h);
+    if (!it) return false;
+    const nombre = nombreDe(x);
+    if (nodo.op === '-name') return patronRegex(nodo.val).test(nombre);
+    if (nodo.op === '-iname') return new RegExp(patronRegex(nodo.val).source, 'i').test(nombre);
+    if (nodo.op === '-type') return nodo.val === 'f' ? it.tipo === 'file' : nodo.val === 'd' ? it.tipo === 'dir' : nodo.val === 'l' ? it.tipo === 'link' : false;
+    if (nodo.op === '-user') return propietarioDe(x, it) === nodo.val;
+    if (nodo.op === '-group') return String(it.grupo || (x.startsWith('/home/') ? 'usuario' : 'root')) === nodo.val;
+    if (nodo.op === '-size') return findNumero(findTam(it), nodo.val, 512);
+    if (nodo.op === '-empty') return it.tipo === 'file' ? !(it.contenido || '') : (it.tipo === 'dir' ? listarHijos(e, x, true).length === 0 : false);
+    if (nodo.op === '-inum') return inodoDe(x, it) === String(nodo.val);
+    if (nodo.op === '-links') return findNumero(findEnlaces(e, x), nodo.val, 1);
+    if (nodo.op === '-perm') return findPermiso(modoDe(it), nodo.val);
+    if (nodo.op === '-newer'){
+      const ref = e.fs[rutaAbs(nodo.val, e.cwd)];
+      return !!ref && findMs(it.mtime) > findMs(ref.mtime);
+    }
+    if (nodo.op === '-newermt') return findMs(it.mtime) > findFechaHumana(nodo.val);
+    if (['-mtime','-atime','-ctime','-mmin','-amin','-cmin'].includes(nodo.op)){
+      const campo = nodo.op.includes('mtime') || nodo.op.includes('mmin') ? 'mtime' : nodo.op.includes('atime') || nodo.op.includes('amin') ? 'atime' : 'ctime';
+      const unidad = nodo.op.endsWith('min') ? 60000 : 86400000;
+      const dias = Math.floor((Date.now() - findMs(it[campo])) / unidad);
+      return findNumero(dias, nodo.val, 1);
+    }
+    return false;
   };
-  rec(p);
-  if (execCmd === 'file') return exito(out.map(x => cmd_file(e, [x]).out).join('\n'));
-  return exito(out.map(rutaVisible).join('\n'));
+
+  const accionesPorDefecto = !JSON.stringify(expr).includes('"-print"') && !JSON.stringify(expr).includes('"-ls"') &&
+    !JSON.stringify(expr).includes('"-print0"') && !JSON.stringify(expr).includes('"-exec"') && !JSON.stringify(expr).includes('"-ok"');
+  for (const raw of rutas){
+    const inicio = rutaAbs(raw, e.cwd);
+    if (!e.fs[inicio]) return fallo("find: '" + raw + "': No such file or directory");
+    const rec = (x, prof) => {
+      if (prof > maxdepth) return;
+      if (evaluar(ast, x) && accionesPorDefecto) acciones.push({ nodo:{ op:'print' }, path:x });
+      const it = e.fs[x];
+      if (it && it.tipo === 'dir') for (const h of listarHijos(e, x, true)) rec(h, prof + 1);
+    };
+    rec(inicio, 0);
+  }
+
+  let out = '', err = '';
+  const lotes = new Map();
+  for (const a of acciones){
+    if (a.nodo.op === 'print') out += (out && !out.endsWith('\n') ? '\n' : '') + rutaVisible(a.path);
+    else if (a.nodo.op === 'print0') out += rutaVisible(a.path) + '\0';
+    else if (a.nodo.op === 'ls') {
+      const r = cmd_ls(e, ['-l', a.path]);
+      out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    } else {
+      const clave = JSON.stringify(a.nodo.cmd) + '|' + a.nodo.fin;
+      if (!lotes.has(clave)) lotes.set(clave, { nodo:a.nodo, paths:[] });
+      lotes.get(clave).paths.push(a.path);
+    }
+  }
+  for (const { nodo, paths } of lotes.values()){
+    if (nodo.fin === '+'){
+      const tokens = [];
+      for (const t of nodo.cmd){
+        if (t === '{}') tokens.push(...paths.map(rutaVisible));
+        else tokens.push(t);
+      }
+      const r = ejecutarSimple(e, tokens, '');
+      if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+      if (r.err) err += r.err;
+    } else {
+      for (const x of paths){
+        const tokens = nodo.cmd.map(t => t === '{}' ? rutaVisible(x) : t);
+        const r = ejecutarSimple(e, tokens, '');
+        if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+        if (r.err) err += r.err;
+      }
+    }
+  }
+  return { out, err, code: err ? 1 : 0 };
 }
 function cmd_grep(e, args, stdin){
   let i = 0;
-  const flags = { i:false, v:false, c:false, n:false };
-  while (i < args.length && args[i].startsWith('-')){ for (const c of args[i].slice(1)) flags[c] = true; i++; }
-  const patron = args[i++];
+  const flags = { i:false, v:false, c:false, n:false, r:false, l:false, w:false, E:false, F:false, q:false };
+  const patrones = [], resto = [];
+  for (let j = 0; j < args.length; j++){
+    const a = args[j];
+    if (a === '-e' || a === '--regexp'){
+      if (j + 1 >= args.length) return fallo('grep: falta el patrón después de ' + a);
+      patrones.push(args[++j]);
+      continue;
+    }
+    if (a === '--color' || a.startsWith('--color=')) continue;
+    if (a.length > 1 && a.startsWith('-')){ for (const c of a.slice(1)) flags[c] = true; continue; }
+    resto.push(a);
+  }
+  const patron = patrones.length ? patrones.join('|') : resto.shift();
   if (patron == null) return fallo('grep: falta el patrón');
+  let cuerpo = flags.F ? patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : patron;
+  if (flags.w) cuerpo = '\\b(?:' + cuerpo + ')\\b';
   let re;
-  try { re = new RegExp(patron, flags.i ? 'i' : ''); }
+  try { re = new RegExp(cuerpo, flags.i ? 'i' : ''); }
   catch { re = new RegExp(patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags.i ? 'i' : ''); }
-  const archivos = args.slice(i), lineas = [];
+  let archivos = resto;
+  if (flags.r && !archivos.length) archivos = ['.'];
+  const lineas = [];
   let total = 0;
-  const procesar = (texto, prefijo) => {
+  const procesar = (texto, prefijo, nombre) => {
     const ls = texto.split('\n');
     if (ls.length && ls[ls.length - 1] === '') ls.pop();
+    let cuenta = 0;
     ls.forEach((linea, n) => {
       const coincide = re.test(linea) !== flags.v;
       if (!coincide) return;
-      total++;
-      if (!flags.c) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
+      cuenta++;
+      if (!flags.c && !flags.l && !flags.q) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
     });
+    total += cuenta;
+    if (flags.c && !flags.l && !flags.q && cuenta) lineas.push((prefijo || '') + cuenta);
+    if (flags.l && cuenta && !flags.q) lineas.push(nombre);
+  };
+  const recorrer = (p, raw) => {
+    const it = e.fs[p];
+    if (!it) return;
+    if (it.tipo === 'file'){
+      procesar(it.contenido || '', archivos.length > 1 || flags.r ? raw + ':' : '', raw);
+      return;
+    }
+    if (it.tipo === 'dir' && flags.r){
+      for (const h of listarHijos(e, p, true)) recorrer(h, raw.replace(/\/$/, '') + '/' + nombreDe(h));
+    }
   };
   if (archivos.length){
-    for (const raw of archivos){
-      const p = rutaAbs(raw, e.cwd), it = e.fs[p];
-      if (!it || it.tipo !== 'file') continue;
-      procesar(it.contenido || '', archivos.length > 1 ? raw + ':' : '');
-    }
-  } else procesar(stdin || '', '');
-  return exito(flags.c ? String(total) : lineas.join('\n'));
+    for (const raw of archivos) recorrer(rutaAbs(raw, e.cwd), raw);
+  } else procesar(stdin || '', '', '');
+  if (flags.q) return exito('');
+  return exito(flags.c && archivos.length <= 1 && !flags.r ? String(total) : lineas.join('\n'));
 }
+function cmd_tee(e, args, stdin){
+  const append = args.includes('-a') || args.includes('--append');
+  const files = args.filter(a => !a.startsWith('-'));
+  if (!files.length) return fallo('tee: falta un fichero');
+  const texto = stdin || '';
+  for (const raw of files){
+    const p = rutaAbs(raw, e.cwd);
+    if (!esDir(e, padreDe(p))) return fallo('tee: ' + raw + ': No such file or directory');
+    const anterior = append && e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+    e.fs[p] = { tipo:'file', contenido: anterior + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
+  }
+  return exito(texto + (texto && !texto.endsWith('\n') ? '\n' : ''));
+}
+function cmd_xargs(e, args, stdin){
+  let n = 0, repl = null, delim = null, cero = false, mostrar = false;
+  const resto = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-0' || a === '--null'){ cero = true; continue; }
+    if (a === '-t' || a === '--verbose'){ mostrar = true; continue; }
+    if (a === '-r' || a === '--no-run-if-empty') continue;
+    if (a === '-n' || a === '--max-args'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('xargs: falta un número después de ' + a);
+      n = Number(args[++i]); continue;
+    }
+    if (/^-n\d+$/.test(a)){ n = Number(a.slice(2)); continue; }
+    if (a === '-I' || a === '--replace'){
+      if (i + 1 >= args.length) return fallo('xargs: falta el texto a reemplazar después de ' + a);
+      repl = args[++i]; continue;
+    }
+    if (/^-I.+/.test(a)){ repl = a.slice(2); continue; }
+    if (a === '-d' || a === '--delimiter'){
+      if (i + 1 >= args.length) return fallo('xargs: falta el delimitador después de ' + a);
+      delim = args[++i]; continue;
+    }
+    if (a.startsWith('-')) continue;
+    resto.push(...args.slice(i));
+    break;
+  }
+  const cmd = resto.length ? resto : ['echo'];
+  const bruto = stdin || '';
+  let items;
+  if (cero) items = bruto.split('\0').filter(Boolean);
+  else if (delim != null) items = bruto.split(delim).map(s => s.trim()).filter(Boolean);
+  else items = bruto.split(/\s+/).filter(Boolean);
+  if (!items.length) return exito('');
+  let out = '', err = '', code = 0;
+  const lanzar = lista => {
+    const tokens = lista.filter(t => t !== '');
+    if (mostrar) out += (out && !out.endsWith('\n') ? '\n' : '') + tokens.join(' ') + '\n';
+    const r = ejecutarSimple(e, tokens, '');
+    if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    if (r.err) err += r.err;
+    code = r.code || code;
+  };
+  if (repl != null){
+    for (const it of items) lanzar(cmd.map(t => t.split(repl).join(it)));
+  } else if (n > 0){
+    for (let i = 0; i < items.length; i += n) lanzar(cmd.concat(items.slice(i, i + n)));
+  } else lanzar(cmd.concat(items));
+  return { out, err, code };
+}
+function cmd_locate(e, args){
+  let contar = false, ignora = false, regex = false, soloBase = false, limite = 0;
+  const patrones = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (a === '-c' || a === '--count'){ contar = true; continue; }
+    if (a === '-i' || a === '--ignore-case'){ ignora = true; continue; }
+    if (a === '-r' || a === '--regex' || a === '--regexp'){ regex = true; continue; }
+    if (a === '-b' || a === '--basename'){ soloBase = true; continue; }
+    if (a === '-l' || a === '-n' || a === '--limit'){
+      if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('locate: falta un número después de ' + a);
+      limite = Number(args[++i]); continue;
+    }
+    if (a.startsWith('-')) continue;
+    patrones.push(a);
+  }
+  if (!patrones.length) return fallo('locate: falta el patrón');
+  const aRegex = pat => {
+    const esc = pat.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
+    try { return new RegExp(regex ? pat : esc, ignora ? 'i' : ''); } catch { return null; }
+  };
+  const res = [];
+  for (const p of Object.keys(e.fs).sort()){
+    const vis = rutaVisible(p), base = nombreDe(p);
+    const vale = patrones.some(pat => {
+      const re = aRegex(pat);
+      return !!re && re.test(soloBase ? base : vis);
+    });
+    if (vale) res.push(vis);
+  }
+  if (contar) return exito(String(res.length));
+  return exito(res.slice(0, limite || res.length).join('\n'));
+}
+function cmd_which(e, args){
+  if (!args.length) return fallo('which: falta un operando');
+  const dirs = String((e.vars && e.vars.PATH) || '/usr/local/bin:/usr/bin:/bin').split(':');
+  const out = [], err = [];
+  for (const nombre of args){
+    if (e.funciones && e.funciones.includes(nombre)){ out.push(nombre + ' () { ... }'); continue; }
+    if (e.alias && e.alias[nombre]){ out.push("alias " + nombre + "='" + e.alias[nombre] + "'"); continue; }
+    let hallado = null;
+    for (const d of dirs){
+      const p = rutaAbs(d.replace(/\/$/, '') + '/' + nombre, MUNDO_HOME);
+      const it = e.fs[p];
+      if (it && it.tipo === 'file' && /[1357]$/.test(String(it.modo || '644'))){ hallado = d.replace(/\/$/, '') + '/' + nombre; break; }
+    }
+    if (hallado) out.push(hallado); else err.push(nombre + ' no encontrado');
+  }
+  return { out: out.join('\n'), err: err.join('\n'), code: err.length ? 1 : 0 };
+}
+
 function cmd_wc(e, args, stdin){
   const flags = { l:false, w:false, c:false }, files = [];
   for (const a of args){ if (a.startsWith('-')) for (const c of a.slice(1)) flags[c] = true; else files.push(a); }
@@ -1827,27 +2370,47 @@ function cmd_tail(e, args, stdin){
   return exito(ls.slice(-n).join('\n'));
 }
 function cmd_sort(e, args, stdin){
-  const rev = args.includes('-r'), numeric = args.includes('-n');
-  let campo = 0;
+  let rev = false, numeric = false, campo = -1, delimitador = null, finOpciones = false;
+  const files = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-k'){
+    const a = args[i];
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-r'){ rev = true; continue; }
+    if (!finOpciones && a === '-n'){ numeric = true; continue; }
+    if (!finOpciones && a === '-k'){
       if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('sort: falta un campo válido después de -k');
       campo = Math.max(0, Number(args[++i]) - 1);
+      continue;
     }
-    else if (/^-k\d+$/.test(args[i])) campo = Math.max(0, Number(args[i].slice(2)) - 1);
+    if (!finOpciones && /^-k\d+$/.test(a)){ campo = Math.max(0, Number(a.slice(2)) - 1); continue; }
+    if (!finOpciones && a === '-t'){
+      if (i + 1 >= args.length) return fallo('sort: falta el separador después de -t');
+      delimitador = args[++i];
+      continue;
+    }
+    if (!finOpciones && a.startsWith('-')) continue;
+    files.push(a);
   }
-  const files = args.filter(a => !a.startsWith('-'));
   const texto = files.length ? (e.fs[rutaAbs(files[0], e.cwd)]?.contenido || '') : (stdin || '');
+  const clave = linea => {
+    if (campo < 0) return linea;
+    const partes = delimitador ? linea.split(delimitador) : linea.trim().split(/\s+/);
+    return partes[campo] || '';
+  };
+  const numero = s => {
+    const m = /^\s*(-?\d+(?:\.\d+)?)/.exec(s);
+    return m ? Number(m[1]) : NaN;
+  };
   const ls = texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1);
   ls.sort((a, b) => {
-    const aa = a.trim().split(/\s+/)[campo], bb = b.trim().split(/\s+/)[campo];
+    const aa = clave(a), bb = clave(b);
     if (numeric){
-      const na = Number(aa), nb = Number(bb);
+      const na = numero(aa), nb = numero(bb);
       if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
       if (Number.isFinite(na)) return -1;
       if (Number.isFinite(nb)) return 1;
     }
-    return a.localeCompare(b, 'es');
+    return aa.localeCompare(bb, 'es');
   });
   if (rev) ls.reverse();
   return exito(ls.join('\n'));
@@ -1898,7 +2461,7 @@ function cmd_du(e, args){
   rec(p);
   return exito(lineas.join('\n'));
 }
-const TIPO_INTERNO = new Set(['pwd','cd','echo','type','alias','source','.','exit','history','umask']);
+const TIPO_INTERNO = new Set(['pwd','cd','echo','type','alias','unalias','source','.','exit','history','umask']);
 const TIPO_EXTERNO = new Set(['bash','cat','chmod','cp','cut','date','file','find','grep','head','ln','ls','mkdir','mv','nano','ping','ps','rm','sort','ssh','tail','tar','time','touch','tree','users','vi','vim','wc','wget','who','whoami']);
 function cmd_type(e, args){
   args = args.filter(a => !a.startsWith('-'));   // -a, -t, -p... no cambian la respuesta en el simulador
@@ -1910,6 +2473,200 @@ function cmd_type(e, args){
     return 'bash: type: ' + a + ': no encontrado';
   }).join('\n'));
 }
+function cmd_stat(e, args){
+  const raw = args.find(a => !a.startsWith('-'));
+  if (!raw) return fallo('stat: falta un operando');
+  const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+  if (!it) return fallo("stat: no se puede acceder a '" + raw + "': No such file or directory");
+  const d = new Date(), dos = n => String(n).padStart(2, '0');
+  const fechaHora = ms => {
+    const x = new Date(ms || Date.now());
+    return x.getFullYear() + '-' + dos(x.getMonth() + 1) + '-' + dos(x.getDate()) + ' ' + dos(x.getHours()) + ':' + dos(x.getMinutes()) + ':' + dos(x.getSeconds());
+  };
+  const tipo = it.tipo === 'dir' ? 'directorio' : (it.tipo === 'link' ? 'enlace simbólico' : 'fichero regular');
+  const tam = it.tipo === 'dir' ? 4096 : (it.contenido || '').length;
+  const modo = (it.tipo === 'dir' ? 'd' : (it.tipo === 'link' ? 'l' : '-')) + permisosDe(it);
+  return exito('  Fichero: ' + raw + '\n' +
+    '  Tamaño: ' + tam + ' bytes\n' +
+    '  Tipo: ' + tipo + '\n' +
+    '  Inodo: ' + inodoDe(p, it) + '\n' +
+    '  Permisos: ' + modo + '\n' +
+    '  Acceso: ' + fechaHora(it.atime) + '\n' +
+    '  Modificación: ' + fechaHora(it.mtime) + '\n' +
+    '  Cambio: ' + fechaHora(it.ctime || it.mtime));
+}
+function cmd_basename(e, args){
+  const ops = args.filter(a => !a.startsWith('-'));
+  if (!ops.length) return fallo('basename: falta un operando');
+  let ruta = ops[0].replace(/\/+$/, '');
+  let base = ruta.slice(ruta.lastIndexOf('/') + 1) || '/';
+  if (ops[1] && base.endsWith(ops[1])) base = base.slice(0, -ops[1].length);
+  return exito(base);
+}
+function cmd_dirname(e, args){
+  const ops = args.filter(a => !a.startsWith('-'));
+  if (!ops.length) return fallo('dirname: falta un operando');
+  const ruta = ops[0].replace(/\/+$/, '') || '/';
+  const i = ruta.lastIndexOf('/');
+  return exito(i < 0 ? '.' : (i === 0 ? '/' : ruta.slice(0, i)));
+}
+const MESES_CAL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function calendarioMes(anio, mes){
+  const dias = new Date(anio, mes + 1, 0).getDate();
+  const primero = (new Date(anio, mes, 1).getDay() + 6) % 7;   // lunes = 0
+  const lineas = [(MESES_CAL[mes] + ' ' + anio).padStart(20), 'do lu ma mi ju vi sá'];
+  let fila = '   '.repeat(primero);
+  for (let d = 1; d <= dias; d++){
+    fila += String(d).padStart(2) + ' ';
+    if ((primero + d) % 7 === 0){ lineas.push(fila.replace(/\s+$/, '')); fila = ''; }
+  }
+  if (fila.trim()) lineas.push(fila.replace(/\s+$/, ''));
+  return lineas.join('\n');
+}
+function cmd_cal(e, args){
+  const nums = args.filter(a => /^\d+$/.test(a)).map(Number);
+  const ahora = new Date();
+  let meses;
+  if (args.includes('-3')){
+    const base = nums.length >= 2 ? new Date(nums[1], nums[0] - 1, 1) : new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    meses = [-1, 0, 1].map(salto => {
+      const d = new Date(base.getFullYear(), base.getMonth() + salto, 1);
+      return { m: d.getMonth(), y: d.getFullYear() };
+    });
+  }
+  else if (nums.length >= 2) meses = [{ m: nums[0] - 1, y: nums[1] }];
+  else if (nums.length === 1) meses = [{ m: ahora.getMonth(), y: nums[0] }];
+  else meses = [{ m: ahora.getMonth(), y: ahora.getFullYear() }];
+  return exito(meses.map(x => calendarioMes(x.y, x.m)).join('\n\n'));
+}
+// Semanas en vertical, como ncal: una fila por día de la semana.
+function semanaIso(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  const inicio = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil((((t - inicio) / 86400000) + 1) / 7);
+}
+function calendarioNcal(anio, mes, verSemana){
+  const dias = new Date(anio, mes + 1, 0).getDate();
+  const primero = (new Date(anio, mes, 1).getDay() + 6) % 7;
+  const lineas = [(MESES_CAL[mes] + ' ' + anio).padStart(20)];
+  const nombres = ['lu','ma','mi','ju','vi','sá','do'];
+  if (verSemana) lineas.push('sem         ');
+  // Se agrupan los días por semana (columnas) y se reparten por día de la semana.
+  const semanas = [];
+  let semana = new Array(7).fill(null);
+  for (let d = 1; d <= dias; d++){
+    semana[(primero + d - 1) % 7] = d;
+    if ((primero + d) % 7 === 0){ semanas.push(semana); semana = new Array(7).fill(null); }
+  }
+  if (semana.some(Boolean)) semanas.push(semana);
+  const prefijo = verSemana ? 'sem ' : '';
+  if (verSemana) lineas.push(prefijo + semanas.map(s => String(semanaIso(new Date(anio, mes, s.find(Boolean)))).padStart(4)).join(''));
+  for (let w = 0; w < 7; w++){
+    let fila = nombres[w].padStart(3);
+    for (const s of semanas) fila += (s[w] == null ? '   ' : String(s[w]).padStart(4).slice(-3) + ' ');
+    lineas.push(fila.replace(/\s+$/, ''));
+  }
+  return lineas.join('\n');
+}
+function cmd_ncal(e, args){
+  const verSemana = args.includes('-w');
+  const nums = args.filter(a => /^\d+$/.test(a)).map(Number);
+  const ahora = new Date();
+  let meses = [{ m: ahora.getMonth(), y: ahora.getFullYear() }];
+  if (args.includes('-3')){
+    const base = nums.length >= 2 ? new Date(nums[1], nums[0] - 1, 1) : new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    meses = [-1, 0, 1].map(salto => {
+      const d = new Date(base.getFullYear(), base.getMonth() + salto, 1);
+      return { m: d.getMonth(), y: d.getFullYear() };
+    });
+  }
+  else if (nums.length >= 2) meses = [{ m: nums[0] - 1, y: nums[1] }];
+  else if (nums.length === 1) meses = [{ m: ahora.getMonth(), y: nums[0] }];
+  return exito(meses.map(x => calendarioNcal(x.y, x.m, verSemana)).join('\n\n'));
+}
+function cmd_hwclock(e, args){
+  if (args.includes('-w') || args.includes('--systohc')) return exito('');
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const off = -d.getTimezoneOffset(), signo = off >= 0 ? '+' : '-', abs = Math.abs(off);
+  return exito(d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' +
+    p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '.000000' +
+    signo + p(Math.floor(abs / 60)) + ':' + p(abs % 60));
+}
+function cmd_readlink(e, args){
+  const canonico = args.includes('-f') || args.includes('--canonicalize');
+  const rutas = args.filter(a => !a.startsWith('-'));
+  if (!rutas.length) return fallo('readlink: falta un operando');
+  let out = '', err = '', code = 0;
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd), it = e.fs[p];
+    if (canonico){
+      if (!it){ err += 'readlink: ' + raw + ': No such file or directory\n'; code = 1; continue; }
+      out += resolverEnlace(e, p) + '\n';
+      continue;
+    }
+    if (!it || it.tipo !== 'link'){ code = 1; continue; }
+    out += it.destino + '\n';
+  }
+  return { out, err, code };
+}
+function cmd_mkfifo(e, args){
+  let modo = null, finOpciones = false;
+  const rutas = [];
+  for (let i = 0; i < args.length; i++){
+    const a = args[i];
+    if (!finOpciones && a === '--'){ finOpciones = true; continue; }
+    if (!finOpciones && a === '-m'){
+      if (i + 1 >= args.length) return fallo('mkfifo: falta el modo después de -m');
+      modo = String(args[++i]); continue;
+    }
+    if (!finOpciones && a.startsWith('-')) continue;
+    rutas.push(a);
+  }
+  if (!rutas.length) return fallo('mkfifo: falta un operando');
+  let err = '';
+  for (const raw of rutas){
+    const p = rutaAbs(raw, e.cwd);
+    if (e.fs[p]){ err += (err ? '\n' : '') + "mkfifo: no se puede crear '" + raw + "': El fichero ya existe"; continue; }
+    if (!esDir(e, padreDe(p))){ err += (err ? '\n' : '') + "mkfifo: no se puede crear '" + raw + "': No such file or directory"; continue; }
+    const modoFifo = modo && /^[0-7]{3,4}$/.test(modo) ? modo.slice(-3) : modoConUmask(0o666, e);
+    e.fs[p] = { tipo:'fifo', contenido:'', modo:modoFifo };
+  }
+  return { out:'', err, code: err ? 1 : 0 };
+}
+function cmd_history(e, args){
+  const h = e.historial || [];
+  if (args[0] === '-c'){ e.historial = []; return exito(); }
+  const n = /^\d+$/.test(args[0] || '') ? Number(args[0]) : h.length;
+  return exito(h.slice(Math.max(0, h.length - n)).map((c, i) => {
+    const num = Math.max(0, h.length - n) + i + 1;
+    return String(num).padStart(5, ' ') + '  ' + c;
+  }).join('\n'));
+}
+function cmd_alias(e, args){
+  e.alias = e.alias || {};
+  if (!args.length){
+    return exito(Object.keys(e.alias).sort().map(k => "alias " + k + "='" + e.alias[k] + "'").join('\n'));
+  }
+  let out = '';
+  for (const a of args){
+    const i = a.indexOf('=');
+    if (i > 0){
+      const nombre = a.slice(0, i), valor = a.slice(i + 1);
+      e.alias[nombre] = valor;
+    } else {
+      out += e.alias[a] != null ? "alias " + a + "='" + e.alias[a] + "'\n" : 'bash: alias: ' + a + ': no encontrado\n';
+    }
+  }
+  return { out, err:'', code: 0 };
+}
+function cmd_unalias(e, args){
+  e.alias = e.alias || {};
+  if (args[0] === '-a'){ e.alias = {}; return exito(); }
+  if (!args.length) return fallo('unalias: uso: unalias nombre ...');
+  for (const a of args) delete e.alias[a];
+  return exito();
+}
 const WHEREIS = {
   whoami: '/usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
   ls: '/usr/bin/ls /usr/share/man/man1/ls.1.gz',
@@ -1920,11 +2677,37 @@ const WHEREIS = {
   rm: '/usr/bin/rm /usr/share/man/man1/rm.1.gz',
   cat: '/usr/bin/cat /usr/share/man/man1/cat.1.gz',
   chmod: '/usr/bin/chmod /usr/share/man/man1/chmod.1.gz',
-  tree: '/usr/bin/tree /usr/share/man/man1/tree.1.gz'
+  tree: '/usr/bin/tree /usr/share/man/man1/tree.1.gz',
+  find: '/usr/bin/find /usr/share/man/man1/find.1.gz',
+  grep: '/usr/bin/grep /usr/share/man/man1/grep.1.gz',
+  wc: '/usr/bin/wc /usr/share/man/man1/wc.1.gz',
+  sort: '/usr/bin/sort /usr/share/man/man1/sort.1.gz',
+  head: '/usr/bin/head /usr/share/man/man1/head.1.gz',
+  tail: '/usr/bin/tail /usr/share/man/man1/tail.1.gz',
+  cut: '/usr/bin/cut /usr/share/man/man1/cut.1.gz',
+  tee: '/usr/bin/tee /usr/share/man/man1/tee.1.gz',
+  xargs: '/usr/bin/xargs /usr/share/man/man1/xargs.1.gz',
+  locate: '/usr/bin/locate /usr/share/man/man1/locate.1.gz',
+  which: '/usr/bin/which /usr/share/man/man1/which.1.gz'
 };
 function cmd_whereis(e, args){
-  if (!args.length) return fallo('whereis: falta un operando');
-  return exito(args.map(a => a + ': ' + (WHEREIS[a] || '')).join('\n'));
+  const flags = { b:false, m:false, s:false };
+  const nombres = [];
+  for (const a of args){
+    if (a.startsWith('-') && a.length > 1){ for (const c of a.slice(1)) flags[c] = true; continue; }
+    nombres.push(a);
+  }
+  if (!nombres.length) return fallo('whereis: falta un operando');
+  const pedirBin = flags.b || (!flags.m && !flags.s);
+  const pedirMan = flags.m || (!flags.b && !flags.s);
+  const pedirSrc = flags.s;
+  return exito(nombres.map(nombre => {
+    const rutas = (WHEREIS[nombre] || '').split(' ').filter(Boolean);
+    const partes = rutas.filter(r => pedirBin && !r.includes('/man/') && !r.endsWith('.c') && !r.endsWith('.h'))
+      .concat(rutas.filter(r => pedirMan && r.includes('/man/') && !r.endsWith('.c') && !r.endsWith('.h')))
+      .concat(pedirSrc ? [] : []);
+    return nombre + ': ' + partes.join(' ');
+  }).join('\n'));
 }
 function cmd_source(e, args){
   const raw = args[0] || '~/.bashrc';
@@ -1943,11 +2726,13 @@ function cmd_mkcd(e, args){
 }
 
 const CMD_SIM = {
-  pwd: cmd_pwd, cd: cmd_cd, ls: cmd_ls, mkdir: cmd_mkdir, touch: cmd_touch, rm: cmd_rm,
+  pwd: cmd_pwd, cd: cmd_cd, ls: cmd_ls, mkdir: cmd_mkdir, touch: cmd_touch, rm: cmd_rm, rmdir: cmd_rmdir,
   cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
-  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), who: cmd_who, users: cmd_users, ps: cmd_ps, cut: cmd_cut, time: cmd_time, date: cmd_date, umask: cmd_umask
+  whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), who: cmd_who, users: cmd_users, ps: cmd_ps, cut: cmd_cut, time: cmd_time, date: cmd_date, umask: cmd_umask,
+  history: cmd_history, stat: cmd_stat, basename: cmd_basename, dirname: cmd_dirname, cal: cmd_cal, ncal: cmd_ncal, hwclock: cmd_hwclock, readlink: cmd_readlink, mkfifo: cmd_mkfifo, alias: cmd_alias, unalias: cmd_unalias,
+  tee: cmd_tee, xargs: cmd_xargs, locate: cmd_locate, which: cmd_which, updatedb: () => exito('')
 };
 
 /* ---- Intérprete de una línea ---- */
@@ -1959,20 +2744,39 @@ function tokenizar(linea){
     const ch = linea[i];
     if (comilla){
       if (ch === comilla) comilla = null;
-      else if (ch === '\\' && comilla === '"' && i + 1 < linea.length) actual += linea[++i];
+      else if (ch === '\\' && comilla === '"' && i + 1 < linea.length){
+        const sig = linea[i + 1];
+        actual += ('ntb\\'.includes(sig)) ? '\\' + sig : sig;
+        i++;
+      }
       else actual += ch;
       continue;
     }
     if (ch === '"' || ch === "'"){ comilla = ch; continue; }
-    if (ch === '\\' && i + 1 < linea.length){ actual += linea[++i]; continue; }
+    if (ch === '\\' && i + 1 < linea.length){
+      const sig = linea[i + 1];
+      if (sig === ';' && actual === ''){ out.push('\u0001;'); i++; continue; }
+      actual += ('ntb\\'.includes(sig)) ? '\\' + sig : sig;
+      i++;
+      continue;
+    }
     if (/\s/.test(ch)){ empujar(); continue; }
     if (ch === '&' && linea[i + 1] === '&'){ empujar(); out.push('&&'); i++; continue; }
     if (ch === '|' && linea[i + 1] === '|'){ empujar(); out.push('||'); i++; continue; }
     if (ch === '|'){ empujar(); out.push('|'); continue; }
     if (ch === ';'){ empujar(); out.push(';'); continue; }
+    if (ch === '2' && linea.slice(i, i + 4) === '2>&1'){ empujar(); out.push('2>&1'); i += 3; continue; }
+    if (ch === '&' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('&>>'); i += 2; continue; }
+    if (ch === '&' && linea[i + 1] === '>'){ empujar(); out.push('&>'); i++; continue; }
+    if (ch === '2' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('2>>'); i += 2; continue; }
+    if (ch === '1' && linea[i + 1] === '>' && linea[i + 2] === '>'){ empujar(); out.push('1>>'); i += 2; continue; }
+    if (ch === '1' && linea[i + 1] === '>'){ empujar(); out.push('1>'); i++; continue; }
     if (ch === '2' && linea[i + 1] === '>'){ empujar(); out.push('2>'); i++; continue; }
+    if (ch === '>' && linea[i + 1] === '&' && /[0-9]/.test(linea[i + 2] || '')){ empujar(); out.push('>&' + linea[i + 2]); i += 2; continue; }
+    if (ch === '<' && linea[i + 1] === '&' && /[0-9]/.test(linea[i + 2] || '')){ empujar(); out.push('<&' + linea[i + 2]); i += 2; continue; }
     if (ch === '>' && linea[i + 1] === '>'){ empujar(); out.push('>>'); i++; continue; }
     if (ch === '>'){ empujar(); out.push('>'); continue; }
+    if (ch === '<'){ empujar(); out.push('<'); continue; }
     actual += ch;
   }
   empujar();
@@ -1984,47 +2788,219 @@ function ejecutarSimple(e, tokens, stdin = ''){
   let args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
   // Los comodines se expanden como en bash para los comandos que reciben ficheros.
   // find y grep quedan fuera porque sus patrones no son rutas.
-  if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd))
-    args = args.flatMap((a, i) => cmd === 'chmod' && i === 0 ? [a] : (a.startsWith('-') ? [a] : expandirGlob(e, a)));
+  if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd)){
+    let modoChmodVisto = false;
+    args = args.flatMap((a, i) => {
+      if (cmd === 'chmod' && !a.startsWith('-') && !modoChmodVisto){ modoChmodVisto = true; return [a]; }
+      if (cmd === 'touch' && i > 0 && ['-d','-t','-r'].includes(args[i - 1])) return [a];
+      return a.startsWith('-') ? [a] : expandirGlob(e, a);
+    });
+  }
   if (cmd === 'mkcd' && e.funciones.includes('mkcd')) return cmd_mkcd(e, args);
+  if (e.alias && e.alias[cmd]) return ejecutarSimple(e, tokenizar(e.alias[cmd]).concat(tokens.slice(1)), stdin);
   const fn = CMD_SIM[cmd];
   if (!fn) return fallo('bash: ' + cmd + ': orden no encontrada');
   return fn(e, args, stdin);
 }
+const REDIRS_SALIDA = new Set(['>', '>>', '1>', '1>>', '2>', '2>>', '&>', '&>>']);
+// Separa las redirecciones de los tokens. Se admite más de una por línea
+// (por ejemplo `ls > todo.log 2>&1`), y se respeta el orden en que aparecen.
+function extraerRedirecciones(tokens){
+  const resto = [], redirs = [];
+  for (let i = 0; i < tokens.length; i++){
+    const t = tokens[i];
+    if (t === '2>&1'){ redirs.push({ tipo:'dup' }); continue; }
+    const fdOut = /^>&([3-9])$/.exec(t), fdIn = /^<&([3-9])$/.exec(t);
+    if (fdOut){ redirs.push({ tipo:'fd', origen:Number(fdOut[1]) }); continue; }
+    if (fdIn){ redirs.push({ tipo:'fdin', origen:Number(fdIn[1]) }); continue; }
+    if (!REDIRS_SALIDA.has(t) && t !== '<'){ resto.push(t); continue; }
+    const destino = tokens[++i];
+    if (!destino) return { error:'bash: falta el fichero de redirección' };
+    if (t === '<') redirs.push({ tipo:'in', destino });
+    else redirs.push({ tipo:'out', fd:t.startsWith('2') ? 2 : 1, ambos:t.startsWith('&'), append:/>>$/.test(t), destino });
+  }
+  return { resto, redirs };
+}
+function escribirSalida(e, destino, texto){
+  if (destino.destino === '/dev/null') return null;
+  texto = quitarHtml(texto || '');
+  const p = rutaAbs(destino.destino, e.cwd), padre = padreDe(p);
+  if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino.destino + ': No such file or directory', code:1 };
+  const previo = e.fs[p];
+  // Escribir en una tubería con nombre la rellena en vez de convertirla en fichero.
+  const tipo = previo && previo.tipo === 'fifo' ? 'fifo' : 'file';
+  const anterior = destino.append && previo && (previo.tipo === 'file' || previo.tipo === 'fifo') ? previo.contenido : '';
+  e.fs[p] = { tipo, contenido: anterior + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:(previo && previo.modo) || '644' };
+  return null;
+}
 function ejecutarPipeline(e, tokens, stdin = ''){
-  let redir = null, idx = -1;
-  for (let i = 0; i < tokens.length; i++) if (tokens[i] === '>' || tokens[i] === '>>' || tokens[i] === '2>'){ redir = tokens[i]; idx = i; break; }
-  let destino = null;
-  if (redir){
-    destino = tokens[idx + 1];
-    tokens = tokens.slice(0, idx).concat(tokens.slice(idx + 2));
-    if (!destino) return { out:'', err:'bash: falta el fichero de redirección', code:1 };
+  const analisis = extraerRedirecciones(tokens);
+  if (analisis.error) return { out:'', err:analisis.error, code:1 };
+  tokens = analisis.resto;
+  // Entrada redirigida: se lee el fichero antes de ejecutar la tubería.
+  let entradaInicial = stdin;
+  for (const r of analisis.redirs){
+    if (r.tipo === 'fdin'){
+      const fd = e.fds && e.fds[r.origen];
+      if (!fd || fd.tipo !== 'in') return { out:'', err:'bash: ' + r.origen + ': Bad file descriptor', code:1 };
+      const it = e.fs[fd.destino];
+      if (!it) return { out:'', err:'bash: ' + r.origen + ': Bad file descriptor', code:1 };
+      entradaInicial = it.contenido || '';
+      continue;
+    }
+    if (r.tipo !== 'in') continue;
+    if (r.destino === '/dev/null'){ entradaInicial = ''; continue; }
+    const p = rutaAbs(r.destino, e.cwd), it = e.fs[p];
+    if (!it || it.tipo === 'dir') return { out:'', err:'bash: ' + r.destino + ': No such file or directory', code:1 };
+    entradaInicial = it.contenido || '';
   }
   const segmentos = [];
   let seg = [];
   for (const t of tokens){ if (t === '|'){ segmentos.push(seg); seg = []; } else seg.push(t); }
   segmentos.push(seg);
-  let out = '', err = '', code = 0, entrada = stdin;
-  for (const s of segmentos){
+  let out = '', err = '', code = 0, entrada = entradaInicial;
+  for (let i = 0; i < segmentos.length; i++){
+    const s = segmentos[i];
     if (!s.length) continue;
+    e._tuberia = i < segmentos.length - 1;
     const r = ejecutarSimple(e, s, entrada);
     out = r.out; err += r.err; code = r.code;
     if (code !== 0) break;
-    entrada = quitarHtml(out);
+    // find -print0 produce bytes nulos: no deben pasar por innerHTML, que los
+    // eliminaría y pegaría todas las rutas en una sola.
+    entrada = out.indexOf('\0') !== -1 ? out : quitarHtml(out);
   }
-  if (redir && (code === 0 || redir === '2>')){
-    const p = rutaAbs(destino, e.cwd), padre = padreDe(p);
-    if (!esDir(e, padre)) return { out:'', err:'bash: ' + destino + ': No such file or directory', code:1 };
-    const texto = redir === '2>' ? quitarHtml(err) : quitarHtml(out);
-    const anterior = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
-    e.fs[p] = { tipo:'file', contenido: (redir === '>>' ? anterior : '') + texto + (texto && !texto.endsWith('\n') ? '\n' : ''), modo:'644' };
-    if (redir === '2>') err = ''; else out = '';
+  e._tuberia = false;
+  let destinoOut = null, destinoErr = null;
+  for (const r of analisis.redirs){
+    if (r.tipo === 'dup'){
+      // 2>&1: los errores pasan a donde vaya la salida en ese momento.
+      destinoErr = destinoOut ? { destino: destinoOut.destino, append: destinoOut.append, compartido: true } : null;
+      continue;
+    }
+    if (r.tipo === 'fd'){
+      const fd = e.fds && e.fds[r.origen];
+      if (!fd || fd.tipo !== 'out') return { out:'', err:'bash: ' + r.origen + ': Bad file descriptor', code:1 };
+      destinoOut = { destino: fd.destino, append: fd.append };
+      continue;
+    }
+    if (r.tipo !== 'out') continue;
+    if (r.ambos){ destinoOut = { destino:r.destino, append:r.append }; destinoErr = destinoOut; continue; }
+    if (r.fd === 1) destinoOut = { destino:r.destino, append:r.append };
+    else destinoErr = { destino:r.destino, append:r.append };
+  }
+  const mismo = destinoOut && destinoErr && destinoOut.destino === destinoErr.destino;
+  if (mismo){
+    const fallo = escribirSalida(e, destinoOut, out + err);
+    if (fallo) return fallo;
+    out = ''; err = '';
+  } else {
+    if (destinoOut){ const fallo = escribirSalida(e, destinoOut, out); if (fallo) return fallo; out = ''; }
+    if (destinoErr){ const fallo = escribirSalida(e, destinoErr, err); if (fallo) return fallo; err = ''; }
   }
   return { out, err, code };
 }
-function ejecutarLinea(e, linea){
-  linea = String(linea).replace(/\$(?:\{)?(HOME|PWD|USER)(?:\})?/g, (m, v) =>
-    v === 'HOME' ? MUNDO_HOME : (v === 'PWD' ? e.cwd : 'usuario'));
+function expandirVariables(e, tokens){
+  const valor = n => {
+    if (n === 'PWD') return e.cwd;
+    if (n === '?') return String(e.ultimoCodigo || 0);
+    return (e.vars && e.vars[n] != null) ? String(e.vars[n]) : '';
+  };
+  return tokens.map(t => t.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*|\?)\}|\$([A-Za-z_][A-Za-z0-9_]*|\?)/g,
+    (m, a, b) => valor(a || b)));
+}
+/* ---- Canales (exec 5> fichero, >&5, <&5) ---- */
+function ejecutarExec(e, linea){
+  const m = /^\s*exec\s+([3-9])\s*(>>|>|<)\s*(\S+)\s*$/.exec(linea);
+  if (!m) return null;
+  const fd = Number(m[1]), op = m[2], arg = m[3];
+  e.fds = e.fds || {};
+  if (arg === '&-'){ delete e.fds[fd]; return exito(''); }
+  const p = rutaAbs(arg, e.cwd);
+  if (op === '<'){
+    const it = e.fs[p];
+    if (!it || it.tipo === 'dir') return fallo('bash: ' + arg + ': No such file or directory');
+    e.fds[fd] = { tipo:'in', destino:p };
+    return exito('');
+  }
+  if (!esDir(e, padreDe(p))) return fallo('bash: ' + arg + ': No such file or directory');
+  const previo = e.fs[p] && e.fs[p].tipo === 'file' ? e.fs[p].contenido : '';
+  e.fs[p] = { tipo:'file', contenido: op === '>>' ? previo : '', modo:(e.fs[p] && e.fs[p].modo) || '644' };
+  e.fds[fd] = { tipo:'out', destino:p, append: op === '>>' };
+  return exito('');
+}
+
+/* ---- Bucles for de una línea: for i in {a..z}; do ...; done ---- */
+function expandirListaFor(e, texto){
+  let lista = expandirVariables(e, tokenizar(texto));
+  lista = lista.flatMap(a => expandirLlaves(a));
+  lista = lista.flatMap(a => /[*?[]/.test(a) ? expandirGlob(e, a) : [a]);
+  return lista;
+}
+function ejecutarFor(e, linea, _sub){
+  const m = /^\s*for\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\s+([\s\S]*?)\s*;?\s*do\s+([\s\S]*?)\s*;?\s*done\s*$/.exec(linea);
+  if (!m) return null;
+  const lista = expandirListaFor(e, m[2]);
+  let out = '', err = '', code = 0;
+  e.vars = e.vars || {};
+  for (const valor of lista){
+    e.vars[m[1]] = valor;
+    const r = ejecutarLinea(e, m[3], true);
+    if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    if (r.err) err += (err && !err.endsWith('\n') ? '\n' : '') + r.err;
+    code = r.code;
+    if (code !== 0) break;
+  }
+  return { out, err, code };
+}
+
+/* ---- Here-documents: cat <<EOF ... EOF ---- */
+function delimitadorHeredoc(linea){
+  const m = /<<-?\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\1/.exec(linea);
+  return m ? m[2] : null;
+}
+function ejecutarGuion(e, texto){
+  const lineas = String(texto).replace(/\r\n?/g, '\n').split('\n');
+  let out = '', err = '', code = 0, i = 0;
+  const sumar = r => {
+    if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+    if (r.err) err += (err && !err.endsWith('\n') ? '\n' : '') + r.err;
+    code = r.code;
+  };
+  while (i < lineas.length){
+    const linea = lineas[i];
+    const delim = delimitadorHeredoc(linea);
+    if (!delim){ sumar(ejecutarLinea(e, linea)); i++; continue; }
+    const cuerpo = [];
+    i++;
+    while (i < lineas.length && lineas[i].replace(/^\t+/, '').trimEnd() !== delim) cuerpo.push(lineas[i++]);
+    i++;   // salta el delimitador
+    const orden = linea.replace(/<<-?\s*(['"]?)[A-Za-z_][A-Za-z0-9_]*\1/, '');
+    sumar(ejecutarLinea(e, orden, false, cuerpo.join('\n') + (cuerpo.length ? '\n' : '')));
+  }
+  return { out, err, code };
+}
+function ejecutarEntrada(e, texto){
+  return /<<-?\s*['"]?[A-Za-z_]/.test(texto) || /\n/.test(texto)
+    ? ejecutarGuion(e, texto)
+    : ejecutarLinea(e, texto);
+}
+
+function ejecutarLinea(e, linea, _sub, stdin){
+  if (!_sub){
+    e.historial = e.historial || [];
+    e.historial.push(String(linea));
+    if (e.historial.length > 500) e.historial.shift();
+  }
+  const canal = ejecutarExec(e, linea);
+  if (canal) return canal;
+  const bucle = ejecutarFor(e, linea, _sub);
+  if (bucle) return bucle;
+  // Sustitución de comandos: $(comando) se cambia por su salida.
+  linea = String(linea).replace(/\$\(([^()]*)\)/g, (m, inner) =>
+    quitarHtml((ejecutarLinea(e, inner, true).out || '')).trim());
+  e.vars = e.vars || {};
+  e.vars.PWD = e.cwd;
   const tokens = tokenizar(linea);
   let out = '', err = '', code = 0, i = 0, ejecutar = true;
   while (i < tokens.length){
@@ -2032,13 +3008,26 @@ function ejecutarLinea(e, linea){
     while (i < tokens.length && ![';','&&','||'].includes(tokens[i])) seg.push(tokens[i++]);
     const op = tokens[i++];
     if (ejecutar && seg.length){
-      const r = ejecutarPipeline(e, seg);
-      out += r.out; err += r.err; code = r.code;
+      const t = expandirVariables(e, seg);
+      const asignacion = t.length === 1 && /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(t[0]);
+      if (asignacion){
+        e.vars[asignacion[1]] = asignacion[2];
+        code = 0;
+      } else {
+        const r = ejecutarPipeline(e, t, stdin);
+        if (r.out) out += (out && !out.endsWith('\n') ? '\n' : '') + r.out;
+        if (r.err) err += (err && !err.endsWith('\n') ? '\n' : '') + r.err;
+        code = r.code;
+      }
+      e.vars.PWD = e.cwd;
     }
+    e.ultimoCodigo = code;
     if (op === '&&') ejecutar = code === 0;
     else if (op === '||') ejecutar = code !== 0;
     else ejecutar = true;
   }
+  e.ultimoCodigo = code;
+  e.vars.PWD = e.cwd;
   return { out, err, code };
 }
 
@@ -2050,6 +3039,14 @@ function comprobarMeta(e, meta, salida){
     const p = rutaAbs(meta.cwd, e.cwd);
     if (e.cwd !== p) return falla('Estás en ' + rutaVisible(e.cwd) + ', pero el objetivo es ' + rutaVisible(p) + '.');
   }
+  if (meta.cwdNoEs != null){
+    for (const raw of [].concat(meta.cwdNoEs)){
+      const p = rutaAbs(raw, e.cwd);
+      if (e.cwd === p) return falla('Sigue estando en ' + rutaVisible(p) + '. Cambia de carpeta.');
+    }
+  }
+  if (meta.muestraCwd && !texto.includes(e.cwd))
+    return falla('La salida no muestra la carpeta en la que estás (' + rutaVisible(e.cwd) + ').');
   for (const raw of [].concat(meta.existe || [])){
     const p = rutaAbs(raw, e.cwd);
     if (!e.fs[p]) return falla('Todavía no existe ' + rutaVisible(p) + '.');
@@ -2117,7 +3114,7 @@ function validarPaso(paso, estado, t){
   const aprendizaje = comprobarAprendizaje(paso, t);
   if (!aprendizaje.ok) return { ok:false, estado, salida:'', error: aprendizaje.mensaje, diagnostico: aprendizaje.mensaje };
   const candidato = estado ? clonarEstado(estado) : null;
-  const r = candidato ? ejecutarLinea(candidato, t) : { out:'', err:'', code:0 };
+  const r = candidato ? ejecutarEntrada(candidato, t) : { out:'', err:'', code:0 };
   if (r.code !== 0){
     const diagnostico = enriquecerDiagnostico(paso, r.err || 'El comando no se pudo ejecutar.');
     return { ok:false, estado, salida:'', error: diagnostico, diagnostico };
@@ -2314,8 +3311,8 @@ let act = null,          // actividad abierta (objeto de ORDEN_ACT)
     pistaIdx = 0,        // pistas del paso actual ya enseñadas (cada petición muestra la siguiente)
     ayudaAct = false,    // true si en este paso se pidió "Ver solución" (da menos puntos)
     hechaAct = false,    // true cuando se ha superado el último paso
-    mem = [], memI = 0;  // historial de comandos escritos (flechas ↑ ↓) y posición en él
-
+    mem = [], memI = 0,  // historial de comandos escritos (flechas ↑ ↓) y posición en él
+    heredocAct = null;   // here-document a medio escribir: { orden, delim, cuerpo }
 // ---- Panel lateral: subapartados desplegables con buscador ----
 const estadoGrupos = new Map();   // título del subapartado → ¿desplegado? (se recuerda aunque la lista se vuelva a dibujar)
 const sinTildes = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();  // buscar sin distinguir tildes ni mayúsculas
@@ -2649,7 +3646,7 @@ aplicarMapa();
 
 // Abre la actividad retomando el paso guardado (si lo hay) y su mundo virtual.
 function cargarAct(){
-  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; heredocAct = null; rutaAct = null;
   estadoAct = crearEstado(act);
   const g = progreso[act.id];
   if (progresoValido(g) && g.paso > 0){
@@ -2667,7 +3664,7 @@ function cargarAct(){
 
 // Vuelve al paso 1 con la terminal limpia y borra el progreso guardado de esta actividad.
 function reiniciarAct(){
-  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; rutaAct = null;
+  pasoAct = 0; fallosAct = 0; fallosPaso = 0; pistaIdx = 0; ayudaAct = false; hechaAct = false; mem = []; memI = 0; heredocAct = null; rutaAct = null;
   estadoAct = crearEstado(act);
   delete progreso[act.id]; guardarProgreso(); construirLista();
   histAct = AYUDA_ACT;
@@ -2737,9 +3734,29 @@ const aceptado = (paso, t) => patronesDe(paso).some(o => {
 // del mundo virtual y solo guarda el estado nuevo si cumple el objetivo (meta) del paso.
 function enviarAct(){
   if (hechaAct) return;
-  const crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
+  let crudo = entradaAct.value, t = normalizar(crudo), paso = act.pasos[pasoAct];
+  let eco = true;
+  if (heredocAct){
+    // Segunda línea en adelante de un here-document: se acumula hasta el delimitador.
+    histAct += '> ' + escapar(crudo) + '\n';
+    heredocAct.cuerpo.push(crudo);
+    entradaAct.value = '';
+    if (crudo.trim() !== heredocAct.delim){ pintarAct(); return; }
+    const texto = [heredocAct.orden].concat(heredocAct.cuerpo).join('\n');
+    heredocAct = null;
+    entradaAct.value = texto; crudo = texto; t = texto.trim(); eco = false;
+  } else {
+    const delim = delimitadorHeredoc(t);
+    if (delim){
+      heredocAct = { orden: crudo, delim, cuerpo: [] };
+      histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
+      entradaAct.value = '';
+      pintarAct();
+      return;
+    }
+  }
   entradaAct.value = '';
-  histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
+  if (eco) histAct += promptHtml(rutaAct || rutaVisible(estadoAct.cwd)) + escapar(crudo) + '\n';
   if (t){ mem.push(crudo.trim()); memI = mem.length; }
   if (!t){ /* línea vacía: solo avanza el prompt */ }
   else if (t === 'clear'){ histAct = ''; }
@@ -2785,8 +3802,8 @@ function enviarAct(){
 /* ---- Tab: completa comandos, opciones y rutas, como bash ---- */
 const OPCIONES_CMD = {
   ls:'-a -A -l -h -r -R -1 -t -i', cd:'-P', mkdir:'-p', rm:'-r -f', cp:'-r', ln:'-s', chmod:'-R',
-  grep:'-i -r -n -v', find:'-name -type -user -group -exec -maxdepth', head:'-n', tail:'-n', sort:'-r -n -k',
-  du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t'
+  grep:'-i -r -n -v -c -l -w -F -E', find:'-name -type -user -group -exec -maxdepth -size -mtime -perm -print -ls', head:'-n', tail:'-n', sort:'-r -n -k',
+  du:'-h -s', tree:'-L -a', wc:'-l -w -c', type:'-a -t', tee:'-a', xargs:'-n -I -d -0 -t', locate:'-c -i -r -b -l', whereis:'-b -m -s'
 };
 const COMANDOS_TAB = () => ['clear', 'history', 'mkcd'].concat(Object.keys(CMD_SIM).filter(x => x !== '.')).sort((a, b) => a.localeCompare(b, 'es'));
 
@@ -2922,5 +3939,10 @@ else {
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="duelo-core.js"></script>
 <script src="duelo.js"></script>
+
+<!-- AVENTURA GUIADA. Va DESPUÉS del script principal porque reutiliza su intérprete de comandos.
+     Contenido (textos, ejemplos y tests): aventura/aventura-datos.js · Motor: aventura/aventura.js -->
+<script src="aventura/aventura-datos.js"></script>
+<script src="aventura/aventura.js"></script>
 </body>
 </html>

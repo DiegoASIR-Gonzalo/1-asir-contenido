@@ -1,0 +1,786 @@
+/* =====================================================================
+   AVENTURA GUIADA · ESTILOS
+   ---------------------------------------------------------------------
+   Hereda el tema de linux-terminal.html (morado de Ubuntu, papel crema,
+   terminal oscura) y le pone la energía de un juego tipo Duolingo:
+   tarjetas con borde inferior grueso, botones que se hunden al pulsar,
+   camino de niveles y barras de progreso por segmentos.
+
+   Regla de oro: nada de animaciones de entrada repetidas. Las tarjetas
+   se montan una vez y se actualizan en su sitio (lo hace aventura.js),
+   así que pulsar "Continuar" o escribir un comando no da botes.
+   ===================================================================== */
+
+.av{
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  color:#fff;
+  font:16px/1.55 Ubuntu,Cantarell,"Segoe UI",system-ui,sans-serif;
+  background:
+    radial-gradient(90% 60% at 50% -12%,rgba(94,39,80,.62),transparent 68%),
+    radial-gradient(70% 50% at 100% 100%,rgba(94,39,80,.22),transparent 70%),
+    linear-gradient(180deg,#1e0015 0%,#15000e 55%,#0d0008 100%);
+}
+.av[hidden]{display:none}
+
+/* Iconos SVG: tamaño por contexto, color heredado */
+.av-svg{width:1em;height:1em;display:block;flex:none}
+
+/* ---------- Barra superior ---------- */
+.av-cab{
+  flex:none;display:flex;align-items:center;gap:14px;
+  height:64px;padding:0 16px;
+  background:rgba(20,0,14,.62);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  position:relative;z-index:4;
+}
+.av-marca{display:flex;align-items:center;gap:10px;min-width:0}
+.av-logo{
+  flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  font-size:20px;line-height:1;
+  background:linear-gradient(160deg,#5e2750,#2c001e);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 4px 0 rgba(0,0,0,.35);
+}
+.av-logo .av-svg{width:30px;height:30px}
+.av-marca-txt{font-weight:800;font-size:16px;letter-spacing:.01em;white-space:nowrap}
+.av-marca-txt b{color:#f6d32d;font-weight:800}
+
+.av-prog{flex:1;display:flex;align-items:center;gap:5px;height:100%;max-width:460px;margin:0 auto}
+.av-prog[hidden]{display:none}
+.av-prog i{
+  flex:1;height:10px;border-radius:99px;background:rgba(255,255,255,.14);
+  transition:background-color .3s ease;
+}
+.av-prog i.hecha{background:#8ae234}
+.av-prog i.actual{background:#f6d32d;box-shadow:0 0 0 3px rgba(246,211,45,.16)}
+
+.av-hud{display:flex;align-items:center;gap:8px;margin-left:auto}
+.av-pill{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;
+  border-radius:999px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  font-size:14px;font-weight:700;white-space:nowrap;
+}
+.av-pill b{font-weight:800;font-variant-numeric:tabular-nums}
+.av-pill .av-svg{width:16px;height:16px}
+.av-pill--xp{color:#f6d32d}
+.av-pill--fuego{color:#ff9a62}
+.av-pill.av-pop{animation:av-pop .38s ease}
+
+.av-icono{
+  flex:none;width:34px;height:34px;padding:0;border:0;border-radius:50%;
+  display:grid;place-items:center;
+  background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:15px;
+  cursor:pointer;transition:background .15s ease;
+}
+.av-icono .av-svg{width:18px;height:18px}
+.av-icono:hover{background:rgba(255,255,255,.18)}
+.av-cerrar:hover{background:#c34113}
+
+/* ---------- Cuerpo con scroll ---------- */
+.av-cuerpo{
+  flex:1;overflow-y:auto;padding:28px 16px 120px;
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-overflow-scrolling:touch;
+}
+.av-cuerpo > *{width:100%;max-width:780px}
+
+/* ---------- Tarjeta de contenido ---------- */
+.av-tarjeta{
+  background:var(--papel,#f6f5f4);color:var(--papel-txt,#241f31);
+  border-radius:22px;padding:30px 32px 28px;
+  border:1px solid #e5dfda;
+  box-shadow:0 6px 0 #d8d1cb,0 30px 70px rgba(0,0,0,.5);
+}
+.av-nueva{animation:av-aparece .16s ease-out}   /* solo opacidad, sin saltos */
+
+.av-tarjeta-cab{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
+.av-chip{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  background:#ece7e2;color:#6d5f6b;font-size:12px;font-weight:800;letter-spacing:.02em;
+}
+.av-chip--suave{background:transparent;border:1px solid #ddd5cf;color:#8a7a87}
+.av-chip--repaso{background:#fdf1c7;color:#7a5b00}
+.av-chip--ronda{background:#e3f6ea;color:#115c34}
+.av-chip--test{background:#e7e0f2;color:#5a3d7a}
+.av-chip--teclas{background:#fde8cf;color:#7a3c00}
+.av-chip--rey{
+  background:#fdf1c7;color:#6b4d00;border:1px solid #e8cd76;
+}
+.av-chip--rey .av-svg{width:13px;height:13px}
+
+kbd{
+  display:inline-block;padding:2px 7px;border-radius:6px;
+  background:#fff;border:1px solid #cfc5bd;border-bottom-width:3px;
+  font:800 13px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#3a2f3b;
+  line-height:1.3;white-space:nowrap;
+}
+
+.av-kicker{
+  margin-bottom:4px;font-size:12px;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:#7a6f78;
+}
+.av-titulo{font-size:clamp(24px,2.6vw,30px);line-height:1.2;letter-spacing:-.015em;font-weight:800;margin-bottom:14px}
+.av-texto{font-size:17.5px;line-height:1.65;color:#3b3440}
+.av-texto p{margin-bottom:12px}
+.av-texto p:last-child{margin-bottom:0}
+.av-texto b{font-weight:700}
+.av-texto code,.av-pide code,.av-mas-txt code,.av-ayuda code,.av-msg code,.av-op code{
+  font:14.5px "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+  background:#e4e0dd;padding:1px 6px;border-radius:5px;color:#2a1f2b;
+}
+.av-pide{font-size:18px;line-height:1.55;margin-bottom:16px;color:#332d38}
+.av-hazlo{
+  display:inline-flex;align-items:center;gap:10px;margin-bottom:16px;
+  padding:7px 14px 7px 7px;border-radius:12px;background:#efe9e4;color:#4a3f4b;
+  font-size:14px;font-weight:700;
+}
+.av-hazlo span{
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:#8a7a87;font-weight:800;padding-left:6px;
+}
+.av-hazlo code{
+  background:#fff;border:1px solid #ddd5cf;border-radius:8px;padding:5px 10px;
+  font-size:15px;
+}
+
+/* ---------- Pantalla de atajos de teclado ---------- */
+.av-teclas-demo{
+  margin:6px 0 18px;padding:16px 18px;border-radius:16px;
+  background:var(--term,#300a24);border:1px solid #1f0517;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  min-height:74px;overflow:auto;
+}
+.av-teclas-linea{
+  font:14.5px/1.6 "Ubuntu Mono","DejaVu Sans Mono",monospace;
+  color:#f0e7ed;white-space:pre-wrap;
+}
+.av-teclas-demo--ok{border-color:#8ae234;box-shadow:inset 0 0 0 1px rgba(138,226,52,.35)}
+.av-tecla-zona{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:16px 18px;border:2px dashed #c9bcc5;border-radius:16px;
+  background:#faf8f5;color:#4a3f4b;font:inherit;font-size:16px;font-weight:700;
+  text-align:left;cursor:pointer;transition:background .15s ease,border-color .15s ease;
+}
+.av-tecla-zona:hover:not(:disabled){background:#fff;border-color:#a88f9e}
+.av-tecla-zona:focus-visible{outline:3px solid var(--marca,#c34113);outline-offset:3px}
+.av-tecla-zona:disabled{cursor:default;border-style:solid;border-color:#8ae234;background:#e9f8ee;color:#115c34}
+.av-tecla-icono{
+  flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:#f0e6d2;color:#8a5a00;
+}
+.av-tecla-icono .av-svg{width:22px;height:22px}
+.av-tecla-zona--ok .av-tecla-icono{background:#2e9e5b;color:#fff}
+/* Respaldo para atajos que el navegador captura (Ctrl+L, Ctrl+R…) */
+.av-teclas-respaldo{
+  margin-top:14px;padding:12px 14px;border-radius:14px;
+  background:#f6f1ec;border:1px solid #e2d8d0;
+}
+.av-teclas-respaldo-txt{margin:0 0 10px;font-size:13.5px;line-height:1.5;color:#6a5d68}
+.av-teclas-fila{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.av-teclas-mas{font-weight:800;color:#8a7a87}
+.av-tecla-falsa{
+  min-width:52px;padding:9px 14px;border-radius:10px;cursor:pointer;
+  background:#fff;border:1px solid #cfc5bd;border-bottom:3px solid #b8aaa2;
+  font:800 15px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#3a2f3b;
+  transition:transform .08s ease,background .15s ease;
+}
+.av-tecla-falsa:hover{background:#fffdf9;border-color:#a88f9e}
+.av-tecla-falsa:active{transform:translateY(1px);border-bottom-width:2px}
+.av-tecla-falsa--pulsada{background:#e9f8ee;border-color:#8ae234;color:#115c34}
+.av-tecla-falsa:focus-visible{outline:3px solid var(--marca,#c34113);outline-offset:2px}
+
+/* ---------- Bloque de ejemplo (teoría) ---------- */
+.av-ejemplo{
+  margin:18px 0 8px;border-radius:16px;overflow:hidden;
+  background:var(--term,#300a24);border:1px solid #1f0517;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.av-ejemplo-cab,.av-term-cab{
+  display:flex;align-items:center;gap:8px;padding:9px 14px;
+  background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08);
+  font:800 11.5px/1 Ubuntu,Cantarell,sans-serif;letter-spacing:.11em;
+  text-transform:uppercase;color:#c9b6c4;
+}
+.av-ejemplo-cab::before,.av-term-cab::before{
+  content:"";width:9px;height:9px;border-radius:50%;background:#8ae234;
+  box-shadow:0 0 0 3px rgba(138,226,52,.16);
+}
+.av-ejemplo pre{
+  margin:0;padding:16px 18px;overflow-x:auto;
+  font:14.5px/1.7 "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+  color:#eeeeec;white-space:pre-wrap;word-break:break-word;
+}
+.av-dollar{color:#8ae234;font-weight:700}
+.av-nada{color:#a89aa5;font-style:italic}
+
+/* ---------- "¿Por qué?" ---------- */
+.av-porque{margin:16px 0 0;border-top:1px solid #e2dcd7;padding-top:14px}
+.av-porque summary{
+  cursor:pointer;font:800 14.5px/1.4 Ubuntu,Cantarell,sans-serif;color:#6b5c68;
+  list-style:none;display:flex;align-items:center;gap:9px;
+  padding:0;background:none;border-radius:0;
+}
+.av-porque summary::-webkit-details-marker{display:none}
+.av-porque summary::before,
+details.av-porque summary::before{
+  content:"+";display:grid;place-items:center;width:22px;height:22px;
+  border-radius:7px;background:#eae4de;font-size:16px;font-weight:800;line-height:1;
+  color:#6b5c68;transition:transform .15s ease;
+}
+details.av-porque[open] summary::before{content:"−"}
+.av-porque-txt{padding-top:10px;font-size:16px;line-height:1.6;color:#4a424d}
+.av-porque-txt p{margin-bottom:8px}
+.av-porque-txt p:last-child{margin-bottom:0}
+
+/* ---------- Terminal de la práctica ---------- */
+.av-term{
+  margin:0 0 16px;border-radius:16px;overflow:hidden;
+  background:var(--term,#300a24);border:1px solid #1f0517;
+  box-shadow:0 4px 0 rgba(0,0,0,.22),inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.av-pantalla{
+  max-height:200px;overflow:auto;padding:13px 16px;
+  font:14.5px/1.65 "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+  color:#eeeeec;white-space:pre-wrap;word-break:break-word;
+}
+.av-vacio{color:#a89aa5}
+.av-linea{
+  display:flex;align-items:baseline;
+  padding:9px 16px 13px;
+  font:14.5px/1.6 "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+}
+.av-prompt{white-space:nowrap}
+.av-linea input{
+  flex:1;min-width:0;background:transparent;border:0;outline:none;
+  color:#eeeeec;font:inherit;padding:0;caret-color:#8ae234;
+}
+.av-linea input:disabled{opacity:.6}
+.av-linea input::selection{background:#5e2750;color:#fff}
+.av-caret{color:#eeeeec}
+
+/* ---------- Mensajes de la práctica ---------- */
+.av-msg{
+  display:flex;gap:11px;align-items:flex-start;margin:0 0 12px;
+  padding:12px 14px;border-radius:13px;font-size:15.5px;line-height:1.5;
+  animation:av-aparece .15s ease-out;
+}
+.av-msg:last-child{margin-bottom:0}
+.av-msg-icono{
+  flex:none;width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center;font-size:13px;font-weight:800;
+}
+.av-msg-icono .av-svg{width:14px;height:14px}
+.av-msg--ok{background:#e3f6ea;color:#115c34;border:1px solid #b9e6c9}
+.av-msg--ok .av-msg-icono{background:#2e9e5b;color:#fff}
+.av-msg--mal{background:#fde8e9;color:#8c1a1a;border:1px solid #f3c2c6}
+.av-msg--mal .av-msg-icono{background:#d03b45;color:#fff}
+.av-msg--pista{background:#fdf3c9;color:#5a4400;border:1px solid #efd98a}
+.av-msg--pista .av-msg-icono{background:#f6d32d;color:#4a3600}
+.av-msg--paso{background:#e8eefc;color:#243a75;border:1px solid #c3d0f2}
+.av-msg--paso .av-msg-icono{background:#4a6fd9;color:#fff}
+.av-msg code{background:rgba(255,255,255,.75);color:inherit}
+
+/* ---------- Test ---------- */
+.av-opciones{display:flex;flex-direction:column;gap:10px;margin:6px 0 4px}
+.av-op{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:13px 14px;text-align:left;font:inherit;font-size:16.5px;line-height:1.45;
+  color:#332d38;background:#fff;border:2px solid #e0d9d3;border-radius:14px;
+  cursor:pointer;box-shadow:0 4px 0 #e0d9d3;
+  transition:transform .07s ease,box-shadow .07s ease,border-color .15s ease,background .15s ease;
+}
+.av-op:hover:not(:disabled){border-color:#c9b9c5}
+.av-op:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 #e0d9d3}
+.av-op-letra{
+  flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+  background:#f0eae5;border:1px solid #e2dad4;
+  font-weight:800;font-size:13px;color:#7a6b77;
+}
+.av-op-txt{flex:1;min-width:0}
+.av-op-marca{flex:none;font-weight:800;font-size:17px;line-height:1}
+.av-op--ok{border-color:#2e9e5b;background:#e8f8ee;box-shadow:0 4px 0 #1f7040}
+.av-op--ok .av-op-letra{background:#2e9e5b;border-color:#2e9e5b;color:#fff}
+.av-op--ok .av-op-marca{color:#1f7040}
+.av-op--mal{border-color:#d03b45;background:#fdeced;box-shadow:0 4px 0 #a32029}
+.av-op--mal .av-op-letra{background:#d03b45;border-color:#d03b45;color:#fff}
+.av-op--mal .av-op-marca{color:#a32029}
+.av-op--off{opacity:.5}
+.av-op:disabled{cursor:default}
+
+.av-explica{
+  margin-top:12px;padding:13px 15px;border-radius:13px;
+  background:#fdeced;color:#8c1a1a;font-size:15.5px;line-height:1.5;
+  border:1px solid #f3c2c6;
+}
+.av-explica--bien{background:#e8f8ee;color:#115c34;border-color:#b9e6c9}
+
+/* ---------- Pie con el botón principal ---------- */
+.av-pie{
+  position:fixed;left:0;right:0;bottom:0;z-index:4;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(transparent,rgba(12,0,8,.94) 45%);
+}
+.av-pie[hidden]{display:none}
+.av-pie-int{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  width:100%;max-width:780px;margin:0 auto;
+}
+.av-pie-izq{display:flex;gap:8px;align-items:center}
+
+.av-btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font:inherit;font-weight:800;font-size:16px;
+  padding:12px 22px;border:0;border-radius:14px;cursor:pointer;
+  box-shadow:0 4px 0 var(--sombra,rgba(0,0,0,.35));
+  transition:transform .07s ease,box-shadow .07s ease,filter .15s ease;
+  user-select:none;
+}
+.av-btn:hover:not(:disabled){filter:brightness(1.08)}
+.av-btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 var(--sombra)}
+.av-btn--principal{background:var(--acento,#c34113);color:#fff;--sombra:#8a2c0c}
+.av-btn--fantasma{
+  background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.16);
+  --sombra:rgba(0,0,0,.4);font-weight:700;font-size:15px;padding:10px 16px;
+}
+.av-btn--ayuda{background:#f6d32d;color:#3a2b00;--sombra:#ab8a00;font-size:15px;padding:10px 16px}
+.av-btn--ayuda .av-svg{width:17px;height:17px}
+.av-btn--grande{width:100%;max-width:380px;font-size:18px;padding:15px 24px}
+.av-btn--sig{min-width:150px}
+.av-btn--principal:disabled{
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.35);
+  box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:default;filter:none;
+}
+
+/* ---------- Mapa ---------- */
+.av-mapa{width:100%}
+.av-hero{
+  padding:28px 30px;border-radius:22px;margin-bottom:26px;
+  background:linear-gradient(160deg,rgba(94,39,80,.55),rgba(36,10,26,.72));
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 6px 0 rgba(0,0,0,.3),0 30px 60px rgba(0,0,0,.35);
+}
+.av-hero-cab{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.av-hero-mascota{
+  flex:none;width:64px;height:64px;border-radius:20px;display:grid;place-items:center;
+  font-size:34px;line-height:1;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 5px 0 rgba(0,0,0,.28);
+}
+.av-hero-mascota .av-svg{width:46px;height:46px}
+.av-hero .av-kicker{color:#c9b1c0}
+.av-hero-titulo{font-size:clamp(24px,3vw,32px);line-height:1.15;letter-spacing:-.02em}
+.av-hero-texto{font-size:16.5px;line-height:1.6;color:#e8dde4;max-width:58ch;margin:10px 0 18px}
+.av-datos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.av-dato{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1);
+  font-size:13.5px;font-weight:600;color:#e8dde4;
+}
+.av-dato b{font-weight:800}
+.av-dato .av-svg{width:16px;height:16px}
+
+.av-camino{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
+.av-mundo{
+  padding:16px 14px 10px;border-radius:20px;
+  background:linear-gradient(170deg,rgba(255,255,255,.062),rgba(255,255,255,.022));
+  border:1px solid rgba(255,255,255,.085);
+  box-shadow:0 5px 0 rgba(0,0,0,.24),0 18px 40px rgba(0,0,0,.22);
+}
+.av-mundo[data-estado="actual"]{border-color:rgba(195,65,19,.45);box-shadow:0 5px 0 rgba(0,0,0,.24),0 0 0 1px rgba(195,65,19,.18)}
+.av-mundo-cab{display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:0 4px}
+.av-mundo-emoji{
+  flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+  font-size:22px;line-height:1;color:#f0dbe8;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+}
+.av-mundo-emoji .av-svg{width:22px;height:22px}
+.av-mundo-txt{flex:1;min-width:0}
+.av-mundo-txt h3{font-size:17px;font-weight:800;line-height:1.3}
+.av-mundo-txt p{font-size:13.5px;color:#c9bac5}
+.av-mundo-prog{
+  flex:none;font:800 12.5px "Ubuntu Mono","DejaVu Sans Mono",monospace;
+  color:#e8dde4;background:rgba(255,255,255,.1);
+  padding:4px 10px;border-radius:999px;
+}
+.av-mundo[data-estado="bloqueado"] .av-mundo-cab{opacity:.55}
+
+.av-nodos{list-style:none;margin:0;padding:4px 0;position:relative}
+.av-nodos::before{
+  content:"";position:absolute;left:38px;top:16px;bottom:16px;
+  border-left:3px dashed rgba(255,255,255,.16);
+}
+.av-nodo-fila{position:relative}
+.av-nodo{
+  display:flex;align-items:center;gap:14px;width:100%;
+  padding:8px 12px 8px 8px;border:0;border-radius:16px;
+  background:none;color:#fff;font:inherit;text-align:left;cursor:pointer;
+  transition:background .15s ease;
+}
+.av-nodo:hover:not(:disabled){background:rgba(255,255,255,.06)}
+.av-nodo:disabled{cursor:default}
+.av-nodo-anillo{
+  position:relative;flex:none;width:62px;height:62px;display:grid;place-items:center;
+}
+.av-anillo{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.av-anillo circle{fill:none;stroke-width:4;stroke-linecap:round}
+.av-anillo-fondo{stroke:rgba(255,255,255,.15)}
+.av-anillo-hecho{stroke:#f6d32d;transition:stroke-dashoffset .35s ease}
+.av-nodo--hecha .av-anillo-hecho{stroke:#8ae234}
+.av-nodo-circulo{
+  width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  font-size:20px;font-weight:800;line-height:1;
+  background:#3b2a36;border:3px solid rgba(255,255,255,.12);
+  box-shadow:0 4px 0 rgba(0,0,0,.35);position:relative;z-index:1;
+}
+.av-nodo-circulo .av-svg{width:22px;height:22px}
+.av-nodo--bloqueada .av-nodo-circulo .av-svg{width:18px;height:18px}
+.av-nodo--actual .av-nodo-circulo{
+  background:var(--acento,#c34113);border-color:#f0a06c;
+  box-shadow:0 4px 0 #8a2c0c,0 0 0 6px rgba(195,65,19,.16);
+  animation:av-latido 2.6s ease-in-out infinite;
+}
+.av-nodo--rey .av-nodo-circulo{
+  background:rgba(246,211,45,.1);border-color:rgba(246,211,45,.45);color:#f6d32d;
+}
+.av-nodo--hecha .av-nodo-circulo{
+  background:#2e9e5b;border-color:#7fd3a0;box-shadow:0 4px 0 #1c6038;
+}
+.av-nodo--bloqueada .av-nodo-circulo{
+  background:#2f222c;border-color:rgba(255,255,255,.06);
+  box-shadow:none;color:#857581;font-size:16px;
+}
+.av-nodo-txt{flex:1;min-width:0}
+.av-nodo-txt b{display:block;font-size:15.5px;font-weight:700;line-height:1.35}
+.av-nodo-txt small{
+  display:block;font-size:13px;color:#c0b0bc;
+  font-family:"Ubuntu Mono","DejaVu Sans Mono",monospace;
+}
+.av-nodo-rondas{
+  flex:none;font:800 12.5px "Ubuntu Mono","DejaVu Sans Mono",monospace;
+  color:#f6e7b0;background:rgba(246,211,45,.12);
+  border:1px solid rgba(246,211,45,.28);
+  padding:3px 8px;border-radius:999px;
+}
+.av-nodo--hecha .av-nodo-rondas{color:#c8f0d5;background:rgba(138,226,52,.12);border-color:rgba(138,226,52,.3)}
+.av-nodo-flecha{flex:none;color:#a794a2;font-size:22px;line-height:1;padding-right:4px}
+.av-nodo--bloqueada .av-nodo-txt b{color:#b9aab5}
+.av-nodo--bloqueada .av-nodo-txt small{color:#8d7f88}
+
+/* Subniveles: cada ronda del nodo, con su círculo, título y para qué sirve */
+.av-subnodos{
+  list-style:none;margin:0 0 8px 76px;padding:2px 0 2px 14px;
+  border-left:2px dashed rgba(255,255,255,.13);
+}
+.av-subnodo-fila{margin:1px 0}
+.av-subnodo{
+  display:flex;align-items:flex-start;gap:10px;width:100%;
+  padding:7px 10px;border:0;border-radius:12px;background:none;
+  color:#fff;font:inherit;text-align:left;cursor:pointer;
+  transition:background .15s ease;
+}
+.av-subnodo:hover:not(:disabled){background:rgba(255,255,255,.06)}
+.av-subnodo:disabled{cursor:default;opacity:.62}
+.av-subnodo-punto{
+  flex:none;width:26px;height:26px;margin-top:1px;border-radius:50%;
+  display:grid;place-items:center;font-size:11px;font-weight:800;
+  background:#3b2a36;border:2px solid rgba(255,255,255,.14);color:#d9ccd5;
+}
+.av-subnodo-punto .av-svg{width:13px;height:13px}
+.av-subnodo--hecha .av-subnodo-punto{
+  background:#2e9e5b;border-color:#7fd3a0;color:#fff;
+}
+.av-subnodo--actual .av-subnodo-punto{
+  background:var(--acento,#c34113);border-color:#f0a06c;color:#fff;
+  box-shadow:0 0 0 4px rgba(195,65,19,.15);
+}
+.av-subnodo--rey .av-subnodo-punto{
+  background:rgba(246,211,45,.1);border-color:rgba(246,211,45,.45);color:#f6d32d;
+}
+.av-subnodo--bloqueada .av-subnodo-punto{
+  background:#2f222c;border-color:rgba(255,255,255,.06);color:#857581;
+}
+.av-subnodo-txt{flex:1;min-width:0}
+.av-subnodo-txt b{display:block;font-size:13.5px;font-weight:700;line-height:1.3}
+.av-subnodo-txt small{display:block;font-size:12.5px;line-height:1.35;color:#c0b0bc}
+.av-subnodo--bloqueada .av-subnodo-txt b{color:#b9aab5}
+.av-subnodo--bloqueada .av-subnodo-txt small{color:#8d7f88}
+.av-subnodo-estado{
+  flex:none;padding-top:4px;font-size:10.5px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.05em;color:#a794a2;
+}
+.av-subnodo--hecha .av-subnodo-estado{color:#8ae234}
+.av-subnodo--actual .av-subnodo-estado{color:#ffb27a}
+.av-subnodo--rey .av-subnodo-estado{color:#f6d32d}
+
+.av-reiniciar-linea{margin:10px 0 0}
+.av-enlace--mini{font-size:12.5px;padding:2px 0;color:#b9aab5}
+.av-enlace--mini:hover{color:#fff}
+
+.av-mapa-pie{margin:26px 0 8px;text-align:center}
+.av-enlace{
+  background:none;border:0;color:#c3b6c0;font:inherit;font-size:13.5px;
+  text-decoration:underline;cursor:pointer;padding:8px;
+}
+.av-enlace:hover{color:#fff}
+.av-pie-sep{color:#6d5a68;padding:0 2px}
+.av-pie-nota{
+  max-width:520px;margin:2px auto 0;font-size:13px;line-height:1.5;
+  color:#c9b1c0;
+}
+.av-pie-nota[hidden]{display:none}
+
+/* ---------- Modo rey ---------- */
+.av-rey-aviso{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 14px;margin:0 0 16px;border-radius:13px;
+  background:rgba(246,211,45,.1);border:1px solid rgba(246,211,45,.32);
+  color:#f7e7a3;font-size:13.5px;line-height:1.5;
+}
+.av-rey-aviso .av-svg{flex:none;width:19px;height:19px;margin-top:1px;color:#f6d32d}
+.av-rey-aviso b{color:#ffe27a}
+.av-rey-aviso--panel{
+  margin-bottom:18px;background:#fdf6d8;border-color:#e8d17b;color:#6b4d00;
+}
+.av-rey-aviso--panel .av-svg{color:#b8860b}
+.av-rey-aviso--panel b{color:#7a5200}
+.av-mapa--rey .av-hero{border-color:rgba(246,211,45,.28)}
+.av-enlace--rey{color:#f6d32d;font-weight:800}
+.av-enlace--rey:hover{color:#fff}
+.av-enlace--rey .av-svg{width:15px;height:15px;vertical-align:-.18em;margin-right:2px}
+.av-enlace--rey[aria-pressed="true"]{
+  color:#ffe27a;background:rgba(246,211,45,.14);border-radius:8px;
+}
+
+/* ---------- Herramientas del mapa ---------- */
+.av-herramientas{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.av-herramientas .av-btn .av-svg{width:17px;height:17px}
+
+/* ---------- Reto de cada mundo ---------- */
+.av-reto{
+  display:flex;align-items:center;gap:12px;margin:10px 4px 4px;
+  padding:12px 14px;border-radius:15px;
+  background:rgba(255,255,255,.045);border:1px dashed rgba(255,255,255,.16);
+}
+.av-reto--listo{
+  background:rgba(246,211,45,.08);border-style:solid;
+  border-color:rgba(246,211,45,.34);
+  box-shadow:0 0 0 1px rgba(246,211,45,.08);
+}
+.av-reto-ico{
+  flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(246,211,45,.13);color:#f6d32d;border:1px solid rgba(246,211,45,.25);
+}
+.av-reto-ico .av-svg{width:20px;height:20px}
+.av-reto-txt{flex:1;min-width:0}
+.av-reto-txt b{display:block;font-size:14.5px;font-weight:800;color:#f4ecf1}
+.av-reto-txt small{display:block;font-size:12.5px;line-height:1.45;color:#bfaebb;margin-top:2px}
+.av-reto-btn{flex:none;font-size:14px;padding:9px 14px}
+.av-reto-btn .av-svg{width:15px;height:15px}
+.av-mundo-reset{
+  flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  color:#c9b6c4;font:inherit;font-size:16px;line-height:1;cursor:pointer;
+  transition:background .15s ease,color .15s ease;
+}
+.av-mundo-reset:hover{background:rgba(255,255,255,.14);color:#fff}
+
+/* ---------- Aviso de reto dentro de una pantalla ---------- */
+.av-reto-nota{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 14px;margin-bottom:16px;border-radius:12px;
+  background:#fdf3d8;border:1px solid #efd99a;color:#6b4d00;
+  font-size:14.5px;line-height:1.5;font-weight:600;
+}
+.av-reto-nota .av-svg{flex:none;width:18px;height:18px;margin-top:2px;color:#b8860b}
+.av-chip--reto{background:#fbe7a8;color:#6b4d00}
+.av-tarjeta--reto .av-kicker{color:#8a6b1e}
+.av-fin-reto{
+  width:118px;height:118px;margin:0 auto 14px;border-radius:50%;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 35%,#ffe9a0,#f6d32d 62%,#e0a800);
+  color:#7a5200;border:4px solid #fff3c4;
+  box-shadow:0 8px 0 #b8860b,0 16px 34px rgba(184,134,11,.35);
+  animation:av-latido 2.8s ease-in-out infinite;
+}
+.av-fin-reto .av-svg{width:58px;height:58px}
+
+/* ---------- Paneles: estadísticas y glosario ---------- */
+.av-panel{
+  background:var(--papel,#f6f5f4);color:var(--papel-txt,#241f31);
+  border-radius:22px;padding:30px 32px 28px;
+  border:1px solid #e5dfda;
+  box-shadow:0 6px 0 #d8d1cb,0 30px 70px rgba(0,0,0,.5);
+}
+.av-panel .av-kicker{color:#8a7a87}
+.av-panel .av-titulo{margin-bottom:8px}
+.av-panel-texto{font-size:16px;line-height:1.6;color:#4a424d;margin-bottom:20px;max-width:62ch}
+.av-volver{
+  color:#7a6b76;text-decoration:none;font-weight:700;font-size:13.5px;
+  padding:6px 10px;margin:0 0 12px -10px;border-radius:9px;
+}
+.av-volver:hover{background:#ece7e2;color:#3b3440}
+.av-panel-nota{font-size:13px;line-height:1.55;color:#7a6b76;margin-top:18px}
+
+.av-stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+}
+.av-stat{
+  display:flex;flex-direction:column;gap:2px;
+  padding:14px 15px;border-radius:15px;
+  background:#fff;border:1px solid #e5dfda;
+  box-shadow:0 3px 0 #e3dcd6;
+}
+.av-stat-ico{color:#b26a00;margin-bottom:4px}
+.av-stat-ico .av-svg{width:22px;height:22px}
+.av-stat-valor{font-size:24px;font-weight:800;line-height:1.1;color:#332d38}
+.av-stat-etiqueta{font-size:13px;font-weight:700;color:#6d5f6b;line-height:1.35}
+.av-stat-nota{font-size:11.5px;line-height:1.4;color:#91818c;margin-top:3px}
+
+.av-buscador{margin-bottom:14px}
+.av-buscador input{
+  width:100%;font:inherit;font-size:16px;padding:12px 15px;
+  border-radius:13px;border:2px solid #ddd5cf;background:#fff;color:#332d38;
+}
+.av-buscador input:focus{outline:0;border-color:var(--acento,#c34113);box-shadow:0 0 0 3px rgba(195,65,19,.14)}
+.av-glos-cuenta{font-size:12.5px;font-weight:700;color:#8a7a87;margin-bottom:10px}
+.av-glos-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.av-glos-item{
+  padding:13px 15px;border-radius:14px;background:#fff;border:1px solid #e5dfda;
+}
+.av-glos-item[hidden]{display:none}
+.av-glos-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.av-glos-term{
+  font:800 16px "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;
+  color:#8a2c0c;background:#fdece3;padding:2px 8px;border-radius:6px;
+}
+.av-glos-mundo{
+  font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  color:#8a7a87;white-space:nowrap;
+}
+.av-glos-sub{display:block;font-size:12.5px;font-weight:700;color:#6d5f6b;margin-top:5px}
+.av-glos-def{font-size:14.5px;line-height:1.55;color:#4a424d;margin-top:5px}
+.av-glos-vacio{
+  padding:22px 10px;text-align:center;font-size:15px;color:#7a6b76;
+}
+.av-glos-vacio[hidden]{display:none}
+
+
+/* ---------- Fin de ronda o de nodo ---------- */
+.av-tarjeta--fin{text-align:center;padding:32px 30px 30px}
+.av-tarjeta--fin .av-kicker{color:#8a7a87}
+.av-fin-xp{font-size:22px;font-weight:800;color:#b26a00;margin:6px 0 10px}
+.av-fin-xp .av-svg{width:19px;height:19px;display:inline-block;vertical-align:-.16em;color:#e0a800}
+.av-fin-ronda{font-size:16px;line-height:1.55;color:#4a424d;margin-bottom:16px}
+.av-fin-anillo{position:relative;width:118px;height:118px;margin:0 auto 14px}
+.av-fin-anillo .av-anillo{position:absolute;inset:0}
+.av-fin-anillo .av-anillo circle{stroke-width:5}
+.av-fin-anillo-txt{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1;color:#3b3440;
+}
+.av-fin-anillo-txt b{font-size:32px;font-weight:800}
+.av-fin-anillo-txt small{font-size:12px;font-weight:700;color:#8a7a87;margin-top:3px}
+.av-tarjeta--fin .av-datos{justify-content:center;margin-bottom:18px}
+.av-tarjeta--fin .av-dato{background:#ece7e2;border-color:#e0d9d3;color:#5a4f57}
+.av-fin-mundo{
+  font-size:15.5px;line-height:1.5;color:#4a424d;
+  background:#eae6e3;border-radius:12px;padding:12px 14px;
+  text-align:left;
+}
+
+/* ---------- Celebraciones ---------- */
+.av-fx{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.av-fx i{
+  position:absolute;width:7px;height:7px;border-radius:50%;
+  animation:av-vuela var(--dur,900ms) cubic-bezier(.2,.7,.4,1) forwards;
+}
+.av-mas{
+  position:absolute;transform:translate(-50%,-50%);
+  display:inline-flex;align-items:center;gap:6px;
+  font:800 22px Ubuntu,Cantarell,sans-serif;color:#f6d32d;
+  text-shadow:0 2px 10px rgba(0,0,0,.6);
+  animation:av-sube 1s ease-out forwards;white-space:nowrap;
+}
+.av-mas .av-svg{width:20px;height:20px}
+@keyframes av-vuela{
+  from{transform:translate(0,0) rotate(0)}
+  to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}
+}
+@keyframes av-sube{
+  0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}
+  25%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-190%) scale(1.1)}
+}
+@keyframes av-aparece{from{opacity:0}to{opacity:1}}
+@keyframes av-latido{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.035)}
+}
+@keyframes av-pop{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.14)}
+  100%{transform:scale(1)}
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width:620px){
+  .av-cab{height:56px;gap:8px;padding:0 10px}
+  .av-marca-txt{display:none}
+  .av-logo{width:34px;height:34px;font-size:18px;border-radius:10px}
+  .av-pill{height:30px;padding:0 9px;font-size:13px}
+  .av-icono{width:30px;height:30px;font-size:14px}
+  .av-prog{max-width:none}
+  .av-cuerpo{padding:16px 10px 108px}
+  .av-tarjeta{padding:22px 18px;border-radius:18px;box-shadow:0 5px 0 #d8d1cb,0 20px 50px rgba(0,0,0,.4)}
+  .av-titulo{font-size:23px}
+  .av-texto,.av-pide{font-size:16.5px}
+  .av-hero{padding:22px 18px;border-radius:18px}
+  .av-hero-cab{gap:12px}
+  .av-hero-mascota{width:52px;height:52px;font-size:28px;border-radius:16px}
+  .av-pie{padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px))}
+  .av-pie-int{gap:8px}
+  .av-btn{font-size:15px;padding:11px 16px}
+  .av-btn--fantasma,.av-btn--ayuda{font-size:14px;padding:10px 12px}
+  .av-btn--sig{flex:1;min-width:0}
+  .av-btn--grande{max-width:none}
+  .av-pantalla{max-height:32vh}
+  .av-nodo-anillo{width:54px;height:54px}
+  .av-nodo-circulo{width:40px;height:40px;font-size:18px}
+  .av-nodo-circulo .av-svg{width:19px;height:19px}
+  .av-nodo-rondas{font-size:11.5px;padding:2px 6px}
+  .av-nodos::before{left:34px}
+  .av-nodo{padding-right:4px}
+  .av-subnodos{margin-left:62px;padding-left:10px}
+  .av-subnodo{padding:6px 6px;gap:8px}
+  .av-subnodo-txt b{font-size:12.5px}
+  .av-subnodo-txt small{font-size:11.5px}
+  .av-subnodo-estado{display:none}
+  .av-panel{padding:22px 18px;border-radius:18px;box-shadow:0 5px 0 #d8d1cb,0 20px 50px rgba(0,0,0,.4)}
+  .av-rey-aviso{font-size:13px;padding:10px 12px}
+  .av-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .av-stat{padding:11px 12px}
+  .av-stat-valor{font-size:21px}
+  .av-stat-nota{display:none}
+  .av-reto{flex-wrap:wrap;padding:11px 12px}
+  .av-reto-txt{flex-basis:calc(100% - 54px)}
+  .av-reto-btn{width:100%;margin-top:2px}
+  .av-herramientas .av-btn{flex:1;min-width:0}
+  .av-glos-item{padding:11px 12px}
+}
+
+@media (max-width:380px){
+  .av-pill--fuego{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .av-nueva,.av-msg{animation:none}
+  .av-nodo--actual .av-nodo-circulo{animation:none}
+  .av-pill.av-pop{animation:none}
+  .av-fx i,.av-mas{display:none}
+  .av-prog i{transition:none}
+  .av-fin-reto{animation:none}
+  .av-btn,.av-op,.av-nodo,.av-subnodo{transition:none}
+}
