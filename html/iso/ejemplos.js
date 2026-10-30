@@ -17,6 +17,14 @@
    CÓDIGO (funciones de ~/.bashrc): dentro de out usa <span class="k">palabra clave</span>,
    <span class="s">"texto"</span> y <span class="c"># comentario</span>. Para mostrar < y > escribe &lt; y &gt;.
 
+   GLOBO DE AYUDA: al pasar el cursor por un comando ya escrito en la terminal aparece un globo con
+   su función. Hay dos formas de definirla (más abajo, en FUNCION_COMANDOS):
+     1) En el diccionario FUNCION_COMANDOS: una línea por comando, p. ej.  mkdir:"Crea carpetas."
+        (vale para todos los ejemplos donde aparezca ese comando; también puedes poner el comando
+        completo como clave, p. ej. "ls -la", y tendrá prioridad sobre el nombre solo).
+     2) En un paso concreto con "info", p. ej.  { cmd:"ls -l", out:"...", info:"Lista en formato largo." }
+        (tiene prioridad sobre el diccionario). Si un comando no tiene descripción, no sale globo.
+
    Plantilla para copiar y pegar un comando nuevo:
 
    { nombre:"mkdir", resumen:"Crear carpetas", diapositivas:[
@@ -34,6 +42,42 @@ const FONDO_IMAGEN = "";
 //   "microondas" · "matrix" · "cuadricula" (cuadrícula eléctrica verdosa) · "placa" (placa base)
 // Desde el botón cuadriculado › "Animado" también se puede cambiar en cualquier momento.
 const FONDO_ANIMADO = "";
+
+// Globo de ayuda sobre los comandos de la terminal: true = activado · false = desactivado.
+const GLOBOS_ACTIVOS = true;
+
+// Función de cada comando (texto del globo). Añade, cambia o borra líneas libremente.
+// Con tuberías o cadenas (a | b, a && b, a; b) el globo describe cada comando por separado.
+const FUNCION_COMANDOS = {
+  ls:       "Lista el contenido de una carpeta.",
+  cd:       "Cambia de carpeta (directorio de trabajo).",
+  pwd:      "Muestra la ruta de la carpeta en la que estás.",
+  mkdir:    "Crea carpetas nuevas. Con -p crea también las carpetas intermedias.",
+  touch:    "Crea un fichero vacío o actualiza la fecha de uno existente.",
+  cat:      "Muestra el contenido de un fichero por pantalla.",
+  tail:     "Muestra las últimas líneas de un fichero.",
+  head:     "Muestra las primeras líneas de un fichero.",
+  echo:     "Imprime un texto por pantalla (o lo envía a un fichero con >).",
+  wc:       "Cuenta líneas, palabras y caracteres.",
+  find:     "Busca ficheros y carpetas según nombre, tipo, tamaño…",
+  du:       "Muestra el espacio que ocupa una carpeta o fichero.",
+  file:     "Indica de qué tipo es un fichero (texto, vacío, binario…).",
+  ln:       "Crea enlaces (accesos directos) a ficheros o carpetas.",
+  chmod:    "Cambia los permisos de un fichero o carpeta.",
+  type:     "Indica qué tipo de comando es: programa, alias, función u orden interna.",
+  man:      "Abre el manual de un comando.",
+  tldr:     "Muestra un resumen con ejemplos prácticos de un comando.",
+  whatis:   "Describe un comando en una sola línea.",
+  whereis:  "Localiza el programa, el código fuente y el manual de un comando.",
+  seq:      "Genera una secuencia de números.",
+  source:   "Recarga un fichero de configuración (como ~/.bashrc) en la sesión actual.",
+  declare:  "Declara variables y funciones; con -F lista las funciones cargadas.",
+  sudo:     "Ejecuta el comando con privilegios de administrador.",
+  tee:      "Escribe la entrada en pantalla y a la vez en un fichero (-a añade al final).",
+  mkcd:     "Función propia: crea una carpeta y entra en ella.",
+  extraer:  "Función propia: descomprime un archivo según su extensión.",
+  hora:     "Función propia: muestra la hora actual."
+};
 
 const GRUPOS = [
 
