@@ -51,6 +51,20 @@
   .titulo .min:hover{background:var(--acento)}
   .cuerpo{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
 
+  /* Globo de ayuda sobre los comandos ya escritos en la terminal (el texto se define en ejemplos.js) */
+  .cmd{cursor:help;text-decoration:underline dotted;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:4px;transition:text-decoration-color .2s ease}
+  .cmd:hover,.cmd:focus-visible{text-decoration-color:var(--marca)}
+  .globo{position:fixed;left:0;top:0;z-index:45;max-width:min(320px,calc(100vw - 16px));white-space:pre-line;pointer-events:none;
+    background:#241f31;color:#fff;border:1px solid rgba(255,255,255,.18);border-left:3px solid var(--acento);border-radius:10px;
+    padding:8px 13px;font-size:13px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.45);
+    opacity:0;transform:translateY(4px);transition:opacity .2s ease,transform .2s ease}
+  .globo.visible{opacity:1;transform:none}
+  .globo.abajo{transform:translateY(-4px)}.globo.abajo.visible{transform:none}
+  .globo::after{content:"";position:absolute;left:var(--flecha,18px);bottom:-6px;width:10px;height:10px;margin-left:-5px;background:#241f31;
+    border:solid rgba(255,255,255,.18);border-width:0 1px 1px 0;transform:rotate(45deg)}
+  .globo.abajo::after{bottom:auto;top:-6px;border-width:1px 0 0 1px}
+  .sinjs{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;background:#300a24;color:#fff;text-align:center}
+  
   /* Panel lateral */
   .lateral{background:var(--lateral);overflow:auto;padding:10px 8px}
   details{margin-bottom:6px}
@@ -439,6 +453,7 @@
 
 <!-- Avisos flotantes y anuncios para lectores de pantalla -->
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+<div class="globo" id="globo" role="tooltip"></div>
 <p class="sr-only" id="anuncio" role="status"></p>
 
 <!-- Comandos y ejemplos del panel lateral (ver instrucciones dentro del archivo). Debe ir ANTES del script principal. -->
@@ -559,6 +574,56 @@ function ir(d){
   const n = grupos[g].comandos[c].diapositivas.length;
   s = Math.min(n - 1, Math.max(0, s + d)); pintar();
 }
+
+// ---- Globo de ayuda de los comandos (los textos viven en ejemplos.js: FUNCION_COMANDOS y "info" de cada paso) ----
+const globo = $('globo'); let globoDe = null;
+const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function infoComando(paso){
+  if (typeof GLOBOS_ACTIVOS !== 'undefined' && !GLOBOS_ACTIVOS) return '';
+  if (paso.info) return String(paso.info);                                   // 1.º: texto propio del paso
+  const dic = typeof FUNCION_COMANDOS === 'object' && FUNCION_COMANDOS ? FUNCION_COMANDOS : {};
+  const tiene = k => Object.prototype.hasOwnProperty.call(dic, k);
+  const completo = String(paso.cmd || '').trim().replace(/\s+/g, ' ');
+  if (tiene(completo)) return dic[completo];                                 // 2.º: comando completo en el diccionario
+  const trozos = completo.split(/\|\||&&|[|;]/).map(t => t.trim()).filter(Boolean), vistos = new Set(), lineas = [];
+  for (const t of trozos){                                                   // 3.º: cada comando de la cadena por su nombre
+    const pal = t.split(' '), nombre = pal[0] === 'sudo' && pal[1] ? pal[1] : pal[0];
+    if (!tiene(nombre) || vistos.has(nombre)) continue;
+    vistos.add(nombre); lineas.push(trozos.length > 1 ? nombre + ': ' + dic[nombre] : dic[nombre]);
+  }
+  return lineas.join('\n');
+}
+const comandoHtml = (paso, esc) => {
+  const info = infoComando(paso);
+  return info ? '<span class="cmd" tabindex="0" data-info="' + escAttr(info) + '">' + esc(paso.cmd) + '</span>' : esc(paso.cmd);
+};
+function mostrarGlobo(el, ev){
+  if (!el.dataset.info) return;
+  if (globoDe && globoDe !== el) globoDe.removeAttribute('aria-describedby');
+  globoDe = el; el.setAttribute('aria-describedby', 'globo');
+  globo.textContent = el.dataset.info;
+  globo.style.left = '0px'; globo.style.top = '0px';                          // para medirlo sin que se recorte
+  const rects = [...el.getClientRects()];
+  const r = (ev && rects.find(q => ev.clientY >= q.top && ev.clientY <= q.bottom)) || rects[0] || el.getBoundingClientRect();
+  const w = globo.offsetWidth, h = globo.offsetHeight, m = 8;
+  const x = Math.min(Math.max(m, r.left), Math.max(m, innerWidth - w - m));
+  const abajo = r.top - h - 10 < m;
+  globo.style.left = x + 'px'; globo.style.top = (abajo ? r.bottom + 10 : r.top - h - 10) + 'px';
+  globo.style.setProperty('--flecha', Math.min(Math.max(16, r.left + Math.min(r.width, 48) / 2 - x), w - 16) + 'px');
+  globo.classList.toggle('abajo', abajo); globo.classList.add('visible');
+}
+function ocultarGlobo(){
+  globo.classList.remove('visible');
+  if (globoDe){ globoDe.removeAttribute('aria-describedby'); globoDe = null; }
+}
+const pant = $('pantalla');
+pant.addEventListener('mouseover', e => { const el = e.target.closest('.cmd'); if (el) mostrarGlobo(el, e); });
+pant.addEventListener('mouseout',  e => { const el = e.target.closest('.cmd'); if (el && !(e.relatedTarget && el.contains(e.relatedTarget))) ocultarGlobo(); });
+pant.addEventListener('focusin',   e => { const el = e.target.closest('.cmd'); if (el) mostrarGlobo(el); });
+pant.addEventListener('focusout',  ocultarGlobo);
+pant.addEventListener('scroll', ocultarGlobo);
+addEventListener('resize', ocultarGlobo);
+addEventListener('keydown', e => { if (e.key === 'Escape') ocultarGlobo(); });
 
 async function pintar(){
   if (!grupos.length) return;
