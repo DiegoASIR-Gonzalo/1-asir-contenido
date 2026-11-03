@@ -319,6 +319,62 @@
   @media (prefers-reduced-motion:reduce){.act-fx,.act-mas{display:none}}
 
   @media (prefers-reduced-motion:reduce){.solucion{animation:none}.cursor{animation:none}.item{transition:none}.act-panel,.act-panel.abierto{transition:none}.act-item,.barra-btn{transition:none}.act-velo,.act-ventana{transition:none}.aviso,.ventana{transition:none}.globo,.cmd{transition:none}}
+
+  /* ===== Botón "Atajos reales" (junto al de configuración) y su ventana flotante ===== */
+  .atajos-btn{position:absolute;left:48px;top:6px;height:30px;display:flex;align-items:center;gap:7px;padding:0 12px;background:#4a4752;color:#fff;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .atajos-btn:hover,.atajos-btn[aria-expanded="true"]{background:var(--acento)}
+  /* El título de la ventana principal se recorta con "…" en vez de pisar los botones de la esquina */
+  .titulo #titulo-ventana{min-width:0;max-width:100%;padding:0 200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media (max-width:720px){
+    .atajos-btn{width:30px;padding:0;justify-content:center}
+    .atajos-btn span{display:none}
+    .titulo #titulo-ventana{padding:0 100px}
+  }
+
+  /* La ventana flota sobre el escritorio SIN velo ni bloqueo: se puede seguir usando la terminal mientras se consulta.
+     Posición y tamaño los pone el script (igual que en la ventana de actividades) */
+  .atj-ventana{position:fixed;z-index:20;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);
+    opacity:0;transform:scale(.97);transition:opacity .2s ease,transform .2s ease}
+  .atj-ventana[hidden]{display:none}
+  .atj-ventana.visible{opacity:1;transform:none}
+  .atj-ventana.maximizada,.atj-ventana.maximizada .atj-int{border-radius:0}
+  .atj-ventana.maximizada .res{display:none}
+  .atj-int{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:var(--ventana)}
+  .atj-ventana .titulo{flex:none;user-select:none;touch-action:none;cursor:default}
+  .atj-ventana .titulo span{min-width:0;max-width:100%;padding:0 96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .atj-cerrar,.atj-max{position:absolute;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:#4a4752;color:#fff;font-size:12px;line-height:26px;text-align:center;cursor:pointer}
+  .atj-cerrar{right:12px}
+  .atj-max{right:44px}
+  .atj-cerrar:hover,.atj-max:hover{background:var(--acento)}
+
+  .atj-cab{flex:none;padding:10px 14px 8px;background:var(--lateral);border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.1)}
+  .atj-cab input{width:100%;font:inherit;font-size:13px;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 10px}
+  .atj-cab input::placeholder{color:#c0bfbc}
+  .atj-cab p{margin-top:6px;font-size:12px;color:#c0bfbc}
+  .atj-lista{flex:1;min-height:0;overflow:auto;padding:8px 10px 14px;background:var(--lateral);overscroll-behavior:contain;container-type:inline-size}
+  .atj-vacio{padding:10px 12px;font-size:13px;color:#c0bfbc}
+  .atj-vacio[hidden],.atj-lista details[hidden],.atj-item[hidden]{display:none}  /* .atj-item usa display:grid, que anularía el atributo hidden */
+  .atj-grupo{display:grid;gap:8px;padding:4px 2px 8px}
+  .atj-item{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 14px;align-items:start;padding:10px 12px;
+    background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:10px}
+  @container (max-width:470px){.atj-item{grid-template-columns:minmax(0,1fr)}}
+  .atj-teclas{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+  .atj-combo{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+  .atj-combo .mas,.atj-teclas .o{color:#c0bfbc;font-size:12px}
+  .atj-teclas .o{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .atj-ventana kbd{font:700 12px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#fff;background:#2e2c33;border:1px solid rgba(255,255,255,.28);
+    border-bottom-width:3px;border-radius:6px;padding:2px 7px;min-width:26px;text-align:center}
+  .atj-txt{min-width:0}
+  .atj-txt h4{font-size:14px;margin-bottom:2px}
+  .atj-expl{font-size:13px;line-height:1.45;color:#e9e5ed}
+  .atj-expl p{margin-bottom:4px}
+  .atj-expl code{font:13px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:rgba(0,0,0,.3);color:var(--marca);padding:1px 5px;border-radius:4px}
+  .atj-ej{margin:6px 0 0;padding:8px 10px;background:var(--term);color:var(--term-txt);border-radius:6px;
+    font:13px/1.45 "Ubuntu Mono","DejaVu Sans Mono",monospace;white-space:pre-wrap;word-break:break-word;overflow:auto}
+  .atj-nota{margin-top:6px;padding-left:8px;border-left:3px solid var(--acento);font-size:12px;color:#c0bfbc}
+  .atj-nota code{font:12px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px}
+  .atj-prueba{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;background:#26a269;color:#fff;font-size:11px;font-weight:700;vertical-align:1px}
+  @media (prefers-reduced-motion:reduce){.atj-ventana{transition:none}}
 </style>
 <!-- Aventura guiada: pantalla completa con lecciones cortas (contenido en aventura/aventura-datos.js) -->
 <link rel="stylesheet" href="aventura/aventura.css">
@@ -344,6 +400,14 @@
         <rect x="1" y="6" width="4" height="4" rx="1"/><rect x="6" y="6" width="4" height="4" rx="1"/><rect x="11" y="6" width="4" height="4" rx="1"/>
         <rect x="1" y="11" width="4" height="4" rx="1"/><rect x="6" y="11" width="4" height="4" rx="1"/><rect x="11" y="11" width="4" height="4" rx="1"/>
       </svg>
+    </button>
+    <!-- Botón "Atajos reales": abre la ventana flotante con los atajos de teclado (se rellena desde atajos.js) -->
+    <button class="atajos-btn" id="btn-atajos" type="button" aria-expanded="false" aria-controls="atj-ventana" title="Atajos de teclado reales de Linux">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="1.5" y="3.5" width="13" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/>
+        <g fill="currentColor"><rect x="4" y="5.6" width="1.6" height="1.4" rx=".3"/><rect x="7.2" y="5.6" width="1.6" height="1.4" rx=".3"/><rect x="10.4" y="5.6" width="1.6" height="1.4" rx=".3"/><rect x="4.6" y="8.6" width="6.8" height="1.4" rx=".3"/></g>
+      </svg>
+      <span>Atajos reales</span>
     </button>
     <span id="titulo-ventana">Terminal</span>
     <button class="min" id="btn-min" type="button" aria-label="Minimizar la ventana y ver el escritorio" title="Ver el escritorio">–</button>
@@ -451,6 +515,25 @@
   </section>
 </div>
 
+<!-- Ventana de atajos reales: flota sobre el escritorio, se mueve con la barra de título y se redimensiona desde bordes y esquinas
+     (los tiradores .res los crea el script). Los atajos salen de ATAJOS, en atajos.js. -->
+<section class="atj-ventana" id="atj-ventana" role="dialog" aria-modal="false" aria-labelledby="atj-titulo" hidden>
+  <div class="atj-int">
+    <div class="titulo" id="atj-barra" tabindex="0" role="group" aria-label="Barra de título. Flechas: mover la ventana. Mayús + flechas: cambiar su tamaño">
+      <span id="atj-titulo">Atajos reales</span>
+      <button class="atj-max" id="atj-max" type="button" aria-label="Maximizar ventana">□</button>
+      <button class="atj-cerrar" id="atj-cerrar" type="button" aria-label="Cerrar atajos reales">✕</button>
+    </div>
+    <div class="atj-cab">
+      <input type="search" id="atj-buscar" placeholder="Buscar atajo, tecla o programa…" aria-label="Buscar atajo" autocomplete="off">
+      <p>Atajos de teclado que funcionan en un Linux de verdad.</p>
+    </div>
+    <div class="atj-lista" id="atj-lista" tabindex="0" aria-label="Lista de atajos de teclado">
+      <p class="atj-vacio" id="atj-vacio" hidden></p>
+    </div>
+  </div>
+</section>
+
 <!-- Avisos flotantes y anuncios para lectores de pantalla -->
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 <div class="globo" id="globo" role="tooltip"></div>
@@ -462,6 +545,9 @@
 <!-- Datos de las actividades (ver instrucciones dentro del archivo). Debe ir ANTES del script principal.
      Si las repartes en varios archivos, añade aquí un <script src="..."> por cada uno; su orden decide el orden del panel. -->
 <script src="actividades.js"></script>
+
+<!-- Atajos de teclado de la ventana "Atajos reales" (ver instrucciones dentro del archivo). Debe ir ANTES del script principal. -->
+<script src="atajos.js"></script>
 
 <script>
 /* Los comandos y ejemplos (GRUPOS, promptHtml, FONDO_IMAGEN, FONDO_ANIMADO) están en ejemplos.js */
@@ -669,7 +755,7 @@ $('ant').onclick = () => ir(-1);
 $('sig').onclick = () => ir(1);
 addEventListener('keydown', e => {
   if (/INPUT|SELECT/.test(e.target.tagName)) return; // no cambiar de diapositiva al usar el panel de ajustes
-  if (e.target.closest('.act-ventana')) return; // ni al usar la ventana de una actividad
+  if (e.target.closest('.act-ventana, .atj-ventana')) return; // ni al usar la ventana de una actividad ni la de atajos
   if (e.key === 'ArrowLeft') ir(-1); if (e.key === 'ArrowRight') ir(1);
 });
 
@@ -3989,6 +4075,162 @@ addEventListener('keydown', e => {
   if (ventanaPrincipal.classList.contains('minimizada')){ verEscritorio(false); return; }
   alternar(false);
 });
+
+/* =====================================================================
+   ATAJOS REALES (botón junto al de configuración)
+   ---------------------------------------------------------------------
+   Los atajos están en el archivo atajos.js (misma carpeta que este HTML), con
+   las instrucciones para añadir más. Aquí solo está la lógica: construir la
+   lista, buscar y mover/redimensionar la ventana. No hace falta tocarla.
+   La ventana no bloquea la página: se puede seguir usando la terminal con ella abierta.
+   ===================================================================== */
+(function(){
+  const datos = typeof ATAJOS !== 'undefined' && Array.isArray(ATAJOS) ? ATAJOS : [];
+  const plegar = typeof ATAJOS_PLEGAR_GRUPOS !== 'undefined' && ATAJOS_PLEGAR_GRUPOS === true;
+  const btn = $('btn-atajos'), ven = $('atj-ventana'), barra = $('atj-barra'), lista = $('atj-lista'), buscar = $('atj-buscar'), vacio = $('atj-vacio');
+  const norm = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();   // buscar sin distinguir tildes ni mayúsculas
+  const sinHtml = t => String(t).replace(/<[^>]*>/g, ' ');
+  const crear = (tag, clase, texto) => { const el = document.createElement(tag); if (clase) el.className = clase; if (texto != null) el.textContent = texto; return el; };
+
+  /* ---- Lista: un bloque plegable por grupo, una tarjeta por atajo ---- */
+  const bloques = [];
+  datos.forEach(gr => {
+    const det = document.createElement('details'); det.open = !plegar;
+    const caja = crear('div', 'atj-grupo');
+    det.append(crear('summary', '', gr.grupo || 'Atajos'), caja);
+    const bloque = { det, abierto: !plegar, texto: norm(gr.grupo || ''), items: [] };
+    det.addEventListener('toggle', () => { if (!buscar.value.trim()) bloque.abierto = det.open; });   // recuerda lo que plegó la persona
+
+    (gr.atajos || []).forEach(a => {
+      const art = crear('article', 'atj-item');
+
+      // Teclas: "Ctrl + C" → <kbd>Ctrl</kbd> + <kbd>C</kbd>. Con varias combinaciones (array) se separan con "o".
+      const tec = crear('div', 'atj-teclas');
+      [].concat(a.teclas || []).forEach((combo, i) => {
+        if (i) tec.append(crear('span', 'o', 'o'));
+        const fila = crear('div', 'atj-combo');
+        String(combo).split(/\s\+\s/).forEach((t, j) => {
+          if (j) fila.append(crear('span', 'mas', '+'));
+          fila.append(crear('kbd', '', t.trim()));
+        });
+        tec.append(fila);
+      });
+
+      // Texto: título, explicación (admite HTML: <code>, <b>…), ejemplo de terminal y nota
+      const txt = crear('div', 'atj-txt');
+      const h = crear('h4', '', a.titulo || '');
+      if (a.practica) h.append(crear('span', 'atj-prueba', 'Pruébalo en una actividad'));
+      txt.append(h);
+      const expl = [].concat(a.explica || []);
+      if (expl.length){ const d = crear('div', 'atj-expl'); d.innerHTML = expl.map(p => '<p>' + p + '</p>').join(''); txt.append(d); }
+      if (a.ejemplo){ const pre = crear('pre', 'atj-ej'); pre.innerHTML = [].concat(a.ejemplo).join('\n'); txt.append(pre); }
+      if (a.nota){ const n = crear('p', 'atj-nota'); n.innerHTML = a.nota; txt.append(n); }
+
+      art.append(tec, txt); caja.append(art);
+      bloque.items.push({ art, texto: norm([].concat(a.teclas || []).join(' ') + ' ' + (a.titulo || '') + ' ' + sinHtml(expl.join(' ')) + ' ' + sinHtml(a.nota || '')) });
+    });
+    bloques.push(bloque); lista.insertBefore(det, vacio);
+  });
+  if (!datos.length){ vacio.hidden = false; vacio.textContent = 'No hay atajos cargados. Revisa atajos.js.'; buscar.disabled = true; }
+
+  function filtrar(){
+    const q = norm(buscar.value.trim()); let total = 0;
+    bloques.forEach(b => {
+      let visibles = 0;
+      b.items.forEach(it => { const ok = !q || b.texto.includes(q) || it.texto.includes(q); it.art.hidden = !ok; if (ok) visibles++; });
+      b.det.hidden = !visibles; total += visibles;
+      b.det.open = q ? true : b.abierto;   // al buscar se despliega todo; al borrar la búsqueda vuelve cada grupo a como estaba
+    });
+    vacio.hidden = !q || total > 0;
+    if (q && !total) vacio.textContent = 'Ningún atajo coincide con «' + buscar.value.trim() + '».';
+  }
+  buscar.oninput = filtrar;
+
+  /* ---- Abrir y cerrar (botón, ✕ o Escape con el foco dentro de la ventana) ---- */
+  let cierre = 0;
+  function abrir(){
+    if (!geo) geo = geometriaInicial();     // la primera vez se coloca a la derecha; después conserva donde la dejó la persona
+    clearTimeout(cierre);
+    ven.hidden = false; colocar();
+    void ven.offsetWidth;                   // fuerza el primer dibujado para que el fundido de entrada se anime
+    ven.classList.add('visible');
+    btn.setAttribute('aria-expanded', 'true');
+    buscar.focus({ preventScroll: true });
+  }
+  function cerrar(){
+    ven.classList.remove('visible');
+    btn.setAttribute('aria-expanded', 'false');
+    cierre = setTimeout(() => { ven.hidden = true; }, reducido ? 0 : 220);
+    if (ven.contains(document.activeElement)) btn.focus();
+  }
+  btn.onclick = () => ven.hidden || !ven.classList.contains('visible') ? abrir() : cerrar();
+  $('atj-cerrar').onclick = cerrar;
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !ven.hidden && ven.contains(document.activeElement)) cerrar(); });
+
+  /* ---- Mover y redimensionar (igual que la ventana de actividades) ----
+     Mover: arrastrar la barra de título (o flechas con la barra enfocada).
+     Redimensionar: arrastrar bordes y esquinas (o Mayús + flechas). Doble clic en la barra o botón □: maximizar. */
+  const TOPE = 30, MIN_W = 340, MIN_H = 260;   // TOPE = alto de la barra superior; mínimos de tamaño
+  let geo = null, maxim = false, gesto = null;
+  const minimos = () => ({ w: Math.min(MIN_W, innerWidth - 12), h: Math.min(MIN_H, innerHeight - TOPE) });
+  function geometriaInicial(){
+    const w = Math.min(540, innerWidth - 12), h = Math.min(580, innerHeight - TOPE - 60);
+    return { x: Math.max(6, innerWidth - w - 24), y: TOPE + 48, w, h };
+  }
+  function limitar(){   // la ventana nunca queda fuera de la pantalla ni más pequeña que el mínimo
+    const m = minimos();
+    geo.w = Math.max(m.w, Math.min(geo.w, innerWidth));
+    geo.h = Math.max(m.h, Math.min(geo.h, innerHeight - TOPE));
+    geo.x = Math.max(80 - geo.w, Math.min(geo.x, innerWidth - 80));  // siempre quedan 80 px visibles para poder agarrarla
+    geo.y = Math.max(TOPE, Math.min(geo.y, innerHeight - 42));       // la barra de título nunca baja del borde inferior
+  }
+  function colocar(){
+    if (!maxim) limitar();
+    const r = maxim ? { x: 0, y: TOPE, w: innerWidth, h: innerHeight - TOPE } : geo;
+    Object.assign(ven.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+    ven.classList.toggle('maximizada', maxim);
+    $('atj-max').textContent = maxim ? '❐' : '□';
+    $('atj-max').setAttribute('aria-label', maxim ? 'Restaurar ventana' : 'Maximizar ventana');
+  }
+  const alternarMax = () => { maxim = !maxim; colocar(); };
+
+  ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(d => {   // tiradores de los ocho bordes/esquinas (estilos .res)
+    const t = document.createElement('span'); t.className = 'res ' + d; t.dataset.d = d; ven.append(t);
+  });
+  ven.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || maxim) return;
+    const tirador = e.target.closest('.res');
+    const enBarra = barra.contains(e.target) && !e.target.closest('button');
+    if (!tirador && !enBarra) return;
+    gesto = { tipo: tirador ? tirador.dataset.d : 'mover', px: e.clientX, py: e.clientY, o: { ...geo } };
+    (tirador || barra).setPointerCapture(e.pointerId);
+  });
+  ven.addEventListener('pointermove', e => {
+    if (!gesto) return;
+    const dx = e.clientX - gesto.px, dy = e.clientY - gesto.py, o = gesto.o, t = gesto.tipo, m = minimos();
+    if (t === 'mover'){ geo.x = o.x + dx; geo.y = o.y + dy; }
+    else {
+      if (t.includes('e')) geo.w = Math.max(m.w, Math.min(o.w + dx, innerWidth - o.x));
+      if (t.includes('s')) geo.h = Math.max(m.h, Math.min(o.h + dy, innerHeight - o.y));
+      if (t.includes('w')){ const x = Math.max(0, Math.min(o.x + dx, o.x + o.w - m.w)); geo.w = o.x + o.w - x; geo.x = x; }
+      if (t.includes('n')){ const y = Math.max(TOPE, Math.min(o.y + dy, o.y + o.h - m.h)); geo.h = o.y + o.h - y; geo.y = y; }
+    }
+    colocar();
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => ven.addEventListener(ev, () => { gesto = null; }));
+  barra.addEventListener('dblclick', e => { if (!e.target.closest('button')) alternarMax(); });
+  $('atj-max').onclick = alternarMax;
+  // Teclado: con la barra de título enfocada, flechas = mover y Mayús + flechas = redimensionar
+  barra.addEventListener('keydown', e => {
+    if (e.target !== barra || maxim) return;
+    const d = 24, v = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[e.key];
+    if (!v) return;
+    e.preventDefault();
+    if (e.shiftKey){ geo.w += v[0]; geo.h += v[1]; } else { geo.x += v[0]; geo.y += v[1]; }
+    colocar();
+  });
+  addEventListener('resize', () => { if (!ven.hidden) colocar(); });
+})();
 
 construirLista();
 
