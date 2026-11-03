@@ -377,6 +377,25 @@
       border-radius: 12px; border: 1px solid var(--border); background: var(--bg);
     }
 
+    .ex-notify {
+      display: flex; align-items: center; gap: .9rem; padding: .7rem .9rem;
+      border-radius: 14px; border: 1px solid var(--border); background: var(--bg);
+    }
+    .ex-notify-txt { flex: 1; min-width: 0; }
+    .ex-notify-txt strong { display: block; font-size: .85rem; font-weight: 600; }
+    .ex-notify-txt small { display: block; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+    .ex-switch {
+      flex: 0 0 auto; position: relative; width: 44px; height: 26px; padding: 0; cursor: pointer;
+      border-radius: 999px; border: 1px solid var(--border); background: var(--border); transition: background .25s, border-color .25s;
+    }
+    .ex-switch span {
+      position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .25s;
+    }
+    .ex-switch[aria-checked="true"] { background: #ec4899; border-color: #ec4899; }
+    .ex-switch[aria-checked="true"] span { transform: translateX(18px); }
+    .ex-switch:disabled { opacity: .45; cursor: not-allowed; }
+
     .ex-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 1.4rem 1.4rem; overscroll-behavior: contain; }
     .ex-month {
       position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: .75rem;
@@ -879,6 +898,10 @@
         <option value="redes">Redes</option>
         <option value="lm">Lenguaje de Marcas</option>
       </select>
+      <div class="ex-notify">
+        <div class="ex-notify-txt"><strong>🔔 Avisos de exámenes</strong><small id="ex-notify-msg"></small></div>
+        <button class="ex-switch" id="ex-notify-btn" type="button" role="switch" aria-checked="false" aria-label="Activar avisos de exámenes"><span></span></button>
+      </div>
     </div>
     <div class="ex-body" id="ex-body">
       <div id="ex-list"></div>
@@ -907,8 +930,6 @@
         <div class="ex-field"><label for="ex-tema">Tema</label>
           <select id="ex-tema">
             <option value="0">Sin tema concreto</option>
-            <option value="1">Tema 1</option><option value="2">Tema 2</option><option value="3">Tema 3</option>
-            <option value="4">Tema 4</option><option value="5">Tema 5</option><option value="6">Tema 6</option>
           </select>
         </div>
       </div>
@@ -1049,6 +1070,13 @@
       };
       const TIPOS = ['Examen', 'Prueba práctica', 'Entrega', 'Recuperación', 'Otro'];
 
+      /* Nº de temas por asignatura. Por defecto (0) se detecta solo a partir
+         de los bloques "Tema N · ..." que hay en cada sección de la página,
+         así crece solo al añadir un tema nuevo. Si una asignatura tiene más
+         temas de los que ya has subido, pon aquí el total real (máx. 12). */
+      const TEMAS_TOTALES = { bd: 0, hw: 0, so: 0, redes: 0, lm: 0 };
+      const MAX_TEMAS = 12;
+
       const remote = !!DB_URL;
       const $ = (id) => document.getElementById(id);
       const panel = $('ex-panel'), tab = $('ex-tab'), body = $('ex-body');
@@ -1108,8 +1136,8 @@
       function setStatus(kind, text) { statusEl.dataset.kind = kind; statusEl.textContent = text; }
       function idleStatus() {
         if (busy) return;
-        remote ? setStatus('ok', 'Sincronizado · los cambios los ve todo el mundo')
-               : setStatus('local', 'Solo en este navegador (falta configurar DB_URL)');
+        remote ? setStatus('ok', 'Sincronizado')
+               : setStatus('local', 'Fallo al conectar con la BD');
       }
 
       /* ---------- almacenamiento ---------- */
@@ -1146,7 +1174,7 @@
       }
       async function refresh() {
         if (busy || dlg.open) return;
-        try { exams = await loadAll(); render(); idleStatus(); }
+        try { exams = await loadAll(); render(); idleStatus(); checkReminders(); }
         catch { setStatus('err', 'Sin conexión con la base de datos'); }
       }
 
@@ -1287,13 +1315,29 @@
       const countEl = $('ex-count');
       const updateCount = () => { countEl.textContent = `${fNotas.value.length} / 400`; };
       fNotas.addEventListener('input', updateCount);
+      function temasDe(subj, extra = 0) {
+        const sec = document.getElementById(subj);
+        let n = TEMAS_TOTALES[subj] || 0;
+        if (sec) sec.querySelectorAll('.topic-title').forEach(t => {
+          const m = /^Tema\s*(\d+)/i.exec(t.textContent.trim());
+          if (m) n = Math.max(n, +m[1]);
+        });
+        return Math.min(Math.max(n, extra), MAX_TEMAS);
+      }
+      function fillTemas(subj, selected = 0) {
+        const n = temasDe(subj, selected);
+        fTema.replaceChildren(el('option', { value: '0', textContent: n ? 'Sin tema concreto' : 'Sin temas todavía' }));
+        for (let i = 1; i <= n; i++) fTema.append(el('option', { value: String(i), textContent: 'Tema ' + i }));
+        fTema.value = String(selected <= n ? selected : 0);
+      }
+      fAsig.addEventListener('change', () => fillTemas(fAsig.value, 0));
       function openDialog(e) {
         editingId = e ? e.id : null;
         $('ex-dialog-title').textContent = e ? 'Editar examen' : 'Añadir examen';
         fFecha.value = e ? e.fecha : toISO(new Date());
         fHora.value = e ? e.hora : '';
         fAsig.value = e ? e.asignatura : (subjFilter.value || 'bd');
-        fTema.value = String(e ? e.tema : 0);
+        fillTemas(fAsig.value, e ? e.tema : 0);
         fTipo.value = e ? e.tipo : 'Examen';
         fTitulo.value = e ? e.titulo : '';
         fNotas.value = e ? e.notas : '';
@@ -1321,6 +1365,94 @@
       $('ex-cancel').addEventListener('click', () => dlg.close());
       dlg.addEventListener('click', (ev) => { if (ev.target === dlg) dlg.close(); });
       $('ex-add').addEventListener('click', () => openDialog(null));
+
+      /* ---------- avisos (notificaciones) ---------- */
+      const LS_NOTIFY = 'hub-asir-avisos-on';
+      const LS_SENT = 'hub-asir-avisos-enviados';
+      const AVISO_DESDE = 6; // días antes del examen en que empieza el aviso diario
+      const notifyBtn = $('ex-notify-btn'), notifyMsg = $('ex-notify-msg');
+      const supported = 'Notification' in window;
+      const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } };
+      const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+      let swReg = null;
+
+      async function getSW() {
+        if (swReg) return swReg;
+        if (!('serviceWorker' in navigator)) return null;
+        try {
+          await navigator.serviceWorker.register('js/sw.js');
+          swReg = await navigator.serviceWorker.ready;
+        } catch { swReg = null; }
+        return swReg;
+      }
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (ev) => {
+          if (ev.data && ev.data.type === 'open-exams') setOpen(true);
+        });
+      }
+      async function notify(title, body, tag) {
+        const opts = { body, tag, data: { url: './#examenes' } };
+        const reg = await getSW();
+        if (reg) return reg.showNotification(title, opts);
+        const n = new Notification(title, opts);
+        n.onclick = () => { window.focus(); setOpen(true); n.close(); };
+      }
+      const avisosOn = () => supported && Notification.permission === 'granted' && lsGet(LS_NOTIFY, '0') === '1';
+
+      function mensaje(e, diff) {
+        const quien = { 'Examen': 'el examen de', 'Prueba práctica': 'la prueba práctica de',
+                        'Entrega': 'la entrega de', 'Recuperación': 'la recuperación de' }[e.tipo] || 'el evento:';
+        const nombre = e.titulo || SUBJECTS[e.asignatura].name;
+        if (diff === 0) return `Hoy es ${quien} ${nombre}`;
+        if (diff === 1) return `Queda 1 día para ${quien} ${nombre}`;
+        return `Quedan ${diff} días para ${quien} ${nombre}`;
+      }
+      function checkReminders() {
+        if (!avisosOn()) return;
+        const today = startOfToday(), todayISO = toISO(today);
+        let sent = {};
+        try { sent = JSON.parse(lsGet(LS_SENT, '{}')) || {}; } catch {}
+        let changed = false;
+        Object.values(exams)
+          .map(e => ({ e, diff: Math.round((parseDate(e.fecha) - today) / 864e5) }))
+          .filter(x => x.diff >= 0 && x.diff <= AVISO_DESDE)
+          .sort((a, b) => a.diff - b.diff)
+          .forEach(({ e, diff }) => {
+            if (sent[e.id] === todayISO) return;           // ya avisado hoy
+            sent[e.id] = todayISO; changed = true;
+            notify(SUBJECTS[e.asignatura].name, mensaje(e, diff), 'ex-' + e.id).catch(() => {});
+          });
+        // limpiar exámenes que ya no existen
+        Object.keys(sent).forEach(id => { if (!exams[id]) { delete sent[id]; changed = true; } });
+        if (changed) lsSet(LS_SENT, JSON.stringify(sent));
+      }
+      function renderNotify() {
+        const on = avisosOn();
+        notifyBtn.setAttribute('aria-checked', on);
+        notifyBtn.disabled = !supported || Notification.permission === 'denied';
+        if (!supported) notifyMsg.textContent = 'Este navegador no admite notificaciones. En iPhone, añade la web a la pantalla de inicio.';
+        else if (Notification.permission === 'denied') notifyMsg.textContent = 'Bloqueadas en este navegador. Actívalas en los ajustes del sitio y recarga.';
+        else if (on) notifyMsg.textContent = `Activados: un aviso al día desde ${AVISO_DESDE} días antes de cada examen. Llegan al abrir la web o si la tienes abierta.`;
+        else notifyMsg.textContent = `Recibe un aviso al día desde ${AVISO_DESDE} días antes de cada examen.`;
+      }
+      notifyBtn.addEventListener('click', async () => {
+        if (!supported) return;
+        if (avisosOn()) { lsSet(LS_NOTIFY, '0'); renderNotify(); return; }
+        const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+        if (perm === 'granted') {
+          lsSet(LS_NOTIFY, '1'); renderNotify();
+          lsSet(LS_SENT, '{}');
+          const before = lsGet(LS_SENT, '{}');
+          checkReminders();
+          if (lsGet(LS_SENT, '{}') === before) notify('Avisos activados', `Te avisaré desde ${AVISO_DESDE} días antes de cada examen.`, 'ex-on').catch(() => {});
+        }
+        renderNotify();
+      });
+      renderNotify();
+      if (location.hash === '#examenes') setOpen(true, false);
+      window.addEventListener('hashchange', () => { if (location.hash === '#examenes') setOpen(true); });
+      setInterval(() => { if (!document.hidden) checkReminders(); }, 30 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReminders(); });
 
       /* ---------- arranque y sincronización ---------- */
       refresh();
