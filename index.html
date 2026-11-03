@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HUB de 1º ASIR</title>
-  <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)" />
-  <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap)" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #f7f8fc;
@@ -98,9 +98,9 @@
 
     .waves { position: absolute; left: 0; bottom: 0; width: 100%; height: 140px; }
     .waves use { animation: drift 18s linear infinite; }
-    .waves use:nth-child(1) { fill: var(--wave1); animation-duration: 22s; }
-    .waves use:nth-child(2) { fill: var(--wave2); animation-duration: 16s; animation-delay: -4s; }
-    .waves use:nth-child(3) { fill: var(--wave3); animation-duration: 12s; animation-delay: -2s; }
+    .waves use:nth-of-type(1) { fill: var(--wave1); animation-duration: 22s; }
+    .waves use:nth-of-type(2) { fill: var(--wave2); animation-duration: 16s; animation-delay: -4s; }
+    .waves use:nth-of-type(3) { fill: var(--wave3); animation-duration: 12s; animation-delay: -2s; }
     @keyframes drift { from { transform: translateX(-90px); } to { transform: translateX(85px); } }
 
     /* ---------- SECTIONS ---------- */
@@ -300,6 +300,200 @@
     .topic.search-hidden,
     .section.search-hidden { display: none; }
 
+
+    /* ---------- PANEL LATERAL DE EXÁMENES ---------- */
+    :root { --ex-w: 440px; }
+    .topic-title { scroll-margin-top: 100px; }
+    .flash { animation: flash 1.6s ease; }
+    @keyframes flash {
+      0%, 100% { background: transparent; }
+      30% { background: color-mix(in srgb, #ec4899 22%, transparent); }
+    }
+    button.btn { font-family: inherit; cursor: pointer; border: 1px solid transparent; }
+    button.btn-ghost { border-color: var(--border); color: var(--text); }
+    button.btn-ghost:hover { border-color: var(--muted); }
+    .btn-sm { padding: .6rem 1.1rem; font-size: .85rem; }
+
+    .ex-tab {
+      position: fixed; right: 0; top: 50%; z-index: 70;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: .7rem;
+      padding: 1rem .65rem; cursor: pointer; border: 0;
+      border-radius: 16px 0 0 16px; background: var(--text); color: var(--bg);
+      font: inherit; font-size: .82rem; font-weight: 600; box-shadow: var(--shadow);
+      transition: transform .45s cubic-bezier(.22,1,.36,1), padding .2s;
+    }
+    .ex-tab:hover { padding-right: 1rem; }
+    .ex-tab svg { width: 18px; height: 18px; }
+    .ex-tab .lbl { writing-mode: vertical-rl; letter-spacing: .04em; }
+    .ex-tab .badge {
+      min-width: 22px; height: 22px; padding: 0 .35rem; display: grid; place-items: center;
+      border-radius: 999px; background: #ec4899; color: #fff; font-size: .72rem;
+    }
+    .ex-tab .badge:empty { display: none; }
+    body.ex-open .ex-tab { transform: translate(110%, -50%); }
+
+    .ex-scrim {
+      position: fixed; inset: 0; z-index: 75; background: rgba(10,12,20,.4);
+      backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .35s;
+    }
+
+    .ex-panel {
+      --accent: #ec4899;
+      position: fixed; top: 0; right: 0; z-index: 80;
+      width: min(var(--ex-w), 100vw); height: 100vh; height: 100dvh;
+      display: flex; flex-direction: column;
+      background: var(--surface); border-left: 1px solid var(--border);
+      box-shadow: -24px 0 60px rgba(20,22,31,.14);
+      transform: translateX(105%); visibility: hidden;
+      transition: transform .45s cubic-bezier(.22,1,.36,1), visibility 0s .45s;
+    }
+    .ex-panel.open { transform: none; visibility: visible; transition: transform .45s cubic-bezier(.22,1,.36,1), visibility 0s; }
+    .ex-panel::before {
+      content: ""; position: absolute; top: -80px; right: -80px; width: 260px; height: 260px; border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+      pointer-events: none;
+    }
+    .ex-head { position: relative; padding: 1.4rem 1.4rem 1rem; display: flex; align-items: center; gap: .9rem; }
+    .ex-ico {
+      width: 44px; height: 44px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 14px;
+      color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .ex-ico svg { width: 22px; height: 22px; }
+    .ex-head h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; }
+    .ex-head small { color: var(--muted); font-size: .78rem; }
+    .ex-head .icon-btn { margin-left: auto; }
+
+    .ex-controls { position: relative; padding: 0 1.4rem 1rem; display: grid; gap: .7rem; border-bottom: 1px solid var(--border); }
+    .ex-controls .btn { justify-content: center; width: 100%; }
+    .ex-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: .25rem; padding: .25rem; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); }
+    .ex-seg button {
+      font: inherit; font-size: .8rem; font-weight: 600; padding: .45rem .3rem; border: 0; border-radius: 999px;
+      background: transparent; color: var(--muted); cursor: pointer; transition: .2s;
+    }
+    .ex-seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    .ex-select {
+      width: 100%; font: inherit; font-size: .85rem; color: var(--text); padding: .6rem .9rem;
+      border-radius: 12px; border: 1px solid var(--border); background: var(--bg);
+    }
+
+    .ex-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 1.4rem 1.4rem; overscroll-behavior: contain; }
+    .ex-month {
+      position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: .75rem;
+      padding: 1rem 0 .7rem; background: var(--surface);
+      font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    }
+    .ex-month::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .ex-list { display: grid; gap: .8rem; }
+
+    .ex-card {
+      --accent: #5b6cff; position: relative; overflow: hidden; cursor: pointer;
+      padding: 1rem 1rem .8rem 1.25rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg);
+      transition: transform .25s, border-color .25s, box-shadow .25s, background .25s, opacity .25s;
+    }
+    .ex-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+    .ex-card:hover, .ex-card:focus-visible {
+      transform: translateY(-2px); outline: none; background: var(--surface);
+      border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+    .ex-card.past { opacity: .6; }
+    .ex-card.past:hover { opacity: 1; }
+    .ex-top { display: flex; gap: .9rem; align-items: flex-start; }
+    .ex-date {
+      flex: 0 0 auto; width: 56px; text-align: center; padding: .5rem 0; border-radius: 12px; line-height: 1.1;
+      color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .ex-date b { display: block; font-size: 1.4rem; font-weight: 500; }
+    .ex-date span { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
+    .ex-main { flex: 1; min-width: 0; }
+    .ex-main strong { display: block; font-weight: 600; font-size: .98rem; line-height: 1.35; overflow-wrap: anywhere; }
+    .ex-main small { display: block; margin-top: .15rem; color: var(--muted); font-size: .8rem; }
+    .ex-main small::first-letter { text-transform: uppercase; }
+    .ex-when {
+      flex: 0 0 auto; font-size: .72rem; font-weight: 600; padding: .25rem .6rem; border-radius: 999px;
+      color: var(--muted); border: 1px solid var(--border); white-space: nowrap;
+    }
+    .ex-when.soon  { color: #d97706; border-color: color-mix(in srgb, #f59e0b 45%, transparent); background: color-mix(in srgb, #f59e0b 10%, transparent); }
+    .ex-when.today { color: #fff; border-color: transparent; background: #ef4444; }
+    .ex-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
+    .ex-tags span {
+      font-size: .72rem; font-weight: 600; padding: .2rem .6rem; border-radius: 999px;
+      color: var(--muted); border: 1px solid var(--border);
+    }
+    .ex-tags .subj { color: var(--accent); border-color: transparent; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .ex-notes {
+      margin-top: .8rem; padding: .7rem .85rem; border-radius: 12px; font-size: .85rem; line-height: 1.5;
+      background: color-mix(in srgb, var(--accent) 6%, transparent); white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .ex-foot-row { display: flex; align-items: center; gap: .35rem; margin-top: .8rem; }
+    .ex-go { margin-right: auto; font-size: .8rem; font-weight: 600; color: var(--accent); }
+    .ex-card:hover .ex-go { text-decoration: underline; }
+    .icon-btn {
+      width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer;
+      border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      transition: color .2s, border-color .2s;
+    }
+    .icon-btn svg { width: 15px; height: 15px; }
+    .icon-btn:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+    .icon-btn.danger:hover { color: #ef4444; border-color: color-mix(in srgb, #ef4444 50%, transparent); }
+    .ex-empty {
+      display: none; margin-top: 1.2rem; padding: 1.6rem 1.2rem; text-align: center; color: var(--muted);
+      border: 1px dashed var(--border); border-radius: var(--radius);
+    }
+    .ex-empty.in { display: block; }
+
+    .ex-status-bar {
+      padding: .8rem 1.4rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: .6rem;
+      font-size: .76rem; color: var(--muted);
+    }
+    .ex-status-bar::before {
+      content: ""; flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--dot, #22c55e); box-shadow: 0 0 0 4px color-mix(in srgb, var(--dot, #22c55e) 18%, transparent);
+    }
+    .ex-status-bar[data-kind="busy"]  { --dot: #f59e0b; }
+    .ex-status-bar[data-kind="err"]   { --dot: #ef4444; }
+    .ex-status-bar[data-kind="local"] { --dot: #8b90a5; }
+
+    dialog.ex-dialog {
+      margin: auto; width: min(480px, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto;
+      padding: 1.8rem; border: 1px solid var(--border); border-radius: 24px;
+      background: var(--surface); color: var(--text); box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    }
+    dialog.ex-dialog::backdrop { background: rgba(10,12,20,.45); backdrop-filter: blur(6px); }
+    .ex-dialog h3 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; margin-bottom: 1.2rem; }
+    .ex-field { display: grid; gap: .35rem; margin-bottom: .9rem; }
+    .ex-field label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .ex-field input, .ex-field select, .ex-field textarea {
+      width: 100%; font: inherit; font-size: .93rem; color: var(--text);
+      padding: .7rem .9rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .ex-field textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
+    .ex-field input:focus, .ex-field select:focus, .ex-field textarea:focus {
+      outline: none; border-color: #ec4899; box-shadow: 0 0 0 4px rgba(236,72,153,.12);
+    }
+    .ex-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    .ex-count { justify-self: end; font-size: .72rem; color: var(--muted); }
+    .ex-error { color: #ef4444; font-size: .83rem; min-height: 1.2em; margin-bottom: .6rem; }
+    .ex-dialog-actions { display: flex; gap: .6rem; justify-content: flex-end; }
+
+    @media (min-width: 1280px) {
+      body { transition: padding-right .45s cubic-bezier(.22,1,.36,1); }
+      body.ex-open { padding-right: var(--ex-w); }
+    }
+    @media (max-width: 1279.98px) {
+      body.ex-open .ex-scrim { opacity: 1; pointer-events: auto; }
+    }
+    @media (max-width: 480px) {
+      .ex-row2 { grid-template-columns: 1fr; gap: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ex-panel, .ex-tab, .ex-scrim, body { transition: none !important; }
+    }
+
     @media (max-width: 640px) {
       header { padding: 4rem 1.2rem 7rem; }
       .section { padding: 1.5rem; }
@@ -322,12 +516,16 @@
     <symbol id="i-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0 5 5L22 14l-8 8-2.3-2.3a4 4 0 0 0-5-5L2 10l8-8z"/></symbol>
     <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></symbol>
     <symbol id="i-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
   </svg>
 
   <nav>
     <div class="nav-inner">
       <a href="#" class="logo">HUB<span>.</span>ASIR</a>
       <div class="nav-links">
+        <a href="#examenes" id="nav-ex">Exámenes</a>
         <a href="#bd">Base de Datos</a>
         <a href="#hw">Hardware</a>
         <a href="#so">Implantación</a>
@@ -654,6 +852,84 @@
     HUB del estudio · 1º ASIR
   </footer>
 
+  <!-- PESTAÑA + PANEL LATERAL DE EXÁMENES -->
+  <button class="ex-tab" id="ex-tab" type="button" aria-controls="ex-panel" aria-expanded="false" title="Abrir calendario de exámenes">
+    <svg><use href="#i-cal"/></svg><span class="lbl">Exámenes</span><span class="badge" id="ex-badge"></span>
+  </button>
+  <div class="ex-scrim" id="ex-scrim"></div>
+
+  <aside class="ex-panel" id="ex-panel" aria-label="Calendario de exámenes">
+    <div class="ex-head">
+      <div class="ex-ico"><svg><use href="#i-cal"/></svg></div>
+      <div><h2>Calendario de exámenes</h2><small id="ex-sub">Editable por todos</small></div>
+      <button class="icon-btn" id="ex-close" type="button" title="Ocultar panel" aria-label="Ocultar panel">✕</button>
+    </div>
+    <div class="ex-controls">
+      <button class="btn btn-primary btn-sm" id="ex-add" type="button">+ Añadir examen</button>
+      <div class="ex-seg" role="group" aria-label="Filtrar por fecha">
+        <button type="button" data-f="next" aria-pressed="true">Próximos</button>
+        <button type="button" data-f="past" aria-pressed="false">Pasados</button>
+        <button type="button" data-f="all" aria-pressed="false">Todos</button>
+      </div>
+      <select class="ex-select" id="ex-subj-filter" aria-label="Filtrar por asignatura">
+        <option value="">Todas las asignaturas</option>
+        <option value="bd">Base de Datos</option>
+        <option value="hw">Fundamentos de Hardware</option>
+        <option value="so">Implantación de Sistemas</option>
+        <option value="redes">Redes</option>
+        <option value="lm">Lenguaje de Marcas</option>
+      </select>
+    </div>
+    <div class="ex-body" id="ex-body">
+      <div id="ex-list"></div>
+      <p class="ex-empty" id="ex-empty"></p>
+    </div>
+    <div class="ex-status-bar" id="ex-status" data-kind="busy" aria-live="polite">Cargando…</div>
+  </aside>
+
+  <dialog class="ex-dialog" id="ex-dialog">
+    <form id="ex-form" autocomplete="off">
+      <h3 id="ex-dialog-title">Añadir examen</h3>
+      <div class="ex-row2">
+        <div class="ex-field"><label for="ex-fecha">Fecha</label><input id="ex-fecha" type="date" required /></div>
+        <div class="ex-field"><label for="ex-hora">Hora (opcional)</label><input id="ex-hora" type="time" /></div>
+      </div>
+      <div class="ex-row2">
+        <div class="ex-field"><label for="ex-asig">Asignatura</label>
+          <select id="ex-asig" required>
+            <option value="bd">Base de Datos</option>
+            <option value="hw">Fundamentos de Hardware</option>
+            <option value="so">Implantación de Sistemas</option>
+            <option value="redes">Redes</option>
+            <option value="lm">Lenguaje de Marcas</option>
+          </select>
+        </div>
+        <div class="ex-field"><label for="ex-tema">Tema</label>
+          <select id="ex-tema">
+            <option value="0">Sin tema concreto</option>
+            <option value="1">Tema 1</option><option value="2">Tema 2</option><option value="3">Tema 3</option>
+            <option value="4">Tema 4</option><option value="5">Tema 5</option><option value="6">Tema 6</option>
+          </select>
+        </div>
+      </div>
+      <div class="ex-field"><label for="ex-tipo">Tipo</label>
+        <select id="ex-tipo">
+          <option>Examen</option><option>Prueba práctica</option><option>Entrega</option><option>Recuperación</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="ex-field"><label for="ex-titulo">Título</label><input id="ex-titulo" type="text" maxlength="80" placeholder="Ej: Examen UD1 · tipo test" required /></div>
+      <div class="ex-field"><label for="ex-notas">Notas (qué entra, aula, material…)</label>
+        <textarea id="ex-notas" maxlength="400" placeholder="Ej: Entra todo el Tema 1 y 2. Se puede llevar chuleta de 1 folio."></textarea>
+        <span class="ex-count" id="ex-count">0 / 400</span>
+      </div>
+      <div class="ex-error" id="ex-error" role="alert"></div>
+      <div class="ex-dialog-actions">
+        <button class="btn btn-ghost btn-sm" type="button" id="ex-cancel">Cancelar</button>
+        <button class="btn btn-primary btn-sm" type="submit" id="ex-save">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
   <script>
     const io = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
@@ -691,7 +967,7 @@
     const searchInput = document.getElementById('global-search');
     const searchCount = document.getElementById('search-count');
     const searchEmpty = document.getElementById('search-empty');
-    const sections = [...document.querySelectorAll('main > .section')];
+    const sections = [...document.querySelectorAll('main > .section:not(.s-ex)')];
 
     function normalize(text) {
       return text
@@ -748,6 +1024,311 @@
 
     searchInput.addEventListener('input', filterResources);
     filterResources();
+    // ---------- PANEL LATERAL DE EXÁMENES ----------
+    (() => {
+      /* ============================================================
+         CONFIGURACIÓN: para que los cambios los vea TODO EL MUNDO
+         pega aquí la URL de tu Firebase Realtime Database, sin barra
+         final. Ejemplo:
+         'https://mi-proyecto-default-rtdb.europe-west1.firebasedatabase.app'
+         Si lo dejas vacío, los datos solo se guardan en tu navegador.
+         ============================================================ */
+      const DB_URL = 'https://hubasir-ad916-default-rtdb.europe-west1.firebasedatabase.app/';
+      const DB_PATH = 'examenes';
+      const LS_KEY = 'hub-asir-examenes-v1';
+      const LS_OPEN = 'hub-asir-examenes-open';
+      const POLL_MS = 30000;
+      const WIDE = '(min-width: 1280px)';
+
+      const SUBJECTS = {
+        bd:    { name: 'Base de Datos',            color: '#5b6cff' },
+        hw:    { name: 'Fundamentos de Hardware',  color: '#f97316' },
+        so:    { name: 'Implantación de Sistemas', color: '#10b981' },
+        redes: { name: 'Redes',                    color: '#0ea5e9' },
+        lm:    { name: 'Lenguaje de Marcas',       color: '#a855f7' }
+      };
+      const TIPOS = ['Examen', 'Prueba práctica', 'Entrega', 'Recuperación', 'Otro'];
+
+      const remote = !!DB_URL;
+      const $ = (id) => document.getElementById(id);
+      const panel = $('ex-panel'), tab = $('ex-tab'), body = $('ex-body');
+      const list = $('ex-list'), empty = $('ex-empty'), statusEl = $('ex-status');
+      const dlg = $('ex-dialog'), form = $('ex-form'), errEl = $('ex-error');
+      const fFecha = $('ex-fecha'), fHora = $('ex-hora'), fAsig = $('ex-asig'), fTema = $('ex-tema');
+      const fTipo = $('ex-tipo'), fTitulo = $('ex-titulo'), fNotas = $('ex-notas');
+      const subjFilter = $('ex-subj-filter');
+
+      let exams = {};
+      let editingId = null;
+      let filter = 'next';
+      let busy = 0;
+
+      /* ---------- utilidades ---------- */
+      const el = (tag, props = {}, ...kids) => {
+        const n = Object.assign(document.createElement(tag), props);
+        kids.forEach(k => n.append(k));
+        return n;
+      };
+      const pad = (n) => String(n).padStart(2, '0');
+      const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      const parseDate = (iso) => {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+        if (!m) return null;
+        const d = new Date(+m[1], +m[2] - 1, +m[3]);
+        return isNaN(d) ? null : d;
+      };
+      const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+      const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      const svgIcon = (id) => {
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns, 'svg'), use = document.createElementNS(ns, 'use');
+        use.setAttribute('href', '#' + id); svg.append(use); return svg;
+      };
+
+      // Los datos son públicos y editables: se validan siempre al leer.
+      const clean = (id, e) => {
+        if (!e || typeof e !== 'object' || !parseDate(e.fecha) || !SUBJECTS[e.asignatura]) return null;
+        return {
+          id: String(id),
+          fecha: e.fecha,
+          hora: /^([01]\d|2[0-3]):[0-5]\d$/.test(e.hora || '') ? e.hora : '',
+          asignatura: e.asignatura,
+          tema: Number.isInteger(e.tema) && e.tema >= 0 && e.tema <= 20 ? e.tema : 0,
+          tipo: TIPOS.includes(e.tipo) ? e.tipo : 'Examen',
+          titulo: String(e.titulo || '').slice(0, 80),
+          notas: String(e.notas || '').slice(0, 400)
+        };
+      };
+      const cleanMap = (raw) => {
+        const out = {};
+        Object.entries(raw || {}).forEach(([id, e]) => { const c = clean(id, e); if (c) out[id] = c; });
+        return out;
+      };
+
+      function setStatus(kind, text) { statusEl.dataset.kind = kind; statusEl.textContent = text; }
+      function idleStatus() {
+        if (busy) return;
+        remote ? setStatus('ok', 'Sincronizado · los cambios los ve todo el mundo')
+               : setStatus('local', 'Solo en este navegador (falta configurar DB_URL)');
+      }
+
+      /* ---------- almacenamiento ---------- */
+      async function loadAll() {
+        if (remote) {
+          const r = await fetch(`${DB_URL}/${DB_PATH}.json`, { cache: 'no-store' });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return cleanMap(await r.json());
+        }
+        try { return cleanMap(JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch { return {}; }
+      }
+      async function putOne(e) {
+        if (remote) {
+          const { id, ...data } = e;
+          const r = await fetch(`${DB_URL}/${DB_PATH}/${id}.json`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+          });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+        }
+        exams[e.id] = e;
+        if (!remote) localStorage.setItem(LS_KEY, JSON.stringify(exams));
+      }
+      async function delOne(id) {
+        if (remote) {
+          const r = await fetch(`${DB_URL}/${DB_PATH}/${id}.json`, { method: 'DELETE' });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+        }
+        delete exams[id];
+        if (!remote) localStorage.setItem(LS_KEY, JSON.stringify(exams));
+      }
+      async function withSaving(fn) {
+        busy++; setStatus('busy', 'Guardando…');
+        try { await fn(); } finally { busy--; idleStatus(); }
+      }
+      async function refresh() {
+        if (busy || dlg.open) return;
+        try { exams = await loadAll(); render(); idleStatus(); }
+        catch { setStatus('err', 'Sin conexión con la base de datos'); }
+      }
+
+      /* ---------- abrir / cerrar panel ---------- */
+      function setOpen(open, remember = true) {
+        panel.classList.toggle('open', open);
+        document.body.classList.toggle('ex-open', open);
+        tab.setAttribute('aria-expanded', open);
+        if (remember) { try { localStorage.setItem(LS_OPEN, open ? '1' : '0'); } catch {} }
+      }
+      const isOpen = () => panel.classList.contains('open');
+      tab.addEventListener('click', () => setOpen(true));
+      $('ex-close').addEventListener('click', () => setOpen(false));
+      $('ex-scrim').addEventListener('click', () => setOpen(false));
+      $('nav-ex').addEventListener('click', (ev) => { ev.preventDefault(); setOpen(!isOpen()); });
+      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && isOpen() && !dlg.open) setOpen(false); });
+      try { if (localStorage.getItem(LS_OPEN) === '1') setOpen(true, false); } catch {}
+
+      /* ---------- navegación al hacer clic en un examen ---------- */
+      function goTo(e) {
+        const search = document.getElementById('global-search');
+        if (search && search.value) { search.value = ''; search.dispatchEvent(new Event('input')); }
+        const sec = document.getElementById(e.asignatura);
+        if (!sec) return;
+        if (!window.matchMedia(WIDE).matches) setOpen(false, false);
+        sec.classList.add('in');
+        let target = sec;
+        if (e.tema) {
+          const re = new RegExp('^Tema\\s*' + e.tema + '\\b', 'i');
+          const title = [...sec.querySelectorAll('.topic-title')].find(t => re.test(t.textContent.trim()));
+          if (title) {
+            title.closest('.topic').classList.add('open');
+            title.setAttribute('aria-expanded', 'true');
+            target = title;
+          }
+        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.classList.remove('flash'); void target.offsetWidth; target.classList.add('flash');
+        setTimeout(() => target.classList.remove('flash'), 1700);
+      }
+
+      /* ---------- render ---------- */
+      function whenChip(diff) {
+        if (diff === 0) return ['Hoy', 'today'];
+        if (diff === 1) return ['Mañana', 'soon'];
+        if (diff > 1)   return ['En ' + diff + ' días', diff <= 7 ? 'soon' : ''];
+        return ['Hace ' + (-diff) + (diff === -1 ? ' día' : ' días'), ''];
+      }
+      function cardEl(e, today) {
+        const s = SUBJECTS[e.asignatura];
+        const d = parseDate(e.fecha);
+        const diff = Math.round((d - today) / 864e5);
+        const [chipText, chipCls] = whenChip(diff);
+        const longDate = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        const card = el('article', { className: 'ex-card' + (diff < 0 ? ' past' : ''), tabIndex: 0, title: 'Ir a ' + s.name });
+        card.setAttribute('role', 'listitem');
+        card.style.setProperty('--accent', s.color);
+
+        const top = el('div', { className: 'ex-top' },
+          el('div', { className: 'ex-date' },
+            el('b', { textContent: d.getDate() }),
+            el('span', { textContent: d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '') })),
+          el('div', { className: 'ex-main' },
+            el('strong', { textContent: e.titulo || e.tipo }),
+            el('small', { textContent: longDate + (e.hora ? ' · ' + e.hora + ' h' : '') })),
+          el('span', { className: 'ex-when ' + chipCls, textContent: chipText }));
+
+        const tags = el('div', { className: 'ex-tags' },
+          el('span', { className: 'subj', textContent: s.name }),
+          el('span', { textContent: e.tipo }));
+        if (e.tema) tags.append(el('span', { textContent: 'Tema ' + e.tema }));
+
+        card.append(top, tags);
+        if (e.notas) card.append(el('div', { className: 'ex-notes', textContent: e.notas }));
+
+        const edit = el('button', { className: 'icon-btn', type: 'button', title: 'Editar', ariaLabel: 'Editar examen' }, svgIcon('i-edit'));
+        const del = el('button', { className: 'icon-btn danger', type: 'button', title: 'Borrar', ariaLabel: 'Borrar examen' }, svgIcon('i-trash'));
+        edit.addEventListener('click', (ev) => { ev.stopPropagation(); openDialog(e); });
+        del.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          if (!confirm('¿Borrar este examen para todos?')) return;
+          try { await withSaving(() => delOne(e.id)); render(); }
+          catch { setStatus('err', 'No se pudo borrar. Inténtalo de nuevo.'); }
+        });
+        card.append(el('div', { className: 'ex-foot-row' },
+          el('span', { className: 'ex-go', textContent: 'Ir a los recursos →' }), edit, del));
+
+        card.addEventListener('click', (ev) => { if (!ev.target.closest('button')) goTo(e); });
+        card.addEventListener('keydown', (ev) => {
+          if (ev.target === card && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); goTo(e); }
+        });
+        return card;
+      }
+      function render() {
+        const today = startOfToday();
+        const subj = subjFilter.value;
+        const all = Object.values(exams);
+        const bySubj = all.filter(e => !subj || e.asignatura === subj);
+        const isPast = (e) => parseDate(e.fecha) < today;
+        const cmp = (a, b) => a.fecha.localeCompare(b.fecha) || (a.hora || '').localeCompare(b.hora || '') || a.titulo.localeCompare(b.titulo, 'es');
+
+        let rows = bySubj.filter(e => filter === 'all' ? true : filter === 'past' ? isPast(e) : !isPast(e)).sort(cmp);
+        if (filter === 'past') rows.reverse();
+
+        // agrupar por mes con cabeceras fijas
+        const frag = document.createDocumentFragment();
+        let lastMonth = '', group = null;
+        rows.forEach(e => {
+          const m = e.fecha.slice(0, 7);
+          if (m !== lastMonth) {
+            lastMonth = m;
+            frag.append(el('div', { className: 'ex-month', textContent: parseDate(e.fecha).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) }));
+            group = el('div', { className: 'ex-list', role: 'list' });
+            frag.append(group);
+          }
+          group.append(cardEl(e, today));
+        });
+        list.replaceChildren(frag);
+
+        empty.classList.toggle('in', rows.length === 0);
+        empty.textContent = all.length === 0
+          ? 'Todavía no hay nada apuntado. ¡Añade el primer examen!'
+          : 'No hay resultados con este filtro.';
+
+        const upcoming = all.filter(e => !isPast(e));
+        $('ex-badge').textContent = upcoming.length || '';
+        $('ex-sub').textContent = upcoming.length
+          ? `${upcoming.length} próximo${upcoming.length === 1 ? '' : 's'} · editable por todos`
+          : 'Editable por todos';
+        document.querySelectorAll('.ex-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === filter));
+      }
+      document.querySelectorAll('.ex-seg button').forEach(b =>
+        b.addEventListener('click', () => { filter = b.dataset.f; render(); body.scrollTop = 0; }));
+      subjFilter.addEventListener('change', render);
+
+      /* ---------- diálogo de alta / edición ---------- */
+      const countEl = $('ex-count');
+      const updateCount = () => { countEl.textContent = `${fNotas.value.length} / 400`; };
+      fNotas.addEventListener('input', updateCount);
+      function openDialog(e) {
+        editingId = e ? e.id : null;
+        $('ex-dialog-title').textContent = e ? 'Editar examen' : 'Añadir examen';
+        fFecha.value = e ? e.fecha : toISO(new Date());
+        fHora.value = e ? e.hora : '';
+        fAsig.value = e ? e.asignatura : (subjFilter.value || 'bd');
+        fTema.value = String(e ? e.tema : 0);
+        fTipo.value = e ? e.tipo : 'Examen';
+        fTitulo.value = e ? e.titulo : '';
+        fNotas.value = e ? e.notas : '';
+        updateCount();
+        errEl.textContent = '';
+        dlg.showModal();
+        fTitulo.focus();
+      }
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const e = clean(editingId || newId(), {
+          fecha: fFecha.value, hora: fHora.value, asignatura: fAsig.value, tema: parseInt(fTema.value, 10),
+          tipo: fTipo.value, titulo: fTitulo.value.trim(), notas: fNotas.value.trim()
+        });
+        if (!e || !e.titulo) { errEl.textContent = 'Revisa la fecha y el título.'; return; }
+        $('ex-save').disabled = true;
+        try {
+          await withSaving(() => putOne(e));
+          dlg.close();
+          filter = parseDate(e.fecha) < startOfToday() ? 'past' : (filter === 'past' ? 'next' : filter);
+          render();
+        } catch { errEl.textContent = 'No se pudo guardar. Comprueba tu conexión e inténtalo otra vez.'; }
+        finally { $('ex-save').disabled = false; }
+      });
+      $('ex-cancel').addEventListener('click', () => dlg.close());
+      dlg.addEventListener('click', (ev) => { if (ev.target === dlg) dlg.close(); });
+      $('ex-add').addEventListener('click', () => openDialog(null));
+
+      /* ---------- arranque y sincronización ---------- */
+      refresh();
+      if (remote) {
+        setInterval(() => { if (!document.hidden) refresh(); }, POLL_MS);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+      }
+    })();
   </script>
 </body>
 </html>
