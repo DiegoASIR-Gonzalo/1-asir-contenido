@@ -542,6 +542,10 @@
 <!-- Comandos y ejemplos del panel lateral (ver instrucciones dentro del archivo). Debe ir ANTES del script principal. -->
 <script src="ejemplos.js"></script>
 
+<!-- Grabaciones de asciinema (.cast): ver casts.js y cast-player.js. Deben ir ANTES del script principal. -->
+<script src="cast-player.js"></script>
+<script src="casts.js"></script>
+
 <!-- Datos de las actividades (ver instrucciones dentro del archivo). Debe ir ANTES del script principal.
      Si las repartes en varios archivos, añade aquí un <script src="..."> por cada uno; su orden decide el orden del panel. -->
 <script src="actividades.js"></script>
@@ -726,6 +730,25 @@ async function pintar(){
   $('contador').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' · ' + (s + 1) + ' / ' + cm.diapositivas.length;
   $('ant').disabled = s === 0; $('sig').disabled = s === cm.diapositivas.length - 1;
   $('explicacion').innerHTML = dia.exp;
+
+  // Diapositiva con grabación de asciinema: { cast:"clave-o-ruta", maxPausa:0.8, exp:"..." }
+  if (dia.cast){
+    const p = $('pantalla'); ocultarGlobo(); p.innerHTML = '';
+    try {
+      const grabacion = await CastPlayer.cargar(dia.cast);
+      if (mio !== turno) return;
+      await CastPlayer.reproducir(grabacion, p, {
+        velocidad: ajustes.vel ? VEL_DEFECTO / ajustes.vel : 1,      // el control de velocidad del panel también acelera/frena las grabaciones
+        instantaneo: reducido || ajustes.vel === 0,
+        maxPausa: dia.maxPausa,
+        vivo: () => mio === turno
+      });
+    } catch (err){
+      if (mio === turno) p.textContent = '# No se pudo reproducir la grabación: ' + err.message;
+    }
+    if (mio === turno) $('anuncio').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' de ' + cm.nombre + ', diapositiva ' + (s + 1) + ' de ' + cm.diapositivas.length + '.';
+    return;
+  }
 
   // Terminal: escribe el comando letra a letra y luego muestra la salida
   // Una diapositiva puede ser un solo comando (cmd/out/ruta) o varios en cadena (pasos)

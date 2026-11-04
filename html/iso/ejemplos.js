@@ -286,12 +286,12 @@ const GRUPOS = [
       { pasos:[
           { cmd:"grep '' .bashrc", out:''},
         ],
-        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>No es muy complicado ya que únicamente usamos los simbolos <code>{ }</code> para poder crear varios ficheros de golpe.</p>' },
+        exp:'<h3>grep</h3><p>Comando que usaremos como otro motor de busqueda a parte de <code>find</code>, ademas este tiene parametros que nos facilitaran aun más los resultados de las busquedas.</p>' },
       { pasos:[
           { cmd:"grep 'alias' .bashrc --color=auto", out:''},
-          { cmd:"grep 'alias ls' .bashrc --color=auto", out:'alias ls=ls --color=auto'},
+          { cmd:"grep 'alias ls' .bashrc --color=auto", out:''},
         ],
-        exp:'<h3>Crear varios ficheros o carpetas a la vez</h3><p>No es muy complicado ya que únicamente usamos los simbolos <code>{ }</code> para poder crear varios ficheros de golpe.</p>' },
+        exp:'<h3>Resultado exacto por color</h3><p>Con el parametro <code>--color=</code> podemos ponerle colores a los resultados de las busquedas que hagamos.</p>' },
       { pasos:[
           { cmd:"grep --color=auto '#alias' .bashrc", out:'', info:"Se busca '#alias' por todo el fichero"},
           { cmd:"grep --color=auto '^#alias' .bashrc", out:'', info:"Se busca unicamente todas las líneas que empiezen por '#alias'"},
@@ -386,5 +386,14 @@ const GRUPOS = [
         exp:'<h3>Ejemplo 2 con wc</h3><p>Es practicamente lo mismo que el primer ejemplo solo que hemos especificado que el canal de entrada es el fichero <code>resultado.txt</code>.</p>' }
     ]}
     
+  ]},
+  
+  { titulo:"Canales estandares y Redirecciones", comandos:[
+    { nombre:"Canal estandar 1", resumen:"1º ejemplo", diapositivas:[
+      { cast: "cast/test.cast",
+        exp:'<h3>Ejemplo 1 con ls</h3><p>Esta cadena de comandos funciona de la siguiente manera:<ul><li>Primero - Se ejecuta la recdirección, por lo que se guarda la salida de <code>ls</code>.</li><li>Segundo - Se ejecuta el comando de <code>ls</code></li></ul></p>' }
+    ]}
+    
   ]}
+  
 ];
