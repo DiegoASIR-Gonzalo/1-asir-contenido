@@ -16,4 +16,3 @@
 [4.083431, "o", "\r\n\u001b[?2004l\r"]
 [4.09301, "o", "whoami (1)           - muestra el identificador de usuario efectivo\r\n"]
 [4.10979, "o", "\u001b[?2004h\u001b[38;5;245m┌─(\u001b[1;38;5;46musuario\u001b[38;5;245m-\u001b[1;38;5;51mdebian-326\u001b[38;5;245m)-[\u001b[1;38;5;141m~\u001b[38;5;245m]\u001b[38;5;245m\r\r\n└─\u001b[1;38;5;46m❯ \u001b[0m"]
-[5.953973, "o", "\u001b[?2004l\r\r\nexit\r\n"]

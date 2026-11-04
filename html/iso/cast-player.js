@@ -6,7 +6,16 @@
      { cast:"ls-basico",            // clave de CASTS (casts.js) ...
        cast:"casts/ls.cast",        // ... o ruta a un .cast (necesita servidor, ver README)
        maxPausa:0.8,                // opcional: pausa máxima entre salidas, en segundos
+       cmds:["ls -l", "ls noexiste"],   // opcional: comandos con globo (ver abajo)
        exp:'<h3>ls</h3><p>...</p>' }
+
+   GLOBOS DE AYUDA en las grabaciones (mismos textos que en el resto de la web):
+     · Sin "cmds": se detecta solo lo que va tras el "$ " (o "# ") de cada línea y se busca en
+       FUNCION_COMANDOS, igual que en las diapositivas normales.
+     · Con "cmds": solo llevan globo esos comandos, escritos tal cual se ven en pantalla. Cada uno
+       puede ser un texto o { cmd:"ls -l", info:"Texto propio del globo" } (el "info" gana).
+     · Una diapositiva con  cmds:[]  desactiva los globos.
+   El globo aparece cuando la línea ya está terminada (no mientras se está tecleando).
 
    Qué entiende: texto, colores (16 / 256 / RGB), negrita, subrayado, inverso,
    \r \n \b \t, borrar pantalla/línea, mover el cursor y pantalla alternativa
@@ -193,22 +202,51 @@
       }
     }
 
-    function html() {
+    // Busca en una línea el comando al que poner globo. Devuelve [inicio, fin, info] o null.
+    function buscarComando(l, opc) {
+      let fin = l.length; while (fin > 0 && l[fin - 1].ch === ' ') fin--;      // se ignoran los espacios finales
+      if (!fin) return null;
+      let ini = -1;
+      if (opc.comandos) {                                                         // lista explícita: gana la coincidencia más larga al final de la línea
+        let mejor = 0;
+        for (const t of opc.comandos) {
+          const m = Array.from(t);
+          if (m.length <= mejor || m.length > fin) continue;
+          const desde = fin - m.length;
+          if ((desde === 0 || l[desde - 1].ch === ' ') && m.every((ch, i) => l[desde + i].ch === ch)) { ini = desde; mejor = m.length; }
+        }
+      } else {                                                                    // automático: lo que va tras el primer "$ " o "# " del prompt
+        const txt = l.slice(0, fin).map(ce => ce.ch).join('');
+        const m = /[$#] /.exec(txt);
+        if (m) ini = Array.from(txt.slice(0, m.index + 2)).length;
+      }
+      if (ini < 0 || ini >= fin) return null;
+      const texto = l.slice(ini, fin).map(ce => ce.ch).join('');
+      const info = opc.info ? opc.info(texto) : '';
+      return info ? [ini, fin, info] : null;
+    }
+    const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    function html(opc) {
+      opc = opc || {};
       let ult = f;
       for (let i = lineas.length - 1; i > f; i--) if (lineas[i] && lineas[i].length) { ult = i; break; }
       const out = [];
       for (let i = 0; i <= ult; i++) {
         const l = lineas[i] || [], hayCursor = cursorVisible && i === f;
         const total = hayCursor ? Math.max(l.length, c + 1) : l.length;
-        let s = '', run = '', st = null;
+        const rango = i === f || !(opc.info || opc.comandos) ? null : buscarComando(l, opc);   // la línea que se está tecleando no lleva globo
+        let s = '', run = '', st = null, abierto = false;
         const cerrar = () => { if (run) s += st ? '<span style="' + st + '">' + escHtml(run) + '</span>' : escHtml(run); run = ''; };
         for (let k = 0; k < total; k++) {
+          if (rango && k === rango[0]) { cerrar(); st = null; s += '<span class="cmd" tabindex="0" data-info="' + escAttr(rango[2]) + '">'; abierto = true; }
+          if (rango && k === rango[1] && abierto) { cerrar(); st = null; s += '</span>'; abierto = false; }
           if (hayCursor && k === c) { cerrar(); s += '<span class="cursor"></span>'; st = null; continue; }
           const ce = l[k] || { ch: ' ', st: '' };
           if ((ce.st || null) !== st) { cerrar(); st = ce.st || null; }
           run += ce.ch;
         }
-        cerrar();
+        cerrar(); if (abierto) s += '</span>';
         out.push(s);
       }
       return out.join('\n');
@@ -246,7 +284,9 @@
     const velocidad = opc.velocidad > 0 ? opc.velocidad : 1;
     const maxPausa = opc.maxPausa > 0 ? opc.maxPausa : (cast.cab.idle > 0 ? cast.cab.idle : 1);
     const pan = Pantalla(cast.cab.cols, cast.cab.rows);
-    const pintar = () => { destino.innerHTML = pan.html(); destino.scrollTop = destino.scrollHeight; };
+    const memo = new Map();                              // el texto del globo de cada comando se calcula una sola vez
+    const info = opc.info ? (t => { if (!memo.has(t)) memo.set(t, opc.info(t) || ''); return memo.get(t); }) : null;
+    const pintar = () => { destino.innerHTML = pan.html({ comandos: opc.comandos, info }); destino.scrollTop = destino.scrollHeight; };
 
     if (opc.instantaneo) { for (const e of cast.eventos) pan.escribir(e.d); pintar(); return; }
 

@@ -50,33 +50,7 @@ const GLOBOS_ACTIVOS = true;
 // Con tuberías o cadenas (a | b, a && b, a; b) el globo describe cada comando por separado.
 const FUNCION_COMANDOS = {
   ls:       "Lista el contenido de una carpeta.",
-  cd:       "Cambia de carpeta (directorio de trabajo).",
-  pwd:      "Muestra la ruta de la carpeta en la que estás.",
-  mkdir:    "Crea carpetas nuevas. Con -p crea también las carpetas intermedias.",
-  touch:    "Crea un fichero vacío o actualiza la fecha de uno existente.",
-  cat:      "Muestra el contenido de un fichero por pantalla.",
-  tail:     "Muestra las últimas líneas de un fichero.",
-  head:     "Muestra las primeras líneas de un fichero.",
-  echo:     "Imprime un texto por pantalla (o lo envía a un fichero con >).",
-  wc:       "Cuenta líneas, palabras y caracteres.",
-  find:     "Busca ficheros y carpetas según nombre, tipo, tamaño…",
-  du:       "Muestra el espacio que ocupa una carpeta o fichero.",
-  file:     "Indica de qué tipo es un fichero (texto, vacío, binario…).",
-  ln:       "Crea enlaces (accesos directos) a ficheros o carpetas.",
-  chmod:    "Cambia los permisos de un fichero o carpeta.",
-  type:     "Indica qué tipo de comando es: programa, alias, función u orden interna.",
-  man:      "Abre el manual de un comando.",
-  tldr:     "Muestra un resumen con ejemplos prácticos de un comando.",
-  whatis:   "Describe un comando en una sola línea.",
-  whereis:  "Localiza el programa, el código fuente y el manual de un comando.",
-  seq:      "Genera una secuencia de números.",
-  source:   "Recarga un fichero de configuración (como ~/.bashrc) en la sesión actual.",
-  declare:  "Declara variables y funciones; con -F lista las funciones cargadas.",
-  sudo:     "Ejecuta el comando con privilegios de administrador.",
-  tee:      "Escribe la entrada en pantalla y a la vez en un fichero (-a añade al final).",
-  mkcd:     "Función propia: crea una carpeta y entra en ella.",
-  extraer:  "Función propia: descomprime un archivo según su extensión.",
-  hora:     "Función propia: muestra la hora actual."
+  grep:     "Para buscar partes de un fichero o texto."
 };
 
 const GRUPOS = [
@@ -285,10 +259,7 @@ const GRUPOS = [
           { cmd:"grep '' .bashrc", out:''},
         ],
         exp:'<h3>grep</h3><p>Comando que usaremos como otro motor de busqueda a parte de <code>find</code>, ademas este tiene parametros que nos facilitaran aun más los resultados de las busquedas.</p>' },
-      { pasos:[
-          { cmd:"grep 'alias' .bashrc --color=auto", out:''},
-          { cmd:"grep 'alias ls' .bashrc --color=auto", out:''},
-        ],
+      { cast:"cast/grep1.cast",
         exp:'<h3>Resultado exacto por color</h3><p>Con el parametro <code>--color=</code> podemos ponerle colores a los resultados de las busquedas que hagamos.</p>' },
       { pasos:[
           { cmd:"grep --color=auto '#alias' .bashrc", out:'', info:"Se busca '#alias' por todo el fichero"},
