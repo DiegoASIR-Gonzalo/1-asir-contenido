@@ -96,9 +96,9 @@ const GRUPOS = [
     ]},
 
     { nombre:"man", resumen:"Manual de comandos", diapositivas:[
-      { cast:"cast/man1.cast"
+      { cast:"cast/man1.cast",
         exp:'<h3>El manual universal</h3><p>Podremos consultar casi cualquier comando con "man", pero habra otros que no ya que dependa si tiene o no dentro de man.</p>' },
-	  { cast:"cast/man2.cast"
+	  { cast:"cast/man2.cast",
         exp:'<h3>Forma de verlo abrebiado</h3><p>Podremos consultar de forma más breve con "man", pero usando el parametro <code>-k</code></p>' },
     ]},
 			
