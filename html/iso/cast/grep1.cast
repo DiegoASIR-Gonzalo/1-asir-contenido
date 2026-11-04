@@ -1,0 +1,12 @@
+{"version": 2, "width": 80, "height": 24, "timestamp": 1793796104, "env": {"SHELL": "/bin/bash", "TERM": "xterm-256color"}}
+[0.022514, "o", "\u001b[?2004h\u001b[38;5;245m┌─(\u001b[1;38;5;46musuario\u001b[38;5;245m-\u001b[1;38;5;51mdebian-326\u001b[38;5;245m)-[\u001b[1;38;5;141m~\u001b[38;5;245m]\u001b[38;5;245m\r\r\n└─\u001b[1;38;5;46m❯ \u001b[0m"]
+[1.707969, "o", "\u001b[7mgrep 'alias' .bashrc --color=auto\u001b[27m"]
+[2.698782, "o", "\r\u001b[C\u001b[C\u001b[C\u001b[Cgrep 'alias' .bashrc --color=auto\r\n\u001b[?2004l\r"]
+[2.700343, "o", "# enable color support of ls and also add handy \u001b[01;31m\u001b[Kalias\u001b[m\u001b[Kes\r\n    \u001b[01;31m\u001b[Kalias\u001b[m\u001b[K ls='ls --color=auto'\r\n    #\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K dir='dir --color=auto'\r\n    #\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K vdir='vdir --color=auto'\r\n    #\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K grep='grep --color=auto'\r\n    #\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K fgrep='fgrep --color=auto'\r\n    #\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K egrep='egrep --color=auto'\r\n# some more ls \u001b[01;31m\u001b[Kalias\u001b[m\u001b[Kes\r\n#\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K ll='ls -l'\r\n#\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K la='ls -A'\r\n"]
+[2.700872, "o", "#\u001b[01;31m\u001b[Kalias\u001b[m\u001b[K l='ls -CF'\r\n# ~/.bash_\u001b[01;31m\u001b[Kalias\u001b[m\u001b[Kes, instead of adding them here directly.\r\nif [ -f ~/.bash_\u001b[01;31m\u001b[Kalias\u001b[m\u001b[Kes ]; then\r\n    . ~/.bash_\u001b[01;31m\u001b[Kalias\u001b[m\u001b[Kes\r\n"]
+[2.704838, "o", "\u001b[?2004h\u001b[38;5;245m┌─(\u001b[1;38;5;46musuario\u001b[38;5;245m-\u001b[1;38;5;51mdebian-326\u001b[38;5;245m)-[\u001b[1;38;5;141m~\u001b[38;5;245m]\u001b[38;5;245m\r\r\n└─\u001b[1;38;5;46m❯ \u001b[0m"]
+[11.99564, "o", "\u001b[7mgrep 'alias ls' .bashrc --color=auto\u001b[27m"]
+[14.058694, "o", "\r\u001b[C\u001b[C\u001b[C\u001b[Cgrep 'alias ls' .bashrc --color=auto\r\n\u001b[?2004l\r"]
+[14.062331, "o", "    \u001b[01;31m\u001b[Kalias ls\u001b[m\u001b[K='ls --color=auto'\r\n"]
+[14.066969, "o", "\u001b[?2004h\u001b[38;5;245m┌─(\u001b[1;38;5;46musuario\u001b[38;5;245m-\u001b[1;38;5;51mdebian-326\u001b[38;5;245m)-[\u001b[1;38;5;141m~\u001b[38;5;245m]\u001b[38;5;245m\r\r\n└─\u001b[1;38;5;46m❯ \u001b[0m"]
+[17.722553, "o", "\u001b[?2004l\r\r\nexit\r\n"]
