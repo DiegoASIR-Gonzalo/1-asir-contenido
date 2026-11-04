@@ -288,11 +288,11 @@ const GRUPOS = [
         exp:'<h3>HardLink</h3><p>Casi lo mismo que el SoftLink, pero puede con ficheros más pesados, el ejemplo en pantalla tiene el mismo peso y mismo contenido.<p>Si borraramos el fichero creado no pasaría nada.</p></p>' }
     ]},
     { nombre:"tee", resumen:"Duplicar resultado", diapositivas:[
-      { cast:"Cast\tee1.cast",
+      { cast:"cast/tee1.cast",
         exp:'<h3>tee</h3><p>Una especie de alternativa a las redirecciones. Su función es duplicar la salida por lo que es útil para cuando queremos una copia de lo que sale en pantalla, en vez de estar haciendo redirecciones.<p>Tiene un problema y es que los códigos de error no se registran.</p></p>' },
-      { cast:"Cast/tee2.cast",
+      { cast:"cast/tee2.cast",
         exp:'<h3>tee, Pero con errores</h3><p>Si queremos de verdad guardar los errores generados, deberemos de usar redirecciones junto con <code>tee</code></p>' },
-      { cast:"Cast/tee3.cast",
+      { cast:"cast/tee3.cast",
         exp:'<h3>tee, Pero con sudo</h3><p>Estos tipos de ficheros tan delicados y con permisos privilegiados, podemos modificarlo con <code>sudo</code>.<p>Pero no solo eso, si no que para estar aun más seguros de no romperlo, añadiremos el parametro <code>-a</code> que servirá para añadir una línea más al final.</p></p>' }
     ]},
     { nombre:"xargs", resumen:"Argumentos", diapositivas:[
