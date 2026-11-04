@@ -18,8 +18,8 @@
    ===================================================================== */
 const CASTS = {
 
-  // Demostración: colores, un error y un resumen. Bórrala cuando quieras.
-  "demo-ls": String.raw`{"version":2,"width":80,"height":24,"timestamp":1730000000,"env":{"SHELL":"/bin/bash","TERM":"xterm-256color"}}
+  // Demostración (formato v3: los tiempos son intervalos entre eventos). Bórrala cuando quieras.
+  "demo-ls": String.raw`{"version":3,"term":{"cols":80,"rows":24,"type":"xterm-256color"},"timestamp":1730000000,"env":{"SHELL":"/bin/bash"}}
 [0.25,"o","\u001b[01;32musuario@1º-ASIR\u001b[00m:\u001b[01;34m~\u001b[00m$ "]
 [0.9,"o","l"]
 [0.12,"o","s"]

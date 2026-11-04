@@ -738,9 +738,15 @@ async function pintar(){
       const grabacion = await CastPlayer.cargar(dia.cast);
       if (mio !== turno) return;
       await CastPlayer.reproducir(grabacion, p, {
-        velocidad: ajustes.vel ? VEL_DEFECTO / ajustes.vel : 1,      // el control de velocidad del panel también acelera/frena las grabaciones
-        instantaneo: reducido || ajustes.vel === 0,
+        msPorLetra: dia.tiempo === 'real' ? null : ajustes.vel,      // el ajuste "ms por letra" del panel manda sobre el tecleo grabado (tiempo:"real" lo respeta tal cual)
+        instantaneo: reducido || (ajustes.vel === 0 && dia.tiempo !== 'real'),
         maxPausa: dia.maxPausa,
+        // Globos: "cmds" (opcional) = lista de comandos con globo; sin ella se detectan solos tras el prompt
+        comandos: Array.isArray(dia.cmds) ? dia.cmds.map(m => typeof m === 'string' ? m : m.cmd) : null,
+        info: Array.isArray(dia.cmds) && !dia.cmds.length ? null : (texto => {
+          const propio = Array.isArray(dia.cmds) ? dia.cmds.find(m => m && typeof m === 'object' && m.cmd === texto) : null;
+          return infoComando({ cmd: texto, info: propio && propio.info });
+        }),
         vivo: () => mio === turno
       });
     } catch (err){

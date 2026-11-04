@@ -7,7 +7,14 @@
        cast:"casts/ls.cast",        // ... o ruta a un .cast (necesita servidor, ver README)
        maxPausa:0.8,                // opcional: pausa máxima entre salidas, en segundos
        cmds:["ls -l", "ls noexiste"],   // opcional: comandos con globo (ver abajo)
+       tiempo:"real",               // opcional: respeta el tiempo exacto de la grabación (ver abajo)
        exp:'<h3>ls</h3><p>...</p>' }
+
+   VELOCIDAD: el ajuste "ms por letra" del panel de configuración manda sobre el tecleo grabado.
+     Cada tecla escrita se pinta a ese ritmo (24 ms por defecto), tecleara como tecleara la persona.
+     Se conservan el tiempo real de pensar antes de escribir, de esperar tras Enter y de la salida del
+     comando (con un tope de "maxPausa"). En "instantáneo" se ve el resultado final de golpe.
+     Con  tiempo:"real"  la diapositiva ignora el ajuste y se reproduce exactamente como se grabó.
 
    GLOBOS DE AYUDA en las grabaciones (mismos textos que en el resto de la web):
      · Sin "cmds": se detecta solo lo que va tras el "$ " (o "# ") de cada línea y se busca en
@@ -278,11 +285,36 @@
     return cast;
   }
 
+  // ¿Este evento es una tecla escrita? Un solo carácter imprimible, o el borrado de un carácter (retroceso).
+  const esTecla = d => {
+    const a = Array.from(d);
+    return (a.length === 1 && a[0] >= ' ' && a[0] !== '\x7f') || d === '\b \b' || d === '\b\x1b[K' || d === '\x08\x1b[K';
+  };
+
+  // Calcula el instante (en ms) en que se pinta cada evento.
+  //  · msPorLetra definido → las teclas escritas van a ese ritmo, da igual cómo tecleó la persona al grabar.
+  //    La pausa antes de empezar a teclear, la espera tras pulsar Enter y la salida de los comandos conservan
+  //    su tiempo real (recortado a maxPausa).
+  //  · msPorLetra sin definir → todo el tiempo real, multiplicado por "velocidad" (1 = como se grabó).
+  function planificar(cast, opc) {
+    opc = opc || {};
+    const velocidad = opc.velocidad > 0 ? opc.velocidad : 1;
+    const maxPausa = opc.maxPausa > 0 ? opc.maxPausa : (cast.cab.idle > 0 ? cast.cab.idle : 1);
+    const fijo = Number.isFinite(opc.msPorLetra) && opc.msPorLetra >= 0 ? opc.msPorLetra : null;
+    let previo = 0, acum = 0, enRacha = false; const evs = [];
+    for (const e of cast.eventos) {
+      const real = Math.min(Math.max(0, e.t - previo), maxPausa) * 1000 / velocidad; previo = e.t;
+      const tecla = fijo !== null && esTecla(e.d);
+      acum += tecla && enRacha ? fijo : real;           // la 1.ª letra de una racha conserva la pausa real (la persona "piensa")
+      enRacha = tecla;
+      evs.push({ t: acum, d: e.d });
+    }
+    return evs;
+  }
+
   async function reproducir(cast, destino, opc) {
     opc = opc || {};
     const vivo = opc.vivo || (() => true);
-    const velocidad = opc.velocidad > 0 ? opc.velocidad : 1;
-    const maxPausa = opc.maxPausa > 0 ? opc.maxPausa : (cast.cab.idle > 0 ? cast.cab.idle : 1);
     const pan = Pantalla(cast.cab.cols, cast.cab.rows);
     const memo = new Map();                              // el texto del globo de cada comando se calcula una sola vez
     const info = opc.info ? (t => { if (!memo.has(t)) memo.set(t, opc.info(t) || ''); return memo.get(t); }) : null;
@@ -290,9 +322,7 @@
 
     if (opc.instantaneo) { for (const e of cast.eventos) pan.escribir(e.d); pintar(); return; }
 
-    // tiempos finales: pausas largas recortadas y velocidad aplicada
-    let previo = 0, acum = 0; const evs = [];
-    for (const e of cast.eventos) { acum += Math.min(Math.max(0, e.t - previo), maxPausa); previo = e.t; evs.push({ t: acum / velocidad * 1000, d: e.d }); }
+    const evs = planificar(cast, opc);
 
     let ahora = 0; pintar();
     for (const e of evs) {
@@ -308,6 +338,6 @@
     if (vivo()) pintar();
   }
 
-  global.CastPlayer = { parse, Pantalla, cargar, reproducir };
+  global.CastPlayer = { parse, Pantalla, planificar, cargar, reproducir };
   if (typeof module !== 'undefined' && module.exports) module.exports = global.CastPlayer;
 })(typeof window !== 'undefined' ? window : globalThis);
