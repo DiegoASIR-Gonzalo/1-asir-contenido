@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ejercicios de Python</title>
+<style>
+:root{
+  --bg:#040a06; --panel:#07120b; --line:#0f3a20; --g:#39ff7a; --g2:#14b551; --txt:#c9f5d8; --dim:#5f8f71;
+  --glow:0 0 6px #39ff7a, 0 0 18px rgba(57,255,122,.55), 0 0 42px rgba(57,255,122,.25);
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(1200px 600px at 20% -10%,#0a2414 0,transparent 60%),var(--bg);color:var(--txt);
+  font:16px/1.6 "Segoe UI",system-ui,sans-serif;min-height:100vh;padding:56px 20px 90px}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;
+  background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
+main{max-width:860px;margin:0 auto;position:relative}
+.mono{font-family:"JetBrains Mono","Fira Code",Consolas,monospace}
+
+/* tubos fluorescentes */
+.tube{height:3px;border-radius:3px;background:var(--g);box-shadow:var(--glow);
+  animation:flick var(--d,7s) linear var(--w,0s) infinite}
+@keyframes flick{
+  0%,18%,22%,25%,53%,57%,100%{opacity:1;box-shadow:var(--glow)}
+  19%,23%,54%{opacity:.08;box-shadow:none}
+  20%{opacity:.9} 24%{opacity:.25;box-shadow:none}
+  55%{opacity:.5} 56%{opacity:.05;box-shadow:none}
+  78%{opacity:1} 79%{opacity:.12;box-shadow:none} 80%{opacity:.7} 81%{opacity:.1;box-shadow:none} 82%{opacity:1}}
+.tube.dead{animation-name:dying}
+@keyframes dying{0%,100%{opacity:.07;box-shadow:none}4%,6%{opacity:.9;box-shadow:var(--glow)}5%{opacity:.1}40%{opacity:.07}41%{opacity:.6}42%{opacity:.07}}
+
+header{margin-bottom:46px}
+header .tube{width:0;animation:grow 1.4s var(--ease) forwards,flick 9s linear 1.4s infinite}
+@keyframes grow{to{width:100%}}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:300;letter-spacing:.02em;margin:22px 0 6px;color:#eafff1;
+  text-shadow:0 0 22px rgba(57,255,122,.35)}
+header p{color:var(--dim)}
+.cursor{display:inline-block;width:.55em;height:1em;background:var(--g);vertical-align:-.12em;margin-left:4px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* tandas */
+.tanda{position:relative;margin-bottom:22px;background:linear-gradient(180deg,var(--panel),#050d08);
+  border:1px solid var(--line);border-radius:6px;transition:border-color .4s,box-shadow .5s,transform .4s var(--ease)}
+.tanda:hover{border-color:#1b6b3a}
+.tanda.open{border-color:#1e8a4a;box-shadow:0 0 0 1px rgba(57,255,122,.12),0 12px 50px -18px rgba(57,255,122,.35)}
+.tanda>.tube{position:absolute;left:18px;right:18px;top:-2px;height:2px;transform-origin:left;transform:scaleX(.18);
+  transition:transform .7s var(--ease)}
+.tanda.open>.tube{transform:scaleX(1)}
+.thead{all:unset;box-sizing:border-box;display:flex;width:100%;align-items:center;gap:16px;padding:22px 24px;cursor:pointer}
+.thead:focus-visible,.ex-head:focus-visible,.copy:focus-visible{outline:2px solid var(--g);outline-offset:-2px}
+.thead h2{font-size:1.25rem;font-weight:400;flex:1}
+.count{color:var(--dim);font-size:.85rem}
+.chev{width:12px;height:12px;border-right:2px solid var(--g);border-bottom:2px solid var(--g);transform:rotate(-45deg);
+  transition:transform .5s var(--ease);filter:drop-shadow(0 0 4px var(--g))}
+.open>.thead .chev{transform:rotate(45deg)}
+
+.fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .6s var(--ease)}
+.open>.fold{grid-template-rows:1fr}
+.fold>div{overflow:hidden}
+.list{padding:0 18px 18px;display:grid;gap:10px}
+
+/* ejercicios */
+.ex{border:1px solid var(--line);border-radius:4px;background:rgba(2,8,4,.6);opacity:0;transform:translateY(10px);
+  transition:opacity .5s var(--ease),transform .5s var(--ease),border-color .3s,background .3s}
+.open .ex{opacity:1;transform:none;transition-delay:calc(var(--i)*70ms + 150ms)}
+.ex:hover{border-color:#1f7a42}
+.ex.on{border-color:var(--g2);background:rgba(8,28,15,.8)}
+.ex-head{all:unset;box-sizing:border-box;display:flex;width:100%;align-items:center;gap:12px;padding:14px 18px;cursor:pointer}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--line);transition:.4s}
+.ex.on .dot{background:var(--g);box-shadow:var(--glow)}
+.ex-head span{flex:1}
+.ex-head em{font-style:normal;color:var(--dim);font-size:.8rem}
+.body{padding:2px 18px 20px}
+.enun{color:var(--txt);max-width:68ch;padding:4px 0 16px 14px;border-left:2px solid var(--g2);
+  box-shadow:-8px 0 14px -10px var(--g)}
+.code{position:relative;background:#030805;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.code .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--line);
+  color:var(--dim);font-size:.8rem}
+.copy{all:unset;cursor:pointer;color:var(--g);padding:2px 10px;border:1px solid var(--g2);border-radius:3px;transition:.3s}
+.copy:hover{background:var(--g);color:#031007;box-shadow:var(--glow)}
+pre{padding:16px 0;overflow-x:auto;font-size:.9rem;line-height:1.7;counter-reset:l}
+pre .ln{display:block;padding:0 18px 0 0;white-space:pre;opacity:0;transform:translateX(-8px);animation:in .45s var(--ease) forwards;animation-delay:calc(var(--n)*55ms)}
+pre .ln::before{counter-increment:l;content:counter(l);display:inline-block;width:42px;margin-right:14px;text-align:right;color:#2b5a3d}
+@keyframes in{to{opacity:1;transform:none}}
+.k{color:#39ff7a}.s{color:#e9f77a}.c{color:#4d7d60;font-style:italic}.n{color:#7cf0ff}.f{color:#ffb86b}
+.load{padding:22px;color:var(--dim)}
+.load::after{content:"";display:inline-block;width:60px;height:2px;margin-left:10px;vertical-align:middle;background:var(--g);
+  box-shadow:var(--glow);animation:scan 1s ease-in-out infinite}
+@keyframes scan{50%{transform:scaleX(.2);opacity:.3}}
+.err{padding:18px;color:#ff8a8a}
+.check{margin-top:16px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:2px;padding:20px;border:1px dashed var(--g2);border-radius:4px;cursor:pointer;
+  color:var(--dim);text-align:center;transition:.35s var(--ease);position:relative;overflow:hidden}
+.drop b{color:var(--g);font-weight:500}
+.drop:hover,.drop:focus-visible,.drop.over{border-style:solid;background:rgba(57,255,122,.07);box-shadow:inset 0 0 24px rgba(57,255,122,.12),0 0 18px -6px var(--g);outline:none}
+.drop.busy{pointer-events:none;opacity:.6}
+.drop.busy::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:30%;background:var(--g);box-shadow:var(--glow);animation:slide 1s linear infinite}
+@keyframes slide{from{left:-30%}to{left:100%}}
+.res{margin-top:12px}
+.sum{padding:12px 16px;border-radius:4px;border:1px solid;animation:pop .5s var(--ease)}
+.sum.ok{color:var(--g);border-color:var(--g2);background:rgba(57,255,122,.07);text-shadow:0 0 10px rgba(57,255,122,.6)}
+.sum.bad{color:#ff7b7b;border-color:#8a2a2a;background:rgba(255,80,80,.06);animation:pop .5s var(--ease),flick 6s linear 1s infinite}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(6px)}}
+.t{margin-top:8px;border:1px solid var(--line);border-radius:4px;padding:10px 14px;font-size:.85rem;opacity:0;animation:in .45s var(--ease) forwards;animation-delay:calc(var(--n)*90ms + 200ms)}
+.t.f{border-color:#6b2a2a}
+.t h4{font-weight:500;display:flex;gap:10px;align-items:center}
+.t h4 i{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:var(--glow)}
+.t.f h4 i{background:#ff5d5d;box-shadow:0 0 8px #ff5d5d}
+.t .cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.t .cols div{background:#030805;padding:8px 10px;border-radius:3px;white-space:pre-wrap;word-break:break-word;color:var(--txt)}
+.t .cols small{display:block;color:var(--dim);margin-bottom:4px}
+.t .er{margin-top:8px;color:#ff9a9a}
+@media (max-width:560px){.t .cols{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);opacity:0;background:var(--panel);color:var(--g);
+  border:1px solid var(--g2);padding:8px 18px;border-radius:4px;transition:.4s var(--ease);box-shadow:var(--glow);pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin-top:40px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}.tube{opacity:1}pre .ln,.ex{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="tube"></div>
+    <h1>Ejercicios de Python<span class="cursor"></span></h1>
+    <p>Elige una tanda, abre un ejercicio y lee el enunciado antes de ver la solución.</p>
+  </header>
+  <div id="tandas"></div>
+  <footer><div class="tube dead" style="--d:11s;--w:2s"></div></footer>
+</main>
+<div class="toast mono" id="toast">Código copiado</div>
+
+<script>
+/* ====== CONFIGURACIÓN ======
+   Para añadir una tanda o ejercicio, edita esta lista.
+   "archivo" es la ruta del .py en el servidor (relativa a este index.html). */
+const TANDAS = [
+  { titulo: "Tanda de ejercicios 1", ejercicios: [
+    { titulo: "Ejercicio 1 test", resumen: "Entrada y salida",
+      enunciado: "Pide el nombre al usuario con input() y muestra un saludo personalizado usando una f-string. Debe imprimir: Hola, <nombre>. Bienvenido a Python.",
+      pruebas: [["Ana"],["Luis"]], archivo: "ejercicios/listas/1.py" },
+    { titulo: "Ejercicio 2", resumen: "Condicionales",
+      enunciado: "Lee un número entero y di si es par o impar usando el operador módulo (%) y un if/else. Imprime «<n> es par» o «<n> es impar».",
+      pruebas: [["4"],["7"],["0"],["-3"]], archivo: "ejercicios/tanda1/ejercicio2.py" },
+    { titulo: "Ejercicio 3", resumen: "Bucles",
+      enunciado: "Pide un número y muestra su tabla de multiplicar del 1 al 10 con un bucle for. Cada línea con el formato «5 x 1 = 5».",
+      pruebas: [["5"],["12"]], archivo: "ejercicios/tanda1/ejercicio3.py" } ]},
+  { titulo: "Tanda de ejercicios 2", ejercicios: [
+    { titulo: "Ejercicio 1", resumen: "Listas",
+      enunciado: "Recorre una lista de números, calcula la suma y la media, y muestra ambos resultados. Usa la lista [4, 8, 15, 16, 23, 42] e imprime «Suma: …» y «Media: …».",
+      pruebas: [[]], archivo: "ejercicios/tanda2/ejercicio1.py" },
+    { titulo: "Ejercicio 2", resumen: "Funciones y cadenas",
+      enunciado: "Crea una función que indique si un texto es un palíndromo, ignorando mayúsculas, espacios y signos. Imprime «Es palíndromo» o «No es palíndromo».",
+      pruebas: [["Anita lava la tina"],["Hola mundo"],["Ana"]], archivo: "ejercicios/tanda2/ejercicio2.py" } ]}
+];
+
+const $ = (s, r=document) => r.querySelector(s);
+const esc = t => t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const cache = {};
+
+/* resaltado de sintaxis sencillo */
+const KW = "def|return|if|elif|else|for|while|in|import|from|as|class|and|or|not|True|False|None|with|try|except|break|continue|pass|lambda";
+const BI = "print|input|int|float|str|len|range|sum|list|dict|open|enumerate";
+const RX = new RegExp(`(#.*$)|("""[\\s\\S]*?"""|f?"(?:[^"\\\\]|\\\\.)*"|f?'(?:[^'\\\\]|\\\\.)*')|\\b(${KW})\\b|\\b(${BI})\\b(?=\\()|\\b(\\d+(?:\\.\\d+)?)\\b`,"g");
+function resaltar(linea){
+  let out="", last=0, m; RX.lastIndex=0;
+  while((m=RX.exec(linea))){
+    out += esc(linea.slice(last,m.index));
+    const cls = m[1]?"c":m[2]?"s":m[3]?"k":m[4]?"f":"n";
+    out += `<span class="${cls}">${esc(m[0])}</span>`; last = RX.lastIndex;
+  }
+  return out + esc(linea.slice(last));
+}
+function pintar(codigo){
+  const lineas = codigo.replace(/\n$/,"").split("\n");
+  return lineas.map((l,i)=>`<span class="ln" style="--n:${i}">${resaltar(l)||" "}</span>`).join("");
+}
+
+/* construir interfaz */
+const cont = $("#tandas");
+TANDAS.forEach((t,ti)=>{
+  const el = document.createElement("section"); el.className="tanda";
+  const dead = ti%2 ? "dead" : "";
+  el.innerHTML = `
+    <div class="tube ${dead}" style="--d:${6+ti*2.3}s;--w:${ti*1.1}s"></div>
+    <button class="thead" aria-expanded="false"><h2>${t.titulo}</h2>
+      <span class="count mono">${t.ejercicios.length} ejercicios</span><i class="chev"></i></button>
+    <div class="fold"><div><div class="list"></div></div></div>`;
+  const list = $(".list",el);
+  t.ejercicios.forEach((e,i)=>{
+    const ex = document.createElement("article"); ex.className="ex"; ex.style.setProperty("--i",i);
+    ex.innerHTML = `
+      <button class="ex-head" aria-expanded="false"><i class="dot"></i><span>${e.titulo}</span><em class="mono">${e.resumen}</em></button>
+      <div class="fold"><div><div class="body">
+        <p class="enun">${e.enunciado}</p>
+        <div class="code"><div class="bar mono"><span>${e.archivo.split("/").pop()}</span><button class="copy">Copiar</button></div>
+        <pre class="mono"></pre></div>
+        <div class="check"><label class="drop mono" tabindex="0"><input type="file" accept=".py" hidden>
+          <b>Sube tu solución (.py)</b><span>o arrástrala aquí para comprobarla</span></label><div class="res"></div></div>
+      </div></div></div></div>`;
+    $(".ex-head",ex).onclick = () => alternarEjercicio(ex,e,list);
+    iniciarCheck(ex,e);
+    list.appendChild(ex);
+  });
+  $(".thead",el).onclick = () => {
+    const abrir = !el.classList.contains("open");
+    document.querySelectorAll(".tanda.open").forEach(o=>cerrarTanda(o));
+    if(abrir){ el.classList.add("open"); $(".thead",el).setAttribute("aria-expanded","true");
+      setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),250); }
+  };
+  cont.appendChild(el);
+});
+
+function cerrarTanda(t){
+  t.classList.remove("open"); $(".thead",t).setAttribute("aria-expanded","false");
+  t.querySelectorAll(".ex.on").forEach(x=>cerrarEj(x));
+}
+function cerrarEj(ex){
+  ex.classList.remove("on"); $(".ex-head",ex).setAttribute("aria-expanded","false");
+  ex.querySelector(".fold").style.gridTemplateRows="";
+}
+async function alternarEjercicio(ex,e,list){
+  const abrir = !ex.classList.contains("on");
+  list.querySelectorAll(".ex.on").forEach(cerrarEj);          // uno a uno
+  if(!abrir) return;
+  ex.classList.add("on"); $(".ex-head",ex).setAttribute("aria-expanded","true");
+  ex.querySelector(".fold").style.gridTemplateRows="1fr";
+  const pre = $("pre",ex);
+  if(pre.dataset.ok) { pre.innerHTML = pintar(cache[e.archivo]); return; } // repetir animación
+  pre.innerHTML = `<div class="load mono">cargando ${e.archivo.split("/").pop()}</div>`;
+  try{
+    const r = await fetch(e.archivo);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    cache[e.archivo] = await r.text(); pre.dataset.ok = 1;
+    setTimeout(()=>{ pre.innerHTML = pintar(cache[e.archivo]); }, 350);
+  }catch(err){
+    pre.innerHTML = `<div class="err mono">No se pudo cargar ${esc(e.archivo)} (${esc(err.message)}).<br>
+      Abre la página desde un servidor web, no con doble clic en el archivo.</div>`;
+  }
+}
+
+/* ====== VERIFICACIÓN (Pyodide: Python en el navegador) ======
+   Se ejecutan la solución del servidor y la del alumno con las mismas entradas ("pruebas")
+   y se comparan las salidas (sin distinguir mayúsculas ni espacios repetidos).
+   Pon estricto:true en un ejercicio para comparar la salida literal. */
+const RUNNER = `import sys, io, json, traceback
+def ejecutar(codigo, entradas):
+    it = iter(json.loads(entradas)); out = io.StringIO(); pasos = [0]
+    def fake_input(prompt=""):
+        try: return next(it)
+        except StopIteration: raise EOFError("el programa pidió más datos con input() de los previstos")
+    def tracer(frame, ev, arg):
+        pasos[0] += 1
+        if pasos[0] > 400000: raise TimeoutError("el programa no termina (¿bucle infinito?)")
+        return tracer
+    g = {"__name__": "__main__", "input": fake_input}
+    viejo = sys.stdout; sys.stdout = out; err = None
+    try:
+        obj = compile(codigo, "tu_codigo.py", "exec")
+        sys.settrace(tracer)
+        exec(obj, g)
+    except SyntaxError as e:
+        err = f"Error de sintaxis en la línea {e.lineno}: {e.msg}"
+    except BaseException as e:
+        ln = [f.lineno for f in traceback.extract_tb(e.__traceback__) if f.filename == "tu_codigo.py"]
+        err = f"{type(e).__name__}: {e}" + (f" (línea {ln[-1]})" if ln else "")
+    finally:
+        sys.settrace(None); sys.stdout = viejo
+    return json.dumps([out.getvalue(), err])
+`;
+let pyP;
+function cargarPy(msg){
+  return pyP ??= (async()=>{
+    msg("Cargando intérprete de Python (solo la primera vez)");
+    await new Promise((ok,ko)=>{ const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"; s.onload=ok;
+      s.onerror=()=>ko(new Error("No se pudo descargar el intérprete de Python. Comprueba la conexión a internet."));
+      document.head.appendChild(s); });
+    const py = await loadPyodide(); py.runPython(RUNNER); return py;
+  })().catch(e=>{ pyP=null; throw e; });
+}
+const norm=(s,est)=>{ s=s.replace(/\r/g,"").split("\n").map(l=>l.trimEnd()).join("\n").trim(); return est?s:s.toLowerCase().replace(/\s+/g," "); };
+
+function iniciarCheck(ex,e){
+  const drop=$(".drop",ex), inp=$("input",drop);
+  inp.onchange=()=>{ if(inp.files[0]) verificar(ex,e,inp.files[0]); inp.value=""; };
+  drop.onkeydown=k=>{ if(k.key==="Enter"||k.key===" "){ k.preventDefault(); inp.click(); } };
+  ["dragenter","dragover"].forEach(n=>drop.addEventListener(n,v=>{v.preventDefault();drop.classList.add("over");}));
+  ["dragleave","drop"].forEach(n=>drop.addEventListener(n,v=>{v.preventDefault();drop.classList.remove("over");}));
+  drop.addEventListener("drop",v=>{ const f=v.dataTransfer.files[0]; if(f) verificar(ex,e,f); });
+}
+
+async function verificar(ex,e,file){
+  const res=$(".res",ex), drop=$(".drop",ex);
+  const msg=t=>res.innerHTML=`<div class="load mono">${t}</div>`;
+  if(!/\.py$/i.test(file.name)){ res.innerHTML=`<div class="err mono">El archivo debe ser un .py</div>`; return; }
+  drop.classList.add("busy"); msg("Preparando");
+  try{
+    const user=await file.text();
+    if(!cache[e.archivo]) cache[e.archivo]=await (await fetch(e.archivo)).text();
+    const py=await cargarPy(msg); msg("Ejecutando pruebas");
+    await new Promise(r=>setTimeout(r,60));
+    const run=py.globals.get("ejecutar");
+    const filas=(e.pruebas||[[]]).map(inp=>{
+      const [so]=JSON.parse(run(cache[e.archivo],JSON.stringify(inp)));
+      const [uo,ue]=JSON.parse(run(user,JSON.stringify(inp)));
+      return {inp,so,uo,ue,ok:!ue && norm(so,e.estricto)===norm(uo,e.estricto)};
+    });
+    const sint=filas[0].ue&&filas[0].ue.startsWith("Error de sintaxis");
+    const malas=filas.filter(f=>!f.ok).length;
+    let h = malas===0
+      ? `<div class="sum ok mono">Correcto: ${filas.length} de ${filas.length} pruebas superadas (${esc(file.name)})</div>`
+      : `<div class="sum bad mono">${sint?"Tu código no se puede ejecutar":`Fallan ${malas} de ${filas.length} pruebas`} (${esc(file.name)})</div>`;
+    if(sint) h+=`<div class="t f mono" style="--n:0"><div class="er">${esc(filas[0].ue)}</div></div>`;
+    else filas.forEach((f,i)=>{
+      const ent=f.inp.length?f.inp.map(esc).join(" ⏎ "):"(sin entrada)";
+      h+=`<div class="t ${f.ok?"":"f"} mono" style="--n:${i}"><h4><i></i>Prueba ${i+1}: ${f.ok?"correcta":"no coincide"} — entrada: ${ent}</h4>`+
+        (f.ok?"":`<div class="cols"><div><small>Esperado</small>${esc(f.so)||"(vacío)"}</div><div><small>Tu salida</small>${esc(f.uo)||"(vacío)"}</div></div>`+
+        (f.ue?`<div class="er">Error al ejecutar: ${esc(f.ue)}</div>`:""))+`</div>`;
+    });
+    res.innerHTML=h;
+  }catch(err){ res.innerHTML=`<div class="err mono">${esc(err.message)}</div>`; }
+  finally{ drop.classList.remove("busy"); }
+}
+
+/* copiar código */
+document.addEventListener("click",ev=>{
+  const b = ev.target.closest(".copy"); if(!b) return;
+  const txt = $("pre",b.closest(".code")).innerText;
+  navigator.clipboard?.writeText(txt).then(()=>{
+    const t=$("#toast"); t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1400);
+  });
+});
+</script>
+</body>
+</html>
