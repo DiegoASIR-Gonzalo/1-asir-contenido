@@ -522,6 +522,66 @@
       *, .waves use { animation: none !important; transition: none !important; }
       .reveal { opacity: 1; transform: none; }
     }
+
+    /* ---------- VENTANA EMERGENTE (vídeo / página / animación) ---------- */
+    html:has(dialog.viewer[open]) { overflow: hidden; }
+    dialog.viewer {
+      --accent: #5b6cff;
+      margin: auto; width: min(960px, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem);
+      padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 20px;
+      background: var(--surface); color: var(--text); box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    }
+    dialog.viewer[open] { display: flex; flex-direction: column; animation: v-pop .25s cubic-bezier(.22,1,.36,1); }
+    dialog.viewer::backdrop { background: rgba(10,12,20,.55); backdrop-filter: blur(6px); }
+    @keyframes v-pop { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+    .v-head { display: flex; align-items: center; gap: .75rem; padding: .75rem .9rem .75rem 1.2rem; border-bottom: 1px solid var(--border); }
+    .v-head h3 { flex: 1; min-width: 0; font-size: 1rem; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .v-link { font-size: .78rem; font-weight: 600; color: var(--muted); padding: .35rem .75rem; border: 1px solid var(--border); border-radius: 999px; white-space: nowrap; transition: .2s; }
+    .v-link:hover { color: var(--text); border-color: var(--muted); }
+    .v-link[hidden] { display: none; }
+    .v-close {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; line-height: 1;
+    }
+    .v-close:hover { border-color: var(--accent); color: var(--accent); }
+    .v-body { position: relative; flex: 1; min-height: 0; background: var(--bg); }
+    .v-body[data-kind="video"] { aspect-ratio: 16 / 9; flex: none; max-height: calc(100dvh - 6.5rem); background: #000; }
+    .v-body[data-kind="frame"] { height: min(78dvh, 760px); }
+    .v-body[data-kind="anim"]  { overflow: auto; max-height: calc(100dvh - 6.5rem); padding: 1.6rem 1.4rem 1.8rem; }
+    .v-body iframe, .v-body video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+    .v-body[data-kind="frame"] iframe { background: #fff; }
+
+    /* animaciones */
+    .an-hint { color: var(--muted); font-size: .9rem; text-align: center; max-width: 560px; margin: 0 auto 1.2rem; }
+    .an-actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+    .an-btn {
+      font: inherit; font-weight: 600; font-size: .85rem; padding: .55rem 1.1rem; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: .2s;
+    }
+    .an-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .bits { display: grid; grid-template-columns: repeat(8, 1fr); gap: .5rem; max-width: 560px; margin: 0 auto 1.2rem; }
+    .bit { display: grid; gap: .35rem; justify-items: center; font: inherit; color: var(--text); background: none; border: 0; cursor: pointer; }
+    .bit b {
+      width: 100%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 14px;
+      font: 500 clamp(1.1rem, 4vw, 1.6rem) "JetBrains Mono", monospace;
+      border: 1px solid var(--border); background: var(--surface); transition: .2s;
+    }
+    .bit:hover b { border-color: var(--accent); }
+    .bit[aria-pressed="true"] b { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .bit small { color: var(--muted); font: 500 .72rem "JetBrains Mono", monospace; }
+    .an-out { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .8rem; max-width: 560px; margin: 0 auto 1.2rem; }
+    .an-out div { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: .8rem 1rem; }
+    .an-out small { display: block; color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+    .an-out b { font: 500 1.4rem "JetBrains Mono", monospace; }
+    .an-net { width: 100%; max-width: 720px; height: auto; display: block; margin: 0 auto 1rem; }
+    .an-net .wire { stroke: var(--border); stroke-width: 3; stroke-dasharray: 6 6; }
+    .an-net .node rect { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; transition: fill .3s, stroke .3s; }
+    .an-net .node.on rect { stroke: var(--accent); fill: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+    .an-net text { text-anchor: middle; fill: var(--text); font: 600 15px Inter, system-ui, sans-serif; }
+    .an-net .t2 { fill: var(--muted); font-weight: 500; font-size: 12px; }
+    .an-net .pkt rect { fill: var(--accent); }
+    .an-net .pkt text { fill: #fff; font: 600 11px "JetBrains Mono", monospace; }
+    .an-cap { text-align: center; min-height: 3.2em; max-width: 560px; margin: 0 auto 1rem; }
   </style>
 </head>
 <body>
@@ -538,6 +598,7 @@
     <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
     <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></symbol>
   </svg>
 
   <nav>
@@ -697,6 +758,11 @@
             <span class="card-body"><strong>Prácticas</strong><small>Montaje, identificación y diagnóstico de equipos.</small></span>
             <span class="arrow">→</span>
           </a>
+          <a class="card" href="#" data-modal="anim" data-anim="binario" title="Se abre en una ventana">
+            <span class="icon"><svg><use href="#i-play"/></svg></span>
+            <span class="card-body"><strong>Simulador binario</strong><small>Animación interactiva: cambia los bits y mira el decimal y el hexadecimal.</small></span>
+            <span class="arrow">✦</span>
+          </a>
         </div>
         </div>
       </div>
@@ -779,8 +845,33 @@
             <span class="card-body"><strong>Mini·GNS3</strong><small>Pequeña simulación avanzada de GNS3.</small></span>
             <span class="arrow">→</span>
           </a>
+          <a class="card" href="#" data-modal="anim" data-anim="paquete" title="Se abre en una ventana">
+            <span class="icon"><svg><use href="#i-play"/></svg></span>
+            <span class="card-body"><strong>Viaje de un paquete</strong><small>Animación: cómo recorre PC, switch, router y servidor.</small></span>
+            <span class="arrow">✦</span>
+          </a>
+          <!-- EJEMPLOS DE VENTANA EMERGENTE (quita el comentario y cambia los datos):
+
+          Vídeo de YouTube:
+          <a class="card" href="https://www.youtube.com/watch?v=XXXXXXXXXXX" data-modal="video" data-title="Título del vídeo">
+            <span class="icon"><svg><use href="#i-play"/></svg></span>
+            <span class="card-body"><strong>Título</strong><small>Descripción.</small></span>
+            <span class="arrow">▶</span>
+          </a>
+
+          Vídeo propio (mp4, webm u ogg):
+          <a class="card" href="videos/clase1.mp4" data-modal="video"> ...igual que arriba... </a>
+
+          Página HTML o PDF dentro de la ventana, sin salir del HUB:
+          <a class="card" href="pdfs/UD1_BD.pdf" data-modal="frame"> ...igual que arriba... </a>
+
+          Animación JS propia: añade una función dentro de ANIMS (al final del archivo) y usa:
+          <a class="card" href="#" data-modal="anim" data-anim="nombre"> ...igual que arriba... </a>
+          -->
         </div>
         </div>
+      </div>
+      <div class="topic">
         <div class="topic-title">Tema 1 · Introducción a las comunicaciones</div>
         <div class="topic-content">
           <div class="grid">
@@ -949,6 +1040,16 @@
         <button class="btn btn-primary btn-sm" type="submit" id="ex-save">Guardar</button>
       </div>
     </form>
+  </dialog>
+
+  <!-- VENTANA EMERGENTE: vídeo, página/PDF o animación JS -->
+  <dialog class="viewer" id="viewer" aria-labelledby="v-title">
+    <div class="v-head">
+      <h3 id="v-title"></h3>
+      <a class="v-link" id="v-link" href="#" target="_blank" rel="noopener" hidden>Abrir aparte ↗</a>
+      <button class="v-close" id="v-close" type="button" aria-label="Cerrar ventana">✕</button>
+    </div>
+    <div class="v-body" id="v-body"></div>
   </dialog>
 
   <script>
@@ -1190,7 +1291,7 @@
       $('ex-close').addEventListener('click', () => setOpen(false));
       $('ex-scrim').addEventListener('click', () => setOpen(false));
       $('nav-ex').addEventListener('click', (ev) => { ev.preventDefault(); setOpen(!isOpen()); });
-      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && isOpen() && !dlg.open) setOpen(false); });
+      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && isOpen() && !document.querySelector('dialog[open]')) setOpen(false); });
       try { if (localStorage.getItem(LS_OPEN) === '1') setOpen(true, false); } catch {}
 
       /* ---------- navegación al hacer clic en un examen ---------- */
@@ -1460,6 +1561,200 @@
         setInterval(() => { if (!document.hidden) refresh(); }, POLL_MS);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
       }
+    })();
+  </script>
+
+  <script>
+    // ---------- VENTANA EMERGENTE (vídeo / página / animación JS) ----------
+    // Uso: <a class="card" href="..." data-modal="video|frame|anim" ...>
+    //   video -> href (o data-src): YouTube o archivo .mp4/.webm/.ogg
+    //   frame -> href (o data-src): página HTML o PDF dentro de la ventana
+    //   anim  -> data-anim="nombre" (función dentro de ANIMS)
+    // Opcional: data-title="Título". Con Ctrl/Cmd+clic el enlace se abre normal.
+    (() => {
+      const dlg = document.getElementById('viewer');
+      const titleEl = document.getElementById('v-title');
+      const bodyEl = document.getElementById('v-body');
+      const linkEl = document.getElementById('v-link');
+      let cleanup = null;
+
+      const make = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+
+      /* ============ ANIMACIONES JS ============
+         Cada una recibe el contenedor y devuelve (opcional) una función
+         de limpieza que se ejecuta al cerrar la ventana. */
+      const ANIMS = {
+
+        binario(box) {
+          box.innerHTML = `
+            <p class="an-hint">Pulsa cada bit para cambiarlo (0 ↔ 1). Cada posición vale el doble que la de su derecha.</p>
+            <div class="bits"></div>
+            <div class="an-out">
+              <div><small>Decimal</small><b data-o="dec"></b></div>
+              <div><small>Hexadecimal</small><b data-o="hex"></b></div>
+              <div><small>Binario</small><b data-o="bin"></b></div>
+            </div>
+            <div class="an-actions">
+              <button type="button" class="an-btn" data-a="count">▶ Contar</button>
+              <button type="button" class="an-btn" data-a="reset">Reiniciar</button>
+            </div>`;
+          const bitsEl = box.querySelector('.bits');
+          const out = (k) => box.querySelector('[data-o="' + k + '"]');
+          const countBtn = box.querySelector('[data-a="count"]');
+          const btns = [];
+          let n = 0, timer = null;
+
+          for (let i = 7; i >= 0; i--) {
+            const b = make('button', { type: 'button', className: 'bit' });
+            b.innerHTML = '<b></b><small>' + (1 << i) + '</small>';
+            b.addEventListener('click', () => { n ^= (1 << i); render(); });
+            bitsEl.append(b);
+            btns.push([i, b]);
+          }
+          function render() {
+            btns.forEach(([i, b]) => {
+              const on = (n >> i) & 1;
+              b.setAttribute('aria-pressed', on ? 'true' : 'false');
+              b.setAttribute('aria-label', 'Bit de valor ' + (1 << i) + ': ' + on);
+              b.firstChild.textContent = on;
+            });
+            out('dec').textContent = n;
+            out('hex').textContent = '0x' + n.toString(16).toUpperCase().padStart(2, '0');
+            out('bin').textContent = n.toString(2).padStart(8, '0');
+          }
+          const stop = () => { clearInterval(timer); timer = null; countBtn.textContent = '▶ Contar'; };
+          countBtn.addEventListener('click', () => {
+            if (timer) return stop();
+            countBtn.textContent = '⏸ Pausa';
+            timer = setInterval(() => { n = (n + 1) & 255; render(); }, 400);
+          });
+          box.querySelector('[data-a="reset"]').addEventListener('click', () => { stop(); n = 0; render(); });
+          render();
+          return stop;
+        },
+
+        paquete(box) {
+          const N = [
+            { x: 90,  t: 'Aplicacion',       s: 'Origen'  },
+            { x: 270, t: 'Transporte',   s: 'Capa 2'  },
+            { x: 450, t: 'Red',   s: 'Capa 3'  },
+            { x: 630, t: 'Servidor', s: 'Destino' }
+          ];
+          const STEPS = [
+            'Se crea una petición GET.',
+            'Se añade los puertos de origen y destino.',
+            'Se añade al mensaje anterior las direcciones IP de origen y destino.',
+            'El servidor desencapsula la trama y el paquete, y entrega los datos a la aplicación.'
+          ];
+          box.innerHTML = `
+            <svg class="an-net" viewBox="0 0 720 200" role="img" aria-label="Un paquete viaja del PC al servidor pasando por un switch y un router">
+              <line class="wire" x1="90" y1="100" x2="630" y2="100"/>
+              <g class="pkt"><rect x="-22" y="-12" width="44" height="24" rx="7"/><text y="4">PDU</text></g>
+              ${N.map((n, i) => `<g class="node" data-i="${i}"><rect x="${n.x - 52}" y="58" width="104" height="84" rx="16"/><text x="${n.x}" y="96">${n.t}</text><text class="t2" x="${n.x}" y="120">${n.s}</text></g>`).join('')}
+            </svg>
+            <p class="an-cap" aria-live="polite"></p>
+            <div class="an-actions"><button type="button" class="an-btn"></button></div>`;
+
+          const pkt = box.querySelector('.pkt'), cap = box.querySelector('.an-cap'), btn = box.querySelector('.an-btn');
+          const nodes = [...box.querySelectorAll('.node')];
+          const MOVE = 1500, DWELL = 1100, SEG = MOVE + DWELL, START = 1100;
+          const TOTAL = START + 3 * SEG + 1200;
+          let t = 0, last = 0, raf = 0;
+          let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+          function draw(time) {
+            let x = N[0].x, idx = 0;
+            const u = time - START;
+            if (u >= 0) {
+              const seg = Math.min(Math.floor(u / SEG), 2);
+              const p = Math.min((u - seg * SEG) / MOVE, 1);
+              const e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+              x = N[seg].x + (N[seg + 1].x - N[seg].x) * e;
+              idx = p < 1 ? seg : seg + 1;
+            }
+            pkt.setAttribute('transform', 'translate(' + x + ' 100)');
+            nodes.forEach((nd, i) => nd.classList.toggle('on', i === idx));
+            if (cap.dataset.i !== String(idx)) { cap.dataset.i = idx; cap.textContent = STEPS[idx]; }
+          }
+          function frame(now) {
+            if (!last) last = now;
+            t += now - last; last = now;
+            if (t > TOTAL) t = 0;
+            draw(t);
+            raf = requestAnimationFrame(frame);
+          }
+          function setPlaying(on) {
+            playing = on;
+            btn.textContent = on ? '⏸ Pausa' : '▶ Reproducir';
+            cancelAnimationFrame(raf); last = 0;
+            if (on) raf = requestAnimationFrame(frame);
+          }
+          btn.addEventListener('click', () => setPlaying(!playing));
+          draw(0);
+          setPlaying(playing);
+          return () => cancelAnimationFrame(raf);
+        }
+      };
+
+      /* ============ VÍDEO / PÁGINA ============ */
+      const ytEmbed = (url) => {
+        try {
+          const u = new URL(url, location.href);
+          const host = u.hostname.replace(/^www\./, '');
+          let id = null;
+          if (host === 'youtu.be') id = u.pathname.slice(1);
+          else if (host === 'youtube.com' || host === 'youtube-nocookie.com')
+            id = u.pathname.startsWith('/embed/') ? u.pathname.split('/')[2] : u.searchParams.get('v');
+          return id ? 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0' : null;
+        } catch { return null; }
+      };
+      const isVideoFile = (url) => /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+      const iframe = (src, title) => make('iframe', {
+        src, title, loading: 'lazy', allowFullscreen: true,
+        allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen',
+        referrerPolicy: 'strict-origin-when-cross-origin'
+      });
+
+      function reset() {
+        if (cleanup) { try { cleanup(); } catch {} cleanup = null; }
+        bodyEl.replaceChildren();      // al quitar el iframe/vídeo se detiene la reproducción
+      }
+
+      function openViewer(card) {
+        const kind = card.dataset.modal;
+        const title = card.dataset.title || (card.querySelector('strong') || {}).textContent || '';
+        const src = card.dataset.src || card.getAttribute('href') || '';
+        reset();
+        titleEl.textContent = title;
+        dlg.style.setProperty('--accent', getComputedStyle(card).getPropertyValue('--accent').trim() || '#5b6cff');
+        bodyEl.dataset.kind = kind;
+        linkEl.hidden = true;
+
+        if (kind === 'anim') {
+          const fn = ANIMS[card.dataset.anim];
+          if (fn) cleanup = fn(bodyEl) || null;
+          else bodyEl.innerHTML = '<p class="an-hint">No existe la animación «' + (card.dataset.anim || '') + '».</p>';
+        } else {
+          if (kind === 'video' && isVideoFile(src)) {
+            bodyEl.append(make('video', { src, controls: true, autoplay: true, playsInline: true }));
+          } else {
+            bodyEl.append(iframe(kind === 'video' ? (ytEmbed(src) || src) : src, title));
+          }
+          linkEl.href = src;
+          linkEl.hidden = false;
+        }
+        dlg.showModal();
+      }
+
+      document.addEventListener('click', (ev) => {
+        const card = ev.target.closest('.card[data-modal]');
+        if (!card || ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+        ev.preventDefault();
+        openViewer(card);
+      });
+      document.getElementById('v-close').addEventListener('click', () => dlg.close());
+      dlg.addEventListener('click', (ev) => { if (ev.target === dlg) dlg.close(); });
+      dlg.addEventListener('close', reset);
     })();
   </script>
 </body>
