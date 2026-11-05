@@ -346,6 +346,17 @@ const GRUPOS = [
         ],
         exp:'<h3>Ejemplo 2 con wc</h3><p>Es practicamente lo mismo que el primer ejemplo solo que hemos especificado que el canal de entrada es el fichero <code>resultado.txt</code>.</p>' }
     ]}
+]},
+    
+  { titulo:"Expresiones Regulares y complejas", comandos:[
+    { nombre:"Clases", resumen:"Uso de clases", diapositivas:[
+      { cast:"cast/expresiones_regulares/clases1.cast",
+        exp:'<h3>Clases</h3><p>Las clases son como las expresiones regulares, pero en este caso son patrones definidos que representan a un grupo específico de símbolos, letras o números.</p>' },
+      { cast:"cast/expresiones_regulares/clases_blank.cast",
+        exp:'<h3>Tipos de clases | blank</h3><p>La clase <code>[[:blank:]]</code> es practicamente un espacio en blanco (como dice su nombre en ingles).</p>' },
+      { cast:"cast/expresiones_regulares/clases_digit.cast",
+        exp:'<h3>Tipos de clases | digit</h3><p>La clase <code>[[:digit:]]</code> lo ponemos para especificar un dígito.</p>' }  
+    ]}
     
   ]}
 ];
