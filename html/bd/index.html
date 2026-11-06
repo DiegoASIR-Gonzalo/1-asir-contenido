@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pila de consultas SQL</title>
+<style>
+:root{--t:700ms;--w:340px;--ease:cubic-bezier(.22,.9,.25,1)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:14px/1.45 "Lucida Grande","Segoe UI","Helvetica Neue",Arial,sans-serif;color:#2b3949;min-height:100vh}
+#fondo{position:fixed;inset:0;z-index:-2}
+#particulas{position:fixed;inset:0;z-index:-1;pointer-events:none}
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+
+/* ---------- Panel lateral ---------- */
+aside{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:10px;padding:20px 14px 14px;
+  background:linear-gradient(#ffffffc4,#ffffff85);border-right:1px solid #fff;
+  box-shadow:1px 0 0 #0000001f,8px 0 28px #0000001f;backdrop-filter:blur(6px)}
+aside h1{margin:0;font-size:19px;font-weight:700;color:#34475c;text-shadow:0 1px 0 #fff}
+aside .sub{margin:0;color:#6b7c8f;font-size:12.5px;text-shadow:0 1px 0 #fff}
+#filtro{width:100%;padding:7px 13px;border:1px solid #a4b2c1;border-radius:15px;font:inherit;color:inherit;
+  background:#fff;box-shadow:0 2px 4px #00000029 inset,0 1px 0 #fff;outline:none}
+#filtro:focus{border-color:#5b9bd8;box-shadow:0 2px 4px #00000029 inset,0 0 0 3px #5b9bd844}
+#indice{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1}
+#indice li{margin-bottom:2px}
+#indice li.oculto{display:none}
+#indice button{width:100%;display:block;text-align:left;padding:7px 10px;border:1px solid transparent;border-radius:8px;
+  background:none;font:inherit;color:inherit;cursor:pointer}
+#indice button:hover,#indice li.vista button{background:linear-gradient(#fff,#e7edf4);border-color:#c3cfdb}
+#indice li.vista button{box-shadow:inset 3px 0 0 #5b9bd8}
+#indice li.on button{background:linear-gradient(#7db4ee 0,#4a8ad6 50%,#2f6fc0 51%,#4685d0);border-color:#2b64a8;color:#fff;
+  text-shadow:0 -1px 0 #0000004d;box-shadow:inset 0 1px 0 #ffffff88}
+#indice b{font-weight:600}
+#indice small{display:block;margin-left:1.6em;font-size:12px;opacity:.7}
+.ayuda{margin:0;font-size:12px;color:#6b7c8f;text-shadow:0 1px 0 #fff}
+
+/* ---------- Columna ---------- */
+main{padding:48px clamp(24px,6vw,90px) 100px}
+.pila{width:var(--w)}
+.lid,.base{position:relative;z-index:2;height:60px;border-radius:50%}
+.lid{margin-bottom:-30px;display:grid;place-items:center;border:1px solid #98a7b8;
+  background:radial-gradient(ellipse at 50% 30%,#fff 0,#eef3f8 45%,#cbd6e2 100%);
+  box-shadow:0 2px 0 #fff inset,0 4px 8px #0000003a}
+.lid span{font-weight:700;color:#4b5d72;text-shadow:0 1px 0 #fff}
+.base{margin-top:-30px;border:1px solid #6f7f91;background:radial-gradient(ellipse at 50% 25%,#d6dfe9,#98a7b8);
+  box-shadow:0 1px 0 #ffffff99 inset,0 26px 34px -12px #00000070}
+.discs{position:relative;isolation:isolate;display:flex;flex-direction:column;gap:5px;padding:40px 10px}
+.discs::before{content:"";position:absolute;inset:0;z-index:-1;border:1px solid #8f9fb2;border-top:0;border-bottom:0;
+  background:linear-gradient(90deg,#9eaebf,#e9eff5 28%,#f7f9fc 45%,#d3dde8 70%,#9aaabc)}
+.disc{position:relative;height:58px;cursor:pointer;outline:none;transition:transform .28s cubic-bezier(.3,1.5,.5,1)}
+.disc:hover,.disc.sel,.disc:focus-visible{transform:translateX(26px)}
+.disc.out{pointer-events:none;transform:none}
+.disc.apagado .face{filter:grayscale(1) opacity(.45)}
+.face{position:absolute;inset:0;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:12px;
+  border:1px solid #7f90a6;background:linear-gradient(#fff 0,#f2f6fa 49%,#d6dfe9 51%,#eef2f7 100%);
+  box-shadow:0 1px 0 #fff inset,0 -1px 0 #0000001a inset,0 3px 6px #00000038}
+.disc:hover .face,.disc.sel .face,.disc:focus-visible .face{box-shadow:0 1px 0 #fff inset,0 -1px 0 #0000001a inset,0 8px 14px #0000003d,0 0 0 2px #5b9bd899}
+.disc.out .face{background:#0000000f;border-style:dashed;box-shadow:inset 0 3px 6px #0000003d}
+.disc.out .face>*{visibility:hidden}
+.led{flex:none;width:10px;height:10px;border-radius:50%;border:1px solid #4d6f58;
+  background:radial-gradient(circle at 35% 30%,#e6ffe9,#58c26f 55%,#2c8a46);box-shadow:0 0 4px #58c26f99}
+.disc:hover .led,.disc.sel .led{box-shadow:0 0 9px 2px #58c26fcc}
+.tit{flex:1;min-width:0;font-weight:600;color:#33465b;text-shadow:0 1px 0 #fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat{flex:none;font-size:12px;color:#5b6d82;padding:2px 9px;border-radius:10px;border:1px solid #b3c0cf;
+  background:linear-gradient(#f7f9fc,#dfe7f0);text-shadow:0 1px 0 #fff}
+
+/* ---------- Disco abierto ---------- */
+.veil{position:fixed;inset:0;z-index:10;background:#ffffff59;backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity var(--t)}
+.veil.on{opacity:1;pointer-events:auto}
+.card{position:fixed;z-index:20;perspective:1600px;
+  transition:left var(--t) var(--ease),top var(--t) var(--ease),width var(--t) var(--ease),height var(--t) var(--ease)}
+.flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform var(--t) var(--ease)}
+.card.flipped .flip{transform:rotateY(180deg)}
+.cara{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.dorso{transform:rotateY(180deg);display:flex;flex-direction:column;gap:10px;padding:18px 20px;overflow:hidden;
+  border-radius:14px;border:1px solid #7f90a6;background:linear-gradient(#fff,#edf1f6);
+  box-shadow:0 1px 0 #fff inset,0 24px 54px #00000052,0 5px 12px #0003}
+.cab{display:flex;align-items:center;gap:10px}
+.cab h2{flex:1;margin:0;font-size:18px;color:#34475c;text-shadow:0 1px 0 #fff}
+.cerrar{width:26px;height:26px;padding:0;border-radius:50%;line-height:1;font-size:15px}
+.desc{margin:0;color:#56687d}
+pre{flex:1;margin:0;overflow:auto;padding:14px;border-radius:9px;border:1px solid #b9c5d2;background:#f3f6fa;
+  box-shadow:0 2px 5px #00000024 inset;font:13px/1.6 Consolas,"Lucida Console",monospace;color:#2b3949}
+pre i{font-style:normal}.k{color:#1d5fa8;font-weight:700}.s{color:#2f7d32}.n{color:#b45f06}.f{color:#6d3fa0}.c{color:#8a98a8;font-style:italic}
+.pie{display:flex;gap:8px}.pie .btn:first-child{margin-right:auto}
+.btn{padding:6px 15px;border:1px solid #7f93aa;border-radius:15px;font:inherit;color:#2b3949;cursor:pointer;
+  background:linear-gradient(#fff,#e9eef4 50%,#d3dce7 51%,#e6ecf2);text-shadow:0 1px 0 #fff;box-shadow:0 1px 0 #fff inset,0 1px 3px #0003}
+.btn:hover{background:linear-gradient(#fff,#f0f5fa 50%,#dce5ef 51%,#edf2f7)}
+.btn:active{background:linear-gradient(#d3dce7,#e6ecf2);box-shadow:0 2px 4px #0003 inset}
+:focus-visible{outline:2px solid #5b9bd8;outline-offset:2px}
+
+/* ---------- Cambio de base de datos ---------- */
+.bases{display:flex;border-radius:15px;box-shadow:0 1px 3px #0003}
+.segm{flex:1 1 0;min-width:0;margin-left:-1px;padding:6px 4px;border:1px solid #7f93aa;font:inherit;font-size:12.5px;
+  color:#2b3949;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #fff;
+  background:linear-gradient(#fff,#e9eef4 50%,#d3dce7 51%,#e6ecf2)}
+.segm:first-child{margin-left:0;border-radius:15px 0 0 15px}
+.segm:last-child{border-radius:0 15px 15px 0}
+.segm.on{color:#fff;text-shadow:0 -1px 0 #0000004d;box-shadow:inset 0 2px 4px #0003;
+  background:linear-gradient(#7db4ee,#4a8ad6 50%,#2f6fc0 51%,#4685d0)}
+#indice,.lid span{transition:opacity .3s}
+.velado{opacity:0}
+.face{overflow:hidden}
+.led{border-color:hsl(var(--ah,135) 35% 32%);box-shadow:0 0 4px hsl(var(--ah,135) 55% 52% / .6);
+  background:radial-gradient(circle at 35% 30%,hsl(var(--ah,135) 100% 93%),hsl(var(--ah,135) 55% 52%) 55%,hsl(var(--ah,135) 60% 34%))}
+.disc:hover .led,.disc.sel .led{box-shadow:0 0 9px 2px hsl(var(--ah,135) 60% 52% / .8)}
+.discs{transition:padding .6s var(--ease),gap .6s var(--ease)}
+.discs.plano{gap:0;padding-top:2px;padding-bottom:2px}
+.disc{transition:transform .28s cubic-bezier(.3,1.5,.5,1),height .65s cubic-bezier(.34,1.45,.5,1) var(--d,0ms)}
+.disc .face{transition:opacity .3s calc(var(--d,0ms) + 160ms)}
+.disc.plano{height:0;pointer-events:none;transition:transform .28s,height .45s cubic-bezier(.6,0,.9,.4) var(--d,0ms)}
+.disc.plano .face{opacity:0;transition:opacity .2s var(--d,0ms)}
+@keyframes rebote{0%{transform:translateY(-8px)}45%{transform:translateY(3px)}100%{transform:none}}
+.base.rebote{animation:rebote .55s var(--ease)}
+@media (prefers-reduced-motion:reduce){.disc,.discs,.disc .face{transition:none!important}.base.rebote{animation:none}}
+
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto;max-height:40vh}
+  main{padding:34px 16px 90px}
+  .pila{width:min(var(--w),100%)}
+}
+</style>
+</head>
+<body>
+<div id="fondo"></div>
+<canvas id="particulas"></canvas>
+<div class="app">
+  <aside>
+    <h1>Pila de consultas</h1>
+    <p class="sub" id="cuenta"></p>
+    <div class="bases" id="bases" role="group" aria-label="Base de datos"></div>
+    <input id="filtro" type="search" placeholder="Buscar consulta" aria-label="Buscar consulta">
+    <ul id="indice"></ul>
+    <p class="ayuda">Haz clic en un disco para sacarlo y darle la vuelta. Esc para guardarlo.</p>
+  </aside>
+  <main>
+    <div class="pila">
+      <div class="lid"><span id="nombreBase">Base de datos</span></div>
+      <div class="discs plano" id="discos"></div>
+      <div class="base"></div>
+    </div>
+  </main>
+</div>
+<div class="veil" id="veil"></div>
+
+<script src="consultas.js"></script>
+<script>
+(() => {
+  const BASES = window.BASES || (window.CONSULTAS ? [{ nombre: 'Consultas', consultas: window.CONSULTAS }] : []);
+  let D = [], cambiando = false, baseAct = -1;
+  const $ = s => document.querySelector(s);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const T = reduce ? 10 : 700;
+  document.documentElement.style.setProperty('--t', T + 'ms');
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const KW = 'SELECT|FROM|WHERE|AND|OR|NOT|IN|LIKE|ORDER BY|GROUP BY|HAVING|JOIN|INNER|LEFT|RIGHT|ON|AS|ASC|DESC|LIMIT|INSERT INTO|VALUES|UPDATE|SET|DELETE|CREATE TABLE|ALTER TABLE|DROP TABLE|PRIMARY KEY|FOREIGN KEY|REFERENCES|AUTO_INCREMENT|DEFAULT|NULL|DISTINCT|BETWEEN|IS|INT|VARCHAR|DATE|EXISTS|UNION';
+  const RE = new RegExp("(--[^\\n]*)|('(?:[^']|'')*')|\\b(COUNT|SUM|AVG|MIN|MAX|ROUND|NOW|COALESCE|UPPER|LOWER)\\b(?=\\s*\\()|\\b(" + KW + ")\\b|\\b(\\d+(?:\\.\\d+)?)\\b", 'gi');
+  const resaltar = sql => esc(sql).replace(RE, (m,c,s,f,k,n) =>
+    c ? `<i class="c">${c}</i>` : s ? `<i class="s">${s}</i>` : f ? `<i class="f">${f}</i>` :
+    k ? `<i class="k">${k}</i>` : `<i class="n">${n}</i>`);
+
+  /* ---------- Construcción ---------- */
+  const cont = $('#discos'), lista = $('#indice'), lid = $('#nombreBase');
+  let discs = [], items = [];
+  function construir(b, animado) {
+    const base = BASES[b];
+    D = base.consultas || [];
+    cont.innerHTML = ''; lista.innerHTML = ''; discs = []; items = [];
+    $('#filtro').value = '';
+    document.documentElement.style.setProperty('--ah', base.matiz == null ? 135 : base.matiz);
+    lid.textContent = base.nombre;
+    $('#cuenta').textContent = D.length + (D.length === 1 ? ' consulta en la pila' : ' consultas en la pila');
+    if (!D.length) cont.innerHTML = '<p style="padding:20px">No hay consultas. Añade alguna en consultas.js.</p>';
+  D.forEach((q, i) => {
+    const d = document.createElement('div');
+    d.className = animado ? 'disc plano' : 'disc'; d.tabIndex = 0; d.setAttribute('role', 'button');
+    d.setAttribute('aria-label', 'Abrir consulta: ' + q.titulo);
+    d.innerHTML = `<div class="face"><span class="led"></span><span class="tit">${esc(q.titulo)}</span><span class="cat">${esc(q.categoria || '')}</span></div>`;
+    d.onclick = () => abrir(i);
+    d.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(i); } };
+    cont.appendChild(d); discs.push(d);
+
+    const li = document.createElement('li');
+    li.innerHTML = `<button><b>${i + 1}.</b> ${esc(q.titulo)}<small>${esc(q.categoria || '')}</small></button>`;
+    const b = li.firstChild;
+    b.onclick = () => abrir(i);
+    b.onmouseenter = () => d.classList.add('sel');
+    b.onmouseleave = () => d.classList.remove('sel');
+    lista.appendChild(li); items.push(li);
+  });
+    if (io) { io.disconnect(); discs.forEach(d => io.observe(d)); }
+    if (animado) subir();
+    else cambiando = false;
+  }
+
+  /* Los discos crecen de arriba abajo, con un pequeño rebote al asentarse */
+  function subir() {
+    const n = discs.length;
+    discs.forEach((d, i) => d.style.setProperty('--d', (i * 45) + 'ms'));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      cont.classList.remove('plano');
+      discs.forEach(d => d.classList.remove('plano'));
+      lista.classList.remove('velado'); lid.classList.remove('velado');
+      setTimeout(() => {
+        const bs = $('.base');
+        bs.classList.remove('rebote'); void bs.offsetWidth; bs.classList.add('rebote');
+        cambiando = false;
+      }, reduce ? 10 : n * 45 + 650);
+    }));
+  }
+
+  /* Los discos se aplastan de abajo arriba hasta quedar como una sola pieza */
+  function aplanar(cb) {
+    const n = discs.length;
+    discs.forEach((d, i) => d.style.setProperty('--d', ((n - 1 - i) * 30) + 'ms'));
+    cont.classList.add('plano');
+    discs.forEach(d => d.classList.add('plano'));
+    lista.classList.add('velado'); lid.classList.add('velado');
+    setTimeout(cb, reduce ? 10 : n * 30 + 800);
+  }
+
+  $('#filtro').oninput = e => {
+    const v = e.target.value.trim().toLowerCase();
+    D.forEach((q, i) => {
+      const ok = !v || (q.titulo + ' ' + q.categoria + ' ' + q.descripcion + ' ' + q.sql).toLowerCase().includes(v);
+      items[i].classList.toggle('oculto', !ok);
+      discs[i].classList.toggle('apagado', !ok);
+    });
+  };
+
+  /* Marca en el índice el disco que tienes en pantalla */
+  const io = !('IntersectionObserver' in window) ? null : new IntersectionObserver(es => es.forEach(en => {
+    const k = items[discs.indexOf(en.target)];
+    if (k) k.classList.toggle('vista', en.isIntersecting);
+  }), { rootMargin: '-35% 0px -35% 0px' });
+
+  /* ---------- Abrir y cerrar discos ---------- */
+  const veil = $('#veil');
+  let cur = null, busy = false;
+  const place = (el, r) => {
+    el.style.left = r.left + 'px'; el.style.top = r.top + 'px';
+    el.style.width = r.width + 'px'; el.style.height = r.height + 'px';
+  };
+  function destino() {
+    const col = $('.pila').getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
+    let L = col.right + 50, w;
+    if (vw - L - 24 < 440) { w = Math.min(600, vw - 32); L = (vw - w) / 2; }
+    else w = Math.min(600, vw - L - 24);
+    const h = Math.min(vh - 48, 460);
+    return { left: L, top: Math.max(16, (vh - h) / 2), width: w, height: h };
+  }
+  const marcar = i => items.forEach((li, k) => li.classList.toggle('on', k === i));
+
+  function abrir(i, yaVisto) {
+    if (busy || cambiando) return;
+    if (cur) { if (cur.i === i) return cerrar(); return cerrar(() => abrir(i)); }
+    const disc = discs[i];
+    let r = disc.getBoundingClientRect();
+    if (!yaVisto && (r.top < 60 || r.bottom > innerHeight - 20)) {
+      disc.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      busy = true;
+      return setTimeout(() => { busy = false; abrir(i, true); }, reduce ? 20 : 520);
+    }
+    busy = true;
+    const q = D[i];
+    const card = document.createElement('div');
+    card.className = 'card';
+    place(card, r);
+    card.innerHTML = `<div class="flip"><div class="cara frente"></div><div class="cara dorso">
+      <div class="cab"><h2>${esc(q.titulo)}</h2><span class="cat">${esc(q.categoria || '')}</span>
+        <button class="btn cerrar" data-a="x" aria-label="Guardar disco">✕</button></div>
+      <p class="desc">${esc(q.descripcion || '')}</p>
+      <pre><code>${resaltar(q.sql || '')}</code></pre>
+      <div class="pie"><button class="btn" data-a="copiar">Copiar SQL</button>
+        <button class="btn" data-a="ant">Anterior</button><button class="btn" data-a="sig">Siguiente</button></div>
+    </div></div>`;
+    card.querySelector('.frente').appendChild(disc.querySelector('.face').cloneNode(true));
+    card.onclick = e => {
+      const a = e.target.dataset.a; if (!a) return;
+      const n = D.length;
+      if (a === 'x') cerrar();
+      if (a === 'ant') cerrar(() => abrir((i - 1 + n) % n));
+      if (a === 'sig') cerrar(() => abrir((i + 1) % n));
+      if (a === 'copiar') navigator.clipboard && navigator.clipboard.writeText(q.sql).then(() => {
+        e.target.textContent = 'Copiado'; setTimeout(() => e.target.textContent = 'Copiar SQL', 1400);
+      });
+    };
+    document.body.appendChild(card);
+    disc.classList.add('out'); disc.classList.remove('sel');
+    veil.classList.add('on'); marcar(i);
+    card.offsetWidth; /* fuerza el estado inicial antes de animar */
+    place(card, destino());
+    card.classList.add('flipped');
+    cur = { i, card, disc };
+    setTimeout(() => { busy = false; }, T);
+  }
+
+  function cerrar(cb) {
+    if (!cur || busy) return;
+    busy = true;
+    const { card, disc } = cur;
+    card.classList.remove('flipped');
+    veil.classList.remove('on');
+    place(card, disc.getBoundingClientRect());
+    setTimeout(() => {
+      card.remove(); disc.classList.remove('out');
+      cur = null; busy = false; marcar(-1);
+      if (cb) cb();
+    }, T);
+  }
+  veil.onclick = () => cerrar();
+  addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
+  addEventListener('resize', () => { if (cur && !busy) place(cur.card, destino()); });
+
+  /* ---------- Selector de base de datos ---------- */
+  const selector = $('#bases');
+  BASES.forEach((b, k) => {
+    const x = document.createElement('button');
+    x.className = 'segm'; x.textContent = b.nombre; x.title = b.descripcion || '';
+    x.onclick = () => elegir(k);
+    selector.appendChild(x);
+  });
+  const marcarBase = k => [...selector.children].forEach((x, j) => x.classList.toggle('on', j === k));
+
+  function elegir(b) {
+    if (cambiando || busy || b === baseAct || !BASES[b]) return;
+    cambiando = true; marcarBase(b);
+    const ir = () => {
+      if (baseAct < 0) { construir(b, true); baseAct = b; return; }
+      if (scrollY > 20) scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+      aplanar(() => { construir(b, true); baseAct = b; });
+    };
+    cur ? cerrar(ir) : ir();
+  }
+
+  /* ---------- Fondo degradado y partículas ---------- */
+  const fondo = $('#fondo'), cv = $('#particulas'), cx = cv.getContext('2d');
+  let W, H, P = [];
+  const nueva = () => ({
+    x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 3.5,
+    vx: (Math.random() - .5) * .12, vy: -.03 - Math.random() * .1,
+    fase: Math.random() * 6.28, vel: .003 + Math.random() * .008, a: .2 + Math.random() * .4
+  });
+  function medir() {
+    const d = devicePixelRatio || 1;
+    W = innerWidth; H = innerHeight;
+    cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0);
+    const n = Math.round(Math.min(90, W * H / 16000));
+    while (P.length < n) P.push(nueva());
+    P.length = n;
+  }
+  function pintar(mover) {
+    cx.clearRect(0, 0, W, H);
+    for (const p of P) {
+      if (mover) {
+        p.x += p.vx + Math.sin(p.fase * 3) * .05; p.y += p.vy; p.fase += p.vel;
+        if (p.y < -20) p.y = H + 20;
+        if (p.x < -20) p.x = W + 20; else if (p.x > W + 20) p.x = -20;
+      }
+      const al = p.a * Math.pow(Math.max(0, Math.sin(p.fase)), 2);
+      if (al < .01) continue;
+      const g = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.4);
+      g.addColorStop(0, `rgba(255,255,255,${al})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      cx.fillStyle = g; cx.beginPath(); cx.arc(p.x, p.y, p.r * 2.4, 0, 6.283); cx.fill();
+    }
+  }
+  function degradado(t) {
+    const h = (210 + t * 4) % 360, ang = 125 + Math.sin(t / 17) * 40;
+    fondo.style.background = `linear-gradient(${ang}deg,hsl(${h} 62% 86%),hsl(${(h + 55) % 360} 58% 80%) 55%,hsl(${(h + 120) % 360} 55% 88%))`;
+  }
+  medir(); addEventListener('resize', medir);
+  let ult = 0;
+  function bucle(now) {
+    if (now - ult > 50) { ult = now; degradado(now / 1000); }
+    pintar(true);
+    requestAnimationFrame(bucle);
+  }
+  if (reduce) { degradado(0); pintar(false); } else requestAnimationFrame(bucle);
+
+  elegir(0);
+})();
+</script>
+</body>
+</html>
