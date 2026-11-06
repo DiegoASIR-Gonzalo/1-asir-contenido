@@ -113,6 +113,24 @@ pre .ln::before{counter-increment:l;content:counter(l);display:inline-block;widt
 .t .cols small{display:block;color:var(--dim);margin-bottom:4px}
 .t .er{margin-top:8px;color:#ff9a9a}
 @media (max-width:560px){.t .cols{grid-template-columns:1fr}}
+.lab{margin-top:14px;animation:pop .5s var(--ease)}
+.bar2{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.bar2 .fn{margin-left:auto;color:var(--dim);font-size:.8rem}
+.copy:disabled{opacity:.3;cursor:default;pointer-events:none}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.duo h5{font-weight:400;color:var(--dim);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.con{background:#030805;border:1px solid var(--line);border-radius:4px;padding:12px 14px;min-height:150px;max-height:320px;overflow:auto;
+  font-size:.85rem;line-height:1.55;transition:border-color .4s}
+.con:hover{border-color:#1b6b3a}
+.ln2{display:block;white-space:pre-wrap;word-break:break-word;min-height:1.55em;padding-left:8px;border-left:2px solid transparent;animation:in .3s var(--ease)}
+.ln2.dif{background:rgba(255,184,107,.1);border-left-color:#ffb86b}
+.ln2.bad{color:#ff9a9a}.ln2.dim{color:var(--dim)}
+.cur{display:inline-block;width:.6em;height:1em;background:var(--g);box-shadow:var(--glow);vertical-align:-.15em;margin-left:1px;animation:blink 1s steps(2) infinite}
+.inrow{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--g)}
+.entrada{all:unset;box-sizing:border-box;flex:1;padding:8px 12px;background:#030805;border:1px solid var(--line);border-radius:3px;color:var(--txt);transition:.3s}
+.entrada:focus{border-color:var(--g);box-shadow:0 0 14px -4px var(--g)}
+.entrada:disabled{opacity:.35}
+@media (max-width:700px){.duo{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);opacity:0;background:var(--panel);color:var(--g);
   border:1px solid var(--g2);padding:8px 18px;border-radius:4px;transition:.4s var(--ease);box-shadow:var(--glow);pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
@@ -138,22 +156,22 @@ footer{margin-top:40px}
    "archivo" es la ruta del .py en el servidor (relativa a este index.html). */
 const TANDAS = [
   { titulo: "Tanda de ejercicios 1", ejercicios: [
-    { titulo: "Ejercicio 1 test", resumen: "Entrada y salida",
+    { titulo: "Ejercicio 1", resumen: "Entrada y salida",
       enunciado: "Pide el nombre al usuario con input() y muestra un saludo personalizado usando una f-string. Debe imprimir: Hola, <nombre>. Bienvenido a Python.",
-      pruebas: [["Hola", "tio", "que", "tal"],["tio"], ["bro"]], archivo: "ejercicios/listas/1.py" },
+      archivo: "ejercicios/listas/1.py" },
     { titulo: "Ejercicio 2", resumen: "Condicionales",
       enunciado: "Lee un número entero y di si es par o impar usando el operador módulo (%) y un if/else. Imprime «<n> es par» o «<n> es impar».",
-      pruebas: [["4"],["7"],["0"],["-3"]], archivo: "ejercicios/tanda1/ejercicio2.py" },
+      archivo: "ejercicios/listas/2.py" },
     { titulo: "Ejercicio 3", resumen: "Bucles",
       enunciado: "Pide un número y muestra su tabla de multiplicar del 1 al 10 con un bucle for. Cada línea con el formato «5 x 1 = 5».",
-      pruebas: [["5"],["12"]], archivo: "ejercicios/tanda1/ejercicio3.py" } ]},
+      archivo: "ejercicios/listas/3.py" } ]},
   { titulo: "Tanda de ejercicios 2", ejercicios: [
     { titulo: "Ejercicio 1", resumen: "Listas",
       enunciado: "Recorre una lista de números, calcula la suma y la media, y muestra ambos resultados. Usa la lista [4, 8, 15, 16, 23, 42] e imprime «Suma: …» y «Media: …».",
-      pruebas: [[]], archivo: "ejercicios/tanda2/ejercicio1.py" },
+      archivo: "ejercicios/tanda2/ejercicio1.py" },
     { titulo: "Ejercicio 2", resumen: "Funciones y cadenas",
       enunciado: "Crea una función que indique si un texto es un palíndromo, ignorando mayúsculas, espacios y signos. Imprime «Es palíndromo» o «No es palíndromo».",
-      pruebas: [["Anita lava la tina"],["Hola mundo"],["Ana"]], archivo: "ejercicios/tanda2/ejercicio2.py" } ]}
+      archivo: "ejercicios/tanda2/ejercicio2.py" } ]}
 ];
 
 const $ = (s, r=document) => r.querySelector(s);
@@ -198,7 +216,15 @@ TANDAS.forEach((t,ti)=>{
         <div class="code"><div class="bar mono"><span>${e.archivo.split("/").pop()}</span><button class="copy">Copiar</button></div>
         <pre class="mono"></pre></div>
         <div class="check"><label class="drop mono" tabindex="0"><input type="file" accept=".py" hidden>
-          <b>Sube tu solución (.py)</b><span>o arrástrala aquí para comprobarla</span></label><div class="res"></div></div>
+          <b>Sube tu solución (.py)</b><span>o arrástrala aquí para compararla con la original</span></label>
+          <div class="lab" hidden>
+            <div class="bar2 mono"><button class="copy run">▶ Ejecutar ambos</button><button class="copy rst" disabled>Reiniciar</button><span class="fn"></span></div>
+            <div class="duo">
+              <section><h5 class="mono">Solución original</h5><div class="con mono" data-k="sol"></div></section>
+              <section><h5 class="mono">Tu código</h5><div class="con mono" data-k="usr"></div></section>
+            </div>
+            <div class="inrow mono"><span>&gt;</span><input class="entrada" placeholder="Valor para input() en ambos programas · Enter para enviar" disabled><button class="copy send" disabled>Enviar</button></div>
+          </div></div>
       </div></div></div></div>`;
     $(".ex-head",ex).onclick = () => alternarEjercicio(ex,e,list);
     iniciarCheck(ex,e);
@@ -241,26 +267,32 @@ async function alternarEjercicio(ex,e,list){
   }
 }
 
-/* ====== VERIFICACIÓN (Pyodide: Python en el navegador) ======
-   Se ejecutan la solución del servidor y la del alumno con las mismas entradas ("pruebas")
-   y se comparan las salidas (sin distinguir mayúsculas ni espacios repetidos).
-   Pon estricto:true en un ejercicio para comparar la salida literal. */
+/* ====== COMPARADOR LADO A LADO (Pyodide: Python en el navegador) ======
+   Se ejecutan la solución del servidor y el .py subido con las MISMAS entradas, y tú comparas.
+   input() es interactivo: si el programa pide un dato, escríbelo abajo y se envía a ambos.
+   Las líneas distintas se resaltan en naranja (solo es una ayuda visual, no un veredicto). */
 const RUNNER = `import sys, io, json, traceback
+class Espera(BaseException): pass
 def ejecutar(codigo, entradas):
-    it = iter(json.loads(entradas)); out = io.StringIO(); pasos = [0]
+    lst = json.loads(entradas); idx = [0]; out = io.StringIO(); pasos = [0]
     def fake_input(prompt=""):
-        try: return next(it)
-        except StopIteration: raise EOFError("el programa pidió más datos con input() de los previstos")
+        p = str(prompt)
+        if idx[0] < len(lst):
+            v = lst[idx[0]]; idx[0] += 1
+            out.write(p + v + "\\n"); return v
+        out.write(p); raise Espera()
     def tracer(frame, ev, arg):
         pasos[0] += 1
         if pasos[0] > 400000: raise TimeoutError("el programa no termina (¿bucle infinito?)")
         return tracer
     g = {"__name__": "__main__", "input": fake_input}
-    viejo = sys.stdout; sys.stdout = out; err = None
+    viejo = sys.stdout; sys.stdout = out; err = None; espera = False
     try:
         obj = compile(codigo, "tu_codigo.py", "exec")
         sys.settrace(tracer)
         exec(obj, g)
+    except Espera:
+        espera = True
     except SyntaxError as e:
         err = f"Error de sintaxis en la línea {e.lineno}: {e.msg}"
     except BaseException as e:
@@ -268,7 +300,7 @@ def ejecutar(codigo, entradas):
         err = f"{type(e).__name__}: {e}" + (f" (línea {ln[-1]})" if ln else "")
     finally:
         sys.settrace(None); sys.stdout = viejo
-    return json.dumps([out.getvalue(), err])
+    return json.dumps([out.getvalue(), err, espera])
 `;
 let pyP;
 function cargarPy(msg){
@@ -281,48 +313,58 @@ function cargarPy(msg){
     const py = await loadPyodide(); py.runPython(RUNNER); return py;
   })().catch(e=>{ pyP=null; throw e; });
 }
-const norm=(s,est)=>{ s=s.replace(/\r/g,"").split("\n").map(l=>l.trimEnd()).join("\n").trim(); return est?s:s.toLowerCase().replace(/\s+/g," "); };
 
 function iniciarCheck(ex,e){
-  const drop=$(".drop",ex), inp=$("input",drop);
-  inp.onchange=()=>{ if(inp.files[0]) verificar(ex,e,inp.files[0]); inp.value=""; };
-  drop.onkeydown=k=>{ if(k.key==="Enter"||k.key===" "){ k.preventDefault(); inp.click(); } };
+  const drop=$(".drop",ex), fin=$("input",drop), lab=$(".lab",ex), campo=$(".entrada",ex),
+        bSend=$(".send",ex), bRun=$(".run",ex), bRst=$(".rst",ex),
+        con={sol:$('[data-k="sol"]',ex), usr:$('[data-k="usr"]',ex)};
+  const st={usr:null,entradas:[],py:null,ran:false};
+  const aviso=(t,c="dim")=>{ con.sol.innerHTML=con.usr.innerHTML=`<span class="ln2 ${c}">${esc(t)}</span>`; };
+  const estado=esp=>{ campo.disabled=bSend.disabled=!esp; bRst.disabled=!st.ran; if(esp) campo.focus(); };
+
+  async function cargar(file){
+    if(!/\.py$/i.test(file.name)){ lab.hidden=false; aviso("El archivo debe ser un .py","bad"); return; }
+    st.usr=await file.text(); st.entradas=[]; st.ran=false;
+    $(".fn",ex).textContent=file.name; $("b",drop).textContent="Cambiar archivo";
+    lab.hidden=false; aviso("Pulsa «Ejecutar ambos» para empezar."); estado(false);
+  }
+  function pintar(){
+    const run=st.py.globals.get("ejecutar"), res={};
+    for(const k of ["sol","usr"]){
+      const [out,err,esp]=JSON.parse(run(k==="sol"?cache[e.archivo]:st.usr,JSON.stringify(st.entradas)));
+      const L=out.split("\n"); if(!esp && L[L.length-1]==="") L.pop();
+      res[k]={L,err,esp};
+    }
+    for(const k of ["sol","usr"]){
+      const r=res[k], o=res[k==="sol"?"usr":"sol"];
+      let h=r.L.map((t,i)=>{
+        const dif=t.trimEnd()!==(o.L[i]??"\u0000").trimEnd();
+        return `<span class="ln2${dif?" dif":""}">${esc(t)||" "}${r.esp&&i===r.L.length-1?'<i class="cur"></i>':""}</span>`;
+      }).join("");
+      if(r.err) h+=`<span class="ln2 bad">⚠ ${esc(r.err)}</span>`;
+      else if(!r.esp) h+=`<span class="ln2 dim">— fin del programa —</span>`;
+      con[k].innerHTML=h; con[k].scrollTop=con[k].scrollHeight;
+    }
+    estado(res.sol.esp||res.usr.esp);
+  }
+  bRun.onclick=async()=>{
+    bRun.disabled=true;
+    try{
+      if(!cache[e.archivo]) cache[e.archivo]=await (await fetch(e.archivo)).text();
+      st.py=await cargarPy(aviso); st.entradas=[]; st.ran=true; pintar();
+    }catch(err){ aviso(err.message,"bad"); }
+    finally{ bRun.disabled=false; }
+  };
+  const enviar=()=>{ if(campo.disabled) return; st.entradas.push(campo.value); campo.value=""; pintar(); };
+  bSend.onclick=enviar;
+  campo.onkeydown=k=>{ if(k.key==="Enter") enviar(); };
+  bRst.onclick=()=>{ st.entradas=[]; pintar(); };
+
+  fin.onchange=()=>{ if(fin.files[0]) cargar(fin.files[0]); fin.value=""; };
+  drop.onkeydown=k=>{ if(k.key==="Enter"||k.key===" "){ k.preventDefault(); fin.click(); } };
   ["dragenter","dragover"].forEach(n=>drop.addEventListener(n,v=>{v.preventDefault();drop.classList.add("over");}));
   ["dragleave","drop"].forEach(n=>drop.addEventListener(n,v=>{v.preventDefault();drop.classList.remove("over");}));
-  drop.addEventListener("drop",v=>{ const f=v.dataTransfer.files[0]; if(f) verificar(ex,e,f); });
-}
-
-async function verificar(ex,e,file){
-  const res=$(".res",ex), drop=$(".drop",ex);
-  const msg=t=>res.innerHTML=`<div class="load mono">${t}</div>`;
-  if(!/\.py$/i.test(file.name)){ res.innerHTML=`<div class="err mono">El archivo debe ser un .py</div>`; return; }
-  drop.classList.add("busy"); msg("Preparando");
-  try{
-    const user=await file.text();
-    if(!cache[e.archivo]) cache[e.archivo]=await (await fetch(e.archivo)).text();
-    const py=await cargarPy(msg); msg("Ejecutando pruebas");
-    await new Promise(r=>setTimeout(r,60));
-    const run=py.globals.get("ejecutar");
-    const filas=(e.pruebas||[[]]).map(inp=>{
-      const [so]=JSON.parse(run(cache[e.archivo],JSON.stringify(inp)));
-      const [uo,ue]=JSON.parse(run(user,JSON.stringify(inp)));
-      return {inp,so,uo,ue,ok:!ue && norm(so,e.estricto)===norm(uo,e.estricto)};
-    });
-    const sint=filas[0].ue&&filas[0].ue.startsWith("Error de sintaxis");
-    const malas=filas.filter(f=>!f.ok).length;
-    let h = malas===0
-      ? `<div class="sum ok mono">Correcto: ${filas.length} de ${filas.length} pruebas superadas (${esc(file.name)})</div>`
-      : `<div class="sum bad mono">${sint?"Tu código no se puede ejecutar":`Fallan ${malas} de ${filas.length} pruebas`} (${esc(file.name)})</div>`;
-    if(sint) h+=`<div class="t f mono" style="--n:0"><div class="er">${esc(filas[0].ue)}</div></div>`;
-    else filas.forEach((f,i)=>{
-      const ent=f.inp.length?f.inp.map(esc).join(" ⏎ "):"(sin entrada)";
-      h+=`<div class="t ${f.ok?"":"f"} mono" style="--n:${i}"><h4><i></i>Prueba ${i+1}: ${f.ok?"correcta":"no coincide"} — entrada: ${ent}</h4>`+
-        (f.ok?"":`<div class="cols"><div><small>Esperado</small>${esc(f.so)||"(vacío)"}</div><div><small>Tu salida</small>${esc(f.uo)||"(vacío)"}</div></div>`+
-        (f.ue?`<div class="er">Error al ejecutar: ${esc(f.ue)}</div>`:""))+`</div>`;
-    });
-    res.innerHTML=h;
-  }catch(err){ res.innerHTML=`<div class="err mono">${esc(err.message)}</div>`; }
-  finally{ drop.classList.remove("busy"); }
+  drop.addEventListener("drop",v=>{ const f=v.dataTransfer.files[0]; if(f) cargar(f); });
 }
 
 /* copiar código */
