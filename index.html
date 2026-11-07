@@ -945,6 +945,7 @@
     </svg>
     <div class="f-bg"></div>
     HUB del estudio · 1º ASIR
+    <p id="visitas" aria-live="polite"></p>
   </footer>
 
   <!-- PESTAÑA + PANEL LATERAL DE EXÁMENES -->
@@ -1741,6 +1742,20 @@
       dlg.addEventListener('click', (ev) => { if (ev.target === dlg) dlg.close(); });
       dlg.addEventListener('close', reset);
     })();
+  </script>
+  <script id="contador-visitas">
+    fetch('https://countapi.mileshilliard.com/api/v1/hit/diegoasir_gonzalo_1_asir_contenido_hub', { cache: 'no-store' })
+      .then(response => {
+        if (!response.ok) throw new Error('Contador no disponible');
+        return response.json();
+      })
+      .then(data => {
+        const total = Number(data.value);
+        if (Number.isSafeInteger(total) && total >= 0) {
+          document.getElementById('visitas').textContent = `Visitas: ${total.toLocaleString('es-ES')}`;
+        }
+      })
+      .catch(() => {});
   </script>
 </body>
 </html>
