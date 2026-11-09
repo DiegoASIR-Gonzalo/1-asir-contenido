@@ -267,7 +267,10 @@ const GRUPOS = [
           { cmd:"grep --color=auto '∖ ∖+#alias' .bashrc", out:'', info:"Se busca los '#alias' que tengan antes unos cuantos espacios, con '∖+' indicamos que queremos que eso mismo se repita más veecs."},
           { cmd:"grep --color=auto '[ ] ∖+#alias' .bashrc", out:'', info:"Lo mismo que el anterior pero en vez de '∖', lo que usamos son corchetes"},
         ],
-        exp:'<h3>Caracteres que se pueden usar para mejor busqueda</h3><p>Podemos usar diferentes caracteres dentro de lo que queremos buscar:<ul><li><code>^</code> = Comienzo de línea</li><li><code>∖</code> = Línea posterior, como si fueramos a especificar un espacio por ejemplo</li><li><code>$</code> = Indicamos el final de línea</li></ul></p>' }
+        exp:'<h3>Caracteres que se pueden usar para mejor busqueda</h3><p>Podemos usar diferentes caracteres dentro de lo que queremos buscar:<ul><li><code>^</code> = Comienzo de línea</li><li><code>∖</code> = Línea posterior, como si fueramos a especificar un espacio por ejemplo</li><li><code>$</code> = Indicamos el final de línea</li></ul></p>' },
+      { cast:"cast/correo.cast",
+        exp:'<h3>Buscar correo</h3><p>Podemos buscar un correo electronico con la siguiente sintaxis.</p>' },
+
     ]}
   ]},
 
