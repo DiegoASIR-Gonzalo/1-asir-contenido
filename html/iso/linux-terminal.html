@@ -159,7 +159,7 @@
   .contador{color:var(--term-txt);opacity:.7}
 
   /* ===== Botón "Actividades" de la barra superior y su panel lateral ===== */
-  .barra-btn{font:inherit;font-weight:500;color:#fff;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;cursor:pointer;transition:background .2s ease}
+  .barra-btn{font:inherit;font-weight:500;color:#fff;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;cursor:pointer;transition:background .2s ease;text-decoration:none}
   .barra-btn:hover,.barra-btn[aria-expanded="true"]{background:rgba(255,255,255,.14)}
   .act-panel{position:fixed;left:0;top:30px;bottom:0;z-index:15;width:min(310px,88vw);display:flex;flex-direction:column;
     background:var(--lateral);border-right:1px solid rgba(255,255,255,.12);box-shadow:8px 0 28px rgba(0,0,0,.45);
@@ -387,6 +387,7 @@
   <h1 class="sr-only">Terminal Linux: guía de comandos de 1.º ASIR</h1>
   <!-- Botón "Actividades": abre/cierra el panel lateral con las actividades -->
   <button class="barra-btn" id="btn-act" type="button" aria-expanded="false" aria-controls="panel-act">Actividades</button>
+  <a class="barra-btn" href="chuleta.html">Chuleta</a>
   <button class="barra-btn" id="btn-restaurar" type="button" hidden>Mostrar ventana</button>
   <span id="reloj"></span><span>ES ⏻</span>
 </header>

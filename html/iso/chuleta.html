@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chuleta de comandos · 1.º ASIR</title>
+<meta name="description" content="Chuleta de comandos Linux de 1.º ASIR: uso, todos los parámetros del temario y ejemplos. Busca con Ctrl+F.">
+<style>
+  :root{ --tinta:#332d38; --sutil:#6a5d68; --vino:#5a3d7a; --marca:#c34113; --papel:#faf6f1; --caja:#f1ece7; --linea:#e0d7cf; }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font:15px/1.55 "Ubuntu","Segoe UI",system-ui,sans-serif;color:var(--tinta);background:var(--papel)}
+  .cabecera{background:var(--vino);color:#fff;padding:18px 20px 12px}
+  .cabecera a{color:#ffd9c2;font-weight:700;text-decoration:none}
+  .cabecera a:hover{text-decoration:underline}
+  .cabecera h1{margin:6px 0 2px;font-size:24px;letter-spacing:-.02em}
+  .cabecera h1 span{font-weight:400;font-size:15px;opacity:.85}
+  .pista{margin:2px 0 10px;font-size:13.5px;color:#efe6f5}
+  kbd{display:inline-block;padding:1px 6px;border-radius:5px;background:#fff;border:1px solid #b8a89f;border-bottom-width:3px;font:700 12px "Ubuntu Mono",monospace;color:#3a2f3b}
+  .indice{position:sticky;top:0;z-index:5;background:#fffef9;border-bottom:1px solid var(--linea);padding:8px 16px;display:flex;flex-wrap:wrap;gap:2px 10px;box-shadow:0 2px 6px rgba(60,40,70,.08)}
+  .indice a{color:var(--vino);font-size:12.5px;font-weight:700;text-decoration:none;padding:2px 4px;border-radius:5px;font-family:"Ubuntu Mono",monospace}
+  .indice a:hover{background:#f3e9f8;color:var(--marca)}
+  .indice .grupo{color:#a4939e;font-weight:800;font-size:11px;margin:0 2px}
+  main{max-width:920px;margin:0 auto;padding:10px 20px 60px}
+  section.comando{border-bottom:1px solid var(--linea);padding:14px 0 18px;scroll-margin-top:88px}
+  h2{margin:0 0 4px;font-size:21px;letter-spacing:-.015em;color:var(--vino)}
+  h2 code{font:700 20px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--vino)}
+  h2 small{font-weight:400;font-size:13.5px;color:var(--sutil);margin-left:8px}
+  .uso{margin:2px 0 8px;font:14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:var(--caja);display:inline-block;padding:3px 10px;border-radius:7px}
+  ul.flags{margin:4px 0 10px;padding-left:0;list-style:none}
+  ul.flags li{margin:2px 0;padding-left:14px;position:relative}
+  ul.flags li::before{content:"·";position:absolute;left:2px;color:var(--marca);font-weight:800}
+  code{font:13.5px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#eee7e0;padding:1px 5px;border-radius:5px;color:#2a1f2b}
+  ul.flags code{background:none;padding:0}
+  pre{margin:6px 0;background:#f4efe9;border:1px solid var(--linea);border-radius:9px;padding:9px 12px;overflow-x:auto;font:13px/1.6 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#3a2f3b}
+  pre .d{color:#7a3c00;font-weight:700}
+  pre .c{color:#8a7a87}
+  .nota{font-size:13px;color:var(--sutil);margin:6px 0 0}
+  table{border-collapse:collapse;margin:8px 0;font-size:13.5px}
+  th,td{border:1px solid var(--linea);padding:5px 12px;text-align:left}
+  th{background:var(--caja);color:var(--vino)}
+  h3{margin:12px 0 4px;font-size:15px;color:var(--vino)}
+  footer{max-width:920px;margin:0 auto;padding:0 20px 40px;color:var(--sutil);font-size:12.5px}
+  @media print{
+    .indice{position:static}
+    body{background:#fff}
+    section.comando{break-inside:avoid;border-bottom:1px solid #ccc}
+    .cabecera{background:#fff;color:#000}
+    .cabecera a,.pista{color:#000}
+    pre{border:1px solid #999}
+  }
+</style>
+</head>
+<body>
+<header class="cabecera">
+  <p><a href="linux-terminal.html">← Volver a la terminal</a></p>
+  <h1>Chuleta de comandos <span>· Implantación de S.O. · 1.º ASIR</span></h1>
+  <p class="pista">Todo a la vista y en orden alfabético: pulsa <kbd>Ctrl</kbd> + <kbd>F</kbd> y escribe el comando.</p>
+</header>
+<nav class="indice" aria-label="Índice de comandos">
+  <a href="#s-shell">shell</a><a href="#s-redir">redirecciones</a><a href="#s-atajos">atajos</a><span class="grupo">·</span>
+  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#hwclock">hwclock</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#ls">ls</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a>
+</nav>
+<main>
+
+<section class="comando" id="s-shell">
+  <h2>La shell <small>sintaxis: variables, cadenas y bucles</small></h2>
+  <ul class="flags">
+    <li><code>var=valor</code> asigna; <code>$var</code> la usa (sin espacios alrededor de <code>=</code>).</li>
+    <li><code>comando1 ; comando2</code> ejecuta los dos siempre.</li>
+    <li><code>comando1 &amp;&amp; comando2</code> el segundo solo si el primero funcionó.</li>
+    <li><code>comando1 || comando2</code> el segundo solo si el primero falló.</li>
+    <li><code>{a..z}</code> y <code>{1..9}</code> generan listas; <code>fich$i.txt</code> combina bucle y nombre.</li>
+    <li><code>*</code> = todo, <code>?</code> = un carácter, <code>[uo]*</code> = empieza por u o por o.</li>
+    <li><code>&quot;…&quot;</code> respeta <code>$var</code>; <code>'…'</code> no lo expande.</li>
+  </ul>
+  <pre><span class="d">$</span> for i in {a..z}; do touch fich$i.txt; done
+<span class="d">$</span> for i in {A..Z}; do for j in {0..9}; do mv $i$j.txt ../destino/; done; done
+<span class="d">$</span> mkdir prueba &amp;&amp; cp documento.txt prueba/</pre>
+</section>
+
+<section class="comando" id="s-redir">
+  <h2>Redirecciones y tuberías <small>adónde va la salida</small></h2>
+  <ul class="flags">
+    <li><code>&gt;</code> salida a fichero (sobrescribe). <code>&gt;&gt;</code> añade al final.</li>
+    <li><code>2&gt;</code> solo errores. <code>2&gt;&gt;</code> añade errores.</li>
+    <li><code>2&gt;&amp;1</code> errores hacia donde vaya la salida. <code>&amp;&gt;</code> salida+errores juntas.</li>
+    <li><code>&lt;</code> entrada desde fichero. <code>&lt;&lt;FIN</code> here-document hasta la línea <code>FIN</code>.</li>
+    <li><code>/dev/null</code> agujero negro: todo lo que escribas ahí desaparece.</li>
+    <li><code>|</code> tubería: la salida de un comando entra en el siguiente.</li>
+    <li><code>tee fichero</code> muestra por pantalla <em>y</em> guarda en el fichero (<code>-a</code> añade, no sobrescribe).</li>
+  </ul>
+  <pre><span class="d">$</span> ls -l &gt; lista.txt
+<span class="d">$</span> find /noexiste -type d 2&gt; malos
+<span class="d">$</span> who | sort &gt; persona
+<span class="d">$</span> cat &lt;&lt;EOF &gt; mensaje.txt
+hola
+EOF
+<span class="d">$</span> find /etc -type f | tee ficheros.txt | wc -l</pre>
+</section>
+
+<section class="comando" id="7z">
+  <h2>7z <small>empaqueta y comprime (7-Zip)</small></h2>
+  <p class="uso">7z [a|x] [-oCARPETA] fichero.7z [archivos…]</p>
+  <ul class="flags">
+    <li><code>a</code> añadir (comprimir). <code>x</code> extraer conservando la estructura de carpetas.</li>
+    <li><code>-oCARPETA</code> carpeta de destino al extraer (<strong>pegada</strong> a la -o, sin espacio).</li>
+  </ul>
+  <pre><span class="d">$</span> 7z a comprimido.7z documento.txt
+<span class="d">$</span> 7z x comprimido.7z -odescompresion/</pre>
+</section>
+
+<section class="comando" id="alias">
+  <h2>alias / unalias <small>apodos para comandos</small></h2>
+  <p class="uso">alias [nombre='comando'] · unalias nombre</p>
+  <ul class="flags">
+    <li>Sin argumentos lista los alias actuales.</li>
+    <li><code>unalias -a</code> borra todos.</li>
+    <li>Solo dura mientras la terminal esté abierta.</li>
+  </ul>
+  <pre><span class="d">$</span> alias ll='ls -l'
+<span class="d">$</span> ll
+<span class="d">$</span> unalias ll</pre>
+</section>
+
+<section class="comando" id="basename">
+  <h2>basename <small>quita las carpetas a una ruta</small></h2>
+  <p class="uso">basename ruta</p>
+  <pre><span class="d">$</span> basename /etc/hosts
+hosts</pre>
+</section>
+
+<section class="comando" id="bzip2">
+  <h2>bzip2 / bunzip2 <small>comprime ficheros de uno en uno · .bz2</small></h2>
+  <p class="uso">bzip2 [opciones] fichero · bunzip2 fichero.bz2</p>
+  <ul class="flags">
+    <li>Solo ficheros individuales (para carpetas, usa tar).</li>
+    <li><code>-k</code> conserva el fichero original al comprimir.</li>
+    <li><code>-d</code> descomprimir (equivale a usar <code>bunzip2</code>).</li>
+    <li><code>-1</code>…<code>-9</code> nivel de compresión (9 = máxima, más lenta).</li>
+    <li>Comprime más que gzip pero más despacio.</li>
+  </ul>
+  <pre><span class="d">$</span> bzip2 documento.txt        <span class="c"># queda documento.txt.bz2</span>
+<span class="d">$</span> bzip2 -k documento.txt     <span class="c"># lo comprime sin borrar el original</span>
+<span class="d">$</span> bunzip2 documento.txt.bz2</pre>
+</section>
+
+<section class="comando" id="cal">
+  <h2>cal <small>calendario del mes</small></h2>
+  <p class="uso">cal [mes año] · cal -3</p>
+  <ul class="flags">
+    <li>Sin opciones: mes actual.</li>
+    <li><code>-3</code> mes anterior, actual y siguiente.</li>
+    <li><code>cal 10 2026</code> octubre de 2026.</li>
+    <li>Viene del paquete <code>ncal</code>: <code>apt install ncal</code>.</li>
+  </ul>
+</section>
+
+<section class="comando" id="cat">
+  <h2>cat <small>muestra o une ficheros</small></h2>
+  <p class="uso">cat [opciones] fichero…</p>
+  <ul class="flags">
+    <li>Varios ficheros: los pega en orden.</li>
+    <li><code>-n</code> numera las líneas.</li>
+    <li>Sin fichero, repite lo que escribas (Ctrl+D para terminar).</li>
+  </ul>
+  <pre><span class="d">$</span> cat /etc/passwd
+<span class="d">$</span> cat fich1 fich2 &gt; unidos.txt
+<span class="d">$</span> cat enlafich1       <span class="c"># leer a través de un enlace simbólico</span></pre>
+</section>
+
+<section class="comando" id="cd">
+  <h2>cd <small>cambia de carpeta</small></h2>
+  <p class="uso">cd [ruta]</p>
+  <ul class="flags">
+    <li><code>cd ..</code> sube una carpeta. <code>cd</code> o <code>cd ~</code> va a tu home.</li>
+    <li><code>cd -</code> vuelve a la carpeta anterior.</li>
+    <li>Ruta absoluta empieza por <code>/</code>; relativa desde donde estás.</li>
+  </ul>
+  <pre><span class="d">$</span> cd dir3; cd enlacedir1   <span class="c"># entrar por un enlace simbólico</span>
+<span class="d">$</span> cd /usr/bin</pre>
+</section>
+
+<section class="comando" id="chmod">
+  <h2>chmod <small>cambia permisos</small></h2>
+  <p class="uso">chmod [-R] modo fichero…</p>
+  <ul class="flags">
+    <li>Simbólico: <code>quién</code> (<code>u</code> dueño, <code>g</code> grupo, <code>o</code> otros, <code>a</code> todos) + <code>+-=</code> + <code>rwx</code>. Ejemplos: <code>a-w</code>, <code>u+w</code>, <code>u=rwx,go=rx</code>.</li>
+    <li>Octal: 3 cifras, cada una suma 4 (lectura) + 2 (escritura) + 1 (ejecución).</li>
+    <li><code>-R</code> recursivo (a toda la carpeta y sus hijos).</li>
+    <li>En un directorio, la <code>x</code> es «permiso de paso» para atravesarlo.</li>
+  </ul>
+  <pre><span class="d">$</span> chmod 666 fich1
+<span class="d">$</span> chmod a-w dir2
+<span class="d">$</span> chmod u=rwx,go=rx dir2
+<span class="d">$</span> chmod -R 600 privada/</pre>
+</section>
+
+<section class="comando" id="compress">
+  <h2>compress / uncompress <small>compresor antiguo de UNIX · .Z</small></h2>
+  <p class="uso">compress fichero · uncompress fichero.Z</p>
+  <ul class="flags">
+    <li>Solo ficheros individuales. Hoy casi no se usa.</li>
+    <li>En tar: opción <code>-Z</code> → <code>.tar.Z</code>.</li>
+  </ul>
+</section>
+
+<section class="comando" id="cp">
+  <h2>cp <small>copia ficheros</small></h2>
+  <p class="uso">cp [-r] [-i] [-u] origen… destino</p>
+  <ul class="flags">
+    <li><code>-r</code> copia carpetas enteras (recursivo).</li>
+    <li><code>-i</code> pregunta antes de sobrescribir.</li>
+    <li><code>-u</code> solo copia si el origen es más nuevo que el destino.</li>
+    <li><code>--</code> fin de opciones (para ficheros que empiezan por guion).</li>
+  </ul>
+  <pre><span class="d">$</span> cp /bin/u* nuevo1/
+<span class="d">$</span> cp dir1/fich1 dir2/enlace
+<span class="d">$</span> cp -r carpeta1 /backup/</pre>
+</section>
+
+<section class="comando" id="cut">
+  <h2>cut <small>corta campos o columnas de cada línea</small></h2>
+  <p class="uso">cut -d separador -f campos fichero</p>
+  <ul class="flags">
+    <li><code>-d :</code> carácter separador.</li>
+    <li><code>-f 1</code> campo 1; <code>-f 1,7</code> varios; <code>-f 1-3</code> un rango.</li>
+    <li><code>-c 1-10</code> por posición de caracteres.</li>
+  </ul>
+  <pre><span class="d">$</span> cut -d : -f 1 /etc/passwd
+<span class="d">$</span> cut -d : -f 1,7 /etc/passwd
+<span class="d">$</span> cut -d : -f 1 /etc/passwd | wc -l</pre>
+</section>
+
+<section class="comando" id="date">
+  <h2>date <small>fecha y hora</small></h2>
+  <p class="uso">date [+formato] · date -d fecha</p>
+  <ul class="flags">
+    <li><code>+%F</code> 2026-11-11 · <code>+%Y</code> año · <code>+%m</code> mes · <code>+%d</code> día</li>
+    <li><code>+%H</code>·<code>+%M</code>·<code>+%S</code> hora, minutos, segundos</li>
+    <li><code>+%A</code> día de la semana (por extenso) · <code>+%B</code> nombre del mes · <code>%%</code> un % literal</li>
+    <li><code>-d</code> fechas relativas: <code>&quot;tomorrow&quot;</code>, <code>&quot;yesterday&quot;</code>, <code>&quot;next monday&quot;</code>, <code>&quot;2 days ago&quot;</code>, <code>&quot;2026-12-31&quot;</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> date +%F
+<span class="d">$</span> date -d tomorrow +%A
+<span class="d">$</span> date -d &quot;next friday&quot;</pre>
+</section>
+
+<section class="comando" id="dirname">
+  <h2>dirname <small>quita el nombre de fichero a una ruta</small></h2>
+  <p class="uso">dirname ruta</p>
+  <pre><span class="d">$</span> dirname /etc/hosts
+/etc</pre>
+</section>
+
+<section class="comando" id="du">
+  <h2>du <small>cuánto ocupa cada carpeta</small></h2>
+  <p class="uso">du [-h] [-s] [-a] [ruta]</p>
+  <ul class="flags">
+    <li><code>-h</code> legible (K, M, G).</li>
+    <li><code>-s</code> solo el total, sin desglosar.</li>
+    <li><code>-a</code> también los ficheros, no solo carpetas.</li>
+  </ul>
+  <pre><span class="d">$</span> du -h ~
+<span class="d">$</span> du -sh ~/prueba</pre>
+</section>
+
+<section class="comando" id="echo">
+  <h2>echo <small>escribe texto</small></h2>
+  <p class="uso">echo [-e] texto</p>
+  <ul class="flags">
+    <li><code>-e</code> interpreta <code>\n</code> (salto de línea) y <code>\t</code> (tabulador).</li>
+    <li>Con <code>&gt;</code> o <code>&gt;&gt;</code> escribe en un fichero.</li>
+  </ul>
+  <pre><span class="d">$</span> echo &quot;hola&quot; &gt; saludo.txt
+<span class="d">$</span> echo $PWD</pre>
+</section>
+
+<section class="comando" id="file">
+  <h2>file <small>de qué tipo es un fichero</small></h2>
+  <p class="uso">file fichero…</p>
+  <pre><span class="d">$</span> file /home/usuario/.bashrc
+<span class="d">$</span> find / -type f -user usuario -exec file {} +</pre>
+</section>
+
+<section class="comando" id="find">
+  <h2>find <small>busca ficheros y directorios</small></h2>
+  <p class="uso">find ruta [-type t] [-name patrón] [-user usuario] [-empty] [-newermt fecha] [-exec cmd {} \;]</p>
+  <ul class="flags">
+    <li><code>-type f</code> ficheros · <code>-type d</code> directorios.</li>
+    <li><code>-name &quot;*.h&quot;</code> por nombre (con comodines, entre comillas).</li>
+    <li><code>-user root</code> por propietario.</li>
+    <li><code>-empty</code> vacíos. <code>-newermt &quot;yesterday&quot;</code> modificados desde esa fecha.</li>
+    <li><code>-exec comando {} \;</code> ejecuta por cada resultado. <code>{} +</code> agrupa muchos.</li>
+    <li><code>-ls</code> muestra los detalles como <code>ls -l</code>.</li>
+    <li><code>-print0</code> separa con byte nulo → combinar con <code>xargs -0</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> find /usr/bin -type f
+<span class="d">$</span> find / -type f -user root
+<span class="d">$</span> find /usr/include -name &quot;*.h&quot;
+<span class="d">$</span> find . -type f -name &quot;*.jpg&quot; -exec rm -f {} \;
+<span class="d">$</span> find ~ -type d &gt; direc</pre>
+</section>
+
+<section class="comando" id="grep">
+  <h2>grep <small>filtra las líneas que coinciden</small></h2>
+  <p class="uso">grep [-i] [-n] [-v] [-c] patrón [fichero]</p>
+  <ul class="flags">
+    <li><code>-i</code> ignora mayúsculas y minúsculas.</li>
+    <li><code>-n</code> numera las líneas que coinciden. <code>-v</code> las que NO coinciden.</li>
+    <li><code>-c</code> cuenta cuántas coinciden.</li>
+    <li>Patrones: <code>^l</code> empieza por l · <code>x$</code> acaba en x · <code>&quot;ai&quot;</code> contiene ai.</li>
+  </ul>
+  <pre><span class="d">$</span> grep -i &quot;^l&quot; texto
+<span class="d">$</span> grep -i &quot;^l&quot; texto | wc -l
+<span class="d">$</span> grep &quot;/bin/bash&quot; /etc/passwd | wc -l</pre>
+</section>
+
+<section class="comando" id="gzip">
+  <h2>gzip / gunzip <small>comprime ficheros de uno en uno · .gz</small></h2>
+  <p class="uso">gzip [opciones] fichero · gunzip fichero.gz</p>
+  <ul class="flags">
+    <li>Solo ficheros individuales. Para carpetas: <code>tar -czvf</code>.</li>
+    <li><code>-k</code> conserva el original. <code>-d</code> descomprimir (igual que <code>gunzip</code>).</li>
+    <li><code>-1</code>…<code>-9</code> nivel de compresión.</li>
+    <li>Rápido; con ficheros pequeños puede ocupar más que el original.</li>
+  </ul>
+  <pre><span class="d">$</span> gzip documento.txt        <span class="c"># queda documento.txt.gz</span>
+<span class="d">$</span> gzip -k documento.txt
+<span class="d">$</span> gunzip documento.txt.gz
+<span class="d">$</span> tar -czvf copia.tar.gz documentos/</pre>
+</section>
+
+<section class="comando" id="head">
+  <h2>head <small>el principio de un fichero</small></h2>
+  <p class="uso">head [-n N] [fichero]</p>
+  <ul class="flags">
+    <li>Por defecto las primeras 10 líneas.</li>
+    <li><code>-n 3</code> exactamente 3.</li>
+    <li>Contrario: <code>tail</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> head -n 3 /etc/passwd
+<span class="d">$</span> ls | head -n 5</pre>
+</section>
+
+<section class="comando" id="history">
+  <h2>history <small>comandos que has escrito</small></h2>
+  <p class="uso">history [N] · history -c</p>
+  <ul class="flags">
+    <li><code>history 10</code> solo los últimos 10. <code>-c</code> lo borra.</li>
+    <li>Con <code>↑</code> y <code>↓</code> recorres el historial sin comando.</li>
+  </ul>
+</section>
+
+<section class="comando" id="hwclock">
+  <h2>hwclock <small>reloj de la BIOS</small></h2>
+  <p class="uso">hwclock [-r | -w]</p>
+  <ul class="flags">
+    <li>Sin opciones o <code>-r</code>/<code>--show</code>: muestra la hora del hardware.</li>
+    <li><code>-w</code>/<code>--systohc</code>: escribe la hora del sistema en la BIOS.</li>
+  </ul>
+</section>
+
+<section class="comando" id="ln">
+  <h2>ln <small>enlaces duros y simbólicos</small></h2>
+  <p class="uso">ln [-s] destino nombre_enlace</p>
+  <ul class="flags">
+    <li>Sin <code>-s</code>: enlace <strong>duro</strong>, otro nombre para el mismo contenido e inodo. Si borras el original, el enlace sigue funcionando.</li>
+    <li><code>-s</code>: enlace <strong>simbólico</strong>, un acceso directo que guarda la ruta. Si borras el original, queda roto.</li>
+    <li><code>ls -l</code> muestra los simbólicos con <code>l</code> y <code>nombre -&gt; destino</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> ln -s dir1 dir3/enlacedir1
+<span class="d">$</span> ln prueba/dir1/fich1 prueba/dir1/enlace
+<span class="d">$</span> ln -s prueba/dir2/enlace prueba/dir1/enlafich1</pre>
+</section>
+
+<section class="comando" id="locate">
+  <h2>locate / updatedb <small>busca por nombre en la base de datos</small></h2>
+  <p class="uso">locate patrón · updatedb</p>
+  <ul class="flags">
+    <li>Mucho más rápido que find, pero solo ve lo que <code>updatedb</code> haya indexado.</li>
+  </ul>
+  <pre><span class="d">$</span> updatedb
+<span class="d">$</span> locate passwd</pre>
+</section>
+
+<section class="comando" id="ls">
+  <h2>ls <small>lista el contenido</small></h2>
+  <p class="uso">ls [-l] [-a] [-R] [-d] [-h] [-i] [-r] [-t] [-S] [ruta…]</p>
+  <ul class="flags">
+    <li><code>-l</code> formato largo: tipo+permisos, enlaces, dueño, grupo, tamaño, fecha, nombre.</li>
+    <li><code>-a</code> incluye los ocultos (los que empiezan por <code>.</code>).</li>
+    <li><code>-R</code> recursivo (todas las subcarpetas). <code>-d</code> la carpeta en sí, no su contenido.</li>
+    <li><code>-h</code> tamaños legibles. <code>-i</code> número de inodo. <code>-r</code> orden inverso.</li>
+    <li><code>-t</code> por fecha. <code>-S</code> por tamaño.</li>
+    <li>Primera letra del formato largo: <code>d</code> directorio, <code>l</code> enlace, <code>p</code> tubería, <code>-</code> fichero.</li>
+  </ul>
+  <pre><span class="d">$</span> ls -l
+<span class="d">$</span> ls -ld prueba/dir2
+<span class="d">$</span> ls -l /bin/u*
+<span class="d">$</span> ls -l /dev/tt*</pre>
+</section>
+
+<section class="comando" id="mkdir">
+  <h2>mkdir <small>crea carpetas</small></h2>
+  <p class="uso">mkdir [-p] [-m modo] carpeta…</p>
+  <ul class="flags">
+    <li><code>-p</code> crea las carpetas padre si faltan (rutas anidadas de golpe).</li>
+    <li><code>-m 700</code> crea con esos permisos directamente.</li>
+  </ul>
+  <pre><span class="d">$</span> mkdir dir1 dir2 dir3
+<span class="d">$</span> mkdir -p dir1/dir2/dir3
+<span class="d">$</span> mkdir ../correo/menus
+<span class="d">$</span> mkdir -m 700 carpeta1</pre>
+</section>
+
+<section class="comando" id="mkfifo">
+  <h2>mkfifo <small>crea una tubería con nombre</small></h2>
+  <p class="uso">mkfifo [-m modo] nombre…</p>
+  <ul class="flags">
+    <li>Es un fichero especial (<code>p</code> en <code>ls -l</code>) por el que pasan datos de un proceso a otro.</li>
+    <li>Escribes con <code>&gt;</code> y lees con <code>cat</code>; al leerlo se vacía.</li>
+  </ul>
+  <pre><span class="d">$</span> mkfifo tuberia
+<span class="d">$</span> echo hola &gt; tuberia
+<span class="d">$</span> cat tuberia</pre>
+</section>
+
+<section class="comando" id="mv">
+  <h2>mv <small>mueve o renombra</small></h2>
+  <p class="uso">mv [-i] [-u] origen… destino</p>
+  <ul class="flags">
+    <li><code>-i</code> pregunta antes de sobrescribir. <code>-u</code> solo si el origen es más nuevo.</li>
+    <li>Mover a la misma carpeta = renombrar.</li>
+  </ul>
+  <pre><span class="d">$</span> mv fich1 fich2
+<span class="d">$</span> mv fich$i.txt ../destino/fich$i.txt</pre>
+</section>
+
+<section class="comando" id="ncal">
+  <h2>ncal <small>calendario en vertical, con semanas</small></h2>
+  <p class="uso">ncal [mes año] · ncal -w</p>
+  <ul class="flags">
+    <li><code>-w</code> muestra también el número de la semana.</li>
+    <li><code>ncal 10 2026</code> octubre de 2026.</li>
+  </ul>
+</section>
+
+<section class="comando" id="ps">
+  <h2>ps <small>procesos en marcha</small></h2>
+  <p class="uso">ps [opciones]</p>
+  <ul class="flags">
+    <li><code>aux</code> todos los procesos con detalle.</li>
+    <li>Con tuberías: <code>ps | sort -n</code> ordena por PID.</li>
+  </ul>
+</section>
+
+<section class="comando" id="pwd">
+  <h2>pwd <small>en qué carpeta estás</small></h2>
+  <p class="uso">pwd</p>
+  <pre><span class="d">$</span> cd prueba/dir3; pwd
+/home/usuario/prueba/dir3</pre>
+</section>
+
+<section class="comando" id="rar">
+  <h2>rar / unrar <small>formato RAR</small></h2>
+  <p class="uso">rar a fichero.rar [archivos…] · unrar x fichero.rar</p>
+  <ul class="flags">
+    <li><code>a</code> comprimir. <code>x</code> extraer manteniendo estructura.</li>
+    <li>Instalar <code>rar</code> arrastra <code>unrar</code> automáticamente.</li>
+  </ul>
+</section>
+
+<section class="comando" id="readlink">
+  <h2>readlink <small>a dónde apunta un enlace</small></h2>
+  <p class="uso">readlink [-f] enlace</p>
+  <ul class="flags">
+    <li>Sin opciones: la ruta guardada en el enlace.</li>
+    <li><code>-f</code> la ruta completa y resuelta desde la raíz.</li>
+  </ul>
+  <pre><span class="d">$</span> readlink dir3/enlacedir1
+<span class="d">$</span> readlink -f dir3/enlacedir1</pre>
+</section>
+
+<section class="comando" id="rm">
+  <h2>rm <small>borra ficheros</small></h2>
+  <p class="uso">rm [-r] [-i] [-f] fichero…</p>
+  <ul class="flags">
+    <li><code>-r</code> borra carpetas con todo su contenido.</li>
+    <li><code>-i</code> pregunta uno a uno. <code>-f</code> sin preguntar.</li>
+    <li>¡No hay papelera! Lo borrado no se recupera.</li>
+  </ul>
+  <pre><span class="d">$</span> rm -r fich$i.txt
+<span class="d">$</span> rm -r ../fuentes/dir2 ../fuentes/dir3
+<span class="d">$</span> rm prueba/dir1/fich1; cp prueba/dir2/enlace prueba/dir3</pre>
+</section>
+
+<section class="comando" id="rmdir">
+  <h2>rmdir <small>borra carpetas, solo si están vacías</small></h2>
+  <p class="uso">rmdir [-p] carpeta…</p>
+  <pre><span class="d">$</span> rmdir dir1</pre>
+</section>
+
+<section class="comando" id="sort">
+  <h2>sort <small>ordena líneas</small></h2>
+  <p class="uso">sort [-n] [-r] [-k campo] [-t sep] [fichero]</p>
+  <ul class="flags">
+    <li><code>-n</code> numérico. <code>-r</code> inverso (Z→A).</li>
+    <li><code>-k 2</code> ordena por el campo 2. <code>-t :</code> separador para los campos.</li>
+  </ul>
+  <pre><span class="d">$</span> who | sort &gt; persona
+<span class="d">$</span> ps | sort -n
+<span class="d">$</span> sort -t : -k 3 -n /etc/passwd</pre>
+</section>
+
+<section class="comando" id="source">
+  <h2>source / . <small>ejecuta un guion en esta shell</small></h2>
+  <p class="uso">source guion.sh</p>
+  <ul class="flags">
+    <li>A diferencia de <code>bash guion.sh</code>, los cambios (variables, alias) quedan en la terminal actual.</li>
+  </ul>
+</section>
+
+<section class="comando" id="stat">
+  <h2>stat <small>ficha completa de un fichero</small></h2>
+  <p class="uso">stat fichero</p>
+  <ul class="flags">
+    <li>Tamaño, inodo, permisos en octal, fechas de acceso/modificación/cambio.</li>
+  </ul>
+</section>
+
+<section class="comando" id="tail">
+  <h2>tail <small>el final de un fichero</small></h2>
+  <p class="uso">tail [-n N] [-f] [fichero]</p>
+  <ul class="flags">
+    <li>Por defecto las últimas 10 líneas.</li>
+    <li><code>-n 5</code> exactamente las 5 últimas.</li>
+    <li><code>-f fichero</code> lo sigue en vivo, ideal para registros.</li>
+  </ul>
+  <pre><span class="d">$</span> ls | tail -n 5
+<span class="d">$</span> tail -f /var/log/syslog</pre>
+</section>
+
+<section class="comando" id="tar">
+  <h2>tar <small>empaqueta y comprime carpetas enteras</small></h2>
+  <p class="uso">tar [-c|-t|-x] [-v] [-f fichero] [-z|-j|-J|-Z] [-C carpeta] [--exclude=patrón] [archivos…]</p>
+  <ul class="flags">
+    <li><code>-c</code> crear · <code>-t</code> listar contenido sin extraer · <code>-x</code> extraer.</li>
+    <li><code>-v</code> verboso (muestra lo que procesa) · <code>-f</code> nombre del fichero tar.</li>
+    <li><code>-z</code> gzip (<code>.tar.gz</code>) · <code>-j</code> bzip2 (<code>.tar.bz2</code>) · <code>-J</code> xz (<code>.tar.xz</code>) · <code>-Z</code> compress (<code>.tar.Z</code>).</li>
+    <li><code>-r</code> añade ficheros a un tar <strong>sin comprimir</strong>; a un .tar.gz no se puede: primero descomprime, añade y vuelve a comprimir.</li>
+    <li><code>-C carpeta</code> extraer dentro de esa carpeta (hay que crearla antes).</li>
+    <li><code>--exclude='ruta'</code> excluye ficheros al crear (se puede repetir; no elimina lo que ya estaba dentro).</li>
+  </ul>
+  <h3>Crear y listar</h3>
+  <pre><span class="d">$</span> tar -cvf comprimido.tar archivos/          <span class="c"># solo empaqueta</span>
+<span class="d">$</span> tar -czvf copia.tar.gz documentos/          <span class="c"># empaqueta y comprime con gzip</span>
+<span class="d">$</span> tar -tvf comprimido.tar                     <span class="c"># ¿qué hay dentro?</span>
+<span class="d">$</span> tar -tzvf comprimido.tar.gz                 <span class="c"># listar, con detalles</span></pre>
+  <h3>Extraer</h3>
+  <pre><span class="d">$</span> mkdir descompresion
+<span class="d">$</span> tar -xvf comprimido.tar -C descompresion/
+<span class="d">$</span> tar -xzvf comprimido.tar.gz -C descompresion/ archivos/documento1.txt
+<span class="d">$</span> tar -xzvf comprimido.tar.gz -C descompresion/ archivos/documento1.txt archivos/documento2.odt
+<span class="d">$</span> tar -xzvf comprimido.tar.gz -C descompresion/ archivos/   <span class="c"># un directorio completo</span></pre>
+  <h3>Añadir y excluir</h3>
+  <pre><span class="d">$</span> tar -rvf comprimido.tar archivos/nuevo_archivo.txt
+<span class="d">$</span> tar --exclude='archivos/documento3.pdf' -cvf sin_pdf.tar archivos/
+<span class="d">$</span> gunzip comprimido.tar.gz &amp;&amp; tar -rvf comprimido.tar nuevo.txt &amp;&amp; gzip comprimido.tar</pre>
+  <h3>Extensiones según la compresión</h3>
+  <table>
+    <tr><th>Extensión</th><th>Significado</th></tr>
+    <tr><td>.tar</td><td>empaquetado, sin comprimir</td></tr>
+    <tr><td>.tar.gz</td><td>comprimido con gzip (<code>-z</code>)</td></tr>
+    <tr><td>.tar.bz2</td><td>comprimido con bzip2 (<code>-j</code>)</td></tr>
+    <tr><td>.tar.xz</td><td>comprimido con xz (<code>-J</code>)</td></tr>
+    <tr><td>.tar.zst</td><td>comprimido con zstd (<code>--zstd</code>)</td></tr>
+    <tr><td>.tar.Z</td><td>comprimido con compress (<code>-Z</code>)</td></tr>
+  </table>
+  <p class="nota">Solo tar: agrupa, no comprime. Con gzip suele ser el más rápido; xz comprime más en ficheros grandes pero tarda más.</p>
+</section>
+
+<section class="comando" id="tee">
+  <h2>tee <small>pantalla y fichero a la vez</small></h2>
+  <p class="uso">comando | tee [-a] fichero</p>
+  <ul class="flags">
+    <li><code>-a</code> añade al final en vez de sobrescribir.</li>
+  </ul>
+  <pre><span class="d">$</span> find /etc -type f | tee ficheros.txt | wc -l</pre>
+</section>
+
+<section class="comando" id="time">
+  <h2>time <small>cuánto tarda un comando</small></h2>
+  <p class="uso">time comando</p>
+  <pre><span class="d">$</span> time who</pre>
+</section>
+
+<section class="comando" id="touch">
+  <h2>touch <small>crea ficheros vacíos o actualiza su fecha</small></h2>
+  <p class="uso">touch [-d fecha] [-t hora] [-r referencia] fichero…</p>
+  <ul class="flags">
+    <li><code>-d &quot;2026-12-31&quot;</code> pone esa fecha. <code>-t AAAAMMDDhhmm</code>. <code>-r otro</code> copia su fecha.</li>
+    <li><code>--</code> fin de opciones: <code>touch -- -i</code> crea un fichero llamado <code>-i</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> touch fich1 vacio
+<span class="d">$</span> touch fich$i.txt
+<span class="d">$</span> touch -- -i</pre>
+</section>
+
+<section class="comando" id="tree">
+  <h2>tree <small>el árbol de carpetas dibujado</small></h2>
+  <p class="uso">tree [-a] [-L nivel] [ruta]</p>
+  <ul class="flags">
+    <li><code>-L 2</code> solo hasta 2 niveles. <code>-a</code> incluye ocultos.</li>
+  </ul>
+</section>
+
+<section class="comando" id="type">
+  <h2>type <small>qué es un comando</small></h2>
+  <p class="uso">type comando…</p>
+  <ul class="flags">
+    <li>Te dice si es interno del shell, un alias o un programa con su ruta.</li>
+  </ul>
+  <pre><span class="d">$</span> type cd
+cd is a shell builtin</pre>
+</section>
+
+<section class="comando" id="umask">
+  <h2>umask <small>permisos por defecto</small></h2>
+  <p class="uso">umask [máscara]</p>
+  <ul class="flags">
+    <li>Sin opciones muestra la máscara actual (normalmente <code>022</code>).</li>
+    <li>Se resta de 666 en ficheros y de 777 en carpetas: con <code>022</code> → ficheros <code>644</code>, carpetas <code>755</code>.</li>
+    <li>Con <code>077</code> → ficheros <code>600</code>, carpetas <code>700</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> umask 022
+<span class="d">$</span> touch uno; ls -l uno</pre>
+</section>
+
+<section class="comando" id="users">
+  <h2>users / who / whoami <small>¿quién está conectado?</small></h2>
+  <p class="uso">users · who · whoami</p>
+  <ul class="flags">
+    <li><code>whoami</code> tu usuario. <code>who</code> usuarios conectados y su terminal.</li>
+    <li><code>users</code> solo los nombres. <code>users | wc -w</code> cuenta cuántos hay.</li>
+  </ul>
+  <pre><span class="d">$</span> who
+<span class="d">$</span> users | wc -w</pre>
+</section>
+
+<section class="comando" id="wc">
+  <h2>wc <small>cuenta líneas, palabras y bytes</small></h2>
+  <p class="uso">wc [-l] [-w] [-c] [fichero…]</p>
+  <ul class="flags">
+    <li><code>-l</code> líneas · <code>-w</code> palabras · <code>-c</code> bytes.</li>
+  </ul>
+  <pre><span class="d">$</span> cut -d : -f 1 /etc/passwd | wc -l
+<span class="d">$</span> grep -i &quot;^l&quot; texto | wc -l
+<span class="d">$</span> users | wc -w</pre>
+</section>
+
+<section class="comando" id="which">
+  <h2>which / whereis <small>dónde está el comando</small></h2>
+  <p class="uso">which comando · whereis comando</p>
+  <ul class="flags">
+    <li><code>which</code> la ruta del ejecutable. <code>whereis</code> ejecutable + manuales + fuentes.</li>
+  </ul>
+  <pre><span class="d">$</span> which gzip
+/bin/gzip</pre>
+</section>
+
+<section class="comando" id="who">
+  <h2>who <small>usuarios conectados y su terminal</small></h2>
+  <p class="uso">who</p>
+  <ul class="flags">
+    <li>Una línea por sesión: usuario, terminal (tty) y hora de conexión.</li>
+    <li><code>who | sort</code> ordena por hora (campo 3) para guardarlas: <code>who | sort &gt; persona</code>.</li>
+    <li>Relacionados: <code>whoami</code> (tu usuario) y <code>users</code> (solo nombres).</li>
+  </ul>
+  <pre><span class="d">$</span> who
+usuario  tty1  2026-11-11 09:10</pre>
+</section>
+
+<section class="comando" id="xargs">
+  <h2>xargs <small>convierte la entrada en argumentos</small></h2>
+  <p class="uso">comando | xargs [-0] comando</p>
+  <ul class="flags">
+    <li><code>-0</code> para entrada separada con byte nulo (con <code>find -print0</code>).</li>
+  </ul>
+  <pre><span class="d">$</span> cat &lt;&lt;FIN | xargs apt policy
+fin</pre>
+</section>
+
+<section class="comando" id="xz">
+  <h2>xz / unxz <small>compresión máxima · .xz</small></h2>
+  <p class="uso">xz [opciones] fichero · unxz fichero.xz</p>
+  <ul class="flags">
+    <li>Solo ficheros individuales. Ratio altísimo, pero lento.</li>
+    <li><code>-k</code> conserva el original. <code>-d</code> descomprimir. <code>-0</code>…<code>-9</code> nivel.</li>
+    <li>En tar: <code>-J</code> → <code>.tar.xz</code>.</li>
+  </ul>
+  <pre><span class="d">$</span> xz documento.txt
+<span class="d">$</span> unxz documento.txt.xz
+<span class="d">$</span> tar -cJvf copia.tar.xz documentos/</pre>
+</section>
+
+<section class="comando" id="zip">
+  <h2>zip / unzip <small>comprime ficheros y carpetas</small></h2>
+  <p class="uso">zip [-r] fichero.zip [archivos…] · unzip fichero.zip [-d carpeta]</p>
+  <ul class="flags">
+    <li><code>-r</code> recursivo: carpetas y subcarpetas enteras (a diferencia de gzip/bzip2/xz).</li>
+    <li><code>unzip -d carpeta</code> extrae dentro de esa carpeta.</li>
+  </ul>
+  <pre><span class="d">$</span> zip -r comprimido.zip carpeta/
+<span class="d">$</span> unzip comprimido.zip
+<span class="d">$</span> unzip comprimido.zip -d descompresion/</pre>
+</section>
+
+<section class="comando" id="s-atajos">
+  <h2>Atajos de teclado <small>en cualquier Linux</small></h2>
+  <ul class="flags">
+    <li><kbd>Tab</kbd> completa nombres y comandos (doble Tab lista opciones).</li>
+    <li><kbd>↑</kbd> <kbd>↓</kbd> recorren el historial.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>L</kbd> limpia la pantalla (el historial sigue ahí).</li>
+    <li><kbd>Ctrl</kbd>+<kbd>C</kbd> cancela el comando en marcha.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>A</kbd> / <kbd>Ctrl</kbd>+<kbd>E</kbd> cursor al principio / al final.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>U</kbd> borra desde el cursor hasta el principio.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>W</kbd> borra la palabra anterior.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>R</kbd> busca hacia atrás en el historial.</li>
+    <li><kbd>Alt</kbd>+<kbd>.</kbd> inserta el último argumento del comando anterior.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>X</kbd>+<kbd>E</kbd> abre el comando en nano para editarlo.</li>
+  </ul>
+</section>
+
+</main>
+<footer>
+  Chuleta basada en los apuntes de clase: <em>Comandos básicos I</em>, <em>ejercicios</em> (Rafa), <em>Compresores y descompresores</em> y <em>tar</em>. Los ejemplos funcionan en la terminal de la web.
+</footer>
+</body>
+</html>
