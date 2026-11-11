@@ -123,13 +123,13 @@ if cmpf salA3.txt; then c 0.40 "A3 · HOME con ocultos incluidos"; else
   dd salA3.txt; resdif salA3.txt
 fi
 
-esperar "ls $EXAM/documentos/?a??"
+esperar "ls $EXAM/documentos/?a??.txt"
 if [ -f "$S/salA4.txt" ] && diff -q <(base "$TMP/esp") <(base "$S/salA4.txt") >/dev/null 2>&1; then
   c 0.40 "A4 · segunda letra a, nombre de 4 letras"
 else
-  x "A4 · segunda letra a, nombre de 4 letras" "? = exactamente un carácter: ?a??"
+  x "A4 · segunda letra a, nombre de 4 letras" "? = exactamente un carácter: ?a??.txt (casa, mapa, luna, mesa…) — el .txt va literal, sin comodín"
   dd salA4.txt
-  [ -f "$S/salA4.txt" ] && diag "tu salA4.txt empieza por: «$(head -n 1 "$S/salA4.txt" | cut -c1-40)» — ¿es un listado de documentos/ o de otro sitio?"
+  [ -f "$S/salA4.txt" ] && diag "tu salA4.txt empieza por: «$(head -n 1 "$S/salA4.txt" | cut -c1-40)»"
 fi
 
 esperar "ls $EXAM/documentos/t*.txt"
