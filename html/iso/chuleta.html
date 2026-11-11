@@ -35,8 +35,16 @@
   h2{margin:0 0 4px;font-size:21px;letter-spacing:-.015em;color:var(--vino)}
   h2 code{font:700 20px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--vino)}
   h2 small{font-weight:400;font-size:13.5px;color:var(--sutil);margin-left:8px}
-  .ns{display:inline-block;font:700 10px/1.5 "Ubuntu Mono",monospace;letter-spacing:.05em;background:#fdebd2;color:#7a4a00;border:1px solid #e3bd7a;border-radius:6px;padding:1px 7px;vertical-align:3px;margin-left:6px;white-space:nowrap}
-  .uso{margin:2px 0 8px;font:14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:var(--caja);display:inline-block;padding:3px 10px;border-radius:7px}
+  .uso{display:flex;align-items:center;gap:10px;margin:2px 0 8px;font:13.5px/1.6 "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#fffdf8;border:1px solid color-mix(in srgb,var(--cat) 30%,#fff);border-left:4px solid var(--cat);border-radius:8px;padding:6px 12px}
+  .uso::before{content:"USO";flex:none;font:800 10px/1.6 "Ubuntu Mono",monospace;letter-spacing:.12em;color:#fff;background:var(--cat);border-radius:5px;padding:2px 7px}
+  .lede{font-size:15.5px;color:#4a4150;margin:6px 0 10px;max-width:64ch}
+  ul.flags li>code:first-child{background:color-mix(in srgb,var(--cat) 13%,#fff);color:var(--cat);padding:0 7px;border-radius:6px;font-weight:700}
+  ul.flags strong{color:var(--cat)}
+  .term{font-weight:600;border-bottom:2px dotted color-mix(in srgb,var(--cat) 60%,#fff)}
+  mark.oro{background:color-mix(in srgb,var(--cat) 20%,#fff);color:inherit;padding:0 3px;border-radius:4px}
+  .ej .cmd .k{color:#6a3d9a;font-weight:700}
+  .ej .cmd .f{color:#0d7a72}
+  .ej .sal .e{color:#a32020}
   ul.flags{margin:4px 0 10px;padding-left:0;list-style:none}
   ul.flags li{margin:2px 0;padding-left:14px;position:relative}
   ul.flags li::before{content:"·";position:absolute;left:2px;color:var(--cat);font-weight:800}
@@ -103,13 +111,14 @@
     .ej::after{display:none}
     .ej{break-inside:avoid;border:1px solid #999;border-left:4px solid #999}
     .ej .sal{background:#f5f5f5;color:#333}
+    mark.oro{background:#eee}
+    .term{border-bottom-color:#888}
     .letra{color:#999;border-bottom:2px solid #999}
   }
 </style>
 </head>
 <body>
 <header class="cabecera">
-  <p><a href="linux-terminal.html">← Volver a la terminal</a></p>
   <h1>Chuleta de comandos <span>· Implantación de S.O. · 1.º ASIR</span></h1>
   <div class="fila-pista">
     <p class="pista"><kbd>Ctrl</kbd>+<kbd>K</kbd> abre el buscador; <kbd>Ctrl</kbd>+<kbd>F</kbd> busca en el texto. Los chips de color agrupan por familia.</p>
@@ -124,38 +133,50 @@
 
 <section class="comando sh" id="s-shell">
   <h2>La shell <small>sintaxis: variables, cadenas y bucles</small><span class="chip">shell</span></h2>
+  <p class="lede">La shell es la intérprete: lee lo que escribes, expande variables y comodines, y lanza los comandos. Todo lo demás de esta página son herramientas que ella pone en marcha.</p>
   <ul class="flags">
-    <li><code>var=valor</code> asigna; <code>$var</code> la usa (sin espacios alrededor de <code>=</code>).</li>
+    <li><code>var=valor</code> asigna; <code>$var</code> la usa (<mark class="oro">sin espacios alrededor de <code>=</code></mark>).</li>
     <li><code>comando1 ; comando2</code> ejecuta los dos siempre.</li>
     <li><code>comando1 &amp;&amp; comando2</code> el segundo solo si el primero funcionó.</li>
     <li><code>comando1 || comando2</code> el segundo solo si el primero falló.</li>
     <li><code>&quot;…&quot;</code> respeta <code>$var</code>; <code>'…'</code> no lo expande.</li>
-    <li><code>$(comando)</code> sustitución de comandos: mete la salida de un comando dentro de otro. Antiguo: con backticks <code>`comando`</code> (mismo resultado; <code>$(…)</code> se puede anidar y es lo recomendado).</li>
+    <li><code>$(comando)</code> <span class="term">sustitución de comandos</span>: mete la salida de un comando dentro de otro. Antiguo: con backticks <code>`comando`</code> (mismo resultado; <code>$(…)</code> se puede anidar y es lo recomendado).</li>
     <li><code>for i in lista; do …; done</code> bucle (una línea o con saltos; las llaves <code>{ }</code> son opcionales).</li>
     <li><code>history</code> se guarda en <code>~/.bash_history</code> (variable <code>$HISTFILE</code>).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> echo $PWD
-<span class="d">$</span> echo "Tienes $(ls | wc -l) ficheros en $(pwd)"
-<span class="d">$</span> echo "Tienes `ls | wc -l` ficheros en `pwd`"</pre>
-<pre class="sal">/home/usuario/prueba
-Tienes 3 ficheros en /home/usuario/prueba
-Tienes 3 ficheros en /home/usuario/prueba</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> $PWD</pre>
+<pre class="sal">/home/usuario/prueba</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "Tienes $(ls | wc -l) ficheros en $(pwd)"</pre>
+<pre class="sal">Tienes 3 ficheros en /home/usuario/prueba</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "Tienes `ls | wc -l` ficheros en `pwd`"</pre>
+<pre class="sal">Tienes 3 ficheros en /home/usuario/prueba</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> mkdir prueba &amp;&amp; cp documento.txt prueba/
-<span class="d">$</span> apt-get install htop -y || apt-get update</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> prueba &amp;&amp; <span class="k">cp</span> documento.txt prueba/</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> || <span class="k">apt-get</span> update</pre>
 <pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> for i in {A..D}; do for j in {1..2}; do touch $i$j.txt; done; done
-<span class="d">$</span> ls</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">for</span> i in {A..D}; <span class="k">do</span> for j in {1..2}; <span class="k">do</span> touch $i$j.txt; done; <span class="k">done</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span></pre>
 <pre class="sal">A1.txt  A2.txt  B1.txt  B2.txt  C1.txt  C2.txt  D1.txt  D2.txt</pre>
   </div>
 </section>
 
 <section class="comando sh" id="s-comod">
   <h2>Comodines <small>nombres que casan con patrones</small><span class="chip">shell</span></h2>
+  <p class="lede">La shell reescribe los patrones en la lista de ficheros que casan antes de ejecutar nada: por eso un solo rm puede borrar veinte ficheros.</p>
   <ul class="flags">
     <li><code>*</code> cualquier cosa (0, 1 o muchos caracteres) · <code>?</code> exactamente un carácter.</li>
     <li><code>[1-4]</code> un carácter del rango · <code>[uo]</code> u u o · <code>[!ab]</code> o <code>[^ab]</code> cualquiera menos esos.</li>
@@ -164,67 +185,95 @@ Tienes 3 ficheros en /home/usuario/prueba</pre>
     <li>Extendidos (bash con extglob): <code>?(pat)</code> cero o una vez · <code>*(pat)</code> cero o más · <code>+(pat)</code> una o más · <code>@(pat)</code> exactamente uno · <code>!(pat)</code> todo menos eso.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> echo {a..g}
-<span class="d">$</span> echo {a,b}{1,2}
-<span class="d">$</span> echo {old,stable,unstable}-release</pre>
-<pre class="sal">a b c d e f g
-a1 a2 b1 b2
-old-release stable-release unstable-release</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> {a..g}</pre>
+<pre class="sal">a b c d e f g</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> {a,b}{1,2}</pre>
+<pre class="sal">a1 a2 b1 b2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> {old,stable,unstable}-release</pre>
+<pre class="sal">old-release stable-release unstable-release</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls /dev/tty[1-4]
-<span class="d">$</span> ls /dev/tty??          <span class="c"># tty + 2 caracteres = 5 letras en total</span>
-<span class="d">$</span> ls fich[^a-q].txt</pre>
-<pre class="sal">/dev/tty1  /dev/tty2  /dev/tty3  /dev/tty4
-/dev/tty0  /dev/tty1  /dev/tty2  /dev/tty3
-fichr.txt  fichz.txt</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> /dev/tty[1-4]</pre>
+<pre class="sal">/dev/tty1  /dev/tty2  /dev/tty3  /dev/tty4</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> /dev/tty??          <span class="c"># tty + 2 caracteres = 5 letras en total</span></pre>
+<pre class="sal">/dev/tty0  /dev/tty1  /dev/tty2  /dev/tty3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> fich[^a-q].txt</pre>
+<pre class="sal">fichr.txt  fichz.txt</pre>
   </div>
 </section>
 
 <section class="comando sh" id="s-redir">
   <h2>Redirecciones y tuberías <small>adónde va la salida</small><span class="chip">shell</span></h2>
+  <p class="lede">Cada comando tiene dos canales de salida — el normal (1) y el de errores (2) — y uno de entrada (0). Las redirecciones deciden a dónde va cada uno.</p>
   <ul class="flags">
     <li><code>&gt;</code> salida a fichero (sobrescribe). <code>&gt;&gt;</code> añade al final.</li>
     <li><code>2&gt;</code> solo errores. <code>2&gt;&gt;</code> añade errores.</li>
     <li><code>2&gt;&amp;1</code> errores hacia donde vaya la salida (también <code>1&gt;&amp;2</code> al revés). <code>&amp;&gt;</code> / <code>&amp;&gt;&gt;</code> salida+errores juntas.</li>
-    <li><code>&lt;</code> entrada desde fichero (equivale a <code>0&lt;</code>). <code>&lt;&lt;FIN</code> here-document hasta la línea <code>FIN</code>.</li>
+    <li><code>&lt;</code> entrada desde fichero (equivale a <code>0&lt;</code>). <code>&lt;&lt;FIN</code> <span class="term">here-document</span> hasta la línea <code>FIN</code>.</li>
     <li><code>/dev/null</code> agujero negro: lo que escribas ahí desaparece.</li>
     <li><code>|</code> tubería: la salida de un comando entra en el siguiente.</li>
   </ul>
   <div class="caja tip">
     <b>💡 truco de examen</b>
-    <p>El shell interpreta las redirecciones <strong>antes</strong> de ejecutar y <strong>de derecha a izquierda</strong>: en <code>ls &gt; f 2&gt;&amp;1</code> primero manda los errores al mismo sitio que la salida, y todo acaba en <code>f</code>.</p>
+    <p>El shell interpreta las redirecciones <strong>antes</strong> de ejecutar y <mark class="oro"><strong>de derecha a izquierda</strong></mark>: en <code>ls &gt; f 2&gt;&amp;1</code> primero manda los errores al mismo sitio que la salida, y todo acaba en <code>f</code>.</p>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls -l &gt; lista.txt
-<span class="d">$</span> who | sort &gt; persona        <span class="c"># ordenadas por el campo hora</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> &gt; <span class="k">lista.txt</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span>        <span class="c"># ordenadas por el campo hora</span></pre>
 <pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls z* y*
-<span class="d">$</span> ls z* y* 2&gt; errores.log
-<span class="d">$</span> ls z* y* &gt; resulconError.log 2&gt;&amp;1   <span class="c"># = 1&gt; resulconError.log 2&gt;&amp;1</span>
-<span class="d">$</span> ls z* y* &amp;&gt; todo.log</pre>
-<pre class="sal">ls: no se puede acceder a 'z*': No existe el archivo o el directorio
-y1  y2  y3
-y1  y2  y3                          <span class="c"># con 2&gt;errores.log el error va al fichero</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y*</pre>
+<pre class="sal"><span class="e">ls: no se puede acceder a 'z*': No existe el archivo o el directorio</span>
+y1  y2  y3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y* 2&gt; <span class="k">errores.log</span></pre>
+<pre class="sal">y1  y2  y3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y* &gt; <span class="k">resulconError.log</span> 2&gt;&amp;1   <span class="c"># = 1&gt; resulconError.log 2&gt;&amp;1</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y* &amp;&gt; <span class="k">todo.log</span></pre>
+<pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find /noexiste -type d 2&gt; malos
-<span class="d">$</span> cat malos
-<span class="d">$</span> wc -l &lt; resultado.log             <span class="c"># idéntico a: wc -l 0&lt; resultado.log</span></pre>
-<pre class="sal">find: '/noexiste': No existe el archivo o el directorio
-47 resultado.log</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /noexiste <span class="f">-type</span> d 2&gt; <span class="k">malos</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> malos</pre>
+<pre class="sal"><span class="e">find: '/noexiste': No existe el archivo o el directorio</span></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> &lt; <span class="k">resultado.log</span>             <span class="c"># idéntico a: wc -l 0&lt; resultado.log</span></pre>
+<pre class="sal">47 resultado.log</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cat &lt;&lt;EOF &gt; mensaje.txt
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> &lt;&lt;EOF &gt; <span class="k">mensaje.txt</span>
 hola
-EOF
-<span class="d">$</span> cat mensaje.txt</pre>
+EOF</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> mensaje.txt</pre>
 <pre class="sal">hola</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find /etc -type f | tee ficheros.txt | wc -l</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /etc <span class="f">-type</span> f | <span class="k">tee</span> ficheros.txt | <span class="k">wc</span> <span class="f">-l</span></pre>
 <pre class="sal">3481</pre>
   </div>
 </section>
@@ -232,7 +281,7 @@ EOF
 <div class="letra" aria-hidden="true">A</div>
 
 <section class="comando co" id="7z">
-  <h2>7z <small>empaqueta y comprime (7-Zip)</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>7z <small>empaqueta y comprime (7-Zip)</small><span class="chip">compresión</span></h2>
   <p class="uso">7z [a|x] [-oCARPETA] fichero.7z [archivos…]</p>
   <ul class="flags">
     <li><code>a</code> añadir (comprimir). <code>x</code> extraer conservando la estructura de carpetas.</li>
@@ -240,12 +289,14 @@ EOF
     <li>Versiones reducidas: <code>7za</code> y <code>7zr</code> (solo .7z, menos formatos).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> 7z a comprimido.7z documento.txt
-<span class="d">$</span> 7z x comprimido.7z -odescompresion/</pre>
+<pre class="cmd"><span class="d">$</span> 7z a comprimido.7z documento.txt</pre>
 <pre class="sal">Scanning the drive: 1 file, 42 bytes (1 KiB)
 Creating archive: comprimido.7z
-Everything is Ok (1 file)
-descompresion/documento.txt</pre>
+Everything is Ok (1 file)</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> 7z x comprimido.7z <span class="f">-odescompresion/</span></pre>
+<pre class="sal">descompresion/documento.txt</pre>
   </div>
 </section>
 
@@ -256,61 +307,75 @@ descompresion/documento.txt</pre>
     <li>Sin argumentos lista los alias actuales.</li>
     <li><code>unalias nombre</code> borra uno; <code>unalias -a</code> borra todos.</li>
     <li>Solo dura mientras la terminal esté abierta: para que sea <strong>persistente</strong>, escribe la línea <code>alias …</code> en <code>~/.bashrc</code>.</li>
-    <li>El alias se interpreta <strong>antes</strong> que el binario: con <code>alias nano='nano -l'</code>, escribir <code>nano</code> ejecuta <code>nano -l</code>.</li>
+    <li>El alias se interpreta <mark class="oro"><strong>antes</strong> que el binario</mark>: con <code>alias nano='nano -l'</code>, escribir <code>nano</code> ejecuta <code>nano -l</code>.</li>
   </ul>
   <div class="caja tip">
     <b>💡 truco de examen</b>
     <p>Para invocar al binario y saltarte el alias: <code>\nano</code> (barra invertida delante). Caen seguro: <code>type nano</code> → <code>nano es `nano -l'</code>.</p>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> alias nano='nano -l'
-<span class="d">$</span> type nano</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">alias</span> nano='nano -l'</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">type</span> nano</pre>
 <pre class="sal">nano es `nano -l'</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> alias up="sudo apt update" ug="sudo apt update -y &amp;&amp; sudo apt upgrade -y"
-<span class="d">$</span> unalias nano
-<span class="d">$</span> \nano        <span class="c"># el binario de verdad, sin el alias</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">alias</span> up="sudo apt update" ug="sudo apt update -y &amp;&amp; sudo apt upgrade -y"</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">unalias</span> nano</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> \nano        <span class="c"># el binario de verdad, sin el alias</span></pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
 
 <section class="comando ap" id="apt">
-  <h2>apt <small>paquetes: instalar, actualizar, limpiar</small><span class="chip">paquetes</span><span class="ns">fuera del simulador</span></h2>
+  <h2>apt <small>paquetes: instalar, actualizar, limpiar</small><span class="chip">paquetes</span></h2>
   <p class="uso">apt update · apt install [-y] paquete · apt remove paquete · apt search texto · apt policy paquete · apt-get clean</p>
   <ul class="flags">
     <li><code>apt update</code> actualiza el índice de los repositorios (no instala nada). <code>apt upgrade</code> instala lo nuevo.</li>
     <li><code>apt install -y ncal</code> instala sin preguntar. <code>apt remove</code> desinstala. <code>apt search cadena</code> busca paquetes.</li>
     <li><code>apt policy ncal</code>: qué versión está instalada y cuál es la candidata.</li>
     <li><code>apt-get</code> es el clásico para guiones (misma sintaxis); <code>apt-get clean</code> borra los .deb descargados de <code>/var/cache/apt/archives</code>.</li>
-    <li>Repos en <code>/etc/apt/sources.list.d/</code>: formato clásico <code>.list</code> o moderno <strong>deb822</strong> (<code>.sources</code>, con heredoc).</li>
+    <li>Repos en <code>/etc/apt/sources.list.d/</code>: formato clásico <code>.list</code> o moderno <strong><span class="term">deb822</span></strong> (<code>.sources</code>, con heredoc).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> sudo apt update</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt</span> update</pre>
 <pre class="sal">Des:1 http://deb.debian.org/debian bookworm InRelease [128 kB]
 Des:2 http://deb.debian.org/debian bookworm-updates InRelease [52,1 kB]
 Obj:3 http://seguridad.debian.org bookworm-security InRelease
 Leyendo lista de paquetes... Hecho</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> sudo apt-get update &amp;&amp; sudo apt-get install htop -y &amp;&amp; sudo apt-get clean
-<span class="d">$</span> sudo apt-get install htop -y || sudo apt-get update
-<span class="d">$</span> apt policy ncal</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt-get</span> update &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> clean</pre>
 <pre class="sal">Leyendo lista de paquetes... Hecho
 Se instalarán los siguientes paquetes NUEVOS: htop
 Desempaquetando htop (3.3.0-1) ...
-Configurando htop (3.3.0-1) ...
-ncal:
+Configurando htop (3.3.0-1) ...</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> || <span class="k">sudo</span> <span class="k">apt-get</span> update</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">apt</span> policy ncal</pre>
+<pre class="sal">ncal:
   Instalados: 12.1.7-1
   Candidato:  12.1.7-1</pre>
   </div>
   <h3>Repositorios: formato clásico y deb822</h3>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> echo "deb http://repo.cica.es/debian stable main" &gt; /etc/apt/sources.list.d/cica.list</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "deb http://repo.cica.es/debian stable main" &gt; /etc/apt/sources.list.d/cica.list</pre>
 <pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cat &lt;&lt;EOF &gt; /etc/apt/sources.list.d/cica.sources
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> &lt;&lt;EOF &gt; /etc/apt/sources.list.d/cica.sources
 Types: deb
 URIs: http://repo.cica.es/debian
 Suites: stable
@@ -329,17 +394,19 @@ EOF</pre>
     <li>Con <strong>sufijo</strong> (2.º argumento), además recorta esa terminación: útil para quedarte con el nombre sin extensión.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> basename /home/usuario/fichero1.txt
-<span class="d">$</span> basename /home/usuario/fichero1.txt txt</pre>
-<pre class="sal">fichero1.txt
-fichero1</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">basename</span> /home/usuario/fichero1.txt</pre>
+<pre class="sal">fichero1.txt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">basename</span> /home/usuario/fichero1.txt txt</pre>
+<pre class="sal">fichero1</pre>
   </div>
 </section>
 
 <div class="letra" aria-hidden="true">B</div>
 
 <section class="comando co" id="bzip2">
-  <h2>bzip2 / bunzip2 <small>comprime ficheros de uno en uno · .bz2</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>bzip2 / bunzip2 <small>comprime ficheros de uno en uno · .bz2</small><span class="chip">compresión</span></h2>
   <p class="uso">bzip2 [opciones] fichero · bunzip2 fichero.bz2</p>
   <ul class="flags">
     <li>Solo ficheros individuales (para carpetas, usa tar).</li>
@@ -349,12 +416,15 @@ fichero1</pre>
     <li>Comprime más que gzip pero más despacio.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> bzip2 -k documento.txt
-<span class="d">$</span> ls documento.txt*</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">bzip2</span> <span class="f">-k</span> documento.txt</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> documento.txt*</pre>
 <pre class="sal">documento.txt  documento.txt.bz2</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> bunzip2 documento.txt.bz2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">bunzip2</span> documento.txt.bz2</pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -371,7 +441,7 @@ fichero1</pre>
     <li>Viene del paquete <code>ncal</code>: <code>apt install ncal</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cal 10 2026</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cal</span> 10 2026</pre>
 <pre class="sal">    octubre 2026
 lu ma mi ju vi sá do
           1  2  3  4
@@ -392,11 +462,16 @@ lu ma mi ju vi sá do
     <li>Con <code>&gt;</code> crea ficheros (mejor <code>echo</code> o heredoc si hay varias líneas).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cat fich1 fich2 &gt; unidos.txt
-<span class="d">$</span> cat enlafich1          <span class="c"># leer a través de un enlace simbólico</span>
-<span class="d">$</span> cat -n fich1</pre>
-<pre class="sal">hola
-1	hola</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> fich1 fich2 &gt; <span class="k">unidos.txt</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> enlafich1          <span class="c"># leer a través de un <span class="term">enlace simbólico</span></span></pre>
+<pre class="sal">hola</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> <span class="f">-n</span> fich1</pre>
+<pre class="sal">1	hola</pre>
   </div>
 </section>
 
@@ -409,14 +484,19 @@ lu ma mi ju vi sá do
     <li>Ruta absoluta empieza por <code>/</code>; relativa desde donde estás.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cd prueba/dir3; pwd
-<span class="d">$</span> cd; pwd
-<span class="d">$</span> cd -</pre>
-<pre class="sal">/home/usuario/prueba/dir3
-/home/usuario</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cd</span> prueba/dir3; <span class="k">pwd</span></pre>
+<pre class="sal">/home/usuario/prueba/dir3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> cd; <span class="k">pwd</span></pre>
+<pre class="sal">/home/usuario</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cd</span> -</pre>
+<pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cd dir3; cd enlacedir1   <span class="c"># entrar por un enlace simbólico</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cd</span> dir3; <span class="k">cd</span> enlacedir1   <span class="c"># entrar por un enlace simbólico</span></pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -431,42 +511,59 @@ lu ma mi ju vi sá do
   </ul>
   <div class="caja pel">
     <b>⚠ ¡ojo!</b>
-    <p>En un directorio, la <code>x</code> es «permiso de paso»: sin ella no puedes entrar, ni crear dentro, ni listar su contenido — aunque tengas escritura.</p>
+    <p>En un directorio, la <code>x</code> es «<span class="term">permiso de paso</span>»: sin ella no puedes entrar, ni crear dentro, ni listar su contenido — aunque tengas escritura.</p>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> chmod 666 fich1; ls -l fich1
-<span class="d">$</span> chmod a-w dir2; ls -ld dir2
-<span class="d">$</span> chmod u=rwx,go=rx dir2; ls -ld dir2
-<span class="d">$</span> chmod -R 600 privada/</pre>
-<pre class="sal">-rw-rw-rw- 1 usuario usuario 6 nov 11 10:12 fich1
-dr-xr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2
-drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> 666 fich1; <span class="k">ls</span> <span class="f">-l</span> fich1</pre>
+<pre class="sal">-rw-rw-rw- 1 usuario usuario 6 nov 11 10:12 fich1</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> a-w dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2</pre>
+<pre class="sal">dr-xr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> u=rwx,go=rx dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2</pre>
+<pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> <span class="f">-R</span> 600 privada/</pre>
+<pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> chmod a-w dir2
-<span class="d">$</span> mkdir dir2/dir21
-<span class="d">$</span> chmod o-r dir2; ls -ld dir2     <span class="c"># = chmod 750 dir2 en octal</span></pre>
-<pre class="sal">mkdir: no se puede crear el directorio 'dir21': Permiso denegado
-drwxr-x--- 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> a-w dir2</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> dir2/dir21</pre>
+<pre class="sal"><span class="e">mkdir: no se puede crear el directorio 'dir21': Permiso denegado</span></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> o-r dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># = chmod 750 dir2 en octal</span></pre>
+<pre class="sal">drwxr-x--- 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> mkdir dir2; ls -ld dir2     <span class="c"># ¿permisos por omisión?</span>
-<span class="d">$</span> umask 022; mkdir dira; ls -ld dira</pre>
-<pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2
-drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># ¿permisos por omisión?</span></pre>
+<pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 022; <span class="k">mkdir</span> dira; <span class="k">ls</span> <span class="f">-ld</span> dira</pre>
+<pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   </div>
 </section>
 
 <section class="comando co" id="compress">
-  <h2>compress / uncompress <small>compresor antiguo de UNIX · .Z</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>compress / uncompress <small>compresor antiguo de UNIX · .Z</small><span class="chip">compresión</span></h2>
   <p class="uso">compress fichero · uncompress fichero.Z</p>
   <ul class="flags">
     <li>Solo ficheros individuales. Hoy casi no se usa.</li>
     <li>En tar: opción <code>-Z</code> → <code>.tar.Z</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> compress documento.txt
-<span class="d">$</span> uncompress documento.txt.Z</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">compress</span> documento.txt</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">uncompress</span> documento.txt.Z</pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -487,15 +584,27 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
     <p><code>cp -r</code> NO conserva permisos ni fechas. Para copias que respeten todo usa <code>cp -a</code>.</p>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cp mensaje dir1; cp mensaje dir2; cp mensaje dir3
-<span class="d">$</span> ls dir*/mensaje     <span class="c"># comprobar los tres de una vez</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cp</span> mensaje dir1; <span class="k">cp</span> mensaje dir2; <span class="k">cp</span> mensaje dir3</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> dir*/mensaje     <span class="c"># comprobar los tres de una vez</span></pre>
 <pre class="sal">dir1/mensaje  dir2/mensaje  dir3/mensaje</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cp /bin/u* nuevo1/
-<span class="d">$</span> cp /etc/rc2.d/* dir31/       <span class="c"># los guiones de arranque rc2.d</span>
-<span class="d">$</span> cp -r /home/otro/prueba dir11/     <span class="c"># copia el directorio entero</span>
-<span class="d">$</span> cp -a backup/ restaurado/          <span class="c"># con permisos y fechas intactos</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cp</span> /bin/u* nuevo1/</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cp</span> /etc/rc2.d/* dir31/       <span class="c"># los guiones de arranque rc2.d</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cp</span> <span class="f">-r</span> /home/otro/prueba dir11/     <span class="c"># copia el directorio entero</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cp</span> <span class="f">-a</span> backup/ restaurado/          <span class="c"># con permisos y fechas intactos</span></pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -509,16 +618,20 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
     <li><code>-c 1-10</code> por posición de caracteres.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cut -d : -f 1 /etc/passwd          <span class="c"># nombres de usuario</span>
-<span class="d">$</span> cut -d : -f 1,7 /etc/passwd        <span class="c"># usuario y shell que usa</span>
-<span class="d">$</span> cut -d : -f 1 /etc/passwd | wc -l</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1 /etc/passwd          <span class="c"># nombres de usuario</span></pre>
 <pre class="sal">root
 daemon
-usuario
-root:/bin/bash
+usuario</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1,7 /etc/passwd        <span class="c"># usuario y shell que usa</span></pre>
+<pre class="sal">root:/bin/bash
 daemon:/usr/sbin/nologin
-usuario:/bin/bash
-47</pre>
+usuario:/bin/bash</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1 /etc/passwd | <span class="k">wc</span> <span class="f">-l</span></pre>
+<pre class="sal">47</pre>
   </div>
 </section>
 
@@ -534,25 +647,33 @@ usuario:/bin/bash
     <li><code>-d</code> fechas relativas y literales: <code>"tomorrow"</code>, <code>"yesterday"</code>, <code>"next friday"</code>, <code>"4 weeks ago"</code>, <code>"3 years ago 4 month ago 3 days ago"</code>, <code>"2026-12-31"</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> date +%F
-<span class="d">$</span> date +%B
-<span class="d">$</span> date +%d%m%y</pre>
-<pre class="sal">2026-11-11
-noviembre
-111126</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">date</span> +%F</pre>
+<pre class="sal">2026-11-11</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">date</span> +%B</pre>
+<pre class="sal">noviembre</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">date</span> +%d%m%y</pre>
+<pre class="sal">111126</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> date -d tomorrow +%A
-<span class="d">$</span> date -d "4 weeks ago"
-<span class="d">$</span> date -d "next friday"</pre>
-<pre class="sal">jueves
-oct 14 10:12:00 CET 2026
-vie nov 13 00:00:00 CET 2026</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">date</span> <span class="f">-d</span> tomorrow +%A</pre>
+<pre class="sal">jueves</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">date</span> <span class="f">-d</span> "4 weeks ago"</pre>
+<pre class="sal">oct 14 10:12:00 CET 2026</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">date</span> <span class="f">-d</span> "next friday"</pre>
+<pre class="sal">vie nov 13 00:00:00 CET 2026</pre>
   </div>
 </section>
 
 <section class="comando pr" id="df">
-  <h2>df <small>espacio libre de los discos</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
+  <h2>df <small>espacio libre de los discos</small><span class="chip">procesos</span></h2>
   <p class="uso">df [-h] [ruta]</p>
   <ul class="flags">
     <li><code>-h</code> human-readable: tamaños legibles (K, M, G). El mismo significado que en <code>ls -h</code>.</li>
@@ -560,7 +681,7 @@ vie nov 13 00:00:00 CET 2026</pre>
     <li><code>df /home</code> solo el sistema de ficheros donde está esa ruta.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> df -h</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">df</span> <span class="f">-h</span></pre>
 <pre class="sal">S.ficheros     Tamaño Usados Disp Uso% Montado en
 /dev/sda2         20G    6,3G  12G  35% /
 tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
@@ -571,7 +692,7 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
   <h2>dirname <small>quita el nombre de fichero a una ruta</small><span class="chip">ficheros</span></h2>
   <p class="uso">dirname ruta</p>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> dirname /home/usuario/fichero1.txt</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">dirname</span> /home/usuario/fichero1.txt</pre>
 <pre class="sal">/home/usuario</pre>
   </div>
 </section>
@@ -585,13 +706,15 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
     <li><code>-a</code> también los ficheros, no solo carpetas.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> du -h ~/prueba
-<span class="d">$</span> du -sh ~/prueba</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">du</span> <span class="f">-h</span> ~/prueba</pre>
 <pre class="sal">4,0K	./prueba/dir1
 4,0K	./prueba/dir2
 4,0K	./prueba/dir3
-16K	./prueba
 16K	./prueba</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">du</span> <span class="f">-sh</span> ~/prueba</pre>
+<pre class="sal">16K	./prueba</pre>
   </div>
 </section>
 
@@ -606,12 +729,17 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
     <li>Con <code>&gt;</code> o <code>&gt;&gt;</code> escribe en un fichero.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> echo "hola" &gt; saludo.txt
-<span class="d">$</span> echo -e "linea1\nlinea2"
-<span class="d">$</span> echo -n "sin salto" ; echo ""</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "hola" &gt; <span class="k">saludo.txt</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> <span class="f">-e</span> "linea1\nlinea2"</pre>
 <pre class="sal">linea1
-linea2
-sin salto</pre>
+linea2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> <span class="f">-n</span> "sin salto" ; <span class="k">echo</span> ""</pre>
+<pre class="sal">sin salto</pre>
   </div>
 </section>
 
@@ -621,25 +749,29 @@ sin salto</pre>
   <h2>file <small>de qué tipo es un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">file fichero…</p>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> file /home/usuario/.bashrc /dev/ttys0 /bin/ls
-<span class="d">$</span> find / -type f -user usuario -exec file {} +</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">file</span> /home/usuario/.bashrc /dev/ttys0 /bin/ls</pre>
 <pre class="sal">/home/usuario/.bashrc: ASCII text
 /dev/ttys0:            character special (5/0)
 /bin/ls:                ELF 64-bit LSB executable, x86-64</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> / <span class="f">-type</span> f <span class="f">-user</span> usuario <span class="f">-exec</span> file {} +</pre>
+<pre class="sal">/home/usuario/.bashrc: ASCII text</pre>
   </div>
 </section>
 
 <section class="comando bu" id="find">
   <h2>find <small>busca ficheros y directorios</small><span class="chip">búsqueda</span></h2>
+  <p class="lede">El buscador del sistema: recorre un árbol de carpetas filtrando por tipo, nombre, tamaño, tiempos, permisos o inodo, y con cada resultado ejecuta lo que pidas.</p>
   <p class="uso">find ruta [criterios] [-a|-o|-not] [acciones: -print -ls -exec -ok]</p>
   <ul class="flags cols">
-    <li><strong>-name</strong> por nombre (comodines entre comillas). <strong>-user</strong> / <strong>-group</strong> por propietario (nombre o UID/GUID; <code>id</code> te dice los tuyos).</li>
-    <li><strong>Tiempos en días:</strong> <code>-mtime</code> (modificación), <code>-atime</code> (acceso), <code>-ctime</code> (cambio). <code>-mtime 1</code> exactamente ayer·hoy · <code>+1</code> más de un día · <code>-1</code> menos de un día (hoy).</li>
+    <li><strong>-name</strong> por nombre (comodines entre comillas). <strong>-user</strong> / <strong>-group</strong> por propietario (nombre o <span class="term">UID</span>/GUID; <code>id</code> te dice los tuyos).</li>
+    <li><strong>Tiempos en días:</strong> <code>-<span class="term">mtime</span></code> (modificación), <code>-<span class="term">atime</span></code> (acceso), <code>-<span class="term">ctime</span></code> (cambio). <code>-mtime 1</code> exactamente ayer·hoy · <code>+1</code> más de un día · <code>-1</code> menos de un día (hoy).</li>
     <li><strong>Tiempos en minutos:</strong> <code>-mmin</code>, <code>-amin</code>, <code>-cmin</code>.</li>
     <li><strong>-newer ref:</strong> modificados más recientemente que el fichero <code>ref</code>. <code>! -newer ref</code> los no más nuevos. Entre dos: <code>-newer ref1 ! -newer ref2</code>.</li>
     <li><strong>-newermt/at/ct "fecha":</strong> la referencia es una fecha literal, no un fichero (<code>m</code> modificación, <code>a</code> acceso, <code>c</code> cambio, <code>t</code> texto). Fechas humanas: <code>"2020-11-01 08:00"</code>, <code>"yesterday"</code>, <code>"1 week ago"</code>.</li>
     <li><strong>-perm:</strong> por permisos, octal o simbólico: <code>-perm 664</code> exactos · <code>-perm -664</code> al menos esos · <code>-perm /220</code> o <code>-perm /u+w,g+w</code> cualquiera de ellos.</li>
-    <li><strong>-links ±n:</strong> por número de enlaces duros. <strong>-inum N:</strong> por número de inodo — encuentra todos los enlaces duros que comparten inodo (míralo con <code>ls -li</code> o <code>stat</code>).</li>
+    <li><strong>-links ±n:</strong> por número de enlaces duros. <strong>-inum N:</strong> por número de <span class="term">inodo</span> — encuentra todos los enlaces duros que comparten inodo (míralo con <code>ls -li</code> o <code>stat</code>).</li>
     <li><strong>-maxdepth N:</strong> no baje más de N niveles de carpetas.</li>
     <li><strong>Combinar:</strong> <code>-a</code> y (por defecto) · <code>-o</code> o · <code>-not</code> o <code>!</code> negación. Paréntesis escapados: <code>\( \)</code>.</li>
     <li><strong>Acciones:</strong> <code>-print</code> (por defecto) · <code>-ls</code> formato largo · <code>-exec comando {} \;</code> por cada resultado · <code>{} +</code> agrupa muchos (más rápido) · <code>-ok comando {} \;</code> pide confirmación.</li>
@@ -651,7 +783,7 @@ sin salto</pre>
     <tr><td><code>l</code></td><td>enlace simbólico</td></tr>
     <tr><td><code>b</code></td><td>fichero de bloques (disco)</td></tr>
     <tr><td><code>c</code></td><td>fichero de caracteres (tty)</td></tr>
-    <tr><td><code>p</code></td><td>tubería con nombre</td></tr>
+    <tr><td><code>p</code></td><td><span class="term">tubería con nombre</span></td></tr>
     <tr><td><code>s</code></td><td>socket de red</td></tr>
   </table>
   <table>
@@ -667,78 +799,118 @@ sin salto</pre>
     <p><code>-perm 664</code> exige los permisos <em>exactos</em>; <code>-perm -664</code> «al menos estos»; <code>-perm /220</code> «cualquiera de estos». Y el manual dice: mira los EXAMPLES de <code>man find</code>.</p>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find /usr/include -name "*.h"
-<span class="d">$</span> find / -type f -user root
-<span class="d">$</span> find /usr/bin -type f -empty</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /usr/include <span class="f">-name</span> "*.h"</pre>
 <pre class="sal">/usr/include/stdio.h
-/usr/include/stdlib.h
-/usr/bin/pwd
+/usr/include/stdlib.h</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> / <span class="f">-type</span> f <span class="f">-user</span> root</pre>
+<pre class="sal">/usr/bin/pwd
 /usr/bin/whoami</pre>
   </div>
-  <div class="ej">
-<pre class="cmd"><span class="d">$</span> find . -size +5k
-<span class="d">$</span> find . -size 100c
-<span class="d">$</span> find . -size 0 -type f</pre>
-<pre class="sal">./grande.log
-./vacio
-./vacio</pre>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /usr/bin <span class="f">-type</span> f <span class="f">-empty</span></pre>
+<pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find . -name "p*" -type d -print
-<span class="d">$</span> find . -type f -user rafa
-<span class="d">$</span> find . -type f -user 1000 -print</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-size</span> +5k</pre>
+<pre class="sal">./grande.log</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-size</span> 100c</pre>
+<pre class="sal">./vacio</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-size</span> 0 <span class="f">-type</span> f</pre>
+<pre class="sal">./vacio</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-name</span> "p*" <span class="f">-type</span> d <span class="f">-print</span></pre>
 <pre class="sal">./prueba
 ./proyectos</pre>
   </div>
-  <div class="ej">
-<pre class="cmd"><span class="d">$</span> find . -newer referencia1.txt
-<span class="d">$</span> find ~/ -newermt "1 week ago" -name "*odp"
-<span class="d">$</span> find . -newermt "2020-11-01" ! -newermt "2020-11-30" -ls</pre>
-<pre class="sal">./tareas.odp
-1179649    4 -rw-r--r--   1 usuario usuario    6 nov 15 08:00 ./nota</pre>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-user</span> rafa</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-user</span> 1000 <span class="f">-print</span></pre>
+<pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find . -perm 664 -type f
-<span class="d">$</span> find . -perm /u+w,g+w -type d
-<span class="d">$</span> find . -type f \( -name "*.jpg" -o -name "*.png" \) -print</pre>
-<pre class="sal">./fich1
-./prueba
-./foto.jpg
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-newer</span> referencia1.txt</pre>
+<pre class="sal">./tareas.odp</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> ~/ <span class="f">-newermt</span> "1 week ago" <span class="f">-name</span> "*odp"</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-newermt</span> "2020-11-01" ! <span class="f">-newermt</span> "2020-11-30" <span class="f">-ls</span></pre>
+<pre class="sal">1179649    4 -rw-r--r--   1 usuario usuario    6 nov 15 08:00 ./nota</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-perm</span> 664 <span class="f">-type</span> f</pre>
+<pre class="sal">./fich1</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-perm</span> /u+w,g+w <span class="f">-type</span> d</pre>
+<pre class="sal">./prueba</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f \( <span class="f">-name</span> "*.jpg" <span class="f">-o</span> <span class="f">-name</span> "*.png" \) <span class="f">-print</span></pre>
+<pre class="sal">./foto.jpg
 ./logo.png</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ln Prueba hardlinkaPrueba; ls -li Prueba hardlinkaPrueba
-<span class="d">$</span> find . -inum 82954 -ls</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ln</span> Prueba hardlinkaPrueba; <span class="k">ls</span> <span class="f">-li</span> Prueba hardlinkaPrueba</pre>
 <pre class="sal">82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 Prueba
-82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 hardlinkaPrueba
-82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 ./Prueba
+82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 hardlinkaPrueba</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-inum</span> 82954 <span class="f">-ls</span></pre>
+<pre class="sal">82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 ./Prueba
 82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 ./hardlinkaPrueba</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find . -type f -name "*.jpg" -exec rm -f {} \;
-<span class="d">$</span> find . -type f -name "*.jpg" -ok rm -f {} \;
-<span class="d">$</span> time find . -type f -name "*.jpg" -exec rm -f {} \;</pre>
-<pre class="sal">&lt; rm … ./foto.jpg &gt; ? y
-real 0m0.012s</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" <span class="f">-exec</span> rm <span class="f">-f</span> {} \;</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" <span class="f">-ok</span> rm <span class="f">-f</span> {} \;</pre>
+<pre class="sal">&lt; rm … ./foto.jpg &gt; ? y</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">time</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" <span class="f">-exec</span> rm <span class="f">-f</span> {} \;</pre>
+<pre class="sal">real 0m0.012s</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find /noexiste -type d 2&gt; malos
-<span class="d">$</span> find ~ -type d &gt; direc
-<span class="d">$</span> find /etc -type f 1&gt;&gt; direc 2&gt;&gt; malos</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /noexiste <span class="f">-type</span> d 2&gt; <span class="k">malos</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> ~ <span class="f">-type</span> d &gt; <span class="k">direc</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /etc <span class="f">-type</span> f 1&gt;&gt; <span class="k">direc</span> 2&gt;&gt; <span class="k">malos</span></pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
 
 <section class="comando ap" id="foremost">
-  <h2>foremost <small>recupera ficheros borrados</small><span class="chip">paquetes</span><span class="ns">fuera del simulador</span></h2>
+  <h2>foremost <small>recupera ficheros borrados</small><span class="chip">paquetes</span></h2>
   <p class="uso">foremost [-o carpeta_salida] imagen.dd</p>
   <ul class="flags">
     <li>Es la respuesta del temario a «<code>rm</code> no tiene papelera»: busca <strong>firmas</strong> de formatos (jpg, pdf, odt…) dentro de una imagen de disco y recupera lo que no esté sobrescrito.</li>
     <li>Se instala aparte: <code>apt install foremost</code>. Funciona sobre una imagen, no sobre el disco en marcha.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> sudo apt install foremost -y
-<span class="d">$</span> sudo foremost -o recuperado imagen.dd</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt</span> install foremost <span class="f">-y</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">foremost</span> <span class="f">-o</span> recuperado imagen.dd</pre>
 <pre class="sal">Processing: imagen.dd
 |*jpg/ |*pdf/ |*odt/</pre>
   </div>
@@ -754,36 +926,46 @@ real 0m0.012s</pre>
     <li>Patrones: <code>^l</code> empieza por l · <code>x$</code> acaba en x · <code>"ai"</code> contiene ai.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> grep -i "^l" texto
-<span class="d">$</span> grep -i "^l" texto | wc -l
-<span class="d">$</span> grep -c -i "^l" texto</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-i</span> "^l" texto</pre>
 <pre class="sal">lunes
 Lima
-luces
-3
-3</pre>
+luces</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-i</span> "^l" texto | <span class="k">wc</span> <span class="f">-l</span></pre>
+<pre class="sal">3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-c</span> <span class="f">-i</span> "^l" texto</pre>
+<pre class="sal">3</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> grep -n "ai" lista
-<span class="d">$</span> grep -v "^#" config | head -n 3</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-n</span> "ai" lista</pre>
 <pre class="sal">2:aislado
-4:campamento
-export PATH
+4:campamento</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-v</span> "^#" config | <span class="k">head</span> <span class="f">-n</span> 3</pre>
+<pre class="sal">export PATH
 export HOME
 export SHELL</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ps aux | grep gimp
-<span class="d">$</span> grep "/bin/bash" /etc/passwd | wc -l
-<span class="d">$</span> cut -d : -f 1,7 /etc/passwd | grep bash | wc -l</pre>
-<pre class="sal">usuario  2143  0.0  0.3  21412  6848 ?    Sl  09:41  0:00 gimp-2.10
-2
-2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ps</span> aux | <span class="k">grep</span> gimp</pre>
+<pre class="sal">usuario  2143  0.0  0.3  21412  6848 ?    Sl  09:41  0:00 gimp-2.10</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> "/bin/bash" /etc/passwd | <span class="k">wc</span> <span class="f">-l</span></pre>
+<pre class="sal">2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1,7 /etc/passwd | <span class="k">grep</span> bash | <span class="k">wc</span> <span class="f">-l</span></pre>
+<pre class="sal">2</pre>
   </div>
 </section>
 
 <section class="comando co" id="gzip">
-  <h2>gzip / gunzip <small>comprime ficheros de uno en uno · .gz</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>gzip / gunzip <small>comprime ficheros de uno en uno · .gz</small><span class="chip">compresión</span></h2>
   <p class="uso">gzip [opciones] fichero · gunzip fichero.gz</p>
   <ul class="flags">
     <li>Solo ficheros individuales. Para carpetas: <code>tar -czvf</code>.</li>
@@ -792,13 +974,19 @@ export SHELL</pre>
     <li>Rápido; con ficheros muy pequeños puede ocupar más que el original.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> gzip -k documento.txt
-<span class="d">$</span> ls documento.txt*</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">gzip</span> <span class="f">-k</span> documento.txt</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> documento.txt*</pre>
 <pre class="sal">documento.txt  documento.txt.gz</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> gunzip documento.txt.gz
-<span class="d">$</span> tar -czvf copia.tar.gz documentos/</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">gunzip</span> documento.txt.gz</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-czvf</span> copia.tar.gz documentos/</pre>
 <pre class="sal">documentos/
 documentos/documento1.txt
 documentos/documento2.odt</pre>
@@ -816,12 +1004,14 @@ documentos/documento2.odt</pre>
     <li>El contrario: <code>tail</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> head -n 3 /etc/passwd
-<span class="d">$</span> ls | head -n 5</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">head</span> <span class="f">-n</span> 3 /etc/passwd</pre>
 <pre class="sal">root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
-bin:x:2:2:bin:/bin:/usr/sbin/nologin
-A1.txt
+bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> | <span class="k">head</span> <span class="f">-n</span> 5</pre>
+<pre class="sal">A1.txt
 A2.txt
 B1.txt
 B2.txt
@@ -831,6 +1021,7 @@ C1.txt</pre>
 
 <section class="comando sh" id="history">
   <h2>history <small>el historial, y cómo pedirle cosas</small><span class="chip">shell</span></h2>
+  <p class="lede">Todo lo que escribes queda apuntado; bash puede repetir, rebuscar y retocar esos comandos sin volverlos a teclear.</p>
   <p class="uso">history [N] · history -c · !! · !n · !texto · !$ · ^viejo^nuevo^</p>
   <ul class="flags">
     <li><code>history 10</code> solo los últimos 10. <code>history -c</code> lo borra de esta sesión.</li>
@@ -846,35 +1037,49 @@ C1.txt</pre>
     <tr><td><code>!$</code></td><td>el último argumento del comando anterior (igual que <kbd>Alt</kbd>+<kbd>.</kbd>)</td></tr>
     <tr><td><code>^txt^log^</code></td><td>repite el anterior cambiando la 1.ª aparición de «txt» por «log»</td></tr>
   </table>
-  <p class="nota">La expansión del historial (<code>!!</code>, <code>!$</code>, <code>^…^…</code>) es del bash real: no está en la terminal web, pruébalos en tu Linux.</p>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> history 3
-<span class="d">$</span> echo $HISTFILE</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">history</span> 3</pre>
 <pre class="sal">  11  ls -l
   12  cd prueba
-  13  history 3
-/home/usuario/.bash_history</pre>
+  13  history 3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> $HISTFILE</pre>
+<pre class="sal">/home/usuario/.bash_history</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> apt install ncal         <span class="c"># olvide el sudo…</span>
-E: No se pudo abrir el archivo de bloqueo - ¿root?
-<span class="d">$</span> sudo !!                  <span class="c"># repite el anterior con sudo delante</span>
-<span class="d">$</span> ls fich1.txt
-<span class="d">$</span> ^txt^log                 <span class="c"># ls fich1.log</span></pre>
-<pre class="sal">sudo apt install ncal
-ls fich1.log</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">apt</span> install ncal         <span class="c"># olvide el sudo…</span>
+E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
+<pre class="sal"><span class="e">E: No se pudo abrir el archivo de bloqueo - ¿root?</span></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> !!                  <span class="c"># repite el anterior con sudo delante</span></pre>
+<pre class="sal">sudo apt install ncal</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> fich1.txt</pre>
+<pre class="sal">fich1.txt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> ^txt^log                 <span class="c"># ls fich1.log</span></pre>
+<pre class="sal">ls fich1.log</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cd /etc
-<span class="d">$</span> echo !$                  <span class="c"># el último argumento: /etc</span>
-<span class="d">$</span> !ls                      <span class="c"># re-ejecuta el último que empezó por ls</span></pre>
-<pre class="sal">/etc
-fich1.txt</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cd</span> /etc</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> !$                  <span class="c"># el último argumento: /etc</span></pre>
+<pre class="sal">/etc</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> !ls                      <span class="c"># re-ejecuta el último que empezó por ls</span></pre>
+<pre class="sal">fich1.txt</pre>
   </div>
 </section>
 
 <section class="comando pr" id="htop">
-  <h2>htop <small>monitor de procesos interactivo</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
+  <h2>htop <small>monitor de procesos interactivo</small><span class="chip">procesos</span></h2>
   <p class="uso">htop</p>
   <ul class="flags">
     <li>Vigila CPU y RAM por proceso con colores y barras; navegable con flechas.</li>
@@ -882,8 +1087,11 @@ fich1.txt</pre>
     <li>No viene de fábrica: se instala con apt (<code>apt-get install htop -y</code>), como hacen los apuntes en cadena con update y clean.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> sudo apt-get update &amp;&amp; sudo apt-get install htop -y &amp;&amp; sudo apt-get clean
-<span class="d">$</span> htop</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt-get</span> update &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> clean</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">htop</span></pre>
 <pre class="sal">  1 [  12.5%] Tasks: 148, 92 thr; 1 running
   2 [   8.3%] Load average: 0.14 0.09 0.05
 [|Main 8.3%] Uptime: 01:12:44
@@ -900,7 +1108,7 @@ fich1.txt</pre>
     <li><code>-w</code>/<code>--systohc</code>: escribe la hora del sistema en la BIOS.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> hwclock</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">hwclock</span></pre>
 <pre class="sal">2026-11-11 10:12:04.123456+01:00</pre>
   </div>
 </section>
@@ -908,7 +1116,7 @@ fich1.txt</pre>
 <div class="letra" aria-hidden="true">I</div>
 
 <section class="comando pr" id="id">
-  <h2>id <small>UID y GID de un usuario</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
+  <h2>id <small>UID y <span class="term">GID</span> de un usuario</small><span class="chip">procesos</span></h2>
   <p class="uso">id [usuario]</p>
   <ul class="flags">
     <li>Muestra UID (identificador de usuario) y GID (de grupo) y los grupos a los que pertenece.</li>
@@ -916,10 +1124,12 @@ fich1.txt</pre>
     <li><code>id -u</code> solo el UID · <code>id -g</code> solo el GID.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> id
-<span class="d">$</span> id -u</pre>
-<pre class="sal">uid=1000(usuario) gid=1000(usuario) grupos=1000(usuario),24(cdrom),27(sudo)
-1000</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">id</span></pre>
+<pre class="sal">uid=1000(usuario) gid=1000(usuario) grupos=1000(usuario),24(cdrom),27(sudo)</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">id</span> <span class="f">-u</span></pre>
+<pre class="sal">1000</pre>
   </div>
 </section>
 
@@ -935,21 +1145,30 @@ fich1.txt</pre>
     <li>El mismo inodo se ve con <code>ls -li</code>, <code>stat</code> o <code>find -inum</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ln -s dir1 dir3/enlacedir1
-<span class="d">$</span> ls -l dir3</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ln</span> <span class="f">-s</span> dir1 dir3/enlacedir1</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> dir3</pre>
 <pre class="sal">total 0
 lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ln prueba/dir1/fich1 prueba/dir1/enlace
-<span class="d">$</span> ls -li prueba/dir1</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ln</span> prueba/dir1/fich1 prueba/dir1/enlace</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-li</span> prueba/dir1</pre>
 <pre class="sal">total 8
 82954 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 enlace
 82954 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 fich1</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ln -s prueba/dir2/enlace prueba/dir1/enlafich1
-<span class="d">$</span> cat prueba/dir1/enlafich1     <span class="c"># lee a través del enlace</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ln</span> <span class="f">-s</span> prueba/dir2/enlace prueba/dir1/enlafich1</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> prueba/dir1/enlafich1     <span class="c"># lee a través del enlace</span></pre>
 <pre class="sal">hola</pre>
   </div>
 </section>
@@ -964,24 +1183,31 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
     <li>Acepta comodines (<code>locate *.mp3</code>) y expresiones regulares con <code>--regex 'bin/wc$'</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> updatedb
-<span class="d">$</span> locate passwd
-<span class="d">$</span> locate -c "*.mp3"</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">updatedb</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">locate</span> passwd</pre>
 <pre class="sal">/etc/passwd
 /etc/passwd-
-/etc/pam.d/passwd
-17</pre>
+/etc/pam.d/passwd</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">locate</span> <span class="f">-c</span> "*.mp3"</pre>
+<pre class="sal">17</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> locate --regex 'bin/wc$'
-<span class="d">$</span> locate -i "motd"</pre>
-<pre class="sal">/usr/bin/wc
-/etc/motd</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">locate</span> --regex 'bin/wc$'</pre>
+<pre class="sal">/usr/bin/wc</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">locate</span> <span class="f">-i</span> "motd"</pre>
+<pre class="sal">/etc/motd</pre>
   </div>
 </section>
 
 <section class="comando pr" id="lsof">
-  <h2>lsof <small>ficheros abiertos por los procesos</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
+  <h2>lsof <small>ficheros abiertos por los procesos</small><span class="chip">procesos</span></h2>
   <p class="uso">lsof [-p PID] [-d fd] [fichero]</p>
   <ul class="flags">
     <li>Lista <strong>todo fichero abierto</strong>: ficheros normales, tuberías, sockets y /dev.</li>
@@ -989,7 +1215,7 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
     <li><code>lsof -p 4565 -d 5</code> solo el canal (descriptor) 5: dónde quedó conectado un <code>exec 5&gt; tuberia</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> lsof -p 4565 -d 5</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">lsof</span> <span class="f">-p</span> 4565 <span class="f">-d</span> 5</pre>
 <pre class="sal">COMMAND  PID    USER  FD  TYPE DEVICE SIZE/OFF NODE NAME
 bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
   </div>
@@ -1009,40 +1235,46 @@ bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
     <li><code>ls -d *</code> ficheros y directorios sin entrar · <code>ls -d */</code> <strong>solo los directorios</strong>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls -l /bin/u*</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> /bin/u*</pre>
 <pre class="sal">-rwsr-xr-x 1 root root 97536 feb 13  2024 /bin/umount
 -rwxr-xr-x 1 root root 35344 mar  1  2024 /bin/uname</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls -liha ~
-<span class="d">$</span> ls -d */</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-liha</span> ~</pre>
 <pre class="sal">total 40K
 641325 drwxr-xr-x 5 usuario usuario 4,0K nov 11 10:12 .
 640932 drwxr-xr-x 3 root    root    4,0K oct 28 09:00 ..
 651103 -rw------- 1 usuario usuario  2,2K nov 11 10:12 .bash_history
 640933 -rw-r--r-- 1 usuario usuario   220 oct 28 09:00 .bashrc
-641001 drwxr-xr-x 4 usuario usuario 4,0K nov 11 10:12 prueba
-dir1/  dir2/  dir3/</pre>
+641001 drwxr-xr-x 4 usuario usuario 4,0K nov 11 10:12 prueba</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-d</span> */</pre>
+<pre class="sal">dir1/  dir2/  dir3/</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls -ld prueba/dir2     <span class="c"># la carpeta en sí, con formato largo</span>
-<span class="d">$</span> ls -l /dev/tt*</pre>
-<pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 prueba/dir2
-crw--w---- 1 root tty  4,0 nov 11 09:00 /dev/tty0
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-ld</span> prueba/dir2     <span class="c"># la carpeta en sí, con formato largo</span></pre>
+<pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 prueba/dir2</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> /dev/tt*</pre>
+<pre class="sal">crw--w---- 1 root tty  4,0 nov 11 09:00 /dev/tty0
 crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls -r /etc/t*      <span class="c"># los /etc/t… en orden inverso</span>
-<span class="d">$</span> ls -l /dev/tty2    <span class="c"># ¿existe? ¿cuándo se actualizó?</span></pre>
-<pre class="sal">tmpfiles.d  timezone  terminfo
-crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-r</span> /etc/t*      <span class="c"># los /etc/t… en orden inverso</span></pre>
+<pre class="sal">tmpfiles.d  timezone  terminfo</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> /dev/tty2    <span class="c"># ¿existe? ¿cuándo se actualizó?</span></pre>
+<pre class="sal">crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
   </div>
 </section>
 
 <div class="letra" aria-hidden="true">M</div>
 
 <section class="comando fi" id="md5sum">
-  <h2>md5sum <small>huella digital de un fichero</small><span class="chip">ficheros</span><span class="ns">fuera del simulador</span></h2>
+  <h2>md5sum <small>huella digital de un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">md5sum fichero…</p>
   <ul class="flags">
     <li>Calcula el resumen MD5: si dos ficheros tienen el mismo md5, su contenido es idéntico.</li>
@@ -1050,7 +1282,7 @@ crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
     <li>Se usa para verificar descargas o detectar duplicados.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> md5sum fich1 fich2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">md5sum</span> fich1 fich2</pre>
 <pre class="sal">d41d8cd98f00b204e9800998ecf8427e  fich1
 3f2a9db5c11a4bb89a7f5f0a9a0e2a1d  fich2</pre>
   </div>
@@ -1064,9 +1296,15 @@ crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
     <li><code>-m 700</code> crea con esos permisos directamente.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> mkdir -p dir3/dir31/dir311 dir3/dir31/dir312
-<span class="d">$</span> mkdir ../correo/menus     <span class="c"># sin moverte del directorio actual</span>
-<span class="d">$</span> mkdir -m 700 carpeta1</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> <span class="f">-p</span> dir3/dir31/dir311 dir3/dir31/dir312</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> ../correo/menus     <span class="c"># sin moverte del directorio actual</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> <span class="f">-m</span> 700 carpeta1</pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -1079,12 +1317,20 @@ crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
     <li>Escribes con <code>&gt;</code> y lees con <code>cat</code>; al leerlo se vacía.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> mkfifo tuberia
-<span class="d">$</span> ls -l tuberia
-<span class="d">$</span> echo hola &gt; tuberia
-<span class="d">$</span> cat tuberia</pre>
-<pre class="sal">prw-r--r-- 1 usuario usuario 0 nov 11 10:12 tuberia
-hola</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">mkfifo</span> tuberia</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> tuberia</pre>
+<pre class="sal">prw-r--r-- 1 usuario usuario 0 nov 11 10:12 tuberia</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> hola &gt; <span class="k">tuberia</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> tuberia</pre>
+<pre class="sal">hola</pre>
   </div>
 </section>
 
@@ -1097,9 +1343,15 @@ hola</pre>
     <li>Mueve también directorios completos, sin <code>-r</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> mv dir31 dir2/           <span class="c"># mueve dir31 debajo de dir2</span>
-<span class="d">$</span> mv mensaje .mensaje      <span class="c"># ocultarlo: nombre que empieza por punto</span>
-<span class="d">$</span> mv fich1 fich2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">mv</span> dir31 dir2/           <span class="c"># mueve dir31 debajo de dir2</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">mv</span> mensaje .mensaje      <span class="c"># ocultarlo: nombre que empieza por punto</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">mv</span> fich1 fich2</pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -1114,7 +1366,7 @@ hola</pre>
     <li><code>ncal 10 2026</code> octubre de 2026.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ncal -w 10 2026</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ncal</span> <span class="f">-w</span> 10 2026</pre>
 <pre class="sal">    octubre 2026
 lu  5 12 19 26
 ma  6 13 20 27
@@ -1128,7 +1380,7 @@ do  4 11 18 25
 </section>
 
 <section class="comando fi" id="nano">
-  <h2>nano <small>editor de texto de la terminal</small><span class="chip">ficheros</span><span class="ns">fuera del simulador</span></h2>
+  <h2>nano <small>editor de texto de la terminal</small><span class="chip">ficheros</span></h2>
   <p class="uso">nano [-l] fichero</p>
   <ul class="flags">
     <li><code>nano fichero</code> lo abre (lo crea al guardar si no existía).</li>
@@ -1137,8 +1389,11 @@ do  4 11 18 25
     <li>Se usa con <kbd>Ctrl</kbd>+<kbd>X</kbd>+<kbd>E</kbd>: escribes <code>for</code>, pulsas y nano abre el comando para editarlo antes de ejecutarlo.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> nano -l guion.sh        <span class="c"># escribes el guion y lo guardas</span>
-<span class="d">$</span> bash guion.sh</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">nano</span> <span class="f">-l</span> guion.sh        <span class="c"># escribes el guion y lo guardas</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">bash</span> guion.sh</pre>
 <pre class="sal">hola desde el guion</pre>
   </div>
 </section>
@@ -1154,13 +1409,13 @@ do  4 11 18 25
     <li><code>ps aux | grep gimp</code> busca un proceso concreto (el PID sale en la 2.ª columna).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ps | sort -n</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ps</span> | <span class="k">sort</span> <span class="f">-n</span></pre>
 <pre class="sal">    PID TTY          TIME CMD
    2143 pts/0    00:00:00 bash
    2201 pts/0    00:00:00 ps</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ps aux | head -n 3</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ps</span> aux | <span class="k">head</span> <span class="f">-n</span> 3</pre>
 <pre class="sal">USER   PID %CPU %MEM    VSZ   RSS TTY  STAT START  TIME COMMAND
 root     1  0.0  0.1 166572  6848 ?    Ss   09:00  0:01 /sbin/init
 root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
@@ -1171,29 +1426,33 @@ root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
   <h2>pwd <small>en qué carpeta estás</small><span class="chip">ficheros</span></h2>
   <p class="uso">pwd</p>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cd prueba/dir3; pwd
-<span class="d">$</span> type pwd</pre>
-<pre class="sal">/home/usuario/prueba/dir3
-pwd es una orden interna del interprete</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">cd</span> prueba/dir3; <span class="k">pwd</span></pre>
+<pre class="sal">/home/usuario/prueba/dir3</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">type</span> pwd</pre>
+<pre class="sal">pwd es una orden interna del interprete</pre>
   </div>
 </section>
 
 <div class="letra" aria-hidden="true">R</div>
 
 <section class="comando co" id="rar">
-  <h2>rar / unrar <small>formato RAR</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>rar / unrar <small>formato RAR</small><span class="chip">compresión</span></h2>
   <p class="uso">rar a fichero.rar [archivos…] · unrar x fichero.rar</p>
   <ul class="flags">
     <li><code>a</code> comprimir. <code>x</code> extraer manteniendo estructura.</li>
     <li>Instalar <code>rar</code> arrastra <code>unrar</code> automáticamente.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> rar a comprimido.rar documentos/
-<span class="d">$</span> unrar x comprimido.rar</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">rar</span> a comprimido.rar documentos/</pre>
 <pre class="sal">RAR 7.00   Copyright ...
 Creating archive comprimido.rar
-Add  documentos/documento1.txt  OK
-Extracting  documentos/documento1.txt  OK</pre>
+Add  documentos/documento1.txt  OK</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">unrar</span> x comprimido.rar</pre>
+<pre class="sal">Extracting  documentos/documento1.txt  OK</pre>
   </div>
 </section>
 
@@ -1205,10 +1464,12 @@ Extracting  documentos/documento1.txt  OK</pre>
     <li><code>-f</code> la ruta completa y resuelta desde la raíz.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> readlink dir3/enlacedir1
-<span class="d">$</span> readlink -f dir3/enlacedir1</pre>
-<pre class="sal">dir1
-/home/usuario/prueba/dir1</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">readlink</span> dir3/enlacedir1</pre>
+<pre class="sal">dir1</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">readlink</span> <span class="f">-f</span> dir3/enlacedir1</pre>
+<pre class="sal">/home/usuario/prueba/dir1</pre>
   </div>
 </section>
 
@@ -1222,17 +1483,23 @@ Extracting  documentos/documento1.txt  OK</pre>
   </ul>
   <div class="caja pel">
     <b>⚠ ¡altamente peligroso!</b>
-    <p><code>rm</code> <strong>no tiene papelera</strong>: lo borrado no se recupera con el sistema. Si nada sobrescribió los bloques, la única esperanza es la recuperación forense (<code>foremost</code> sobre una imagen del disco).</p>
+    <p><code>rm</code> <mark class="oro"><strong>no tiene papelera</strong></mark>: lo borrado no se recupera con el sistema. Si nada sobrescribió los bloques, la única esperanza es la recuperación forense (<code>foremost</code> sobre una imagen del disco).</p>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> rm -r dir1
-<span class="d">$</span> rm -r ../fuentes/dir2 ../fuentes/dir3
-<span class="d">$</span> rm fich$i.txt        <span class="c"># dentro de un for</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">rm</span> <span class="f">-r</span> dir1</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">rm</span> <span class="f">-r</span> ../fuentes/dir2 ../fuentes/dir3</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">rm</span> fich$i.txt        <span class="c"># dentro de un for</span></pre>
 <pre class="sal vacio"></pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> rm fich[a-z].txt</pre>
-<pre class="sal">rm: no se puede eliminar 'fich[a-z].txt': No existe el archivo o el directorio</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">rm</span> fich[a-z].txt</pre>
+<pre class="sal"><span class="e">rm: no se puede eliminar 'fich[a-z].txt': No existe el archivo o el directorio</span></pre>
   </div>
 </section>
 
@@ -1244,8 +1511,11 @@ Extracting  documentos/documento1.txt  OK</pre>
     <li>Para borrar estructuras completas: <code>rm -r</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> rmdir dir1
-<span class="d">$</span> rmdir -p dir3/dir31/dir311</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">rmdir</span> dir1</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">rmdir</span> <span class="f">-p</span> dir3/dir31/dir311</pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
@@ -1261,15 +1531,18 @@ Extracting  documentos/documento1.txt  OK</pre>
     <li><code>who | sort</code> con la hora en el campo 3, ordena por hora: así se guardan los usuarios conectados «por el campo hora» en <code>persona</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> who | sort &gt; persona
-<span class="d">$</span> ps | sort -n
-<span class="d">$</span> sort -t : -k 3 -n /etc/passwd</pre>
-<pre class="sal">usuario tty1  2026-11-11 09:10
-root    tty2  2026-11-11 10:01
-    PID TTY          TIME CMD
+<pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ps</span> | <span class="k">sort</span> <span class="f">-n</span></pre>
+<pre class="sal">    PID TTY          TIME CMD
    2143 pts/0    00:00:00 bash
-   2201 pts/0    00:00:00 ps
-root:x:0:0:root:/root:/bin/bash
+   2201 pts/0    00:00:00 ps</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">sort</span> <span class="f">-t</span> : <span class="f">-k</span> 3 <span class="f">-n</span> /etc/passwd</pre>
+<pre class="sal">root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
   </div>
@@ -1284,9 +1557,15 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
     <li>Tras cambiar <code>~/.bashrc</code>: <code>source ~/.bashrc</code> para aplicar los alias sin cerrar la terminal.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> echo "alias ll='ls -l'" &gt;&gt; ~/.bashrc
-<span class="d">$</span> source ~/.bashrc
-<span class="d">$</span> ll fich1</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "alias ll='ls <span class="f">-l'"</span> &gt;&gt; ~/.bashrc</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">source</span> ~/.bashrc</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ll</span> fich1</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 6 nov 11 10:12 fich1</pre>
   </div>
 </section>
@@ -1305,7 +1584,7 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
     <tr><td><code>ctime</code></td><td>último cambio: contenido <em>o</em> atributos (permisos, dueño…)</td></tr>
   </table>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> stat fich1</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">stat</span> fich1</pre>
 <pre class="sal">  Fichero: fich1
   Tamaño: 6          Bloques: 8          Bloque E/S: 4096   fichero regular
 Dispositivo: 8,2     Inodo: 82954      Enlaces duros: 1
@@ -1327,7 +1606,7 @@ Cambio:       2026-11-11 10:12:00.000000000 +0100</pre>
     <li><code>-f fichero</code> lo sigue en vivo, ideal para registros.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls | tail -n 5</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> | <span class="k">tail</span> <span class="f">-n</span> 5</pre>
 <pre class="sal">X2.txt
 Y1.txt
 Y2.txt
@@ -1337,54 +1616,74 @@ Z2.txt</pre>
 </section>
 
 <section class="comando co" id="tar">
-  <h2>tar <small>empaqueta y comprime carpetas enteras</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>tar <small>empaqueta y comprime carpetas enteras</small><span class="chip">compresión</span></h2>
+  <p class="lede">Empaqueta (muchos ficheros en uno) y, si quieres, comprime ese paquete con el compresor que elijas.</p>
   <p class="uso">tar [-c|-t|-x] [-v] [-f fichero] [-z|-j|-J|-Z] [-C carpeta] [-r] [--exclude=patrón] [archivos…]</p>
   <ul class="flags cols">
     <li><code>-c</code> crear · <code>-t</code> listar contenido sin extraer · <code>-x</code> extraer.</li>
     <li><code>-v</code> verboso (muestra lo que procesa) · <code>-f</code> nombre del fichero tar.</li>
     <li><code>-z</code> gzip (<code>.tar.gz</code>) · <code>-j</code> bzip2 (<code>.tar.bz2</code>) · <code>-J</code> xz (<code>.tar.xz</code>) · <code>-Z</code> compress (<code>.tar.Z</code>). Sin ninguna: solo empaqueta (<code>.tar</code>).</li>
-    <li><code>-r</code> añade ficheros a un tar <strong>sin comprimir</strong>. A un .tar.gz no se puede: primero <code>gunzip</code>, luego <code>-r</code>, luego <code>gzip</code> de nuevo.</li>
+    <li><code>-r</code> añade ficheros a un tar <strong>sin comprimir</strong>. <mark class="oro">A un .tar.gz no se puede</mark>: primero <code>gunzip</code>, luego <code>-r</code>, luego <code>gzip</code> de nuevo.</li>
     <li><code>-C carpeta</code> extraer dentro de esa carpeta (hay que crearla antes).</li>
     <li><code>--exclude='ruta'</code> excluye ficheros al crear (se puede repetir; no elimina lo que ya estaba dentro).</li>
   </ul>
   <h3>Crear y listar</h3>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> tar -cvf comprimido.tar archivos/</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-cvf</span> comprimido.tar archivos/</pre>
 <pre class="sal">archivos/
 archivos/documento1.txt
 archivos/documento2.odt
 archivos/documento3.pdf</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> tar -czvf copia.tar.gz documentos/   <span class="c"># esta vez con gzip</span>
-<span class="d">$</span> tar -tvf comprimido.tar              <span class="c"># ¿qué hay dentro?</span>
-<span class="d">$</span> tar -tzvf copia.tar.gz               <span class="c"># listar, con detalles</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-czvf</span> copia.tar.gz documentos/   <span class="c"># esta vez con gzip</span></pre>
 <pre class="sal">documentos/
 documentos/documento1.txt
-documentos/documento2.odt
-drwxr-xr-x usuario/usuario   0 2026-11-11 10:12 documentos/
+documentos/documento2.odt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-tvf</span> comprimido.tar              <span class="c"># ¿qué hay dentro?</span></pre>
+<pre class="sal">drwxr-xr-x usuario/usuario   0 2026-11-11 10:12 documentos/
+-rw-r--r-- usuario/usuario  42 2026-11-11 10:12 documentos/documento1.txt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-tzvf</span> copia.tar.gz               <span class="c"># listar, con detalles</span></pre>
+<pre class="sal">drwxr-xr-x usuario/usuario   0 2026-11-11 10:12 documentos/
 -rw-r--r-- usuario/usuario  42 2026-11-11 10:12 documentos/documento1.txt</pre>
   </div>
   <h3>Extraer (todo, un fichero o varios)</h3>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> mkdir descompresion
-<span class="d">$</span> tar -xvf comprimido.tar -C descompresion/
-<span class="d">$</span> tar -xzvf copia.tar.gz -C descompresion/ documentos/documento1.txt documentos/documento2.odt
-<span class="d">$</span> tar -xzvf copia.tar.gz -C descompresion/ documentos/   <span class="c"># un directorio completo</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> descompresion</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-xvf</span> comprimido.tar <span class="f">-C</span> descompresion/</pre>
 <pre class="sal">archivos/
 archivos/documento1.txt
 archivos/documento2.odt
-archivos/documento3.pdf
-documentos/documento1.txt
-documentos/documento2.odt
-documentos/</pre>
+archivos/documento3.pdf</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-xzvf</span> copia.tar.gz <span class="f">-C</span> descompresion/ documentos/documento1.txt documentos/documento2.odt</pre>
+<pre class="sal">documentos/documento1.txt
+documentos/documento2.odt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-xzvf</span> copia.tar.gz <span class="f">-C</span> descompresion/ documentos/   <span class="c"># un directorio completo</span></pre>
+<pre class="sal">documentos/</pre>
   </div>
   <h3>Añadir y excluir</h3>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> tar -rvf comprimido.tar archivos/nuevo_archivo.txt
-<span class="d">$</span> tar --exclude='archivos/documento3.pdf' -cvf sin_pdf.tar archivos/
-<span class="d">$</span> gunzip copia.tar.gz &amp;&amp; tar -rvf copia.tar nuevo.txt &amp;&amp; gzip copia.tar</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-rvf</span> comprimido.tar archivos/nuevo_archivo.txt</pre>
 <pre class="sal">archivos/nuevo_archivo.txt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> --exclude='archivos/documento3.pdf' <span class="f">-cvf</span> sin_pdf.tar archivos/</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">gunzip</span> copia.tar.gz &amp;&amp; <span class="k">tar</span> <span class="f">-rvf</span> copia.tar nuevo.txt &amp;&amp; <span class="k">gzip</span> copia.tar</pre>
+<pre class="sal vacio"></pre>
   </div>
   <h3>Extensiones según la compresión</h3>
   <table>
@@ -1406,13 +1705,17 @@ documentos/</pre>
     <li><code>-a</code> añade al final en vez de sobrescribir.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> ls -l | tee lista.txt
-<span class="d">$</span> find /etc -type f | tee ficheros.txt | wc -l
-<span class="d">$</span> who | tee -a persona</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> | <span class="k">tee</span> lista.txt</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 6 nov 11 10:12 fich1
-drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir1
-3481
-usuario tty1 2026-11-11 09:10</pre>
+drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir1</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> /etc <span class="f">-type</span> f | <span class="k">tee</span> ficheros.txt | <span class="k">wc</span> <span class="f">-l</span></pre>
+<pre class="sal">3481</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">tee</span> <span class="f">-a</span> persona</pre>
+<pre class="sal">usuario tty1 2026-11-11 09:10</pre>
   </div>
 </section>
 
@@ -1424,13 +1727,15 @@ usuario tty1 2026-11-11 09:10</pre>
     <li>Útil para comparar: <code>-exec … {} \;</code> frente a <code>| xargs -I {} …</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> time who
-<span class="d">$</span> time find . -type f -name "*.jpg" | xargs -I {} rm -f</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">time</span> <span class="k">who</span></pre>
 <pre class="sal">usuario tty1 2026-11-11 09:10
 real    0m0.003s
 user    0m0.001s
-sys     0m0.002s
-real    0m0.012s</pre>
+sys     0m0.002s</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">time</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" | <span class="k">xargs</span> <span class="f">-I</span> {} rm <span class="f">-f</span></pre>
+<pre class="sal">real    0m0.012s</pre>
   </div>
 </section>
 
@@ -1447,21 +1752,39 @@ real    0m0.012s</pre>
     <li>Las marcas las lees con <code>stat</code> (atime / mtime / ctime, allí arriba).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> touch fich1 vacio
-<span class="d">$</span> ls -l vacio</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> fich1 vacio</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> vacio</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 vacio</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> touch -d "21:08" fich1; stat fich1 | grep Modificación
-<span class="d">$</span> touch -t 202611112108 fich2
-<span class="d">$</span> touch -r fichero_referencia fich1 fich2
-<span class="d">$</span> touch -am enlace_fich1     <span class="c"># las dos marcas, del fichero apuntado</span>
-<span class="d">$</span> touch -h enlace_fich1      <span class="c"># solo la marca del enlace</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-d</span> "21:08" fich1; <span class="k">stat</span> fich1 | <span class="k">grep</span> Modificación</pre>
 <pre class="sal">Modificación: 2026-11-11 21:08:00.000000000 +0100</pre>
   </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-t</span> 202611112108 fich2</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-r</span> fichero_referencia fich1 fich2</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-am</span> enlace_fich1     <span class="c"># las dos marcas, del fichero apuntado</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-h</span> enlace_fich1      <span class="c"># solo la marca del enlace</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> touch -- -i          <span class="c"># crea un fichero llamado -i</span>
-<span class="d">$</span> ls -l</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">touch</span> -- <span class="f">-i</span>          <span class="c"># crea un fichero llamado -i</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span></pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 -i</pre>
   </div>
 </section>
@@ -1473,7 +1796,7 @@ real    0m0.012s</pre>
     <li><code>-L 2</code> solo hasta 2 niveles. <code>-a</code> incluye ocultos.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> tree prueba</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">tree</span> prueba</pre>
 <pre class="sal">prueba
 ├── dir1
 │   └── dir11
@@ -1496,13 +1819,17 @@ real    0m0.012s</pre>
     <li>Funciona con funciones: <code>type nombre_función</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> type cd pwd
-<span class="d">$</span> type ls
-<span class="d">$</span> alias nano='nano -l'; type nano</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">type</span> cd pwd</pre>
 <pre class="sal">cd es una orden interna del interprete
-pwd es una orden interna del interprete
-ls es /bin/ls
-nano es `nano -l'</pre>
+pwd es una orden interna del interprete</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">type</span> ls</pre>
+<pre class="sal">ls es /bin/ls</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">alias</span> nano='nano -l'; type nano</pre>
+<pre class="sal">nano es `nano -l'</pre>
   </div>
 </section>
 
@@ -1517,7 +1844,7 @@ nano es `nano -l'</pre>
   </ul>
   <div class="caja tip">
     <b>💡 truco de examen</b>
-    <p>Los ficheros parten de <code>666</code> (sin ejecución), por eso <code>umask 033</code> da ficheros <code>644</code> y <em>no</em> <code>633</code>. Caras típicas: <code>022</code> → 644/755 y <code>077</code> → 600/700.</p>
+    <p>Los ficheros <mark class="oro">parten de <code>666</code> (sin ejecución)</mark>, por eso <code>umask 033</code> da ficheros <code>644</code> y <em>no</em> <code>633</code>. Caras típicas: <code>022</code> → 644/755 y <code>077</code> → 600/700.</p>
   </div>
   <table>
     <tr><th>umask</th><th>ficheros (666−)</th><th>carpetas (777−)</th></tr>
@@ -1526,12 +1853,12 @@ nano es `nano -l'</pre>
     <tr><td><code>077</code></td><td><code>600</code> rw-------</td><td><code>700</code> rwx------</td></tr>
   </table>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> umask 022; mkdir dira; touch uno; ls -l uno; ls -ld dira</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 022; <span class="k">mkdir</span> dira; <span class="k">touch</span> uno; <span class="k">ls</span> <span class="f">-l</span> uno; <span class="k">ls</span> <span class="f">-ld</span> dira</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 uno
 drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> umask 033; mkdir dirb; touch dos; ls -ld dirb; ls -l dos</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 033; <span class="k">mkdir</span> dirb; <span class="k">touch</span> dos; <span class="k">ls</span> <span class="f">-ld</span> dirb; <span class="k">ls</span> <span class="f">-l</span> dos</pre>
 <pre class="sal">drwxr--r-- 2 usuario usuario 4096 nov 11 10:12 dirb
 -rw-r--r-- 1 usuario usuario 0 nov 11 10:12 dos</pre>
   </div>
@@ -1545,12 +1872,16 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
     <li><code>users | wc -w</code> cuenta cuántos hay conectados.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> whoami
-<span class="d">$</span> users
-<span class="d">$</span> users | wc -w</pre>
-<pre class="sal">usuario
-usuario rafa
-2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">whoami</span></pre>
+<pre class="sal">usuario</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">users</span></pre>
+<pre class="sal">usuario rafa</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">users</span> | <span class="k">wc</span> <span class="f">-w</span></pre>
+<pre class="sal">2</pre>
   </div>
 </section>
 
@@ -1564,15 +1895,19 @@ usuario rafa
     <li>Sin opciones da las tres cifras; con fichero repite el nombre al final, redirigido no.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> wc -l fichero.txt
-<span class="d">$</span> wc -l &lt; fichero.txt        <span class="c"># redirigido, sin el nombre</span>
-<span class="d">$</span> cut -d : -f 1 /etc/passwd | wc -l</pre>
-<pre class="sal">47 fichero.txt
-47
-47</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> fichero.txt</pre>
+<pre class="sal">47 fichero.txt</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> &lt; <span class="k">fichero.txt</span>        <span class="c"># redirigido, sin el nombre</span></pre>
+<pre class="sal">47</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1 /etc/passwd | <span class="k">wc</span> <span class="f">-l</span></pre>
+<pre class="sal">47</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> wc -w &lt;&lt;FIN
+<pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-w</span> &lt;&lt;FIN
 uno dos tres
 FIN</pre>
 <pre class="sal">3</pre>
@@ -1587,10 +1922,12 @@ FIN</pre>
     <li><code>whereis</code> ejecutables (<code>-b</code>), entradas del manual (<code>-m</code>) y fuentes (<code>-s</code>).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> which gzip
-<span class="d">$</span> whereis wc</pre>
-<pre class="sal">/bin/gzip
-wc: /usr/bin/wc /usr/share/man/man1/wc.1.gz</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">which</span> gzip</pre>
+<pre class="sal">/bin/gzip</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">whereis</span> wc</pre>
+<pre class="sal">wc: /usr/bin/wc /usr/share/man/man1/wc.1.gz</pre>
   </div>
 </section>
 
@@ -1603,11 +1940,13 @@ wc: /usr/bin/wc /usr/share/man/man1/wc.1.gz</pre>
     <li>Con <code>grep usuario</code> te quedas con las líneas de un usuario concreto.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> who
-<span class="d">$</span> who | grep usuario</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">who</span></pre>
 <pre class="sal">rafa     tty2   2026-11-11 10:01
-usuario  tty1   2026-11-11 09:10
 usuario  tty1   2026-11-11 09:10</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">grep</span> usuario</pre>
+<pre class="sal">usuario  tty1   2026-11-11 09:10</pre>
   </div>
 </section>
 
@@ -1625,19 +1964,25 @@ usuario  tty1   2026-11-11 09:10</pre>
     <li>Es el hermano de <code>find -exec</code>: a veces más rápido (<code>{} +</code> y <code>xargs</code> agrupan argumentos).</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> cat &lt;&lt;FIN | xargs -n 2 echo
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> &lt;&lt;FIN | <span class="k">xargs</span> <span class="f">-n</span> 2 echo
 a b c d e
-FIN
-<span class="d">$</span> cat lista.txt | xargs -I {} cp {} backup/
-<span class="d">$</span> find . -name "*.jpg" -print0 | xargs -0 rm -f</pre>
+FIN</pre>
 <pre class="sal">a b
 c d
 e</pre>
   </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">cat</span> lista.txt | <span class="k">xargs</span> <span class="f">-I</span> {} cp {} backup/</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-name</span> "*.jpg" <span class="f">-print0</span> | <span class="k">xargs</span> -0 rm <span class="f">-f</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
 </section>
 
 <section class="comando co" id="xz">
-  <h2>xz / unxz <small>compresión máxima · .xz</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>xz / unxz <small>compresión máxima · .xz</small><span class="chip">compresión</span></h2>
   <p class="uso">xz [opciones] fichero · unxz fichero.xz</p>
   <ul class="flags">
     <li>Solo ficheros individuales. Ratio altísimo, pero lento.</li>
@@ -1645,9 +1990,15 @@ e</pre>
     <li>En tar: <code>-J</code> → <code>.tar.xz</code>.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> xz -k documento.txt
-<span class="d">$</span> unxz documento.txt.xz
-<span class="d">$</span> tar -cJvf copia.tar.xz documentos/</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">xz</span> <span class="f">-k</span> documento.txt</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">unxz</span> documento.txt.xz</pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-cJvf</span> copia.tar.xz documentos/</pre>
 <pre class="sal">documentos/
 documentos/documento1.txt
 documentos/documento2.odt</pre>
@@ -1657,18 +2008,20 @@ documentos/documento2.odt</pre>
 <div class="letra" aria-hidden="true">Z</div>
 
 <section class="comando co" id="zip">
-  <h2>zip / unzip <small>comprime ficheros y carpetas</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
+  <h2>zip / unzip <small>comprime ficheros y carpetas</small><span class="chip">compresión</span></h2>
   <p class="uso">zip [-r] fichero.zip [archivos…] · unzip fichero.zip [-d carpeta]</p>
   <ul class="flags">
     <li><code>-r</code> recursivo: carpetas y subcarpetas enteras (a diferencia de gzip/bzip2/xz).</li>
     <li><code>unzip -d carpeta</code> extrae dentro de esa carpeta.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> zip -r comprimido.zip carpeta/
-<span class="d">$</span> unzip comprimido.zip -d descompresion/</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">zip</span> <span class="f">-r</span> comprimido.zip carpeta/</pre>
 <pre class="sal">adding: carpeta/ (stored 0%)
-adding: carpeta/documento.txt (deflated 62%)
-inflating: descompresion/carpeta/documento.txt</pre>
+adding: carpeta/documento.txt (deflated 62%)</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">unzip</span> comprimido.zip <span class="f">-d</span> descompresion/</pre>
+<pre class="sal">inflating: descompresion/carpeta/documento.txt</pre>
   </div>
 </section>
 
@@ -1691,10 +2044,6 @@ inflating: descompresion/carpeta/documento.txt</pre>
 </section>
 
 </main>
-<footer>
-  <p>Chuleta basada en los apuntes de clase: <em>Comandos básicos I</em>, <em>ejercicios</em> y <em>Compresores / tar</em>. Las salidas son orientativas: dependen de tus ficheros y fechas.</p>
-  <p>Familias: <span class="fam" style="background:#7a3d9a"></span>shell · <span class="fam" style="background:#2e7d4f"></span>ficheros · <span class="fam" style="background:#b0713a"></span>texto · <span class="fam" style="background:#a66a00"></span>tiempo · <span class="fam" style="background:#c34113"></span>búsqueda · <span class="fam" style="background:#345ca8"></span>procesos · <span class="fam" style="background:#0d7a72"></span>compresión · <span class="fam" style="background:#a83a72"></span>paquetes. <span class="ns">fuera del simulador</span> = no está en la terminal web; en un Linux real funciona tal cual.</p>
-</footer>
 
 <button class="btn-subir" id="btn-subir" type="button" title="Volver arriba" aria-label="Volver arriba">↑</button>
 <div class="paleta" id="paleta" role="dialog" aria-modal="true" aria-label="Buscar comando" hidden>
