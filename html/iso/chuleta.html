@@ -10,7 +10,7 @@
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{margin:0;font:15px/1.55 "Ubuntu","Segoe UI",system-ui,sans-serif;color:var(--tinta);background:var(--papel)}
-  .cabecera{background:var(--vino);color:#fff;padding:18px 20px 12px}
+  .cabecera{background:linear-gradient(135deg,#4a2f68,#5a3d7a 55%,#6d4a94);color:#fff;padding:18px 20px 14px}
   .cabecera a{color:#ffd9c2;font-weight:700;text-decoration:none}
   .cabecera a:hover{text-decoration:underline}
   .cabecera h1{margin:6px 0 2px;font-size:24px;letter-spacing:-.02em}
@@ -21,58 +21,89 @@
   .btn-buscar:hover{background:rgba(255,255,255,.24)}
   kbd{display:inline-block;padding:1px 6px;border-radius:5px;background:#fff;border:1px solid #b8a89f;border-bottom-width:3px;font:700 12px "Ubuntu Mono",monospace;color:#3a2f3b}
   .indice{position:sticky;top:0;z-index:5;background:#fffef9;border-bottom:1px solid var(--linea);padding:8px 16px;display:flex;flex-wrap:wrap;gap:2px 10px;box-shadow:0 2px 6px rgba(60,40,70,.08)}
-  .indice a{color:var(--vino);font-size:12.5px;font-weight:700;text-decoration:none;padding:2px 4px;border-radius:5px;font-family:"Ubuntu Mono","DejaVu Sans Mono",monospace}
+  .indice a{color:var(--vino);font-size:12.5px;font-weight:700;text-decoration:none;padding:2px 5px;border-radius:6px;font-family:"Ubuntu Mono","DejaVu Sans Mono",monospace;transition:background .2s}
   .indice a:hover{background:#f3e9f8;color:var(--marca)}
+  .indice a.activa{background:var(--vino);color:#fff}
   .indice .grupo{color:#a4939e;font-weight:800;font-size:11px;margin:0 2px}
-  main{max-width:920px;margin:0 auto;padding:10px 20px 60px}
-  section.comando{border-bottom:1px solid var(--linea);padding:14px 0 18px;scroll-margin-top:88px}
+  main{max-width:940px;margin:0 auto;padding:10px 20px 60px}
+  /* ---- categorías: color por familia ---- */
+  section.comando{border-bottom:1px solid var(--linea);border-left:4px solid var(--cat,var(--linea));padding:14px 0 18px 16px;scroll-margin-top:96px;counter-reset:ej}
+  .sh{--cat:#7a3d9a}.fi{--cat:#2e7d4f}.tx{--cat:#b0713a}.ti{--cat:#a66a00}
+  .bu{--cat:#c34113}.pr{--cat:#345ca8}.co{--cat:#0d7a72}.ap{--cat:#a83a72}
+  .chip{display:inline-block;font:700 10.5px/1.6 "Ubuntu Mono",monospace;letter-spacing:.04em;background:color-mix(in srgb,var(--cat) 13%,#fff);color:var(--cat);border:1px solid color-mix(in srgb,var(--cat) 32%,#fff);border-radius:20px;padding:1px 9px;vertical-align:3px;margin-left:8px;white-space:nowrap}
+  .letra{margin:36px 0 2px;font:800 34px/1 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#dccdc2;letter-spacing:.05em;break-after:avoid}
   h2{margin:0 0 4px;font-size:21px;letter-spacing:-.015em;color:var(--vino)}
   h2 code{font:700 20px "Ubuntu Mono","DejaVu Sans Mono",monospace;color:var(--vino)}
   h2 small{font-weight:400;font-size:13.5px;color:var(--sutil);margin-left:8px}
-  .ns{display:inline-block;font:700 10px/1.5 "Ubuntu Mono",monospace;letter-spacing:.05em;background:#fdebd2;color:#7a4a00;border:1px solid #e3bd7a;border-radius:6px;padding:1px 7px;vertical-align:2px;margin-left:6px;white-space:nowrap}
+  .ns{display:inline-block;font:700 10px/1.5 "Ubuntu Mono",monospace;letter-spacing:.05em;background:#fdebd2;color:#7a4a00;border:1px solid #e3bd7a;border-radius:6px;padding:1px 7px;vertical-align:3px;margin-left:6px;white-space:nowrap}
   .uso{margin:2px 0 8px;font:14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:var(--caja);display:inline-block;padding:3px 10px;border-radius:7px}
   ul.flags{margin:4px 0 10px;padding-left:0;list-style:none}
   ul.flags li{margin:2px 0;padding-left:14px;position:relative}
-  ul.flags li::before{content:"·";position:absolute;left:2px;color:var(--marca);font-weight:800}
+  ul.flags li::before{content:"·";position:absolute;left:2px;color:var(--cat);font-weight:800}
+  ul.flags.cols{columns:2;column-gap:34px}
+  ul.flags li{break-inside:avoid}
   code{font:13.5px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:#eee7e0;padding:1px 5px;border-radius:5px;color:#2a1f2b}
   ul.flags code{background:none;padding:0}
   pre{margin:6px 0;font:13px/1.6 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#3a2f3b}
   pre .d{color:var(--marca);font-weight:800}
   pre .c{color:#8a7a87}
-  .ej{margin:10px 0 14px;border:1px solid var(--linea);border-radius:11px;background:#fffdf8;overflow:hidden;break-inside:avoid}
+  /* ---- cajas: truco y peligro ---- */
+  .caja{border-radius:10px;padding:8px 13px;margin:10px 0;font-size:13.5px;break-inside:avoid}
+  .caja b{display:block;margin-bottom:1px}
+  .caja p{margin:0}
+  .caja.pel{background:#fdeaea;border:1px solid #eab8b8;color:#5e1f1f}
+  .caja.pel b{color:#a32020}
+  .caja.tip{background:#e8f5ec;border:1px solid #b3d9bf;color:#173f2a}
+  .caja.tip b{color:#1e7a42}
+  /* ---- ejemplos con salida ---- */
+  .ej{position:relative;counter-increment:ej;margin:10px 0 14px;border:1px solid var(--linea);border-left:4px solid color-mix(in srgb,var(--cat) 55%,#fff);border-radius:11px;background:#fffdf8;overflow:hidden;break-inside:avoid}
+  .ej::after{content:"ej. " counter(ej);position:absolute;top:7px;right:66px;font:700 10px "Ubuntu Mono",monospace;color:#cbb9c6;letter-spacing:.05em}
   .ej .cmd{padding:9px 13px 5px;color:#2a1f2b}
-  .ej .sal{padding:0 13px 9px;border-top:1px dashed #e8dcd2;background:#f6f0e9;color:#5c4f58;white-space:pre}
+  .ej .cmd .d{color:var(--marca);font-weight:800}
+  .ej .sal{padding:0 13px 9px;border-top:1px dashed #e8dcd2;background:#f6f0e9;color:#41363e;white-space:pre}
   .ej .sal.vacio{display:none}
+  .copiar{position:absolute;top:4px;right:6px;font:600 11px "Ubuntu",sans-serif;color:#8a7595;background:none;border:1px solid #dcd2c8;border-radius:7px;padding:2px 8px;cursor:pointer;opacity:0;transition:opacity .15s}
+  .ej:hover .copiar,.copiar:focus-visible{opacity:1}
+  .copiar.hecho{color:#1e7a42;border-color:#9ccfae;opacity:1}
   h3{margin:12px 0 4px;font-size:15px;color:var(--vino)}
   .nota{font-size:13px;color:var(--sutil);margin:6px 0 0}
   table{border-collapse:collapse;margin:8px 0;font-size:13.5px}
   th,td{border:1px solid var(--linea);padding:5px 12px;text-align:left}
-  th{background:var(--caja);color:var(--vino)}
-  footer{max-width:920px;margin:0 auto;padding:0 20px 40px;color:var(--sutil);font-size:12.5px}
-  /* ---- Paleta Ctrl+K ---- */
+  th{background:color-mix(in srgb,var(--cat) 12%,#fff);color:var(--cat,var(--vino))}
+  table code{background:none;padding:0}
+  footer{max-width:940px;margin:0 auto;padding:0 20px 40px;color:var(--sutil);font-size:12.5px}
+  footer .fam{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+  /* ---- paleta Ctrl+K ---- */
   .paleta{position:fixed;inset:0;background:rgba(43,26,56,.45);display:none;align-items:flex-start;justify-content:center;padding:11vh 16px 0;z-index:60}
   .paleta.abierta{display:flex}
-  .paleta-caja{width:min(560px,94vw);background:#fffdf8;border-radius:14px;box-shadow:0 20px 70px rgba(30,10,40,.45);overflow:hidden}
+  .paleta-caja{width:min(580px,94vw);background:#fffdf8;border-radius:14px;box-shadow:0 20px 70px rgba(30,10,40,.45);overflow:hidden}
   .paleta-caja input{width:100%;border:0;border-bottom:1px solid var(--linea);outline:0;padding:14px 16px;font:16px "Ubuntu","Segoe UI",sans-serif;color:var(--tinta);background:none}
   .paleta-caja input::placeholder{color:#a4939e}
   .paleta ul{list-style:none;margin:0;padding:6px;max-height:52vh;overflow:auto}
-  .paleta li{padding:9px 12px;border-radius:9px;cursor:pointer;font-size:14px}
+  .paleta li{padding:9px 12px;border-radius:9px;cursor:pointer;font-size:14px;display:flex;gap:9px;align-items:baseline}
   .paleta li.activo,.paleta li:hover{background:#f3e9f8}
+  .paleta li .pd{flex:none;width:10px;height:10px;border-radius:50%;transform:translateY(1px)}
+  .paleta li .pt{flex:1;min-width:0}
+  .paleta li small{display:block;color:var(--sutil);font-size:12px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .paleta li b{color:var(--marca)}
-  .paleta li small{display:block;color:var(--sutil);font-size:12px;margin-top:1px}
   .paleta .pie{border-top:1px solid var(--linea);padding:6px 12px;font-size:11.5px;color:var(--sutil);display:flex;gap:16px}
-  section.destello{animation:destello 1.5s ease}
+  .destello{animation:destello 1.6s ease}
   @keyframes destello{0%{background:#ffe4c4}100%{background:transparent}}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}section.destello{animation:none}}
+  .btn-subir{position:fixed;right:16px;bottom:16px;z-index:40;width:44px;height:44px;border-radius:50%;border:1px solid var(--linea);background:#fffef9;color:var(--vino);font-size:19px;cursor:pointer;box-shadow:0 6px 20px rgba(60,40,70,.18);opacity:0;pointer-events:none;transition:opacity .25s}
+  .btn-subir.ver{opacity:1;pointer-events:auto}
+  @media (max-width:640px){ul.flags.cols{columns:1}}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.destello,.indice a,.btn-subir,.copiar{animation:none;transition:none}}
   @media print{
     .indice{position:static}
     body{background:#fff}
-    section.comando{break-inside:avoid;border-bottom:1px solid #ccc}
+    section.comando{break-inside:avoid;border:1px solid #bbb;border-left:4px solid #888;padding-left:16px;margin:10px 0}
     .cabecera{background:#fff;color:#000}
     .cabecera a,.pista{color:#000}
-    .btn-buscar,.paleta{display:none!important}
-    .ej{break-inside:avoid;border:1px solid #999}
+    .btn-buscar,.paleta,.btn-subir,.copiar{display:none!important}
+    .ej::after{display:none}
+    .ej{break-inside:avoid;border:1px solid #999;border-left:4px solid #999}
     .ej .sal{background:#f5f5f5;color:#333}
+    .letra{color:#999;border-bottom:2px solid #999}
   }
 </style>
 </head>
@@ -81,18 +112,18 @@
   <p><a href="linux-terminal.html">← Volver a la terminal</a></p>
   <h1>Chuleta de comandos <span>· Implantación de S.O. · 1.º ASIR</span></h1>
   <div class="fila-pista">
-    <p class="pista">Todo a la vista y en orden alfabético: <kbd>Ctrl</kbd>+<kbd>F</kbd> busca en el texto; <kbd>Ctrl</kbd>+<kbd>K</kbd> abre el buscador con flechas y Enter.</p>
+    <p class="pista"><kbd>Ctrl</kbd>+<kbd>K</kbd> abre el buscador; <kbd>Ctrl</kbd>+<kbd>F</kbd> busca en el texto. Los chips de color agrupan por familia.</p>
     <button class="btn-buscar" id="btn-buscar" type="button">Buscar comando… <kbd>Ctrl</kbd>+<kbd>K</kbd></button>
   </div>
 </header>
 <nav class="indice" aria-label="Índice de comandos">
   <a href="#s-shell">shell</a><a href="#s-comod">comodines</a><a href="#s-redir">redirecciones</a><span class="grupo">·</span>
-  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-atajos">atajos</a>
+  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-atajos">atajos</a>
 </nav>
 <main>
 
-<section class="comando" id="s-shell">
-  <h2>La shell <small>sintaxis: variables, cadenas y bucles</small></h2>
+<section class="comando sh" id="s-shell">
+  <h2>La shell <small>sintaxis: variables, cadenas y bucles</small><span class="chip">shell</span></h2>
   <ul class="flags">
     <li><code>var=valor</code> asigna; <code>$var</code> la usa (sin espacios alrededor de <code>=</code>).</li>
     <li><code>comando1 ; comando2</code> ejecuta los dos siempre.</li>
@@ -123,8 +154,8 @@ Tienes 3 ficheros en /home/usuario/prueba</pre>
   </div>
 </section>
 
-<section class="comando" id="s-comod">
-  <h2>Comodines <small>nombres que casan con patrones</small></h2>
+<section class="comando sh" id="s-comod">
+  <h2>Comodines <small>nombres que casan con patrones</small><span class="chip">shell</span></h2>
   <ul class="flags">
     <li><code>*</code> cualquier cosa (0, 1 o muchos caracteres) · <code>?</code> exactamente un carácter.</li>
     <li><code>[1-4]</code> un carácter del rango · <code>[uo]</code> u u o · <code>[!ab]</code> o <code>[^ab]</code> cualquiera menos esos.</li>
@@ -142,19 +173,16 @@ old-release stable-release unstable-release</pre>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> ls /dev/tty[1-4]
-<span class="d">$</span> ls fich[^a-q].txt      <span class="c"># los fich*.txt que NO sigan con a..q</span></pre>
+<span class="d">$</span> ls /dev/tty??          <span class="c"># tty + 2 caracteres = 5 letras en total</span>
+<span class="d">$</span> ls fich[^a-q].txt</pre>
 <pre class="sal">/dev/tty1  /dev/tty2  /dev/tty3  /dev/tty4
+/dev/tty0  /dev/tty1  /dev/tty2  /dev/tty3
 fichr.txt  fichz.txt</pre>
-  </div>
-  <div class="ej">
-<pre class="cmd"><span class="d">$</span> rm -r ../fuentes/dir2 ../fuentes/dir3
-<span class="d">$</span> mv fich$i.txt ../destino/          <span class="c"># dentro de un for</span></pre>
-<pre class="sal vacio"></pre>
   </div>
 </section>
 
-<section class="comando" id="s-redir">
-  <h2>Redirecciones y tuberías <small>adónde va la salida</small></h2>
+<section class="comando sh" id="s-redir">
+  <h2>Redirecciones y tuberías <small>adónde va la salida</small><span class="chip">shell</span></h2>
   <ul class="flags">
     <li><code>&gt;</code> salida a fichero (sobrescribe). <code>&gt;&gt;</code> añade al final.</li>
     <li><code>2&gt;</code> solo errores. <code>2&gt;&gt;</code> añade errores.</li>
@@ -162,8 +190,11 @@ fichr.txt  fichz.txt</pre>
     <li><code>&lt;</code> entrada desde fichero (equivale a <code>0&lt;</code>). <code>&lt;&lt;FIN</code> here-document hasta la línea <code>FIN</code>.</li>
     <li><code>/dev/null</code> agujero negro: lo que escribas ahí desaparece.</li>
     <li><code>|</code> tubería: la salida de un comando entra en el siguiente.</li>
-    <li>El shell interpreta las redirecciones <strong>antes</strong> de ejecutar y <strong>de derecha a izquierda</strong>: en <code>ls &gt; f 2&gt;&amp;1</code> primero manda los errores al mismo sitio que la salida.</li>
   </ul>
+  <div class="caja tip">
+    <b>💡 truco de examen</b>
+    <p>El shell interpreta las redirecciones <strong>antes</strong> de ejecutar y <strong>de derecha a izquierda</strong>: en <code>ls &gt; f 2&gt;&amp;1</code> primero manda los errores al mismo sitio que la salida, y todo acaba en <code>f</code>.</p>
+  </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> ls -l &gt; lista.txt
 <span class="d">$</span> who | sort &gt; persona        <span class="c"># ordenadas por el campo hora</span></pre>
@@ -193,14 +224,15 @@ EOF
 <pre class="sal">hola</pre>
   </div>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> find /etc -type f | tee ficheros.txt | wc -l
-<span class="d">$</span> ls z* y* &gt; resultados.log 2&gt;&amp;1 | wc -l  <span class="c"># en pantalla: lo de la tubería</span></pre>
+<pre class="cmd"><span class="d">$</span> find /etc -type f | tee ficheros.txt | wc -l</pre>
 <pre class="sal">3481</pre>
   </div>
 </section>
 
-<section class="comando" id="7z">
-  <h2>7z <small>empaqueta y comprime (7-Zip)</small><span class="ns">fuera del simulador</span></h2>
+<div class="letra" aria-hidden="true">A</div>
+
+<section class="comando co" id="7z">
+  <h2>7z <small>empaqueta y comprime (7-Zip)</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">7z [a|x] [-oCARPETA] fichero.7z [archivos…]</p>
   <ul class="flags">
     <li><code>a</code> añadir (comprimir). <code>x</code> extraer conservando la estructura de carpetas.</li>
@@ -217,16 +249,19 @@ descompresion/documento.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="alias">
-  <h2>alias / unalias <small>apodos para comandos</small></h2>
+<section class="comando sh" id="alias">
+  <h2>alias / unalias <small>apodos para comandos</small><span class="chip">shell</span></h2>
   <p class="uso">alias [nombre='comando'] · unalias nombre · unalias -a</p>
   <ul class="flags">
     <li>Sin argumentos lista los alias actuales.</li>
     <li><code>unalias nombre</code> borra uno; <code>unalias -a</code> borra todos.</li>
     <li>Solo dura mientras la terminal esté abierta: para que sea <strong>persistente</strong>, escribe la línea <code>alias …</code> en <code>~/.bashrc</code>.</li>
     <li>El alias se interpreta <strong>antes</strong> que el binario: con <code>alias nano='nano -l'</code>, escribir <code>nano</code> ejecuta <code>nano -l</code>.</li>
-    <li>Para invocar al binario y saltarte el alias: <code>\nano</code> (barra invertida delante).</li>
   </ul>
+  <div class="caja tip">
+    <b>💡 truco de examen</b>
+    <p>Para invocar al binario y saltarte el alias: <code>\nano</code> (barra invertida delante). Caen seguro: <code>type nano</code> → <code>nano es `nano -l'</code>.</p>
+  </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> alias nano='nano -l'
 <span class="d">$</span> type nano</pre>
@@ -240,8 +275,55 @@ descompresion/documento.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="basename">
-  <h2>basename <small>quita las carpetas a una ruta</small></h2>
+<section class="comando ap" id="apt">
+  <h2>apt <small>paquetes: instalar, actualizar, limpiar</small><span class="chip">paquetes</span><span class="ns">fuera del simulador</span></h2>
+  <p class="uso">apt update · apt install [-y] paquete · apt remove paquete · apt search texto · apt policy paquete · apt-get clean</p>
+  <ul class="flags">
+    <li><code>apt update</code> actualiza el índice de los repositorios (no instala nada). <code>apt upgrade</code> instala lo nuevo.</li>
+    <li><code>apt install -y ncal</code> instala sin preguntar. <code>apt remove</code> desinstala. <code>apt search cadena</code> busca paquetes.</li>
+    <li><code>apt policy ncal</code>: qué versión está instalada y cuál es la candidata.</li>
+    <li><code>apt-get</code> es el clásico para guiones (misma sintaxis); <code>apt-get clean</code> borra los .deb descargados de <code>/var/cache/apt/archives</code>.</li>
+    <li>Repos en <code>/etc/apt/sources.list.d/</code>: formato clásico <code>.list</code> o moderno <strong>deb822</strong> (<code>.sources</code>, con heredoc).</li>
+  </ul>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> sudo apt update</pre>
+<pre class="sal">Des:1 http://deb.debian.org/debian bookworm InRelease [128 kB]
+Des:2 http://deb.debian.org/debian bookworm-updates InRelease [52,1 kB]
+Obj:3 http://seguridad.debian.org bookworm-security InRelease
+Leyendo lista de paquetes... Hecho</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> sudo apt-get update &amp;&amp; sudo apt-get install htop -y &amp;&amp; sudo apt-get clean
+<span class="d">$</span> sudo apt-get install htop -y || sudo apt-get update
+<span class="d">$</span> apt policy ncal</pre>
+<pre class="sal">Leyendo lista de paquetes... Hecho
+Se instalarán los siguientes paquetes NUEVOS: htop
+Desempaquetando htop (3.3.0-1) ...
+Configurando htop (3.3.0-1) ...
+ncal:
+  Instalados: 12.1.7-1
+  Candidato:  12.1.7-1</pre>
+  </div>
+  <h3>Repositorios: formato clásico y deb822</h3>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> echo "deb http://repo.cica.es/debian stable main" &gt; /etc/apt/sources.list.d/cica.list</pre>
+<pre class="sal vacio"></pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> cat &lt;&lt;EOF &gt; /etc/apt/sources.list.d/cica.sources
+Types: deb
+URIs: http://repo.cica.es/debian
+Suites: stable
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/cica-archive-keyring.gpg
+EOF</pre>
+<pre class="sal vacio"></pre>
+  </div>
+</section>
+
+<section class="comando fi" id="basename">
+  <h2>basename <small>quita las carpetas a una ruta</small><span class="chip">ficheros</span></h2>
   <p class="uso">basename ruta [sufijo]</p>
   <ul class="flags">
     <li>Con <strong>sufijo</strong> (2.º argumento), además recorta esa terminación: útil para quedarte con el nombre sin extensión.</li>
@@ -254,8 +336,10 @@ fichero1</pre>
   </div>
 </section>
 
-<section class="comando" id="bzip2">
-  <h2>bzip2 / bunzip2 <small>comprime ficheros de uno en uno · .bz2</small><span class="ns">fuera del simulador</span></h2>
+<div class="letra" aria-hidden="true">B</div>
+
+<section class="comando co" id="bzip2">
+  <h2>bzip2 / bunzip2 <small>comprime ficheros de uno en uno · .bz2</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">bzip2 [opciones] fichero · bunzip2 fichero.bz2</p>
   <ul class="flags">
     <li>Solo ficheros individuales (para carpetas, usa tar).</li>
@@ -275,8 +359,10 @@ fichero1</pre>
   </div>
 </section>
 
-<section class="comando" id="cal">
-  <h2>cal <small>calendario del mes</small></h2>
+<div class="letra" aria-hidden="true">C</div>
+
+<section class="comando ti" id="cal">
+  <h2>cal <small>calendario del mes</small><span class="chip">tiempo</span></h2>
   <p class="uso">cal [mes año] · cal -3</p>
   <ul class="flags">
     <li>Sin opciones: mes actual.</li>
@@ -296,8 +382,8 @@ lu ma mi ju vi sá do
   </div>
 </section>
 
-<section class="comando" id="cat">
-  <h2>cat <small>muestra o une ficheros</small></h2>
+<section class="comando fi" id="cat">
+  <h2>cat <small>muestra o une ficheros</small><span class="chip">ficheros</span></h2>
   <p class="uso">cat [opciones] fichero…</p>
   <ul class="flags">
     <li>Varios ficheros: los pega en orden.</li>
@@ -314,8 +400,8 @@ lu ma mi ju vi sá do
   </div>
 </section>
 
-<section class="comando" id="cd">
-  <h2>cd <small>cambia de carpeta</small></h2>
+<section class="comando fi" id="cd">
+  <h2>cd <small>cambia de carpeta</small><span class="chip">ficheros</span></h2>
   <p class="uso">cd [ruta]</p>
   <ul class="flags">
     <li><code>cd ..</code> sube una carpeta. <code>cd</code> o <code>cd ~</code> va a tu home (<code>$HOME</code>).</li>
@@ -335,15 +421,18 @@ lu ma mi ju vi sá do
   </div>
 </section>
 
-<section class="comando" id="chmod">
-  <h2>chmod <small>cambia permisos</small></h2>
+<section class="comando fi" id="chmod">
+  <h2>chmod <small>cambia permisos</small><span class="chip">ficheros</span></h2>
   <p class="uso">chmod [-R] modo fichero…</p>
   <ul class="flags">
     <li>Simbólico: <code>quién</code> (<code>u</code> dueño, <code>g</code> grupo, <code>o</code> otros, <code>a</code> todos) + <code>+-=</code> + <code>rwx</code>. Ejemplos: <code>a-w</code>, <code>u+w</code>, <code>u=rwx,go=rx</code>.</li>
     <li>Octal: 3 cifras, cada una suma 4 (lectura) + 2 (escritura) + 1 (ejecución). <code>744</code> = <code>rwxr--r--</code>.</li>
     <li><code>-R</code> recursivo (a toda la carpeta y sus hijos).</li>
-    <li>En un directorio, la <code>x</code> es «permiso de paso» para atravesarlo: sin ella no puedes entrar ni ver su contenido.</li>
   </ul>
+  <div class="caja pel">
+    <b>⚠ ¡ojo!</b>
+    <p>En un directorio, la <code>x</code> es «permiso de paso»: sin ella no puedes entrar, ni crear dentro, ni listar su contenido — aunque tengas escritura.</p>
+  </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> chmod 666 fich1; ls -l fich1
 <span class="d">$</span> chmod a-w dir2; ls -ld dir2
@@ -354,6 +443,13 @@ dr-xr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2
 drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
   </div>
   <div class="ej">
+<pre class="cmd"><span class="d">$</span> chmod a-w dir2
+<span class="d">$</span> mkdir dir2/dir21
+<span class="d">$</span> chmod o-r dir2; ls -ld dir2     <span class="c"># = chmod 750 dir2 en octal</span></pre>
+<pre class="sal">mkdir: no se puede crear el directorio 'dir21': Permiso denegado
+drwxr-x--- 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+  </div>
+  <div class="ej">
 <pre class="cmd"><span class="d">$</span> mkdir dir2; ls -ld dir2     <span class="c"># ¿permisos por omisión?</span>
 <span class="d">$</span> umask 022; mkdir dira; ls -ld dira</pre>
 <pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2
@@ -361,8 +457,8 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   </div>
 </section>
 
-<section class="comando" id="compress">
-  <h2>compress / uncompress <small>compresor antiguo de UNIX · .Z</small><span class="ns">fuera del simulador</span></h2>
+<section class="comando co" id="compress">
+  <h2>compress / uncompress <small>compresor antiguo de UNIX · .Z</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">compress fichero · uncompress fichero.Z</p>
   <ul class="flags">
     <li>Solo ficheros individuales. Hoy casi no se usa.</li>
@@ -375,8 +471,8 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   </div>
 </section>
 
-<section class="comando" id="cp">
-  <h2>cp <small>copia ficheros</small></h2>
+<section class="comando fi" id="cp">
+  <h2>cp <small>copia ficheros</small><span class="chip">ficheros</span></h2>
   <p class="uso">cp [-r] [-i] [-a] [-p] [-f] [-u] origen… destino</p>
   <ul class="flags">
     <li><code>-r</code> copia carpetas enteras (recursivo). No conserva atributos; sí conserva enlaces simbólicos.</li>
@@ -386,6 +482,10 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
     <li><code>-u</code> solo copia si el origen es más nuevo que el destino.</li>
     <li><code>--</code> fin de opciones (para ficheros que empiezan por guion).</li>
   </ul>
+  <div class="caja pel">
+    <b>⚠ ¡ojo!</b>
+    <p><code>cp -r</code> NO conserva permisos ni fechas. Para copias que respeten todo usa <code>cp -a</code>.</p>
+  </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> cp mensaje dir1; cp mensaje dir2; cp mensaje dir3
 <span class="d">$</span> ls dir*/mensaje     <span class="c"># comprobar los tres de una vez</span></pre>
@@ -393,14 +493,15 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> cp /bin/u* nuevo1/
+<span class="d">$</span> cp /etc/rc2.d/* dir31/       <span class="c"># los guiones de arranque rc2.d</span>
 <span class="d">$</span> cp -r /home/otro/prueba dir11/     <span class="c"># copia el directorio entero</span>
 <span class="d">$</span> cp -a backup/ restaurado/          <span class="c"># con permisos y fechas intactos</span></pre>
 <pre class="sal vacio"></pre>
   </div>
 </section>
 
-<section class="comando" id="cut">
-  <h2>cut <small>corta campos o columnas de cada línea</small></h2>
+<section class="comando tx" id="cut">
+  <h2>cut <small>corta campos o columnas de cada línea</small><span class="chip">texto</span></h2>
   <p class="uso">cut -d separador -f campos fichero</p>
   <ul class="flags">
     <li><code>-d :</code> carácter separador.</li>
@@ -421,8 +522,10 @@ usuario:/bin/bash
   </div>
 </section>
 
-<section class="comando" id="date">
-  <h2>date <small>fecha y hora</small></h2>
+<div class="letra" aria-hidden="true">D</div>
+
+<section class="comando ti" id="date">
+  <h2>date <small>fecha y hora</small><span class="chip">tiempo</span></h2>
   <p class="uso">date [+formato] · date -d fecha</p>
   <ul class="flags">
     <li><code>+%F</code> 2026-11-11 · <code>+%Y</code> año · <code>+%m</code> mes · <code>+%d</code> día · <code>+%d%m%y</code> 111126</li>
@@ -448,8 +551,8 @@ vie nov 13 00:00:00 CET 2026</pre>
   </div>
 </section>
 
-<section class="comando" id="df">
-  <h2>df <small>espacio libre de los discos</small><span class="ns">fuera del simulador</span></h2>
+<section class="comando pr" id="df">
+  <h2>df <small>espacio libre de los discos</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">df [-h] [ruta]</p>
   <ul class="flags">
     <li><code>-h</code> human-readable: tamaños legibles (K, M, G). El mismo significado que en <code>ls -h</code>.</li>
@@ -464,8 +567,8 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
   </div>
 </section>
 
-<section class="comando" id="dirname">
-  <h2>dirname <small>quita el nombre de fichero a una ruta</small></h2>
+<section class="comando fi" id="dirname">
+  <h2>dirname <small>quita el nombre de fichero a una ruta</small><span class="chip">ficheros</span></h2>
   <p class="uso">dirname ruta</p>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> dirname /home/usuario/fichero1.txt</pre>
@@ -473,8 +576,8 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
   </div>
 </section>
 
-<section class="comando" id="du">
-  <h2>du <small>cuánto ocupa cada carpeta</small></h2>
+<section class="comando fi" id="du">
+  <h2>du <small>cuánto ocupa cada carpeta</small><span class="chip">ficheros</span></h2>
   <p class="uso">du [-h] [-s] [-a] [ruta]</p>
   <ul class="flags">
     <li><code>-h</code> legible (K, M, G).</li>
@@ -492,8 +595,10 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
   </div>
 </section>
 
-<section class="comando" id="echo">
-  <h2>echo <small>escribe texto</small></h2>
+<div class="letra" aria-hidden="true">E</div>
+
+<section class="comando sh" id="echo">
+  <h2>echo <small>escribe texto</small><span class="chip">shell</span></h2>
   <p class="uso">echo [-e] [-n] texto</p>
   <ul class="flags">
     <li><code>-e</code> interpreta <code>\n</code> (salto de línea) y <code>\t</code> (tabulador).</li>
@@ -510,8 +615,10 @@ sin salto</pre>
   </div>
 </section>
 
-<section class="comando" id="file">
-  <h2>file <small>de qué tipo es un fichero</small></h2>
+<div class="letra" aria-hidden="true">F</div>
+
+<section class="comando fi" id="file">
+  <h2>file <small>de qué tipo es un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">file fichero…</p>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> file /home/usuario/.bashrc /dev/ttys0 /bin/ls
@@ -522,21 +629,43 @@ sin salto</pre>
   </div>
 </section>
 
-<section class="comando" id="find">
-  <h2>find <small>busca ficheros y directorios</small></h2>
+<section class="comando bu" id="find">
+  <h2>find <small>busca ficheros y directorios</small><span class="chip">búsqueda</span></h2>
   <p class="uso">find ruta [criterios] [-a|-o|-not] [acciones: -print -ls -exec -ok]</p>
-  <ul class="flags">
-    <li><strong>-type:</strong> <code>f</code> ordinario · <code>d</code> directorio · <code>l</code> simbólico · <code>b</code> bloques · <code>c</code> caracteres · <code>p</code> tubería con nombre · <code>s</code> socket.</li>
+  <ul class="flags cols">
     <li><strong>-name</strong> por nombre (comodines entre comillas). <strong>-user</strong> / <strong>-group</strong> por propietario (nombre o UID/GUID; <code>id</code> te dice los tuyos).</li>
-    <li><strong>-size:</strong> por defecto en bloques de 512 B. Unidades: <code>c</code> bytes · <code>w</code> palabras (2 B) · <code>k</code> KiB · <code>M</code>, <code>G</code>. <code>+5k</code> más de 5 KiB · <code>-10k</code> menos de 10 KiB · <code>100c</code> exactamente 100 B · <code>0</code> o <code>-empty</code> vacíos.</li>
-    <li><strong>Tiempos:</strong> <code>-mtime</code> (modificación), <code>-atime</code> (acceso), <code>-ctime</code> (cambio de atributos); en días: <code>-mtime 1</code> exactamente · <code>+1</code> más de un día · <code>-1</code> menos de un día (hoy). En minutos: <code>-mmin</code>, <code>-amin</code>, <code>-cmin</code>.</li>
+    <li><strong>Tiempos en días:</strong> <code>-mtime</code> (modificación), <code>-atime</code> (acceso), <code>-ctime</code> (cambio). <code>-mtime 1</code> exactamente ayer·hoy · <code>+1</code> más de un día · <code>-1</code> menos de un día (hoy).</li>
+    <li><strong>Tiempos en minutos:</strong> <code>-mmin</code>, <code>-amin</code>, <code>-cmin</code>.</li>
     <li><strong>-newer ref:</strong> modificados más recientemente que el fichero <code>ref</code>. <code>! -newer ref</code> los no más nuevos. Entre dos: <code>-newer ref1 ! -newer ref2</code>.</li>
     <li><strong>-newermt/at/ct "fecha":</strong> la referencia es una fecha literal, no un fichero (<code>m</code> modificación, <code>a</code> acceso, <code>c</code> cambio, <code>t</code> texto). Fechas humanas: <code>"2020-11-01 08:00"</code>, <code>"yesterday"</code>, <code>"1 week ago"</code>.</li>
-    <li><strong>-perm:</strong> por permisos, en octal o simbólico. <code>-perm 664</code> exactos · <code>-perm -664</code> (o <code>-u=rw,g=rw,o=r</code>) al menos esos · <code>-perm /220</code> o <code>-perm /u+w,g+w</code> cualquiera de ellos.</li>
-    <li><strong>-links ±n:</strong> por número de enlaces duros. <strong>-inum N:</strong> por número de inodo — encuentra todos los enlaces duros que comparten inodo (mira el número con <code>ls -li</code> o <code>stat</code>).</li>
-    <li><strong>Combinar criterios:</strong> <code>-a</code> y (por defecto) · <code>-o</code> o · <code>-not</code> o <code>!</code> negación. Paréntesis escapados: <code>\( \)</code>.</li>
-    <li><strong>Acciones:</strong> <code>-print</code> (por defecto) · <code>-ls</code> formato largo · <code>-exec comando {} \;</code> ejecuta por cada resultado (se aplica al ir encontrando, no al terminar) · <code>-exec … {} +</code> agrupa muchos en una llamada (más rápido) · <code>-ok comando {} \;</code> como -exec pero pidiendo confirmación.</li>
+    <li><strong>-perm:</strong> por permisos, octal o simbólico: <code>-perm 664</code> exactos · <code>-perm -664</code> al menos esos · <code>-perm /220</code> o <code>-perm /u+w,g+w</code> cualquiera de ellos.</li>
+    <li><strong>-links ±n:</strong> por número de enlaces duros. <strong>-inum N:</strong> por número de inodo — encuentra todos los enlaces duros que comparten inodo (míralo con <code>ls -li</code> o <code>stat</code>).</li>
+    <li><strong>-maxdepth N:</strong> no baje más de N niveles de carpetas.</li>
+    <li><strong>Combinar:</strong> <code>-a</code> y (por defecto) · <code>-o</code> o · <code>-not</code> o <code>!</code> negación. Paréntesis escapados: <code>\( \)</code>.</li>
+    <li><strong>Acciones:</strong> <code>-print</code> (por defecto) · <code>-ls</code> formato largo · <code>-exec comando {} \;</code> por cada resultado · <code>{} +</code> agrupa muchos (más rápido) · <code>-ok comando {} \;</code> pide confirmación.</li>
   </ul>
+  <table>
+    <tr><th><code>-type</code></th><th>busca</th></tr>
+    <tr><td><code>f</code></td><td>fichero ordinario</td></tr>
+    <tr><td><code>d</code></td><td>directorio</td></tr>
+    <tr><td><code>l</code></td><td>enlace simbólico</td></tr>
+    <tr><td><code>b</code></td><td>fichero de bloques (disco)</td></tr>
+    <tr><td><code>c</code></td><td>fichero de caracteres (tty)</td></tr>
+    <tr><td><code>p</code></td><td>tubería con nombre</td></tr>
+    <tr><td><code>s</code></td><td>socket de red</td></tr>
+  </table>
+  <table>
+    <tr><th><code>-size</code></th><th>unidad</th></tr>
+    <tr><td><code>b</code></td><td>bloque de 512 B (por defecto)</td></tr>
+    <tr><td><code>c</code></td><td>1 byte</td></tr>
+    <tr><td><code>w</code></td><td>palabra, 2 bytes</td></tr>
+    <tr><td><code>k</code> / <code>M</code> / <code>G</code></td><td>KiB / MiB / GiB</td></tr>
+  </table>
+  <p class="nota">Delante del tamaño: <code>+5k</code> más de 5 KiB · <code>-10k</code> menos de 10 KiB · <code>100c</code> exacto · <code>0</code> = <code>-empty</code>.</p>
+  <div class="caja tip">
+    <b>💡 truco de examen</b>
+    <p><code>-perm 664</code> exige los permisos <em>exactos</em>; <code>-perm -664</code> «al menos estos»; <code>-perm /220</code> «cualquiera de estos». Y el manual dice: mira los EXAMPLES de <code>man find</code>.</p>
+  </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> find /usr/include -name "*.h"
 <span class="d">$</span> find / -type f -user root
@@ -600,8 +729,23 @@ real 0m0.012s</pre>
   </div>
 </section>
 
-<section class="comando" id="grep">
-  <h2>grep <small>filtra las líneas que coinciden</small></h2>
+<section class="comando ap" id="foremost">
+  <h2>foremost <small>recupera ficheros borrados</small><span class="chip">paquetes</span><span class="ns">fuera del simulador</span></h2>
+  <p class="uso">foremost [-o carpeta_salida] imagen.dd</p>
+  <ul class="flags">
+    <li>Es la respuesta del temario a «<code>rm</code> no tiene papelera»: busca <strong>firmas</strong> de formatos (jpg, pdf, odt…) dentro de una imagen de disco y recupera lo que no esté sobrescrito.</li>
+    <li>Se instala aparte: <code>apt install foremost</code>. Funciona sobre una imagen, no sobre el disco en marcha.</li>
+  </ul>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> sudo apt install foremost -y
+<span class="d">$</span> sudo foremost -o recuperado imagen.dd</pre>
+<pre class="sal">Processing: imagen.dd
+|*jpg/ |*pdf/ |*odt/</pre>
+  </div>
+</section>
+
+<section class="comando tx" id="grep">
+  <h2>grep <small>filtra las líneas que coinciden</small><span class="chip">texto</span></h2>
   <p class="uso">grep [-i] [-n] [-v] [-c] patrón [fichero]</p>
   <ul class="flags">
     <li><code>-i</code> ignora mayúsculas y minúsculas.</li>
@@ -638,8 +782,8 @@ export SHELL</pre>
   </div>
 </section>
 
-<section class="comando" id="gzip">
-  <h2>gzip / gunzip <small>comprime ficheros de uno en uno · .gz</small><span class="ns">fuera del simulador</span></h2>
+<section class="comando co" id="gzip">
+  <h2>gzip / gunzip <small>comprime ficheros de uno en uno · .gz</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">gzip [opciones] fichero · gunzip fichero.gz</p>
   <ul class="flags">
     <li>Solo ficheros individuales. Para carpetas: <code>tar -czvf</code>.</li>
@@ -661,8 +805,10 @@ documentos/documento2.odt</pre>
   </div>
 </section>
 
-<section class="comando" id="head">
-  <h2>head <small>el principio de un fichero</small></h2>
+<div class="letra" aria-hidden="true">H</div>
+
+<section class="comando fi" id="head">
+  <h2>head <small>el principio de un fichero</small><span class="chip">texto</span></h2>
   <p class="uso">head [-n N] [fichero]</p>
   <ul class="flags">
     <li>Por defecto las primeras 10 líneas.</li>
@@ -683,14 +829,24 @@ C1.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="history">
-  <h2>history <small>comandos que has escrito</small></h2>
-  <p class="uso">history [N] · history -c</p>
+<section class="comando sh" id="history">
+  <h2>history <small>el historial, y cómo pedirle cosas</small><span class="chip">shell</span></h2>
+  <p class="uso">history [N] · history -c · !! · !n · !texto · !$ · ^viejo^nuevo^</p>
   <ul class="flags">
-    <li><code>history 10</code> solo los últimos 10. <code>-c</code> lo borra de esta sesión.</li>
-    <li>Se guarda en <code>~/.bash_history</code> (la variable <code>$HISTFILE</code> dice dónde).</li>
-    <li>Con <code>↑</code> y <code>↓</code> recorres el historial sin comando; <kbd>Ctrl</kbd>+<kbd>R</kbd> busca hacia atrás.</li>
+    <li><code>history 10</code> solo los últimos 10. <code>history -c</code> lo borra de esta sesión.</li>
+    <li>Se guarda en <code>~/.bash_history</code>; la variable <code>$HISTFILE</code> dice dónde.</li>
+    <li><kbd>↑</kbd><kbd>↓</kbd> recorren el historial; <kbd>Ctrl</kbd>+<kbd>R</kbd> busca hacia atrás mientras escribes.</li>
   </ul>
+  <table>
+    <tr><th>escribes</th><th>bash ejecuta</th></tr>
+    <tr><td><code>!!</code></td><td>el comando anterior entero</td></tr>
+    <tr><td><code>!42</code> / <code>!-2</code></td><td>el comando n.º 42 de history / el de hace 2</td></tr>
+    <tr><td><code>!ls</code></td><td>el último que <em>empezó</em> por «ls»</td></tr>
+    <tr><td><code>!?motd?</code></td><td>el último que <em>contuvo</em> «motd»</td></tr>
+    <tr><td><code>!$</code></td><td>el último argumento del comando anterior (igual que <kbd>Alt</kbd>+<kbd>.</kbd>)</td></tr>
+    <tr><td><code>^txt^log^</code></td><td>repite el anterior cambiando la 1.ª aparición de «txt» por «log»</td></tr>
+  </table>
+  <p class="nota">La expansión del historial (<code>!!</code>, <code>!$</code>, <code>^…^…</code>) es del bash real: no está en la terminal web, pruébalos en tu Linux.</p>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> history 3
 <span class="d">$</span> echo $HISTFILE</pre>
@@ -699,10 +855,45 @@ C1.txt</pre>
   13  history 3
 /home/usuario/.bash_history</pre>
   </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> apt install ncal         <span class="c"># olvide el sudo…</span>
+E: No se pudo abrir el archivo de bloqueo - ¿root?
+<span class="d">$</span> sudo !!                  <span class="c"># repite el anterior con sudo delante</span>
+<span class="d">$</span> ls fich1.txt
+<span class="d">$</span> ^txt^log                 <span class="c"># ls fich1.log</span></pre>
+<pre class="sal">sudo apt install ncal
+ls fich1.log</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> cd /etc
+<span class="d">$</span> echo !$                  <span class="c"># el último argumento: /etc</span>
+<span class="d">$</span> !ls                      <span class="c"># re-ejecuta el último que empezó por ls</span></pre>
+<pre class="sal">/etc
+fich1.txt</pre>
+  </div>
 </section>
 
-<section class="comando" id="hwclock">
-  <h2>hwclock <small>reloj de la BIOS</small></h2>
+<section class="comando pr" id="htop">
+  <h2>htop <small>monitor de procesos interactivo</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
+  <p class="uso">htop</p>
+  <ul class="flags">
+    <li>Vigila CPU y RAM por proceso con colores y barras; navegable con flechas.</li>
+    <li>Teclas: <kbd>F3</kbd> buscar · <kbd>F9</kbd> matar proceso · <kbd>F10</kbd>/<kbd>q</kbd> salir.</li>
+    <li>No viene de fábrica: se instala con apt (<code>apt-get install htop -y</code>), como hacen los apuntes en cadena con update y clean.</li>
+  </ul>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> sudo apt-get update &amp;&amp; sudo apt-get install htop -y &amp;&amp; sudo apt-get clean
+<span class="d">$</span> htop</pre>
+<pre class="sal">  1 [  12.5%] Tasks: 148, 92 thr; 1 running
+  2 [   8.3%] Load average: 0.14 0.09 0.05
+[|Main 8.3%] Uptime: 01:12:44
+    PID USER      CPU% MEM%   TIME+  COMMAND
+   2143 usuario    0.7  0.3  0:01.12 bash</pre>
+  </div>
+</section>
+
+<section class="comando ti" id="hwclock">
+  <h2>hwclock <small>reloj de la BIOS</small><span class="chip">tiempo</span></h2>
   <p class="uso">hwclock [-r | -w]</p>
   <ul class="flags">
     <li>Sin opciones o <code>-r</code>/<code>--show</code>: muestra la hora del hardware.</li>
@@ -714,8 +905,10 @@ C1.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="id">
-  <h2>id <small>UID y GID de un usuario</small><span class="ns">fuera del simulador</span></h2>
+<div class="letra" aria-hidden="true">I</div>
+
+<section class="comando pr" id="id">
+  <h2>id <small>UID y GID de un usuario</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">id [usuario]</p>
   <ul class="flags">
     <li>Muestra UID (identificador de usuario) y GID (de grupo) y los grupos a los que pertenece.</li>
@@ -730,8 +923,10 @@ C1.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="ln">
-  <h2>ln <small>enlaces duros y simbólicos</small></h2>
+<div class="letra" aria-hidden="true">L</div>
+
+<section class="comando fi" id="ln">
+  <h2>ln <small>enlaces duros y simbólicos</small><span class="chip">ficheros</span></h2>
   <p class="uso">ln [-s] destino nombre_enlace</p>
   <ul class="flags">
     <li>Sin <code>-s</code>: enlace <strong>duro</strong>, otro nombre para el mismo contenido e inodo. Si borras el original, el enlace sigue funcionando. Solo en la misma partición.</li>
@@ -759,8 +954,8 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
   </div>
 </section>
 
-<section class="comando" id="locate">
-  <h2>locate / updatedb <small>busca por nombre en la base de datos</small></h2>
+<section class="comando bu" id="locate">
+  <h2>locate / updatedb <small>busca por nombre en la base de datos</small><span class="chip">búsqueda</span></h2>
   <p class="uso">locate [-c] [-i] [--regex re] patrón · updatedb</p>
   <ul class="flags">
     <li>Mucho más rápido que find: consulta una base de datos de ficheros, no el disco.</li>
@@ -785,10 +980,25 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
   </div>
 </section>
 
-<section class="comando" id="ls">
-  <h2>ls <small>lista el contenido</small></h2>
-  <p class="uso">ls [-l] [-a] [-R] [-d] [-h] [-i] [-r] [-t] [-S] [ruta…]</p>
+<section class="comando pr" id="lsof">
+  <h2>lsof <small>ficheros abiertos por los procesos</small><span class="chip">procesos</span><span class="ns">fuera del simulador</span></h2>
+  <p class="uso">lsof [-p PID] [-d fd] [fichero]</p>
   <ul class="flags">
+    <li>Lista <strong>todo fichero abierto</strong>: ficheros normales, tuberías, sockets y /dev.</li>
+    <li><code>lsof /var/log/syslog</code> quién tiene abierto ese fichero · <code>lsof -p 4565</code> todo lo que tiene abierto ese proceso.</li>
+    <li><code>lsof -p 4565 -d 5</code> solo el canal (descriptor) 5: dónde quedó conectado un <code>exec 5&gt; tuberia</code>.</li>
+  </ul>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> lsof -p 4565 -d 5</pre>
+<pre class="sal">COMMAND  PID    USER  FD  TYPE DEVICE SIZE/OFF NODE NAME
+bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
+  </div>
+</section>
+
+<section class="comando fi" id="ls">
+  <h2>ls <small>lista el contenido</small><span class="chip">ficheros</span></h2>
+  <p class="uso">ls [-l] [-a] [-R] [-d] [-h] [-i] [-r] [-t] [-S] [ruta…]</p>
+  <ul class="flags cols">
     <li><code>-l</code> formato largo: tipo+permisos, enlaces, dueño, grupo, tamaño, fecha, nombre.</li>
     <li><code>-a</code> incluye los ocultos (los que empiezan por <code>.</code>). <code>-A</code> casi igual, sin <code>.</code> ni <code>..</code>.</li>
     <li><code>-R</code> recursivo (todas las subcarpetas). <code>-d</code> la carpeta en sí, no su contenido.</li>
@@ -821,10 +1031,18 @@ dir1/  dir2/  dir3/</pre>
 crw--w---- 1 root tty  4,0 nov 11 09:00 /dev/tty0
 crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> ls -r /etc/t*      <span class="c"># los /etc/t… en orden inverso</span>
+<span class="d">$</span> ls -l /dev/tty2    <span class="c"># ¿existe? ¿cuándo se actualizó?</span></pre>
+<pre class="sal">tmpfiles.d  timezone  terminfo
+crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
+  </div>
 </section>
 
-<section class="comando" id="md5sum">
-  <h2>md5sum <small>huella digital de un fichero</small><span class="ns">fuera del simulador</span></h2>
+<div class="letra" aria-hidden="true">M</div>
+
+<section class="comando fi" id="md5sum">
+  <h2>md5sum <small>huella digital de un fichero</small><span class="chip">ficheros</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">md5sum fichero…</p>
   <ul class="flags">
     <li>Calcula el resumen MD5: si dos ficheros tienen el mismo md5, su contenido es idéntico.</li>
@@ -838,8 +1056,8 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   </div>
 </section>
 
-<section class="comando" id="mkdir">
-  <h2>mkdir <small>crea carpetas</small></h2>
+<section class="comando fi" id="mkdir">
+  <h2>mkdir <small>crea carpetas</small><span class="chip">ficheros</span></h2>
   <p class="uso">mkdir [-p] [-m modo] carpeta…</p>
   <ul class="flags">
     <li><code>-p</code> crea las carpetas padre si faltan (rutas anidadas de golpe) y no protesta si ya existen.</li>
@@ -853,8 +1071,8 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   </div>
 </section>
 
-<section class="comando" id="mkfifo">
-  <h2>mkfifo <small>crea una tubería con nombre</small></h2>
+<section class="comando fi" id="mkfifo">
+  <h2>mkfifo <small>crea una tubería con nombre</small><span class="chip">ficheros</span></h2>
   <p class="uso">mkfifo [-m modo] nombre…</p>
   <ul class="flags">
     <li>Es un fichero especial (<code>p</code> en <code>ls -l</code>) por el que pasan datos de un proceso a otro.</li>
@@ -870,8 +1088,8 @@ hola</pre>
   </div>
 </section>
 
-<section class="comando" id="mv">
-  <h2>mv <small>mueve o renombra</small></h2>
+<section class="comando fi" id="mv">
+  <h2>mv <small>mueve o renombra</small><span class="chip">ficheros</span></h2>
   <p class="uso">mv [-i] [-u] origen… destino</p>
   <ul class="flags">
     <li><code>-i</code> pregunta antes de sobrescribir. <code>-u</code> solo si el origen es más nuevo.</li>
@@ -886,8 +1104,10 @@ hola</pre>
   </div>
 </section>
 
-<section class="comando" id="ncal">
-  <h2>ncal <small>calendario en vertical, con semanas</small></h2>
+<div class="letra" aria-hidden="true">N</div>
+
+<section class="comando ti" id="ncal">
+  <h2>ncal <small>calendario en vertical, con semanas</small><span class="chip">tiempo</span></h2>
   <p class="uso">ncal [mes año] · ncal -w</p>
   <ul class="flags">
     <li><code>-w</code> muestra también el número de la semana.</li>
@@ -907,8 +1127,8 @@ do  4 11 18 25
   </div>
 </section>
 
-<section class="comando" id="nano">
-  <h2>nano <small>editor de texto de la terminal</small><span class="ns">fuera del simulador</span></h2>
+<section class="comando fi" id="nano">
+  <h2>nano <small>editor de texto de la terminal</small><span class="chip">ficheros</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">nano [-l] fichero</p>
   <ul class="flags">
     <li><code>nano fichero</code> lo abre (lo crea al guardar si no existía).</li>
@@ -923,8 +1143,10 @@ do  4 11 18 25
   </div>
 </section>
 
-<section class="comando" id="ps">
-  <h2>ps <small>procesos en marcha</small></h2>
+<div class="letra" aria-hidden="true">P</div>
+
+<section class="comando pr" id="ps">
+  <h2>ps <small>procesos en marcha</small><span class="chip">procesos</span></h2>
   <p class="uso">ps [opciones]</p>
   <ul class="flags">
     <li><code>aux</code> todos los procesos del sistema con detalle (usuario, PID, %CPU, %MEM, comando). La forma larga es <code>ps --aux</code>.</li>
@@ -945,8 +1167,8 @@ root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
   </div>
 </section>
 
-<section class="comando" id="pwd">
-  <h2>pwd <small>en qué carpeta estás</small></h2>
+<section class="comando fi" id="pwd">
+  <h2>pwd <small>en qué carpeta estás</small><span class="chip">ficheros</span></h2>
   <p class="uso">pwd</p>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> cd prueba/dir3; pwd
@@ -956,8 +1178,10 @@ pwd es una orden interna del interprete</pre>
   </div>
 </section>
 
-<section class="comando" id="rar">
-  <h2>rar / unrar <small>formato RAR</small><span class="ns">fuera del simulador</span></h2>
+<div class="letra" aria-hidden="true">R</div>
+
+<section class="comando co" id="rar">
+  <h2>rar / unrar <small>formato RAR</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">rar a fichero.rar [archivos…] · unrar x fichero.rar</p>
   <ul class="flags">
     <li><code>a</code> comprimir. <code>x</code> extraer manteniendo estructura.</li>
@@ -973,8 +1197,8 @@ Extracting  documentos/documento1.txt  OK</pre>
   </div>
 </section>
 
-<section class="comando" id="readlink">
-  <h2>readlink <small>a dónde apunta un enlace</small></h2>
+<section class="comando fi" id="readlink">
+  <h2>readlink <small>a dónde apunta un enlace</small><span class="chip">ficheros</span></h2>
   <p class="uso">readlink [-f] enlace</p>
   <ul class="flags">
     <li>Sin opciones: la ruta guardada en el enlace.</li>
@@ -988,15 +1212,18 @@ Extracting  documentos/documento1.txt  OK</pre>
   </div>
 </section>
 
-<section class="comando" id="rm">
-  <h2>rm <small>borra ficheros</small></h2>
+<section class="comando fi" id="rm">
+  <h2>rm <small>borra ficheros</small><span class="chip">ficheros</span></h2>
   <p class="uso">rm [-r] [-i] [-f] fichero…</p>
   <ul class="flags">
     <li><code>-r</code> borra carpetas con todo su contenido (la única forma de borrar estructuras; <code>rmdir</code> no puede).</li>
     <li><code>-i</code> pregunta uno a uno. <code>-f</code> sin preguntar.</li>
-    <li>¡<code>-rf</code> es altamente peligroso!</li>
-    <li>¡No hay papelera! Lo borrado no se recupera (con herramientas forenses tipo <code>foremost</code>, quizá).</li>
+    <li>Muy práctico pero peligroso combinar: <code>-rf</code>.</li>
   </ul>
+  <div class="caja pel">
+    <b>⚠ ¡altamente peligroso!</b>
+    <p><code>rm</code> <strong>no tiene papelera</strong>: lo borrado no se recupera con el sistema. Si nada sobrescribió los bloques, la única esperanza es la recuperación forense (<code>foremost</code> sobre una imagen del disco).</p>
+  </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> rm -r dir1
 <span class="d">$</span> rm -r ../fuentes/dir2 ../fuentes/dir3
@@ -1009,8 +1236,8 @@ Extracting  documentos/documento1.txt  OK</pre>
   </div>
 </section>
 
-<section class="comando" id="rmdir">
-  <h2>rmdir <small>borra carpetas, solo si están vacías</small></h2>
+<section class="comando fi" id="rmdir">
+  <h2>rmdir <small>borra carpetas, solo si están vacías</small><span class="chip">ficheros</span></h2>
   <p class="uso">rmdir [-p] carpeta…</p>
   <ul class="flags">
     <li>No suprime estructuras: la carpeta no puede tener ni ficheros ni directorios dentro (aunque los subdirectorios estén vacíos, usa <code>-p</code>).</li>
@@ -1023,8 +1250,10 @@ Extracting  documentos/documento1.txt  OK</pre>
   </div>
 </section>
 
-<section class="comando" id="sort">
-  <h2>sort <small>ordena líneas</small></h2>
+<div class="letra" aria-hidden="true">S</div>
+
+<section class="comando tx" id="sort">
+  <h2>sort <small>ordena líneas</small><span class="chip">texto</span></h2>
   <p class="uso">sort [-n] [-r] [-k campo] [-t sep] [fichero]</p>
   <ul class="flags">
     <li><code>-n</code> numérico. <code>-r</code> inverso (Z→A).</li>
@@ -1046,8 +1275,8 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
   </div>
 </section>
 
-<section class="comando" id="source">
-  <h2>source / . <small>ejecuta un guion en esta shell</small></h2>
+<section class="comando sh" id="source">
+  <h2>source / . <small>ejecuta un guion en esta shell</small><span class="chip">shell</span></h2>
   <p class="uso">source guion.sh</p>
   <ul class="flags">
     <li>A diferencia de <code>bash guion.sh</code>, los cambios (variables, alias, <code>cd</code>) quedan en la terminal actual.</li>
@@ -1062,14 +1291,19 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
   </div>
 </section>
 
-<section class="comando" id="stat">
-  <h2>stat <small>ficha completa de un fichero</small></h2>
+<section class="comando fi" id="stat">
+  <h2>stat <small>ficha completa de un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">stat fichero</p>
   <ul class="flags">
     <li>Tamaño, inodo, número de enlaces duros, permisos en octal, dueño y las tres marcas de tiempo:</li>
-    <li><strong>atime</strong> último acceso · <strong>mtime</strong> última modificación del contenido · <strong>ctime</strong> último cambio (de contenido <em>o</em> de atributos como permisos o dueño).</li>
-    <li>Cambiar atime o mtime implica cambiar ctime. <code>touch</code> actualiza atime y mtime a la hora actual.</li>
+    <li><code>touch</code> actualiza atime y mtime a la hora actual; cambiar atime o mtime implica cambiar ctime.</li>
   </ul>
+  <table>
+    <tr><th>marca</th><th>qué guarda</th></tr>
+    <tr><td><code>atime</code></td><td>último acceso (cada lectura)</td></tr>
+    <tr><td><code>mtime</code></td><td>última modificación del contenido</td></tr>
+    <tr><td><code>ctime</code></td><td>último cambio: contenido <em>o</em> atributos (permisos, dueño…)</td></tr>
+  </table>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> stat fich1</pre>
 <pre class="sal">  Fichero: fich1
@@ -1082,8 +1316,10 @@ Cambio:       2026-11-11 10:12:00.000000000 +0100</pre>
   </div>
 </section>
 
-<section class="comando" id="tail">
-  <h2>tail <small>el final de un fichero</small></h2>
+<div class="letra" aria-hidden="true">T</div>
+
+<section class="comando fi" id="tail">
+  <h2>tail <small>el final de un fichero</small><span class="chip">texto</span></h2>
   <p class="uso">tail [-n N] [-f] [fichero]</p>
   <ul class="flags">
     <li>Por defecto las últimas 10 líneas.</li>
@@ -1100,10 +1336,10 @@ Z2.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="tar">
-  <h2>tar <small>empaqueta y comprime carpetas enteras</small><span class="ns">fuera del simulador</span></h2>
+<section class="comando co" id="tar">
+  <h2>tar <small>empaqueta y comprime carpetas enteras</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">tar [-c|-t|-x] [-v] [-f fichero] [-z|-j|-J|-Z] [-C carpeta] [-r] [--exclude=patrón] [archivos…]</p>
-  <ul class="flags">
+  <ul class="flags cols">
     <li><code>-c</code> crear · <code>-t</code> listar contenido sin extraer · <code>-x</code> extraer.</li>
     <li><code>-v</code> verboso (muestra lo que procesa) · <code>-f</code> nombre del fichero tar.</li>
     <li><code>-z</code> gzip (<code>.tar.gz</code>) · <code>-j</code> bzip2 (<code>.tar.bz2</code>) · <code>-J</code> xz (<code>.tar.xz</code>) · <code>-Z</code> compress (<code>.tar.Z</code>). Sin ninguna: solo empaqueta (<code>.tar</code>).</li>
@@ -1163,8 +1399,8 @@ documentos/</pre>
   <p class="nota">Solo tar: agrupa, no comprime. Con gzip suele ser el más rápido; xz comprime más en ficheros grandes pero tarda más.</p>
 </section>
 
-<section class="comando" id="tee">
-  <h2>tee <small>pantalla y fichero a la vez</small></h2>
+<section class="comando sh" id="tee">
+  <h2>tee <small>pantalla y fichero a la vez</small><span class="chip">shell</span></h2>
   <p class="uso">comando | tee [-a] fichero</p>
   <ul class="flags">
     <li><code>-a</code> añade al final en vez de sobrescribir.</li>
@@ -1180,8 +1416,8 @@ usuario tty1 2026-11-11 09:10</pre>
   </div>
 </section>
 
-<section class="comando" id="time">
-  <h2>time <small>cuánto tarda un comando</small></h2>
+<section class="comando ti" id="time">
+  <h2>time <small>cuánto tarda un comando</small><span class="chip">tiempo</span></h2>
   <p class="uso">time comando</p>
   <ul class="flags">
     <li>Saca por pantalla los tiempos del comando que va detrás: real, user y sys.</li>
@@ -1198,17 +1434,17 @@ real    0m0.012s</pre>
   </div>
 </section>
 
-<section class="comando" id="touch">
-  <h2>touch <small>crea ficheros vacíos o cambia sus marcas de tiempo</small></h2>
+<section class="comando ti" id="touch">
+  <h2>touch <small>crea ficheros vacíos o cambia sus marcas de tiempo</small><span class="chip">tiempo</span></h2>
   <p class="uso">touch [-a] [-m] [-d fecha] [-t hora] [-r ref] [-h] fichero…</p>
-  <ul class="flags">
+  <ul class="flags cols">
     <li>Sin opciones: crea el fichero si no existe y, si existe, pone <strong>acceso y modificación</strong> a la hora actual.</li>
     <li><code>-a</code> (<code>--time=atime</code>) cambia solo la hora de <strong>acceso</strong> · <code>-m</code> (<code>--time=mtime</code>) solo la de <strong>modificación</strong> · <code>-am</code> las dos.</li>
     <li><code>-d "03-feb-2003"</code>, <code>-d "03/02/2003"</code>, <code>-d "21:08"</code>, <code>-d "9:08 pm"</code>, <code>-d "next friday 23:00"</code>: asigna esa fecha (acceso y modificación).</li>
     <li><code>-t [YY]MMDDhhmm[.ss]</code>: marca temporal compacta. Ejemplo: <code>-t 202611112108</code>.</li>
     <li><code>-r referencia</code>: copia las marcas del fichero de referencia: <code>touch -r fichero_referencia fich1 fich2</code>.</li>
     <li><code>-h</code> cambia la marca del <strong>enlace simbólico</strong> en sí, no del fichero apuntado.</li>
-    <li>El cambio de atime o mtime implica el cambio de ctime (ver <code>stat</code>).</li>
+    <li>Las marcas las lees con <code>stat</code> (atime / mtime / ctime, allí arriba).</li>
   </ul>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> touch fich1 vacio
@@ -1230,8 +1466,8 @@ real    0m0.012s</pre>
   </div>
 </section>
 
-<section class="comando" id="tree">
-  <h2>tree <small>el árbol de carpetas dibujado</small></h2>
+<section class="comando fi" id="tree">
+  <h2>tree <small>el árbol de carpetas dibujado</small><span class="chip">ficheros</span></h2>
   <p class="uso">tree [-a] [-L nivel] [ruta]</p>
   <ul class="flags">
     <li><code>-L 2</code> solo hasta 2 niveles. <code>-a</code> incluye ocultos.</li>
@@ -1252,8 +1488,8 @@ real    0m0.012s</pre>
   </div>
 </section>
 
-<section class="comando" id="type">
-  <h2>type <small>qué es un comando</small></h2>
+<section class="comando sh" id="type">
+  <h2>type <small>qué es un comando</small><span class="chip">shell</span></h2>
   <p class="uso">type comando…</p>
   <ul class="flags">
     <li>Te dice si es <strong>interno</strong> del shell, un <strong>alias</strong> o un <strong>programa</strong> con su ruta.</li>
@@ -1270,14 +1506,25 @@ nano es `nano -l'</pre>
   </div>
 </section>
 
-<section class="comando" id="umask">
-  <h2>umask <small>permisos por defecto</small></h2>
+<div class="letra" aria-hidden="true">U</div>
+
+<section class="comando fi" id="umask">
+  <h2>umask <small>permisos por defecto</small><span class="chip">ficheros</span></h2>
   <p class="uso">umask [máscara]</p>
   <ul class="flags">
     <li>Sin opciones muestra la máscara actual (normalmente <code>022</code>).</li>
-    <li>Se <strong>resta</strong> de 666 en ficheros y de 777 en carpetas: con <code>022</code> → ficheros <code>644</code>, carpetas <code>755</code>.</li>
-    <li>Quieres directorios <code>rwxr--r--</code> (744) y ficheros <code>rw-r--r--</code> (644) → máscara <code>033</code>. Con <code>077</code> → ficheros <code>600</code>, carpetas <code>700</code>.</li>
+    <li>Los ficheros nuevos parten de <code>666</code> y las carpetas de <code>777</code>; la máscara se les <strong>resta por bits</strong>.</li>
   </ul>
+  <div class="caja tip">
+    <b>💡 truco de examen</b>
+    <p>Los ficheros parten de <code>666</code> (sin ejecución), por eso <code>umask 033</code> da ficheros <code>644</code> y <em>no</em> <code>633</code>. Caras típicas: <code>022</code> → 644/755 y <code>077</code> → 600/700.</p>
+  </div>
+  <table>
+    <tr><th>umask</th><th>ficheros (666−)</th><th>carpetas (777−)</th></tr>
+    <tr><td><code>022</code></td><td><code>644</code> rw-r--r--</td><td><code>755</code> rwxr-xr-x</td></tr>
+    <tr><td><code>033</code></td><td><code>644</code> rw-r--r--</td><td><code>744</code> rwxr--r--</td></tr>
+    <tr><td><code>077</code></td><td><code>600</code> rw-------</td><td><code>700</code> rwx------</td></tr>
+  </table>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> umask 022; mkdir dira; touch uno; ls -l uno; ls -ld dira</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 uno
@@ -1290,8 +1537,8 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   </div>
 </section>
 
-<section class="comando" id="users">
-  <h2>users / whoami <small>¿quién está conectado?</small></h2>
+<section class="comando pr" id="users">
+  <h2>users / whoami <small>¿quién está conectado?</small><span class="chip">procesos</span></h2>
   <p class="uso">users · whoami</p>
   <ul class="flags">
     <li><code>whoami</code> tu usuario. <code>users</code> solo los nombres de los conectados.</li>
@@ -1307,8 +1554,10 @@ usuario rafa
   </div>
 </section>
 
-<section class="comando" id="wc">
-  <h2>wc <small>cuenta líneas, palabras y bytes</small></h2>
+<div class="letra" aria-hidden="true">W</div>
+
+<section class="comando tx" id="wc">
+  <h2>wc <small>cuenta líneas, palabras y bytes</small><span class="chip">texto</span></h2>
   <p class="uso">wc [-l] [-w] [-c] [fichero…]</p>
   <ul class="flags">
     <li><code>-l</code> líneas · <code>-w</code> palabras · <code>-c</code> bytes.</li>
@@ -1330,8 +1579,8 @@ FIN</pre>
   </div>
 </section>
 
-<section class="comando" id="which">
-  <h2>which / whereis <small>dónde está el comando</small></h2>
+<section class="comando bu" id="which">
+  <h2>which / whereis <small>dónde está el comando</small><span class="chip">búsqueda</span></h2>
   <p class="uso">which comando · whereis [-b|-m|-s] nombre</p>
   <ul class="flags">
     <li><code>which</code> la ruta del ejecutable.</li>
@@ -1345,8 +1594,8 @@ wc: /usr/bin/wc /usr/share/man/man1/wc.1.gz</pre>
   </div>
 </section>
 
-<section class="comando" id="who">
-  <h2>who <small>usuarios conectados y su terminal</small></h2>
+<section class="comando pr" id="who">
+  <h2>who <small>usuarios conectados y su terminal</small><span class="chip">procesos</span></h2>
   <p class="uso">who</p>
   <ul class="flags">
     <li>Una línea por sesión: usuario, terminal (tty) y hora de conexión.</li>
@@ -1362,10 +1611,12 @@ usuario  tty1   2026-11-11 09:10</pre>
   </div>
 </section>
 
-<section class="comando" id="xargs">
-  <h2>xargs <small>convierte la entrada en argumentos</small></h2>
+<div class="letra" aria-hidden="true">X</div>
+
+<section class="comando sh" id="xargs">
+  <h2>xargs <small>convierte la entrada en argumentos</small><span class="chip">shell</span></h2>
   <p class="uso">comando | xargs [-0] [-n N] [-I {} ] [-P N] comando</p>
-  <ul class="flags">
+  <ul class="flags cols">
     <li><code>-0</code> entrada separada por byte nulo (pareja de <code>find -print0</code>).</li>
     <li><code>-n 2</code> pasa como máximo 2 argumentos por llamada al comando.</li>
     <li><code>-I {}</code> sustituye <code>{}</code> por cada línea de entrada donde tú lo pongas.</li>
@@ -1385,8 +1636,8 @@ e</pre>
   </div>
 </section>
 
-<section class="comando" id="xz">
-  <h2>xz / unxz <small>compresión máxima · .xz</small><span class="ns">fuera del simulador</span></h2>
+<section class="comando co" id="xz">
+  <h2>xz / unxz <small>compresión máxima · .xz</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">xz [opciones] fichero · unxz fichero.xz</p>
   <ul class="flags">
     <li>Solo ficheros individuales. Ratio altísimo, pero lento.</li>
@@ -1403,8 +1654,10 @@ documentos/documento2.odt</pre>
   </div>
 </section>
 
-<section class="comando" id="zip">
-  <h2>zip / unzip <small>comprime ficheros y carpetas</small><span class="ns">fuera del simulador</span></h2>
+<div class="letra" aria-hidden="true">Z</div>
+
+<section class="comando co" id="zip">
+  <h2>zip / unzip <small>comprime ficheros y carpetas</small><span class="chip">compresión</span><span class="ns">fuera del simulador</span></h2>
   <p class="uso">zip [-r] fichero.zip [archivos…] · unzip fichero.zip [-d carpeta]</p>
   <ul class="flags">
     <li><code>-r</code> recursivo: carpetas y subcarpetas enteras (a diferencia de gzip/bzip2/xz).</li>
@@ -1419,8 +1672,10 @@ inflating: descompresion/carpeta/documento.txt</pre>
   </div>
 </section>
 
-<section class="comando" id="s-atajos">
-  <h2>Atajos de teclado <small>en cualquier Linux</small></h2>
+<div class="letra" aria-hidden="true">⌨</div>
+
+<section class="comando sh" id="s-atajos">
+  <h2>Atajos de teclado <small>en cualquier Linux</small><span class="chip">shell</span></h2>
   <ul class="flags">
     <li><kbd>Tab</kbd> completa nombres y comandos (doble Tab lista opciones).</li>
     <li><kbd>↑</kbd> <kbd>↓</kbd> recorren el historial.</li>
@@ -1430,7 +1685,7 @@ inflating: descompresion/carpeta/documento.txt</pre>
     <li><kbd>Ctrl</kbd>+<kbd>U</kbd> borra desde el cursor hasta el principio.</li>
     <li><kbd>Ctrl</kbd>+<kbd>W</kbd> borra la palabra anterior.</li>
     <li><kbd>Ctrl</kbd>+<kbd>R</kbd> busca hacia atrás en el historial.</li>
-    <li><kbd>Alt</kbd>+<kbd>.</kbd> inserta el último argumento del comando anterior.</li>
+    <li><kbd>Alt</kbd>+<kbd>.</kbd> inserta el último argumento del comando anterior (= <code>!$</code>).</li>
     <li><kbd>Ctrl</kbd>+<kbd>X</kbd>+<kbd>E</kbd> abre el comando en nano para editarlo.</li>
   </ul>
 </section>
@@ -1438,9 +1693,10 @@ inflating: descompresion/carpeta/documento.txt</pre>
 </main>
 <footer>
   <p>Chuleta basada en los apuntes de clase: <em>Comandos básicos I</em>, <em>ejercicios</em> y <em>Compresores / tar</em>. Las salidas son orientativas: dependen de tus ficheros y fechas.</p>
-  <p><span class="ns">fuera del simulador</span> = ese comando no está en la terminal de la web; en un Linux real funciona tal cual. El resto de ejemplos sí funcionan en la terminal web.</p>
+  <p>Familias: <span class="fam" style="background:#7a3d9a"></span>shell · <span class="fam" style="background:#2e7d4f"></span>ficheros · <span class="fam" style="background:#b0713a"></span>texto · <span class="fam" style="background:#a66a00"></span>tiempo · <span class="fam" style="background:#c34113"></span>búsqueda · <span class="fam" style="background:#345ca8"></span>procesos · <span class="fam" style="background:#0d7a72"></span>compresión · <span class="fam" style="background:#a83a72"></span>paquetes. <span class="ns">fuera del simulador</span> = no está en la terminal web; en un Linux real funciona tal cual.</p>
 </footer>
 
+<button class="btn-subir" id="btn-subir" type="button" title="Volver arriba" aria-label="Volver arriba">↑</button>
 <div class="paleta" id="paleta" role="dialog" aria-modal="true" aria-label="Buscar comando" hidden>
   <div class="paleta-caja">
     <input id="paleta-entrada" type="text" placeholder="Busca un comando… (p. ej. tar, permisos, inodo)" autocomplete="off" spellcheck="false">
@@ -1452,33 +1708,47 @@ inflating: descompresion/carpeta/documento.txt</pre>
 <script>
 (function(){
   'use strict';
-  var btn = document.getElementById('btn-buscar');
+  var btnBuscar = document.getElementById('btn-buscar');
   var capa = document.getElementById('paleta');
   var entrada = document.getElementById('paleta-entrada');
   var lista = document.getElementById('paleta-lista');
-  if (!btn || !capa || !entrada || !lista) return;
+  var btnSubir = document.getElementById('btn-subir');
   var activo = 0, resultados = [];
 
-  // Índice construido desde el propio DOM: cada sección = título + texto completo.
+  var catColores = { sh:'#7a3d9a', fi:'#2e7d4f', tx:'#b0713a', ti:'#a66a00',
+                     bu:'#c34113', pr:'#345ca8', co:'#0d7a72', ap:'#a83a72' };
+
+  /* ---- índice: secciones + cada ejemplo con id propio ---- */
   var indice = [];
   document.querySelectorAll('section.comando').forEach(function(s){
     var h = s.querySelector('h2');
-    indice.push({
-      id: s.id,
-      el: s,
-      titulo: h ? h.innerText.replace(/\s+/g,' ').trim() : s.id,
-      texto: (s.innerText || '').toLowerCase()
+    var m = (s.className || '').match(/\b(sh|fi|tx|ti|bu|pr|co|ap)\b/);
+    var color = catColores[m ? m[1] : 'sh'];
+    var titulo = s.id;
+    if (h){
+      var clon = h.cloneNode(true);
+      clon.querySelectorAll('.chip,.ns').forEach(function(x){ x.remove(); });
+      titulo = clon.innerText.replace(/\s+/g, ' ').trim();
+    }
+    var base = { id: s.id, el: s, color: color, texto: ((s.innerText || '')).toLowerCase() };
+    var uso = s.querySelector('p.uso');
+    indice.push(Object.assign({ tipo: 's', titulo: titulo, sub: uso ? uso.innerText.trim() : '' }, base));
+    s.querySelectorAll('.ej').forEach(function(ej, i){
+      ej.id = s.id + '-ej' + (i + 1);
+      var cmd = ej.querySelector('.cmd');
+      var corto = cmd ? cmd.innerText.replace(/(^|\n)\$\s?/g, '$1').replace(/\s+#.*$/gm, '').split('\n')[0].slice(0, 64) : '';
+      indice.push(Object.assign({ tipo: 'e', titulo: corto, sub: titulo,
+        texto: (titulo + ' ' + (ej.innerText || '')).toLowerCase() }, base, { el: ej }));
     });
   });
 
-  function resaltar(id){
-    var s = document.getElementById(id);
-    if (!s) return;
-    s.scrollIntoView({ block:'start' });
+  function resaltar(el, id){
+    if (!el) return;
+    el.scrollIntoView({ block:'start' });
     history.replaceState(null, '', '#' + id);
-    s.classList.remove('destello');
-    void s.offsetWidth;          // reinicia la animación
-    s.classList.add('destello');
+    el.classList.remove('destello');
+    void el.offsetWidth;          // reinicia la animación
+    el.classList.add('destello');
   }
 
   function buscar(q){
@@ -1490,7 +1760,7 @@ inflating: descompresion/carpeta/documento.txt</pre>
     }).sort(function(a, b){
       var ta = a.titulo.toLowerCase().indexOf(q) !== -1 ? 0 : 1;
       var tb = b.titulo.toLowerCase().indexOf(q) !== -1 ? 0 : 1;
-      return ta - tb || a.titulo.localeCompare(b.titulo, 'es');
+      return ta - tb;
     }).slice(0, 9);
     activo = 0;
     pintar(q);
@@ -1505,17 +1775,26 @@ inflating: descompresion/carpeta/documento.txt</pre>
       lista.appendChild(li);
       return;
     }
+    var esc = function(t){ return t.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); };
+    var rx = new RegExp('(' + q.split(/\s+/).map(function(p){ return p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('|') + ')', 'gi');
     resultados.forEach(function(it, i){
       var li = document.createElement('li');
       li.setAttribute('role', 'option');
+      var pd = document.createElement('span');
+      pd.className = 'pd'; pd.style.background = it.color;
+      var pt = document.createElement('span');
+      pt.className = 'pt';
       var nombre = document.createElement('div');
-      // resalta la palabra en el título
-      var escape = function(t){ return t.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); };
-      var rx = new RegExp('(' + q.split(/\s+/).map(function(p){ return p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('|') + ')', 'gi');
-      nombre.innerHTML = escape(it.titulo).replace(rx, '<b>$1</b>');
+      nombre.innerHTML = esc(it.titulo || '(ejemplo)').replace(rx, '<b>$1</b>');
+      pt.appendChild(nombre);
       var extra = document.createElement('small');
-      extra.textContent = it.texto.split('\n')[0].slice(0, 90);
-      li.appendChild(nombre); li.appendChild(extra);
+      if (it.tipo === 'e'){
+        extra.textContent = 'ejemplo · ' + it.sub;
+      } else {
+        extra.textContent = it.sub;
+      }
+      pt.appendChild(extra);
+      li.appendChild(pd); li.appendChild(pt);
       if (i === activo) li.classList.add('activo');
       li.addEventListener('click', function(){ ir(i); });
       li.addEventListener('mousemove', function(){ if (activo !== i){ activo = i; marcar(); } });
@@ -1533,7 +1812,7 @@ inflating: descompresion/carpeta/documento.txt</pre>
     var it = resultados[i];
     if (!it) return;
     cerrar();
-    resaltar(it.id);
+    resaltar(it.el, it.id);
   }
 
   function abrir(){
@@ -1545,7 +1824,7 @@ inflating: descompresion/carpeta/documento.txt</pre>
     capa.classList.remove('abierta'); capa.hidden = true;
   }
 
-  btn.addEventListener('click', abrir);
+  btnBuscar.addEventListener('click', abrir);
   capa.addEventListener('mousedown', function(ev){ if (ev.target === capa) cerrar(); });
   entrada.addEventListener('input', function(){ buscar(entrada.value); });
   document.addEventListener('keydown', function(ev){
@@ -1560,6 +1839,70 @@ inflating: descompresion/carpeta/documento.txt</pre>
     else if (ev.key === 'ArrowUp'){ ev.preventDefault(); if (resultados.length){ activo = (activo - 1 + resultados.length) % resultados.length; marcar(); } }
     else if (ev.key === 'Enter'){ ev.preventDefault(); ir(activo); }
   });
+
+  /* ---- copiar ejemplo ---- */
+  function copiar(texto, btn){
+    var ok = function(){
+      btn.classList.add('hecho'); btn.textContent = '✓ copiado';
+      setTimeout(function(){ btn.classList.remove('hecho'); btn.textContent = '⧉ copiar'; }, 1400);
+    };
+    var fallback = function(){
+      var ta = document.createElement('textarea');
+      ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e){}
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, fallback);
+    else fallback();
+  }
+  document.querySelectorAll('.ej').forEach(function(ej){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'copiar'; b.textContent = '⧉ copiar';
+    b.setAttribute('aria-label', 'Copiar el comando del ejemplo');
+    ej.appendChild(b);
+    b.addEventListener('click', function(){
+      var cmd = ej.querySelector('.cmd');
+      if (!cmd) return;
+      var texto = cmd.innerText.split('\n').filter(function(l){ return l.trim(); })
+        .map(function(l){ return l.replace(/^\$\s?/, '').replace(/\s+#.*$/, ''); }).join('\n');
+      copiar(texto, b);
+    });
+  });
+
+  /* ---- scrollspy + botón subir ---- */
+  var enlaces = {};
+  document.querySelectorAll('.indice a').forEach(function(a){
+    enlaces[a.getAttribute('href').slice(1)] = a;
+  });
+  var secciones = Array.prototype.slice.call(document.querySelectorAll('section.comando'));
+  var marcando = false;
+  function marcaActiva(){
+    marcando = false;
+    var tope = 140;               // banda bajo el índice pegajoso
+    var act = secciones[0];
+    for (var i = 0; i < secciones.length; i++){
+      if (secciones[i].getBoundingClientRect().top <= tope) act = secciones[i];
+      else break;
+    }
+    var a = enlaces[act.id];
+    if (a && !a.classList.contains('activa')){
+      document.querySelectorAll('.indice a.activa').forEach(function(x){ x.classList.remove('activa'); });
+      a.classList.add('activa');
+    }
+  }
+  window.addEventListener('scroll', function(){
+    if (marcando) return;
+    marcando = true;
+    setTimeout(function(){ marcando = false; marcaActiva(); }, 60);
+  }, { passive: true });
+  marcaActiva();
+  if (btnSubir){
+    window.addEventListener('scroll', function(){
+      btnSubir.classList.toggle('ver', window.scrollY > 500);
+    }, { passive: true });
+    btnSubir.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  }
 })();
 </script>
 </body>
