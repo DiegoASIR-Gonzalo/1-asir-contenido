@@ -30,6 +30,7 @@
   section.comando{border-bottom:1px solid var(--linea);border-left:4px solid var(--cat,var(--linea));padding:14px 0 18px 16px;scroll-margin-top:96px;counter-reset:ej}
   .sh{--cat:#7a3d9a}.fi{--cat:#2e7d4f}.tx{--cat:#b0713a}.ti{--cat:#a66a00}
   .bu{--cat:#c34113}.pr{--cat:#345ca8}.co{--cat:#0d7a72}.ap{--cat:#a83a72}
+  .re{--cat:#0b5cad}
   .chip{display:inline-block;font:700 10.5px/1.6 "Ubuntu Mono",monospace;letter-spacing:.04em;background:color-mix(in srgb,var(--cat) 13%,#fff);color:var(--cat);border:1px solid color-mix(in srgb,var(--cat) 32%,#fff);border-radius:20px;padding:1px 9px;vertical-align:3px;margin-left:8px;white-space:nowrap}
   .letra{margin:36px 0 2px;font:800 34px/1 "Ubuntu Mono","DejaVu Sans Mono",monospace;color:#dccdc2;letter-spacing:.05em;break-after:avoid}
   h2{margin:0 0 4px;font-size:21px;letter-spacing:-.015em;color:var(--vino)}
@@ -85,6 +86,13 @@
   th,td{border:1px solid var(--linea);padding:5px 12px;text-align:left}
   th{background:color-mix(in srgb,var(--cat) 12%,#fff);color:var(--cat,var(--vino))}
   table code{background:none;padding:0}
+  /* ---- del enunciado al comando ---- */
+  .frases h3{margin:20px 0 2px;font-size:15.5px;color:var(--cat)}
+  .frases th:first-child,.frases td:first-child{width:2.2em;text-align:right;padding:5px 8px}
+  .frases td:first-child{color:#b3a49b;font:700 12px "Ubuntu Mono","DejaVu Sans Mono",monospace}
+  .frases td:nth-child(2){font-style:italic;color:#4a4150}
+  .frases td:nth-child(2) b{font-style:normal;color:#2a1f2b}
+  .frases .aviso{color:#a32020;font-size:11.5px;display:block;margin-top:1px}
   footer{max-width:940px;margin:0 auto;padding:0 20px 40px;color:var(--sutil);font-size:12.5px}
   footer .fam{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
   /* ---- paleta Ctrl+K ---- */
@@ -133,7 +141,7 @@
 </header>
 <nav class="indice" aria-label="Índice de comandos">
   <a href="#s-shell">shell</a><a href="#s-comod">comodines</a><a href="#s-redir">redirecciones</a><span class="grupo">·</span>
-  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-atajos">atajos</a>
+  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
 </nav>
 <main>
 
@@ -1574,6 +1582,38 @@ Add  documentos/documento1.txt  OK</pre>
 
 <div class="letra" aria-hidden="true">S</div>
 
+<section class="comando re" id="scp">
+  <h2>scp <small>copia entre máquinas por SSH</small><span class="chip">red</span></h2>
+  <p class="uso">scp [-r] [-P puerto] [-i clave] origen destino</p>
+  <ul class="flags">
+    <li>Origen y destino son <code>[usuario@]máquina:ruta</code>; sin <code>máquina:</code>, el lado es local.</li>
+    <li><code>-r</code> recursivo: carpetas enteras (igual que <code>cp</code>).</li>
+    <li><code>-P 2222</code> puerto del servidor SSH, en <strong>mayúscula</strong>: <code>-p</code> minúscula significa «conservar fechas y permisos», no el puerto.</li>
+    <li><code>-i clave</code> usa una clave privada. <code>-C</code> comprime durante la transferencia.</li>
+  </ul>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">scp</span> fichero.txt usuario@servidor:/home/usuario/     <span class="c"># local → remoto</span></pre>
+<pre class="sal">fichero.txt     100%  1234    45.2KB/s   00:00</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">scp</span> usuario@servidor:/etc/motd .                   <span class="c"># remoto → local</span></pre>
+<pre class="sal">motd            100%    42    12.0KB/s   00:00</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">scp</span> <span class="f">-r</span> carpeta/ usuario@servidor:/tmp/</pre>
+<pre class="sal">fich1.txt       100%  1234    40.1KB/s   00:00
+fich2.txt       100%  5678    38.5KB/s   00:00</pre>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">scp</span> <span class="f">-P</span> 2222 fichero.txt usuario@servidor:/tmp/</pre>
+<pre class="sal"><span class="e">ssh: connect to host servidor port 2222: Connection refused</span></pre>
+  </div>
+  <div class="caja pel">
+    <b>⚠ ¡ojo!</b>
+    <p><code>Permission denied (publickey)</code> → contraseña o clave incorrectas · <code>Connection refused</code> → sshd parado, o el puerto no es el 22 (indícalo con <code>-P</code>). Y la trampa clásica: escribir <code>-p</code> queriendo dar el puerto.</p>
+  </div>
+</section>
+
 <section class="comando tx" id="sort">
   <h2>sort <small>ordena líneas</small><span class="chip">texto</span></h2>
   <p class="uso">sort [-n] [-r] [-k campo] [-t sep] [fichero]</p>
@@ -2095,6 +2135,133 @@ adding: carpeta/documento.txt (deflated 62%)</pre>
   </ul>
 </section>
 
+<div class="letra" aria-hidden="true">🗣</div>
+
+<section class="comando sh frases" id="s-frases">
+  <h2>Del enunciado al comando <small>frases del examen</small><span class="chip">examen</span></h2>
+  <p class="lede">La frase tal como la escribe el profesor y lo que tecleas tú. El verbo dispara el comando; las palabras trampa del final cambian el detalle.</p>
+
+  <h3>Listar y comodines</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>1</td><td class="fr">«<b>Listar</b> todos los archivos del directorio X»</td><td><code>ls X</code></td></tr>
+    <tr><td>2</td><td class="fr">«…con todos los detalles»</td><td><code>ls -l X</code></td></tr>
+    <tr><td>3</td><td class="fr">«…en orden inverso»</td><td><code>ls -r X</code></td></tr>
+    <tr><td>4</td><td class="fr">«…incluidos los ocultos»</td><td><code>ls -a X</code></td></tr>
+    <tr><td>5</td><td class="fr">«…mostrando su número de inodo»</td><td><code>ls -li</code></td></tr>
+    <tr><td>6</td><td class="fr">«…de X y sus subdirectorios»</td><td><code>ls -R X</code></td></tr>
+    <tr><td>7</td><td class="fr">«…que empiecen por t»</td><td><code>ls /etc/t*</code></td></tr>
+    <tr><td>8</td><td class="fr">«…que NO empiecen por t»</td><td><code>ls /etc/[!t]*</code></td></tr>
+    <tr><td>9</td><td class="fr">«…tty y tengan 5 caracteres»</td><td><code>ls /dev/tty??</code></td></tr>
+    <tr><td>10</td><td class="fr">«…tty y acaben en 1, 2, 3 o 4»</td><td><code>ls /dev/tty[1-4]</code></td></tr>
+    <tr><td>11</td><td class="fr">«…empiecen por t y acaben en C1»</td><td><code>ls /dev/t*C1</code></td></tr>
+    <tr><td>12</td><td class="fr">«…a como segunda letra y 4 letras de nombre»</td><td><code>ls /bin/?a??</code></td></tr>
+    <tr><td>13</td><td class="fr">«…empiecen por t, 5 letras, acaben en a o b»</td><td><code>ls /dev/t???[ab]</code></td></tr>
+    <tr><td>14</td><td class="fr">«<b>Mostrar</b> los archivos ordinarios de HOME y sus subdirectorios»</td><td><code>find ~ -type f</code></td></tr>
+    <tr><td>15</td><td class="fr">«<b>Listar</b> solo los directorios»</td><td><code>ls -d */</code></td></tr>
+    <tr><td>16</td><td class="fr">«…de la raíz, ocultos incluidos»</td><td><code>ls -a /</code></td></tr>
+  </table>
+
+  <h3>Navegación</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>17</td><td class="fr">«<b>Cambiarse</b> al directorio tmp»</td><td><code>cd /tmp</code></td></tr>
+    <tr><td>18</td><td class="fr">«<b>Verificar</b> que el directorio actual ha cambiado»</td><td><code>pwd</code></td></tr>
+    <tr><td>19</td><td class="fr">«Con un solo comando <b>posicionarse</b> en $HOME»</td><td><code>cd</code></td></tr>
+    <tr><td>20</td><td class="fr">«<b>Mostrar</b> el día y la hora»</td><td><code>date</code></td></tr>
+    <tr><td>21</td><td class="fr">«<b>Crear</b> dir11 dentro de dir1, y dir111 dentro»</td><td><code>mkdir -p dir1/dir11/dir111</code></td></tr>
+  </table>
+
+  <h3>Copiar, mover y borrar</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>22</td><td class="fr">«<b>Copiar</b> /etc/motd a un archivo llamado mensaje»</td><td><code>cp /etc/motd mensaje</code></td></tr>
+    <tr><td>23</td><td class="fr">«<b>Copiar</b> mensaje en dir1, dir2 y dir3»</td><td><code>cp mensaje dir1 dir2 dir3</code></td></tr>
+    <tr><td>24</td><td class="fr">«<b>Comprobar</b> el ejercicio anterior»</td><td><code>ls dir1 dir2 dir3</code></td></tr>
+    <tr><td>25</td><td class="fr">«<b>Copiar</b> el directorio y sus subdirectorios, incluido el propio»</td><td><code>cp -r origen destino</code></td></tr>
+    <tr><td>26</td><td class="fr">«<b>Copiar</b> conservando permisos y fechas»</td><td><code>cp -a origen destino</code></td></tr>
+    <tr><td>27</td><td class="fr">«<b>Mover</b> el directorio X debajo de Y»</td><td><code>mv X Y</code></td></tr>
+    <tr><td>28</td><td class="fr">«<b>Ocultar</b> el archivo mensaje»</td><td><code>mv mensaje .mensaje</code></td></tr>
+    <tr><td>29</td><td class="fr">«<b>Borrar</b> los archivos y directorios de dir1, incluido el propio»</td><td><code>rm -r dir1</code></td></tr>
+    <tr><td>30</td><td class="fr">«<b>Borrar</b> un directorio vacío»</td><td><code>rmdir dir1</code></td></tr>
+  </table>
+
+  <h3>Enlaces</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>31</td><td class="fr">«<b>Crear</b> un enlace simbólico al directorio dir1 llamado enlacedir1»</td><td><code>ln -s dir1 dir3/enlacedir1</code></td></tr>
+    <tr><td>32</td><td class="fr">«<b>Crear</b> dos enlaces duros de fich1»</td><td><code>ln fich1 enlace</code></td></tr>
+    <tr><td>33</td><td class="fr">«<b>Borrar</b> fich1 y comprobar que el contenido sigue»</td><td><code>rm fich1; cat enlace</code></td></tr>
+    <tr><td>34</td><td class="fr">«<b>Comprobar</b> que comparten inodo»</td><td><code>ls -li fich1 enlace</code></td></tr>
+  </table>
+
+  <h3>Contar, guardar y ordenar</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>35</td><td class="fr">«<b>Sacar por pantalla</b> las líneas que tiene fich1»</td><td><code>wc -l fich1</code></td></tr>
+    <tr><td>36</td><td class="fr">«<b>Guardar</b> la salida en un fichero»</td><td><code>comando &gt; fichero</code></td></tr>
+    <tr><td>37</td><td class="fr">«<b>Añadir</b> sin borrar lo anterior»</td><td><code>comando &gt;&gt; fichero</code></td></tr>
+    <tr><td>38</td><td class="fr">«<b>Guardar</b> la salida y los errores»</td><td><code>comando &gt; f 2&gt;&amp;1</code></td></tr>
+    <tr><td>39</td><td class="fr">«<b>Guardar</b> solo los errores»</td><td><code>comando 2&gt; errores.log</code></td></tr>
+    <tr><td>40</td><td class="fr">«Que no <b>salga</b> nada por pantalla»</td><td><code>comando &gt; /dev/null</code></td></tr>
+    <tr><td>41</td><td class="fr">«<b>Ordenar</b> alfabéticamente / numéricamente / al revés»</td><td><code>sort</code> · <code>sort -n</code> · <code>sort -r</code></td></tr>
+    <tr><td>42</td><td class="fr">«Las primeras / últimas 10 líneas»</td><td><code>head -n 10</code> · <code>tail -n 10</code></td></tr>
+  </table>
+
+  <h3>Buscar</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>43</td><td class="fr">«<b>Buscar</b> las líneas que contengan X»</td><td><code>grep X fichero</code></td></tr>
+    <tr><td>44</td><td class="fr">«<b>Buscar</b> ficheros por nombre / tamaño / dueño»</td><td><code>find</code> (¡no grep!)</td></tr>
+    <tr><td>45</td><td class="fr">«Modificados hace <b>menos de</b> 24 horas»</td><td><code>find -mtime -1</code></td></tr>
+    <tr><td>46</td><td class="fr">«Modificados hace <b>más de</b> 2 días»</td><td><code>find -mtime +1</code></td></tr>
+  </table>
+
+  <h3>Agrupar y comprimir</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>47</td><td class="fr">«<b>Agrupar</b> varios ficheros en uno»</td><td><code>tar -cvf grupo.tar archivos/</code></td></tr>
+    <tr><td>48</td><td class="fr">«<b>Agrupar</b> y <b>comprimir</b> a la vez»</td><td><code>tar -czvf grupo.tar.gz archivos/</code></td></tr>
+    <tr><td>49</td><td class="fr">«<b>Ver</b> el contenido sin extraer»</td><td><code>tar -tzvf grupo.tar.gz</code></td></tr>
+    <tr><td>50</td><td class="fr">«<b>Extraer</b> en otra carpeta»</td><td><code>tar -xzvf grupo.tar.gz -C carpeta/</code></td></tr>
+    <tr><td>51</td><td class="fr">«<b>Comprimir</b> este fichero conservando el original»</td><td><code>gzip -k fichero</code></td></tr>
+    <tr><td>52</td><td class="fr">«<b>Comprimir</b> toda la carpeta»</td><td><code>tar -czvf grupo.tar.gz carpeta/</code><span class="aviso">nunca gzip: solo ficheros sueltos</span></td></tr>
+  </table>
+
+  <h3>Permisos y umask</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>53</td><td class="fr">«¿Cuáles son los actuales <b>permisos</b>?»</td><td><code>ls -ld dir2</code></td></tr>
+    <tr><td>54</td><td class="fr">«Con notación simbólica, <b>quitar</b> escritura a todos»</td><td><code>chmod a-w dir2</code></td></tr>
+    <tr><td>55</td><td class="fr">«Con notación octal, <b>quitar</b> lectura al resto»</td><td><code>chmod 751 dir2</code><span class="aviso">⚠ calcula el octal: no es o-r</span></td></tr>
+    <tr><td>56</td><td class="fr">«¿Cuáles son los <b>permisos por omisión</b>?»</td><td><code>umask</code><span class="aviso">piensa: 666/777 menos la máscara</span></td></tr>
+    <tr><td>57</td><td class="fr">«Por omisión: rwxr--r-- y rw-r--r--»</td><td><code>umask 022</code></td></tr>
+    <tr><td>58</td><td class="fr">«No <b>puedo crear</b> dentro de dir2»</td><td><code>chmod u+w dir2</code><span class="aviso">si ya hay w, falta x (permiso de paso)</span></td></tr>
+  </table>
+
+  <h3>Alias y variables</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Tú escribes…</th></tr>
+    <tr><td>59</td><td class="fr">«Haz que ll <b>ejecute</b> ls -alF»</td><td><code>alias ll='ls -alF'</code><span class="aviso">pegado al =, sin espacios</span></td></tr>
+    <tr><td>60</td><td class="fr">«Que <b>dure</b> en todas las sesiones»</td><td><code>echo "alias …" &gt;&gt; ~/.bashrc</code></td></tr>
+    <tr><td>61</td><td class="fr">«<b>Guarda</b> la fecha en una variable»</td><td><code>hoy=$(date)</code> · se muestra con <code>echo "$hoy"</code></td></tr>
+    <tr><td>62</td><td class="fr">«<b>Repite</b> el comando anterior con sudo»</td><td><code>sudo !!</code></td></tr>
+  </table>
+
+  <h3>Palabras trampa</h3>
+  <table>
+    <tr><th>#</th><th>El enunciado dice…</th><th>Lo que implica</th></tr>
+    <tr><td>63</td><td class="fr">«…con <b>notación octal</b>»</td><td>el permiso en números (<code>chmod 751</code>), no <code>o-r</code></td></tr>
+    <tr><td>64</td><td class="fr">«…<b>incluido el propio</b> directorio»</td><td><code>-r</code> / <code>-a</code> en cp, mv, rm, scp</td></tr>
+    <tr><td>65</td><td class="fr">«…<b>conservando</b> permisos/fechas/el original»</td><td><code>cp -a</code> · <code>gzip -k</code></td></tr>
+    <tr><td>66</td><td class="fr">«…<b>incluidos los ocultos</b>»</td><td><code>-a</code> en ls</td></tr>
+    <tr><td>67</td><td class="fr">«…en <b>un solo comando</b>»</td><td>tuberías o <code>;</code> — no tres líneas</td></tr>
+    <tr><td>68</td><td class="fr">«…<b>verificar / comprobar</b>»</td><td><code>pwd</code> · <code>ls</code> · <code>echo $?</code></td></tr>
+    <tr><td>69</td><td class="fr">«…<b>por pantalla</b>»</td><td>a stdout, sin redirigir</td></tr>
+    <tr><td>70</td><td class="fr">«…<b>sin borrar</b> lo anterior»</td><td><code>&gt;&gt;</code>, no <code>&gt;</code></td></tr>
+  </table>
+</section>
+
 </main>
 
 <button class="btn-subir" id="btn-subir" type="button" title="Volver arriba" aria-label="Volver arriba">↑</button>
@@ -2117,13 +2284,13 @@ adding: carpeta/documento.txt (deflated 62%)</pre>
   var activo = 0, resultados = [];
 
   var catColores = { sh:'#7a3d9a', fi:'#2e7d4f', tx:'#b0713a', ti:'#a66a00',
-                     bu:'#c34113', pr:'#345ca8', co:'#0d7a72', ap:'#a83a72' };
+                     bu:'#c34113', pr:'#345ca8', co:'#0d7a72', ap:'#a83a72', re:'#0b5cad' };
 
   /* ---- índice: secciones + cada ejemplo con id propio ---- */
   var indice = [];
   document.querySelectorAll('section.comando').forEach(function(s){
     var h = s.querySelector('h2');
-    var m = (s.className || '').match(/\b(sh|fi|tx|ti|bu|pr|co|ap)\b/);
+    var m = (s.className || '').match(/\b(sh|fi|tx|ti|bu|pr|co|ap|re)\b/);
     var color = catColores[m ? m[1] : 'sh'];
     var titulo = s.id;
     if (h){
