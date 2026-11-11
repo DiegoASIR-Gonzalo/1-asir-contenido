@@ -3,6 +3,14 @@
 # Uso: ./corrige.sh   (detecta solo si trabajaste la variante A o la B)
 # La nota sale de los ficheros finales. El history es solo aviso, sin puntos.
 # En cada ✘ añade un ↳ diagnóstico con lo que encontró frente a lo que esperaba.
+# Necesita bash: si lo lanzan con 'sh', se relanza solo con bash.
+if [ -z "${BASH_VERSION:-}" ]; then
+  if command -v bash >/dev/null 2>&1; then
+    exec bash "$0" "$@"
+  fi
+  echo "Este script necesita bash: ejecútalo con   bash $0" >&2
+  exit 1
+fi
 
 EXAM=""
 [ -d "$HOME/examenA" ] && EXAM="$HOME/examenA"
