@@ -141,7 +141,7 @@
   <h2>🔔 Si suena la campana <small>lo que cae seguro</small></h2>
   <ul>
     <li><b>umask 022</b> → ficheros <b>644</b> y carpetas <b>755</b>. Parten de 666/777 y se resta por bits; 033 da 644, no 633.</li>
-    <li><b>Redirecciones</b> se interpretan <b>antes</b> y <b>de derecha a izquierda</b>: <code>ls &gt; f 2&gt;&amp;1</code> junta todo en f.</li>
+    <li><b>Redirecciones</b> se interpretan <b>antes</b> y <b>de izquierda a derecha</b>: en <code>ls &gt; f 2&gt;&amp;1</code> primero <code>&gt; f</code>, luego <code>2&gt;&amp;1</code>, y todo acaba en f.</li>
     <li><b>rm no tiene papelera</b>: lo borrado solo se recupera con forense (foremost) si nada lo sobrescribió.</li>
     <li><b>cp -r</b> NO conserva permisos ni fechas; <b>cp -a</b> sí (y es recursivo).</li>
     <li><b>tar</b>: crear <code>-czvf</code> · listar <code>-tzvf</code> · extraer <code>-xzvf</code> (<code>-j</code> bz2, <code>-J</code> xz). Solo tar agrupa; gzip/bzip2/xz van fichero a fichero.</li>
@@ -151,7 +151,8 @@
     <li><b>!!</b> repite el comando anterior (<code>sudo !!</code>); <code>!$</code> su último argumento; <code>^txt^log^</code> lo retoca.</li>
     <li><b>Enlace duro</b> = mismo inodo (sobrevive al borrado); <b>-s simbólico</b> = guarda la ruta (se rompe). Se ven con <code>ls -li</code>.</li>
     <li><b>Los ficheros nuevos</b> no salen ejecutables jamás (666); por eso <code>umask 033</code> → 644.</li>
-    <li><b>find por tiempos</b>: <code>-mtime 1</code> ayer·hoy, <code>+1</code> más de un día, <code>-1</code> hoy. <code>-newer fich</code>, fechas con <code>-newermt</code>.</li>
+    <li><b>find por tiempos</b>: <code>-mtime 1</code> entre 24 y 48 horas atrás, <code>+1</code> 48 horas o más, <code>-1</code> menos de 24 horas. <code>-newer fich</code>, fechas con <code>-newermt</code>.</li>
+    <li><b>grep -E</b>: <code>^</code> empieza · <code>$</code> acaba · <code>[0-9]{3}</code> tres dígitos seguidos · <code>^(l|L)</code> alternativa · <code>^$</code> línea vacía. Sin <code>-E</code>, con escapes: <code>a\{3\}</code>.</li>
     <li><b>ls</b>: <code>-l</code> largo (tipo+permisos, dueño, grupo, tamaño, fecha) · <code>-a</code> ocultos · <code>-li</code> con inodo · <code>-lh</code> legible · <code>-S</code> por tamaño · <code>-t</code> por fecha · <code>-d */</code> solo directorios.</li>
     <li><b>alias</b>: <code>alias nombre='comando'</code> (se pega con =, sin espacios) · dura hasta cerrar, <b>persistente</b> en <code>~/.bashrc</code> · <code>unalias -a</code> borra todos · el binario de verdad con <code>\nombre</code> · <code>type</code> te lo destapa.</li>
     <li><b>variables</b>: <code>var=valor</code> sin espacios alrededor del <code>=</code>, se usan con <code>$var</code> · <code>"…"</code> expande, <code>'…'</code> no · <code>$(comando)</code> mete la salida de un comando · <code>$PWD</code>, <code>$HOME</code>, <code>$HISTFILE</code>.</li>
@@ -230,8 +231,8 @@
 <pre class="sal">/dev/tty1  /dev/tty2  /dev/tty3  /dev/tty4</pre>
   </div>
 <div class="ej">
-<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> /dev/tty??          <span class="c"># tty + 2 caracteres = 5 letras en total</span></pre>
-<pre class="sal">/dev/tty0  /dev/tty1  /dev/tty2  /dev/tty3</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">ls</span> /dev/tty??          <span class="c"># tty + EXACTAMENTE 2 caracteres: tty0 no entra</span></pre>
+<pre class="sal">/dev/tty10  /dev/tty11  /dev/tty12  /dev/ttyS0</pre>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> fich[^a-q].txt</pre>
@@ -252,14 +253,14 @@
   </ul>
   <div class="caja tip">
     <b>💡 truco de examen</b>
-    <p>El shell interpreta las redirecciones <strong>antes</strong> de ejecutar y <mark class="oro"><strong>de derecha a izquierda</strong></mark>: en <code>ls &gt; f 2&gt;&amp;1</code> primero manda los errores al mismo sitio que la salida, y todo acaba en <code>f</code>.</p>
+    <p>El shell interpreta las redirecciones <strong>antes</strong> de ejecutar y <mark class="oro"><strong>de izquierda a derecha</strong></mark>, en el orden en que aparecen: en <code>ls &gt; f 2&gt;&amp;1</code> primero <code>&gt; f</code> lleva la salida a <code>f</code> y después <code>2&gt;&amp;1</code> lleva los errores al mismo sitio, así que todo acaba en <code>f</code>. Al revés (<code>ls 2&gt;&amp;1 &gt; f</code>) los errores saldrían por pantalla.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> &gt; <span class="k">lista.txt</span></pre>
 <pre class="sal vacio"></pre>
   </div>
 <div class="ej">
-<pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span>        <span class="c"># ordenadas por el campo hora</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span>        <span class="c"># orden alfabético: por el usuario, que abre cada línea</span></pre>
 <pre class="sal vacio"></pre>
   </div>
   <div class="ej">
@@ -288,8 +289,8 @@ y1  y2  y3</pre>
 <pre class="sal"><span class="e">find: '/noexiste': No existe el archivo o el directorio</span></pre>
   </div>
 <div class="ej">
-<pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> &lt; <span class="k">resultado.log</span>             <span class="c"># idéntico a: wc -l 0&lt; resultado.log</span></pre>
-<pre class="sal">47 resultado.log</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> &lt; <span class="k">resultado.log</span>             <span class="c"># sin nombre de fichero: wc no sabe de dónde vienen los datos</span></pre>
+<pre class="sal">47</pre>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> &lt;&lt;EOF &gt; <span class="k">mensaje.txt</span>
@@ -567,8 +568,8 @@ lu ma mi ju vi sá do
 <pre class="sal"><span class="e">mkdir: no se puede crear el directorio 'dir21': Permiso denegado</span></pre>
   </div>
 <div class="ej">
-<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> o-r dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># = chmod 750 dir2 en octal</span></pre>
-<pre class="sal">drwxr-x--- 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> 755 dir2; <span class="k">chmod</span> o-r dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># 755 → 751: a otros solo le queda la x</span></pre>
+<pre class="sal">drwxr-x--x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># ¿permisos por omisión?</span></pre>
@@ -795,7 +796,7 @@ linea2</pre>
   <p class="uso">find ruta [criterios] [-a|-o|-not] [acciones: -print -ls -exec -ok]</p>
   <ul class="flags cols">
     <li><strong>-name</strong> por nombre (comodines entre comillas). <strong>-user</strong> / <strong>-group</strong> por propietario (nombre o <span class="term">UID</span>/GUID; <code>id</code> te dice los tuyos).</li>
-    <li><strong>Tiempos en días:</strong> <code>-<span class="term">mtime</span></code> (modificación), <code>-<span class="term">atime</span></code> (acceso), <code>-<span class="term">ctime</span></code> (cambio). <code>-mtime 1</code> exactamente ayer·hoy · <code>+1</code> más de un día · <code>-1</code> menos de un día (hoy).</li>
+    <li><strong>Tiempos en días:</strong> <code>-<span class="term">mtime</span></code> (modificación), <code>-<span class="term">atime</span></code> (acceso), <code>-<span class="term">ctime</span></code> (cambio). Ojo, cuentan bloques de 24 h hacia atrás: <code>-mtime 1</code> = entre 24 y 48 horas (no «ayer y hoy») · <code>+1</code> = 48 horas o más · <code>-1</code> = menos de 24 horas.</li>
     <li><strong>Tiempos en minutos:</strong> <code>-mmin</code>, <code>-amin</code>, <code>-cmin</code>.</li>
     <li><strong>-newer ref:</strong> modificados más recientemente que el fichero <code>ref</code>. <code>! -newer ref</code> los no más nuevos. Entre dos: <code>-newer ref1 ! -newer ref2</code>.</li>
     <li><strong>-newermt/at/ct "fecha":</strong> la referencia es una fecha literal, no un fichero (<code>m</code> modificación, <code>a</code> acceso, <code>c</code> cambio, <code>t</code> texto). Fechas humanas: <code>"2020-11-01 08:00"</code>, <code>"yesterday"</code>, <code>"1 week ago"</code>.</li>
@@ -953,6 +954,8 @@ linea2</pre>
     <li><code>-n</code> numera las líneas que coinciden. <code>-v</code> las que NO coinciden.</li>
     <li><code>-c</code> cuenta cuántas coinciden (equivale a <code>grep … | wc -l</code>).</li>
     <li>Patrones: <code>^l</code> empieza por l · <code>x$</code> acaba en x · <code>"ai"</code> contiene ai.</li>
+    <li><code>-E</code> expresiones regulares extendidas (<span class="term">ERE</span>): cuantificadores y grupos sin escapar — <code>+</code> una o más · <code>?</code> cero o una · <code>{n,m}</code> repeticiones · <code>|</code> alternativa · <code>( )</code> grupo. Sin <code>-E</code> lo mismo se escribe escapado: <code>"a\{3\}"</code>.</li>
+    <li>Anclas combinadas: <code>^…$</code> la línea entera. <code>^[0-9]{3}$</code> = exactamente 3 dígitos, ni más ni menos.</li>
   </ul>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-i</span> "^l" texto</pre>
@@ -991,6 +994,26 @@ export SHELL</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1,7 /etc/passwd | <span class="k">grep</span> bash | <span class="k">wc</span> <span class="f">-l</span></pre>
 <pre class="sal">2</pre>
   </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-E</span> "[0-9]{3}" lista          <span class="c"># contenga 3 dígitos SEGUIDOS</span></pre>
+<pre class="sal">aula 204 en planta 1
+grupo 105: libres</pre>
+</div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-E</span> "^[0-9]{3}$" codigos      <span class="c"># la línea ES exactamente 3 dígitos</span></pre>
+<pre class="sal">204
+777</pre>
+</div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">grep</span> <span class="f">-E</span> "^(l|L)" texto            <span class="c"># empieza por l O por L</span></pre>
+<pre class="sal">lunes
+Lima
+luces</pre>
+</div>
+<div class="caja tip">
+  <b>💡 truco de examen</b>
+  <p><code>grep -c "^$"</code> cuenta las líneas vacías: <code>^</code> y <code>$</code> juntas solo coinciden con una línea sin nada entre medias. Y si el patrón lleva cuantificador, sin <code>-E</code> hay que escaparlo: <code>grep "a\{3\}"</code> ≡ <code>grep -E "a{3}"</code>.</p>
+</div>
 </section>
 
 <section class="comando co" id="gzip">
@@ -1557,7 +1580,7 @@ Add  documentos/documento1.txt  OK</pre>
   <ul class="flags">
     <li><code>-n</code> numérico. <code>-r</code> inverso (Z→A).</li>
     <li><code>-k 2</code> ordena por el campo 2. <code>-t :</code> separador para los campos.</li>
-    <li><code>who | sort</code> con la hora en el campo 3, ordena por hora: así se guardan los usuarios conectados «por el campo hora» en <code>persona</code>.</li>
+    <li><code>who | sort</code> ordena alfabéticamente por el principio de cada línea — el <strong>usuario</strong>, no la hora. Para ordenar por hora habría que pedirlo: <code>who | sort -k 3</code>.</li>
   </ul>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span></pre>
@@ -1965,7 +1988,7 @@ FIN</pre>
   <p class="uso">who</p>
   <ul class="flags">
     <li>Una línea por sesión: usuario, terminal (tty) y hora de conexión.</li>
-    <li><code>who | sort</code> ordena por hora (el campo 3): así se guardan «ordenadas por el campo hora» en <code>persona</code>.</li>
+    <li><code>who | sort</code> ordena por usuario (el principio de la línea), no por la hora de conexión; por hora sería <code>who | sort -k 3</code>.</li>
     <li>Con <code>grep usuario</code> te quedas con las líneas de un usuario concreto.</li>
   </ul>
   <div class="ej">
