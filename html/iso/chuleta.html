@@ -42,6 +42,12 @@
   ul.flags strong{color:var(--cat)}
   .term{font-weight:600;border-bottom:2px dotted color-mix(in srgb,var(--cat) 60%,#fff)}
   mark.oro{background:color-mix(in srgb,var(--cat) 20%,#fff);color:inherit;padding:0 3px;border-radius:4px}
+  /* ---- rejilla si suena la campana ---- */
+  .campana{max-width:940px;margin:14px auto 0;padding:0 20px}
+  .campana h2{font-size:16px;color:var(--vino);margin:0 0 8px}
+  .campana ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+  .campana li{background:#fffdf8;border:1px solid var(--linea);border-left:4px solid #c34113;border-radius:9px;padding:7px 11px;font-size:13px;break-inside:avoid}
+  .campana li b{color:var(--marca)}
   .ej .cmd .k{color:#6a3d9a;font-weight:700}
   .ej .cmd .f{color:#0d7a72}
   .ej .sal .e{color:#a32020}
@@ -130,6 +136,24 @@
   <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-atajos">atajos</a>
 </nav>
 <main>
+
+<div class="campana" id="s-campana">
+  <h2>🔔 Si suena la campana <small>lo que cae seguro</small></h2>
+  <ul>
+    <li><b>umask 022</b> → ficheros <b>644</b> y carpetas <b>755</b>. Parten de 666/777 y se resta por bits; 033 da 644, no 633.</li>
+    <li><b>Redirecciones</b> se interpretan <b>antes</b> y <b>de derecha a izquierda</b>: <code>ls &gt; f 2&gt;&amp;1</code> junta todo en f.</li>
+    <li><b>rm no tiene papelera</b>: lo borrado solo se recupera con forense (foremost) si nada lo sobrescribió.</li>
+    <li><b>cp -r</b> NO conserva permisos ni fechas; <b>cp -a</b> sí (y es recursivo).</li>
+    <li><b>tar</b>: crear <code>-czvf</code> · listar <code>-tzvf</code> · extraer <code>-xzvf</code> (<code>-j</code> bz2, <code>-J</code> xz). Solo tar agrupa; gzip/bzip2/xz van fichero a fichero.</li>
+    <li><b>find</b> ejecuta: <code>-exec comando {} \;</code> (uno a uno) o <code>{} +</code> (agrupa). <code>-ok</code> pregunta antes.</li>
+    <li><b>chmod octal</b>: 4 lee, 2 escribe, 1 ejecuta → <code>744</code> = rwxr--r--. En directorios la x es permiso de paso.</li>
+    <li><b>Errores</b> van por el canal 2: <code>2&gt;</code> a fichero, <code>2&gt;&amp;1</code> junto a la salida, <code>&amp;&gt;</code> todo.</li>
+    <li><b>!!</b> repite el comando anterior (<code>sudo !!</code>); <code>!$</code> su último argumento; <code>^txt^log^</code> lo retoca.</li>
+    <li><b>Enlace duro</b> = mismo inodo (sobrevive al borrado); <b>-s simbólico</b> = guarda la ruta (se rompe). Se ven con <code>ls -li</code>.</li>
+    <li><b>Los ficheros nuevos</b> no salen ejecutables jamás (666); por eso <code>umask 033</code> → 644.</li>
+    <li><b>find por tiempos</b>: <code>-mtime 1</code> ayer·hoy, <code>+1</code> más de un día, <code>-1</code> hoy. <code>-newer fich</code>, fechas con <code>-newermt</code>.</li>
+  </ul>
+</div>
 
 <section class="comando sh" id="s-shell">
   <h2>La shell <small>sintaxis: variables, cadenas y bucles</small><span class="chip">shell</span></h2>
