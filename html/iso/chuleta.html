@@ -152,6 +152,11 @@
     <li><b>Enlace duro</b> = mismo inodo (sobrevive al borrado); <b>-s simbólico</b> = guarda la ruta (se rompe). Se ven con <code>ls -li</code>.</li>
     <li><b>Los ficheros nuevos</b> no salen ejecutables jamás (666); por eso <code>umask 033</code> → 644.</li>
     <li><b>find por tiempos</b>: <code>-mtime 1</code> ayer·hoy, <code>+1</code> más de un día, <code>-1</code> hoy. <code>-newer fich</code>, fechas con <code>-newermt</code>.</li>
+    <li><b>ls</b>: <code>-l</code> largo (tipo+permisos, dueño, grupo, tamaño, fecha) · <code>-a</code> ocultos · <code>-li</code> con inodo · <code>-lh</code> legible · <code>-S</code> por tamaño · <code>-t</code> por fecha · <code>-d */</code> solo directorios.</li>
+    <li><b>alias</b>: <code>alias nombre='comando'</code> (se pega con =, sin espacios) · dura hasta cerrar, <b>persistente</b> en <code>~/.bashrc</code> · <code>unalias -a</code> borra todos · el binario de verdad con <code>\nombre</code> · <code>type</code> te lo destapa.</li>
+    <li><b>variables</b>: <code>var=valor</code> sin espacios alrededor del <code>=</code>, se usan con <code>$var</code> · <code>"…"</code> expande, <code>'…'</code> no · <code>$(comando)</code> mete la salida de un comando · <code>$PWD</code>, <code>$HOME</code>, <code>$HISTFILE</code>.</li>
+    <li><b>gzip</b>: solo ficheros sueltos · <code>-k</code> conserva el original · <code>gunzip</code> descomprime · para carpetas, <code>tar -czvf</code> (nunca gzip de una carpeta).</li>
+    <li><b>tar fino</b>: extraer en otra carpeta <code>-xvf f.tar -C carpeta/</code> (créala antes) · un fichero concreto detrás del <code>-f</code> · <code>--exclude='*.pdf'</code> al crear · <code>-r</code> añade solo a un .tar sin comprimir.</li>
   </ul>
 </div>
 
