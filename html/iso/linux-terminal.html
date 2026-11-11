@@ -89,6 +89,14 @@
   .lat-vacio{padding:6px 10px;font-size:13px;color:#c0bfbc}
   .item[hidden],.lat-vacio[hidden]{display:none}  /* .item usa display:flex, que anularía el atributo hidden */
 
+  /* Temas del panel lateral: pestañas bajo el buscador (salen del campo "tema" de cada grupo en ejemplos.js) */
+  .lat-temas{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .lat-temas[hidden]{display:none}
+  .lat-tema{font:inherit;font-size:12px;color:#c0bfbc;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px 10px;cursor:pointer;transition:background .2s ease,color .2s ease}
+  .lat-tema:hover{background:rgba(255,255,255,.14);color:#fff}
+  .lat-tema.activo{background:var(--acento);border-color:var(--acento);color:#fff}
+  @media (prefers-reduced-motion:reduce){.lat-tema{transition:none}}
+
   /* Zona principal: terminal + explicación */
   .principal{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--papel)}
   .terminal{background:var(--term);color:var(--term-txt);display:flex;flex-direction:column;flex:0 0 52%;min-height:210px}
@@ -159,7 +167,7 @@
   .contador{color:var(--term-txt);opacity:.7}
 
   /* ===== Botón "Actividades" de la barra superior y su panel lateral ===== */
-  .barra-btn{font:inherit;font-weight:500;color:#fff;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;cursor:pointer;transition:background .2s ease;text-decoration:none}
+  .barra-btn{font:inherit;font-weight:500;color:#fff;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;cursor:pointer;transition:background .2s ease}
   .barra-btn:hover,.barra-btn[aria-expanded="true"]{background:rgba(255,255,255,.14)}
   .act-panel{position:fixed;left:0;top:30px;bottom:0;z-index:15;width:min(310px,88vw);display:flex;flex-direction:column;
     background:var(--lateral);border-right:1px solid rgba(255,255,255,.12);box-shadow:8px 0 28px rgba(0,0,0,.45);
@@ -629,16 +637,47 @@ grupos.forEach((gr, gi) => {
   $('lateral').appendChild(det);
 });
 
+// Temas del panel lateral: cada grupo de ejemplos.js puede llevar  tema:"Nombre". Salen pestañas bajo el buscador y la
+// pestaña "Todos" lo muestra todo. Si ningún grupo tiene "tema" no aparece nada y el panel es el de siempre.
+const SIN_TEMA = 'Otros';   // los grupos sin "tema" (cuando otros sí lo tienen) van aquí
+const temaDeGrupo = gr => (typeof gr.tema === 'string' && gr.tema.trim()) || SIN_TEMA;
+const listaTemas = grupos.some(gr => typeof gr.tema === 'string' && gr.tema.trim()) ? [...new Set(grupos.map(temaDeGrupo))] : [];
+let temaActivo = '';        // '' = Todos
+let barraTemas = null;
+function aplicarTema(t, recordar = true){
+  temaActivo = t;
+  if (barraTemas) barraTemas.querySelectorAll('.lat-tema').forEach(b => {
+    const on = b.dataset.tema === t; b.classList.toggle('activo', on); b.setAttribute('aria-pressed', on);
+  });
+  filtrarLateral();
+  if (recordar) try { localStorage.setItem('lateral-tema', t || '*'); } catch (e) {}   // se recuerda la pestaña elegida
+}
+if (listaTemas.length){
+  barraTemas = document.createElement('div');
+  barraTemas.className = 'lat-temas'; barraTemas.setAttribute('role', 'group'); barraTemas.setAttribute('aria-label', 'Temas');
+  ['', ...listaTemas].forEach(t => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'lat-tema'; b.dataset.tema = t; b.textContent = t || 'Todos';
+    b.onclick = () => aplicarTema(t);
+    barraTemas.appendChild(b);
+  });
+  document.querySelector('.lat-cab').appendChild(barraTemas);
+  let guardado = null; try { guardado = localStorage.getItem('lateral-tema'); } catch (e) {}
+  aplicarTema(guardado === '*' ? '' : listaTemas.includes(guardado) ? guardado : temaDeGrupo(grupos[0]), false);
+}
+
 // Buscador: con texto, solo se ven los comandos que coinciden (y sus subapartados, desplegados); sin texto, todo vuelve a como estaba
 function filtrarLateral(){
   const bruto = $('lat-buscar').value.trim(), q = normLat(bruto); let total = 0;
   bloquesLat.forEach(({ gr, det, items }) => {
     const coinciden = items.filter(i => !q || i.texto.includes(q));
     items.forEach(i => { i.b.hidden = !!q && !i.texto.includes(q); });
-    det.hidden = !coinciden.length;
+    const enTema = !!q || !temaActivo || temaDeGrupo(gr) === temaActivo;   // con búsqueda se mira en todos los temas
+    det.hidden = !coinciden.length || !enTema;
     det.open = q ? true : (estadoLat.has(gr.titulo) ? estadoLat.get(gr.titulo) : !PLEGAR_GRUPOS_LATERAL);
-    total += coinciden.length;
+    if (enTema) total += coinciden.length;
   });
+  if (barraTemas) barraTemas.hidden = !!q;
   $('lat-vacio').hidden = !!total;
   $('lat-vacio').textContent = 'Ningún comando coincide con «' + bruto + '».';
 }
@@ -4265,7 +4304,7 @@ addEventListener('keydown', e => {
 construirLista();
 
 aplicar();
-if (grupos.length) abrir(0, 0); // comando que se abre al cargar
+if (grupos.length) abrir(Math.max(0, grupos.findIndex(gr => !temaActivo || temaDeGrupo(gr) === temaActivo)), 0); // comando que se abre al cargar: el primero del tema activo
 else {
   $('pantalla').innerHTML = '<span class="c"># No hay comandos cargados. Revisa ejemplos.js.</span>\n';
   $('explicacion').innerHTML = '<h3>No se han podido cargar los comandos</h3><p>Comprueba que <code>ejemplos.js</code> está en la misma carpeta que este HTML y que no tiene errores de sintaxis.</p>';

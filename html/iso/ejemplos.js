@@ -2,6 +2,15 @@
    CÓMO AÑADIR CONTENIDO (solo tocas este bloque)
    ---------------------------------------------------------------------
    GRUPOS      → cada grupo es una sección desplegable del panel lateral.
+   tema        → (opcional, dentro de cada grupo) agrupa los grupos en pestañas bajo el buscador del
+                 panel lateral:  { titulo:"Ficheros", tema:"Básicos", comandos:[...] }
+                 · Las pestañas salen solas, en el orden en que aparece cada tema por primera vez, más una
+                   pestaña "Todos". Se recuerda la última pestaña elegida.
+                 · Para mover un grupo de tema solo cambias esa palabra; los grupos de un mismo tema no tienen
+                   por qué estar seguidos en el archivo.
+                 · Si ningún grupo lleva "tema", el panel funciona como siempre (sin pestañas).
+                 · Un grupo sin "tema" (cuando otros sí lo tienen) va a la pestaña "Otros".
+                 · El buscador busca en todos los temas a la vez.
    comandos    → cada comando es un subapartado clicable dentro del grupo.
    diapositivas→ la 1.ª explica el comando; las siguientes, ejemplos.
    Cada diapositiva tiene:
@@ -55,7 +64,7 @@ const FUNCION_COMANDOS = {
 
 const GRUPOS = [
 
-  { titulo:"Consultar comandos", comandos:[
+  { titulo:"Consultar comandos", tema:"Tema 1", comandos:[
 
     { nombre:"type", resumen:"Tipo de comando", diapositivas:[
       { cmd:"type nano",
@@ -96,7 +105,51 @@ const GRUPOS = [
     ]}
   ]},
 
-  { titulo:"Ficheros y Instalaciones", comandos:[
+  { titulo:"Fechas", tema:"Tema 1", comandos:[
+
+    { nombre:"cal", resumen:"Calendario", diapositivas:[
+      { cast:"cast/examen/1.cast",
+        exp:'<h3>cal</h3><p>Nos muestra un pequeño calendario, tambien tiene parametros interesantes y formas de usarlo.</p><p>Ademas nos dice la fecha actual en la que estamos y el mes de forma gráfica.</p>' },
+      { cast:"cast/examen/1_fecha1.cast",
+        exp:'<h3>Una fecha distinta</h3><p>Si queremos ver una fecha distinta a la actual, podemos usar el parametro <code>-m</code> seguido del mes y el año.</p><p>Pero tambien podemos usar la siguiente sintaxis <code>cal (dia) (mes) (año)</code>y nos devolvera el mes y año.</p>' },
+      { cast:"cast/examen/1_fecha2.cast",
+        exp:'<h3>Opciones</h3><p>Podremos encontrar los siguientes parametros en este comando:</p><ul><li><code>-1</code>: mostrar un unico mes</li><li><code>-3</code>: Mostrar 3 meses</li><li><code>-n</code>: Cuantos meses queremos ver</li><li><code>-v</code>: Mostrar el calendario en vertical</li></ul>' }
+    ]},
+
+    { nombre:"date", resumen:"Fecha y Hora", diapositivas:[
+      { cmd:"date",
+        out:'Wed Nov 11 13:43:02 CET 2026',
+        exp:'<h3>date</h3><p>Muestra la fecha y hora actual del sistema.</p>' },
+      { cmd:"date -d 'now'",
+        out:'Wed Nov 11 13:43:02 CET 2026',
+        cmd:"date -d '1 day ago'",
+        out:'Wed Nov 10 13:43:10 CET 2026',
+        cmd:"date -d '1 month'",
+        out:'Fri Dec 11 13:45:06 CET 2026',
+        exp:'<h3>Parametro <code>-d</code></h3><p>El parametro <code>-d</code> nos permite especificar una fecha específica. De la siguiente forma:</p><p><ul><li><code>x day</code>: Quiere decir un día antes o el número de días antes que queramos, con <strong>ago</strong> indicamos que es una fecha en el pasado</li><li><code>x month</code>: Mes que queramos ver, hace 2 meses o 3 meses despues incluso, con <strong>ago</strong> indicamos que es una fecha en el pasado</li><li><code>x year</code>: Año que queramos ver, hace 2 años o 3 años despues incluso, con <strong>ago</strong> indicamos que es una fecha en el pasado</li></ul></p>' },
+      { cmd:"date +%B",
+        out:'November',
+        cmd:"date +%F",
+        out:'2026-11-11',
+        cmd:"date +%H",
+        out:'13',
+        cmd:"date +%H%M%S",
+        out:'134302',
+        exp:'<h3>Formato personalizado</h3><p>Podremos encontrar los siguientes formatos en este comando:</p><ul><li><code>%B</code>: mostrar un unico mes</li><li><code>%F</code>: Mostrar la fecha en formato AAAA-MM-DD</li><li><code>%H</code>: Mostrar la hora en formato 24 horas</li><li><code>%M</code>: Mostrar los minutos</li><li><code>%S</code>: Mostrar los segundos</li></ul>' }
+    ]},
+
+    { nombre:"timedatectl", resumen:"Fecha extendida", diapositivas:[
+      { cast:"cast/examen/2.cast",
+        exp:'<h3>timedatectl</h3><p>Comando que nos permite gestionar la fecha y hora del sistema. Hasta incluso ver si tenemos el reloj sincronizado y algun servicio activado en relación a la hora.</p>' },
+      { cmd:"timedatectl set-time 2026-11-11 13:43:02", info:"Establece la fecha y hora del sistema", out:'',
+        cmd:"timedatectl set-timezone Europe/Madrid", info:"Establece la zona horaria del sistema", out:'',
+        cmd:"timedatectl list-timezones", info:"Lista todas las zonas horarias disponibles", out:'',
+        exp:'<h3>Parametros</h3><p>Podemos hacer muchas cosas con este comando, más que nada sobre configuración:</p><p><ul><li><code>set-time</code>: Establecer la hora del sistema</li><li><code>set-timezone</code>: Establecer la zona horaria</li><li><code>list-timezones</code>: Listar todas las zonas horarias disponibles</li></ul></p>' },
+    ]},
+
+  ]},
+
+  { titulo:"Ficheros y Instalaciones", tema:"Tema 1", comandos:[
 
     { nombre:"file", resumen:"Mostrar un archivo", diapositivas:[
       { cmd:'file test.txt',
@@ -144,7 +197,7 @@ const GRUPOS = [
     ]}
   ]},
 
-  { titulo:"Cadenas de comandos", comandos:[
+  { titulo:"Cadenas de comandos", tema:"Tema 1", comandos:[
 
     { nombre:"pipes", resumen:"Encadenar con |", diapositivas:[
       { pasos:[
@@ -159,21 +212,10 @@ const GRUPOS = [
           { cmd:'echo uno; echo dos; echo tres', out:'uno\ndos\ntres' }
         ],
         exp:'<h3>Otros encadenadores</h3><ul><li><code>&amp;&amp;</code>: ejecuta el siguiente solo si el anterior funcionó.</li><li><code>||</code>: ejecuta el siguiente solo si el anterior falló.</li><li><code>;</code>: ejecuta todos, pase lo que pase.</li></ul>' }
-    ]},
-
-    { nombre:"sesión", resumen:"Crear un proyecto", diapositivas:[
-      { pasos:[
-          { cmd:"mkdir -p web/css", out:'' },
-          { cmd:"cd web", out:'', ruta:'~/web' },
-          { cmd:"touch index.html css/estilo.css", out:'' },
-          { cmd:"ls -R", out:'.:\n<b class="d">css</b>  index.html\n\n./css:\nestilo.css' },
-          { cmd:"cd ..", out:'', ruta:'~' }
-        ],
-        exp:'<h3>Una sesión completa</h3><p>Así se ve un flujo real: se crea la estructura (<code>mkdir -p</code>), se entra (<code>cd</code>), se crean archivos vacíos (<code>touch</code>), se revisa todo (<code>ls -R</code>) y se vuelve atrás. Fíjate en cómo el prompt cambia de ruta.</p>' }
     ]}
   ]},
 
-  { titulo:"Funciones en .bashrc", comandos:[
+  { titulo:"Funciones en .bashrc", tema:"Tema 1", comandos:[
     
     { nombre:"Ejemplo 1", resumen:"Ver la hora", diapositivas:[
       { pasos:[
@@ -219,7 +261,7 @@ const GRUPOS = [
     ]}
   ]},
 
-  { titulo:"Expansión de llaves", comandos:[
+  { titulo:"Expansión de llaves", tema:"Tema 1", comandos:[
     { nombre:"Ejemplo 1", resumen:"", diapositivas:[
       { pasos:[
           { cmd:"cd Descargas/ && pwd", out:'/home/usuario/Descargas', ruta:'~/Descargas'}
@@ -236,15 +278,15 @@ const GRUPOS = [
     ]}
   ]},
 
-  { titulo:"Busqueda de Ficheros", comandos:[
+  { titulo:"Busqueda de Ficheros", tema:"Tema 1", comandos:[
     { nombre:"find", resumen:"Buscar archivos", diapositivas:[
       { pasos:[
-          { cmd:"find /home/usuario/Prueba -name ʺ*.txtʺ", out:'/home/usuario/Prueba/fich-4.txt\n/home/usuario/Prueba/fich-5.txt\n/home/usuario/Prueba/fich-1.txt\n/home/usuario/Prueba/fich-3.txt\n/home/usuario/Prueba/fich-7.txt'}
+          { cmd:"find /home/usuario/Prueba -name ʺ*.txtʺ", info:"Busca archivos con extensión .txt", out:'/home/usuario/Prueba/fich-4.txt\n/home/usuario/Prueba/fich-5.txt\n/home/usuario/Prueba/fich-1.txt\n/home/usuario/Prueba/fich-3.txt\n/home/usuario/Prueba/fich-7.txt'}
         ],
         exp:'<h3>find</h3><p>Comando que nos servira para buscar ficheros con diferentes parametros que nos permite hacer busquedas más complejas.</p>' },
       { pasos:[
-          { cmd:"find . -type f -name ʺ*.jpgʺ", out:'./PruebasComandos/ficha.jpg\n./PruebasComandos/fichb.jpg\n./PruebasComandos/fichb.jpg'},
-          { cmd:"find /home/usuario/Descargas -size +100k -ls", out:'  9179683    332 -rw-rw-r--   1 usuario  usuario    337292 oct 29 08:22 /home/usuario/Descargas/02\ -\ Estructuras\ selectivas.pdf\n9180817    344 -rw-rw-r--   1 usuario  usuario    350461 sep 22 10:25 /home/usuario/Descargas/tema0breve\ historia\ de\ las\ comunicaciones1213.pdf\n1062560   1880 -rw-rw-r--   1 usuario  usuario   1922497 oct 28 14:04 /home/usuario/Descargas/1-asir-contenido-main/pdfs/UD2_BD.pdf'},
+          { cmd:"find . -type f -name ʺ*.jpgʺ", info:"Busca archivos de imagen", out:'./PruebasComandos/ficha.jpg\n./PruebasComandos/fichb.jpg\n./PruebasComandos/fichb.jpg'},
+          { cmd:"find /home/usuario/Descargas -size +100k -ls", info:"Busca archivos mayores a 100KB", out:'  9179683    332 -rw-rw-r--   1 usuario  usuario    337292 oct 29 08:22 /home/usuario/Descargas/02\ -\ Estructuras\ selectivas.pdf\n9180817    344 -rw-rw-r--   1 usuario  usuario    350461 sep 22 10:25 /home/usuario/Descargas/tema0breve\ historia\ de\ las\ comunicaciones1213.pdf\n1062560   1880 -rw-rw-r--   1 usuario  usuario   1922497 oct 28 14:04 /home/usuario/Descargas/1-asir-contenido-main/pdfs/UD2_BD.pdf'},
         ],
         exp:'<h3>find | Parametros</h3><p>Podemos usar diferentes parametros con este comandos como:<p><ul><li><code>-name</code> = Para buscar por un nombre en especifico.<li><code>-iname</code> = Lo mismo pero omitiendo si es mayuscula o minuscula<li><code>-type</code> = Para especificar el tipo de fichero, tenemos desde tipo de bloque, directorio, ordinario, simbolico, etc...<li><code>-user</code> = Busca por propietario de usuario (lo mismo se haría con <code>-group</code> pero con un grupo.</li><li><code>-size</code> = Busqueda por tamaño</ul></p>' },
       { pasos:[
@@ -274,7 +316,7 @@ const GRUPOS = [
     ]}
   ]},
 
-  { titulo:"Varios Comandos", comandos:[
+  { titulo:"Varios Comandos", tema:"Tema 1", comandos:[
     { nombre:"SoftLink", resumen:"Accesos Directos", diapositivas:[
       { pasos:[
           { cmd:"ln -s /home/usuario/Descargas/ softDes", out:'' },
@@ -316,11 +358,32 @@ const GRUPOS = [
           { cmd:"ls | xargs -I {} md5sum {}", out:'f8c53746afa83b2e2f6497690ed13bad  Direccionamiento IP.txt\n2f84b75ab414f19a6290ddfa277d2706  index.html\n495abba05e071581ba0a89d3811da34d  Pasa las siguientes mascaras.txt\n72c451dc2aff9f2b41954a1a51221090  Plano_DiegoMárquez.odt\n786f46c59215b44734894e39bcef3d9f  Practica3-DiegoMárquez.odt\n7922d419a7af274fb4b7ac7461128569  ResumenTema3TCPIP.odt' }
         ],
         exp:'<h3>xargs | Argumentos como parametros</h3><p>Especificamos que queremos que se ordene con espacios el resultado de <code>md5sum</code> junto con <code>ls</code> respetando margenes y espacios.</p>' }
+    ]},
+
+    { nombre:"echo", resumen:"Mostrar mensaje", diapositivas:[
+      { pasos:[
+        { cmd:"echo ʺHola mundoʺ", out:'Hola mundo' }
+      ],
+      exp:'<h3>echo</h3><p>Comando que nos permite mostrar un mensaje en pantalla, muy útil para mostrar mensajes de error o de información.</p>' },
+      { pasos:[
+        { cmd:"echo ʺHola mundoʺ > mensaje.txt", out:'' },
+        { cmd:"cat mensaje.txt", out:'Hola mundo' }
+      ],
+      exp:'<h3>echo con redirección</h3><p>Podemos usar <code>echo</code> junto con redirecciones para guardar un mensaje en un fichero.</p>' },
+      { pasos:[
+        { cmd:"echo –e ‶Hola\\nme\\nllamo\\nPepe″", out:'Hola\nme\nllamo\nPepe' },
+      ],
+      exp:'<h3>echo con formato</h3><p>Podemos dar formato a <code>echo</code> con la opción <code>–e</code>, ademas tenemos los siguientes formatos:</p><ul><li><code>\\n</code> - Nueva línea</li><li><code>\\t</code> - Tabulador</li><li><code>\\</code> - Barra</li><li><code>\\b</code> - Carácter atras</li></ul></p>' },      
+      { pasos:[
+        { cmd:"echo $HISTSIZE", out:'500' },
+      ],
+      exp:'<h3>echo con variables</h3><p>Podemos ver el valor de una variable con <code>echo $nombre_variable</code>.</p>' }
+
     ]}
     
   ]},
   
-  { titulo:"Canales estandares y Redirecciones", comandos:[
+  { titulo:"Canales estandares y Redirecciones", tema:"Tema 2", comandos:[
     { nombre:"Canal estandar 1", resumen:"1º ejemplo", diapositivas:[
       { pasos:[
           { cmd:"ls z* y* > resultados.log", out:'ls: no se puede acceder a z*: No existe el fichero o el directorio\nls: no se puede acceder a y*: No existe el fichero o el directorio' }
@@ -351,7 +414,7 @@ const GRUPOS = [
     ]}
 ]},
     
-  { titulo:"Expresiones Regulares y complejas", comandos:[
+  { titulo:"Expresiones Regulares y complejas", tema:"Tema 2", comandos:[
     { nombre:"Clases", resumen:"Uso de clases", diapositivas:[
       { cast:"cast/expresiones_regulares/clases1.cast",
         exp:'<h3>Clases</h3><p>Las clases son como las expresiones regulares, pero en este caso son patrones definidos que representan a un grupo específico de símbolos, letras o números.</p>' },
