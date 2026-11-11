@@ -15,6 +15,10 @@
   .meta b{color:var(--vino)}
   .normas{background:#fff3e6;border:1px solid #ecd9c4;border-radius:9px;padding:8px 12px;font-size:12.5px;margin:10px 0 14px}
   .normas b{color:#a66a00}
+  .pasos{background:#eef3fb;border:1px solid #d6e0f0;border-radius:9px;padding:10px 14px;font-size:12.5px;margin:10px 0 12px}
+  .pasos b{color:#2b5c9e}
+  .pasos ol{margin:6px 0 2px;padding-left:20px}
+  .pasos li{margin:3px 0}
   h2{font-size:15px;color:var(--vino);margin:16px 0 4px;break-after:avoid}
   h2 small{font-weight:400;color:var(--sutil);font-size:12px}
   table{width:100%;border-collapse:collapse;font-size:12.8px;margin:2px 0 6px}
@@ -39,11 +43,23 @@
   </div>
 </header>
 
+<div class="pasos">
+  <b>Cómo empezar, paso a paso</b>
+  <ol>
+    <li><b>Baja el paquete</b> <code>examen-practica.tar</code> y déjalo en tu carpeta de usuario.</li>
+    <li><b>Extrae</b> y entra: <code>tar -xf examen-practica.tar</code> → <code>cd examen-practica</code>.</li>
+    <li><b>Dame permisos</b> (solo la primera vez): <code>chmod +x prepara.sh corrige.sh limpia.sh</code>.</li>
+    <li><b>Crea el examen</b>: <code>./prepara.sh</code>. Te explicará qué va a hacer, te pedirá confirmar y creará la carpeta <b>~/examenA</b>. Ahí es donde trabajarás.</li>
+    <li><b>Haz el examen</b>: los 8 apartados de abajo. Cada respuesta va en <code>salidas/</code> con el nombre exacto que se pide.</li>
+    <li><b>Corrige</b>: <code>history -w</code> y después <code>./corrige.sh</code> → nota /10 y explicación de cada fallo.</li>
+    <li><b>¿Se te fue el tiempo?</b> No pasa nada: te avisa de que «entregaste tarde» y puedes terminar y corregir igual.</li>
+    <li><b>Para repetir</b>: <code>./limpia.sh</code> y luego <code>./prepara.sh -b</code> (preguntas iguales, ficheros distintos).</li>
+  </ol>
+</div>
+
 <div class="normas">
-  <b>Normas:</b> todo el trabajo dentro de tu carpeta del examen. Las salidas que se piden van en
-  <code>salidas/</code> con el <b>nombre exacto</b> indicado. Usa rutas completas (o <code>~</code>) al trabajar
-  con <code>/etc</code> y <code>/dev</code>. Si creas la variante B, las preguntas son las mismas: cambian los ficheros, no el enunciado.
-  Al terminar ejecuta <code>history -w</code> y después <code>./corrige.sh</code>.
+  <b>Normas:</b> todo se hace dentro de <code>~/examenA</code> (o <code>~/examenB</code>). Nada del sistema se toca.
+  Al leer de <code>/etc</code> o <code>/dev</code>, usa rutas con <code>~</code> o absolutas.
 </div>
 
 <h2>Apartado A — ls y comodines <small>2 puntos · 0,40 cada ejercicio</small></h2>
