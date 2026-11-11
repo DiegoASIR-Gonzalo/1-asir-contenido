@@ -2,6 +2,14 @@
 # prepara.sh — crea la estructura sobre la que trabaja el examen de práctica
 # Uso: ./prepara.sh      → variante A
 #      ./prepara.sh -b   → variante B (mismas preguntas, ficheros distintos)
+# Necesita bash: si lo lanzan con 'sh', se relanza solo con bash.
+if [ -z "${BASH_VERSION:-}" ]; then
+  if command -v bash >/dev/null 2>&1; then
+    exec bash "$0" "$@"
+  fi
+  echo "Este script necesita bash: ejecútalo con   bash $0" >&2
+  exit 1
+fi
 set -euo pipefail
 
 VARIANTE="A"
@@ -9,7 +17,12 @@ VARIANTE="A"
 EXAM="$HOME/examen$VARIANTE"
 
 if [ -e "$EXAM" ]; then
-  echo "⚠  $EXAM ya existe. Ejecuta ./limpia.sh para resetear antes de empezar."
+  echo "⚠  $EXAM ya existe."
+  if [ ! -f "$EXAM/.examen" ]; then
+    echo "   Y no lleva el sello interno .examen: probablemente quedó a medias"
+    echo "   (p. ej. si se lanzó con 'sh' en una versión anterior)."
+  fi
+  echo "   Ejecuta ./limpia.sh para resetear antes de empezar."
   exit 1
 fi
 

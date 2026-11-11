@@ -18,6 +18,9 @@ chmod +x prepara.sh corrige.sh limpia.sh   # solo la primera vez
 ./limpia.sh         # borra ~/examenA, ~/examenB y el alias del H1 en ~/.bashrc
 ```
 
+> Lánzalos siempre con `./` o `bash`. Si los llamas con `sh`, se relanzan solos con bash
+> (el dash de Debian no hace expansión de llaves ni soporta los arrays del corrector).
+
 ## Qué contiene
 
 | Fichero | Qué es |
