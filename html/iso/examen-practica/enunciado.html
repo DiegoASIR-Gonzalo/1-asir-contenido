@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Examen de práctica · Implantación de S.O. · 1.º ASIR</title>
+<style>
+  :root{--vino:#5e2a44;--linea:#e5dcd4;--sutil:#8a7a87}
+  *{box-sizing:border-box}
+  body{font:14px/1.5 "Segoe UI",system-ui,sans-serif;color:#3a2f3b;margin:0;background:#fffef9}
+  .hoja{max-width:820px;margin:0 auto;padding:26px 30px}
+  header{border-bottom:3px solid var(--vino);padding-bottom:10px;margin-bottom:14px}
+  h1{margin:0;font-size:22px;color:var(--vino);letter-spacing:-.02em}
+  h1 span{font-weight:400;font-size:14px;color:var(--sutil)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:6px;font-size:13px;color:#4a4150}
+  .meta b{color:var(--vino)}
+  .normas{background:#fff3e6;border:1px solid #ecd9c4;border-radius:9px;padding:8px 12px;font-size:12.5px;margin:10px 0 14px}
+  .normas b{color:#a66a00}
+  h2{font-size:15px;color:var(--vino);margin:16px 0 4px;break-after:avoid}
+  h2 small{font-weight:400;color:var(--sutil);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;margin:2px 0 6px}
+  th,td{border:1px solid var(--linea);padding:4px 8px;text-align:left;vertical-align:top}
+  th{background:#f3e9f8;color:var(--vino);font-size:11.5px;letter-spacing:.04em}
+  td.p{width:44px;text-align:right;color:var(--sutil);white-space:nowrap}
+  td.n{width:38px;color:var(--sutil);font-weight:700;white-space:nowrap}
+  code{font:12.3px "Ubuntu Mono",Consolas,monospace;background:#eee7e0;padding:0 4px;border-radius:4px;color:#2a1f2b}
+  .pie{margin-top:16px;padding-top:8px;border-top:2px solid var(--linea);font-size:12.5px;color:var(--sutil)}
+  tr{break-inside:avoid}
+  @page{size:A4;margin:12mm}
+  @media print{body{background:#fff}.hoja{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+<div class="hoja">
+<header>
+  <h1>Examen de práctica <span>· Implantación de Sistemas Operativos · 1.º ASIR</span></h1>
+  <div class="meta">
+    <span>⏱ <b>25 minutos</b></span><span>📝 <b>10 puntos</b> (cada ejercicio vale lo que indica)</span>
+    <span>🐧 Debian · terminal Bash</span><span>📂 trabajo en <b>~/examenA</b> (o <b>~/examenB</b> con -b)</span>
+  </div>
+</header>
+
+<div class="normas">
+  <b>Normas:</b> todo el trabajo dentro de tu carpeta del examen. Las salidas que se piden van en
+  <code>salidas/</code> con el <b>nombre exacto</b> indicado. Usa rutas completas (o <code>~</code>) al trabajar
+  con <code>/etc</code> y <code>/dev</code>. Si creas la variante B, las preguntas son las mismas: cambian los ficheros, no el enunciado.
+  Al terminar ejecuta <code>history -w</code> y después <code>./corrige.sh</code>.
+</div>
+
+<h2>Apartado A — ls y comodines <small>2 puntos · 0,40 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">A1</td><td>Guarda en <code>salidas/salA1.txt</code> los ficheros de <code>/etc</code> que empiecen por <code>t</code>, en orden inverso.</td><td class="p">0,40</td></tr>
+  <tr><td class="n">A2</td><td>En <code>salidas/salA2.txt</code>, los ficheros de <code>/dev</code> que empiecen por <code>tty</code> y tengan exactamente 5 caracteres.</td><td class="p">0,40</td></tr>
+  <tr><td class="n">A3</td><td>En <code>salidas/salA3.txt</code>, todos los ficheros de tu HOME, ocultos incluidos (solo nombres, sin detalles).</td><td class="p">0,40</td></tr>
+  <tr><td class="n">A4</td><td>En <code>salidas/salA4.txt</code>, los ficheros de <code>documentos/</code> con <code>a</code> como segunda letra y nombre de 4 letras.</td><td class="p">0,40</td></tr>
+  <tr><td class="n">A5</td><td>En <code>salidas/salA5.txt</code>, los ficheros de <code>documentos/</code> que empiecen por <code>t</code> y acaben en <code>.txt</code>.</td><td class="p">0,40</td></tr>
+</table>
+
+<h2>Apartado B — cp, mv y rm <small>1,5 puntos · 0,30 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">B1</td><td>Copia <code>documentos/documento1.txt</code> a <code>salidas/</code> conservando permisos y fechas.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">B2</td><td>Copia el directorio <code>imagenes/</code> completo, incluido el propio directorio, dentro de <code>salidas/</code>.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">B3</td><td>Mueve <code>logs/vacio.log</code> a <code>salidas/</code> y llámalo <code>movido.log</code>.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">B4</td><td>Oculta <code>logs/acceso.log</code>.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">B5</td><td>Borra <code>musica/</code> con todo su contenido.</td><td class="p">0,30</td></tr>
+</table>
+
+<h2>Apartado C — enlaces <small>1 punto</small></h2>
+<table>
+  <tr><td class="n">C1</td><td>En <code>salidas/</code>, crea un enlace duro de <code>archivos/fich1</code> llamado <code>fich1-duro</code>.</td><td class="p">0,34</td></tr>
+  <tr><td class="n">C2</td><td>En <code>salidas/</code>, crea un enlace simbólico al directorio <code>documentos/</code> llamado <code>documentos-enlace</code>.</td><td class="p">0,33</td></tr>
+  <tr><td class="n">C3</td><td>Guarda en <code>salidas/salC3.txt</code> la salida de <code>ls -li</code> sobre <code>archivos/fich1</code> y su enlace duro (el mismo inodo dos veces).</td><td class="p">0,33</td></tr>
+</table>
+
+<h2>Apartado D — permisos y umask <small>1 punto · 0,20 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">D1</td><td>Con notación <b>octal</b>, deja <code>archivos/fich2</code> con permisos <code>rw-r-----</code>.</td><td class="p">0,20</td></tr>
+  <tr><td class="n">D2</td><td>Con notación <b>simbólica</b>, quita la escritura a todos en <code>archivos/fich3</code> (debe quedar <code>r-xr-xr-x</code>).</td><td class="p">0,20</td></tr>
+  <tr><td class="n">D3</td><td>En <code>notas.txt</code>, deja <code>rwxr--r--</code>.</td><td class="p">0,20</td></tr>
+  <tr><td class="n">D4</td><td>Con <code>umask 077</code>, crea en <code>salidas/</code> un directorio llamado <code>privado</code>.</td><td class="p">0,20</td></tr>
+  <tr><td class="n">D5</td><td>¿Qué <code>umask</code> haría que los ficheros nuevos salieran <code>rw-r--r--</code>? Guarda el número en <code>salidas/salD5.txt</code>.</td><td class="p">0,20</td></tr>
+</table>
+
+<h2>Apartado E — compresores <small>1,5 puntos · 0,30 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">E1</td><td>Agrupa y comprime <code>documentos/</code> en <code>salidas/documentos.tar.gz</code>.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">E2</td><td>Lista el contenido del tar <b>sin extraerlo</b>, en <code>salidas/salE2.txt</code>.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">E3</td><td>Extrae <code>documentos.tar.gz</code> dentro de <code>salidas/restaurado/</code> (créala antes).</td><td class="p">0,30</td></tr>
+  <tr><td class="n">E4</td><td>Comprime <code>imagenes/foto1.jpg</code> con gzip <b>conservando el original</b>.</td><td class="p">0,30</td></tr>
+  <tr><td class="n">E5</td><td>Empaqueta <b>sin comprimir</b> el directorio <code>archivos/</code> completo en <code>salidas/archivos.tar</code>.</td><td class="p">0,30</td></tr>
+</table>
+
+<h2>Apartado F — find <small>1 punto · 0,25 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">F1</td><td>En <code>salidas/salF1.txt</code>, los ficheros de <b>todo el examen</b> con extensión <code>.jpg</code>.</td><td class="p">0,25</td></tr>
+  <tr><td class="n">F2</td><td>En <code>salidas/salF2.txt</code>, los de <code>archivos/</code> modificados hace <b>menos de 24 horas</b>.</td><td class="p">0,25</td></tr>
+  <tr><td class="n">F3</td><td>En <code>salidas/salF3.txt</code>, los de <code>documentos/</code> modificados hace <b>más de 2 días</b>.</td><td class="p">0,25</td></tr>
+  <tr><td class="n">F4</td><td>En <code>salidas/salF4.txt</code>, los ficheros de <code>/etc</code> que pertenezcan a <code>root</code>.</td><td class="p">0,25</td></tr>
+</table>
+
+<h2>Apartado G — grep y tuberías <small>1 punto · 0,20 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">G1</td><td>En <code>salidas/salG1.txt</code>, las líneas de <code>logs/registro.log</code> que empiecen por <code>l</code> (mayúscula o minúscula).</td><td class="p">0,20</td></tr>
+  <tr><td class="n">G2</td><td>En <code>salidas/salG2.txt</code>, las líneas de <code>registro.log</code> que sean <b>exactamente 3 dígitos</b>.</td><td class="p">0,20</td></tr>
+  <tr><td class="n">G3</td><td>En <code>salidas/salG3.txt</code>, <b>cuántas</b> líneas vacías tiene <code>registro.log</code>.</td><td class="p">0,20</td></tr>
+  <tr><td class="n">G4</td><td>En <code>salidas/salG4.txt</code>, los usuarios conectados, ordenados alfabéticamente.</td><td class="p">0,20</td></tr>
+  <tr><td class="n">G5</td><td>En <code>salidas/salG5.txt</code>, las 5 primeras líneas de <code>registro.log</code>.</td><td class="p">0,20</td></tr>
+</table>
+
+<h2>Apartado H — alias, variables y redirecciones <small>1 punto · 0,25 cada ejercicio</small></h2>
+<table>
+  <tr><td class="n">H1</td><td>Crea el alias <code>ll</code> que ejecute <code>ls -alF</code> y déjalo también escrito en tu <code>~/.bashrc</code>, debajo de una línea con <code># alias-examen</code>.</td><td class="p">0,25</td></tr>
+  <tr><td class="n">H2</td><td>Guarda el año en la variable <code>ANIO</code> (<code>ANIO=$(date +%Y)</code>) y su valor en <code>salidas/salH2.txt</code>.</td><td class="p">0,25</td></tr>
+  <tr><td class="n">H3</td><td>En <code>salidas/salH3.txt</code>, <b>solo el error</b> de listar un directorio que no existe (p. ej. <code>ls /noexiste</code>).</td><td class="p">0,25</td></tr>
+  <tr><td class="n">H4</td><td>Guarda en <code>salidas/salH4.txt</code> el listado de tus alias activos (debe aparecer el <code>ll</code> del H1).</td><td class="p">0,25</td></tr>
+</table>
+
+<div class="pie">
+  💡 Tu profesor mira el <b>history</b>: ejecuta <code>history -w</code> al terminar
+  (o añade <code>PROMPT_COMMAND='history -a'</code> a tu <code>~/.bashrc</code> para que se guarde todo al momento).
+  Cuando acabes: <code>./corrige.sh</code> te da la nota con detalle por ejercicio.
+  Para repetir: <code>./limpia.sh</code> y luego <code>./prepara.sh -b</code>.
+</div>
+</div>
+</body>
+</html>
