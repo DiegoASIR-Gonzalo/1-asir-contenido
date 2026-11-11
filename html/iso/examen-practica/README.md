@@ -7,7 +7,9 @@ Simulacro de examen tipo «enunciados cortos + script corrector», de **25 minut
 ```bash
 chmod +x prepara.sh corrige.sh limpia.sh   # solo la primera vez
 
-./prepara.sh        # variante A: crea ~/examenA y muestra la hora límite
+./prepara.sh        # variante A: explica qué va a hacer, te pide confirmar,
+                    # crea ~/examenA y arranca el crono (avisa al acabarse el tiempo,
+                    # pero puedes seguir y corregir: entrega tarde)
 ./prepara.sh -b     # variante B: mismas preguntas, ficheros distintos (sin memoria)
 
 # ... lee enunciado.pdf y trabaja los 8 apartados ...
@@ -20,7 +22,7 @@ chmod +x prepara.sh corrige.sh limpia.sh   # solo la primera vez
 
 | Fichero | Qué es |
 |---|---|
-| `prepara.sh` | Crea la estructura de ficheros y carpetas del examen y arranca el crono (25 min). `-b` para la variante B. |
+| `prepara.sh` | Te explica qué va a hacer y pide confirmación; crea la estructura de ficheros en tu home y arranca el crono (25 min). Al acabarse el tiempo **avisa** («entregas tarde») sin cortar nada: puedes seguir y corregir. `-b` para la variante B. |
 | `enunciado.pdf` / `enunciado.html` | Los 8 apartados y 36 ejercicios con sus puntos (el HTML es imprimible). |
 | `corrige.sh` | Corrector: nota sobre 10, ✔/✘ por ejercicio, pista genérica en los fallidos, **↳ diagnóstico** con lo que encontró frente a lo que esperaba (fichero guardado con otro nombre, copia en vez de enlace, permisos reales…) y history **interpretado** (usos, último comando y si un apartado falló a pesar de ejecutarse). |
 | `limpia.sh` | Resetea todo para repetir el examen. |

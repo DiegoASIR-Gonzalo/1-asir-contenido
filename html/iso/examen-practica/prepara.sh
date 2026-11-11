@@ -13,6 +13,27 @@ if [ -e "$EXAM" ]; then
   exit 1
 fi
 
+echo "=========================================="
+echo "  ANTES DE EMPEZAR"
+echo "=========================================="
+echo "  Voy a crear la carpeta de práctica en TU home:"
+echo "    $EXAM"
+echo "  Ahí se crean: documentos/ logs/ imagenes/ musica/ archivos/ salidas/"
+echo "  No toca NADA del sistema (solo lee de /etc y /dev)."
+echo "  Al confirmar, empiezan los 25 minutos del enunciado.pdf."
+echo "------------------------------------------"
+printf "  ¿Empezamos ahora? [s/N] "
+read -r RESP || { echo; exit 0; }
+case "$RESP" in
+  s|S|si|SI|Si|sí|Sí)
+    :
+    ;;
+  *)
+    echo "  Vale, no he creado nada. Cuando quieras: ./prepara.sh"
+    exit 0
+    ;;
+esac
+
 umask 022
 mkdir -p "$EXAM"/{documentos,logs,imagenes,musica,archivos,salidas}
 
@@ -115,10 +136,22 @@ LIMITE=$(date -d '+25 min' +%H:%M)
 echo "=========================================="
 echo "  EXAMEN DE PRÁCTICA — variante $VARIANTE"
 echo "=========================================="
-echo "  Carpeta de trabajo: $EXAM"
+echo "  Trabaja DENTRO de la carpeta:  $EXAM"
+echo "  (cd $EXAM   ·  las respuestas van en salidas/)"
 echo "  Empieza:  $AHORA"
 echo "  Límite:   $LIMITE   (25 minutos)"
 echo "------------------------------------------"
-echo "  Lee enunciado.pdf y trabaja los 8 apartados."
-echo "  Al terminar:  ./corrige.sh   y antes: history -w"
+echo "  Lee enunciado.pdf y haz los 8 apartados."
+echo "  Se acabó el tiempo → no pasa nada: te avisaré y"
+echo "  habrás 'entregado tarde', pero puedes corregir igual."
+echo "  Al terminar:  history -w   y luego   ./corrige.sh"
 echo "=========================================="
+
+# aviso de fin de tiempo (25 min = 1500 s): no corta nada, solo avisa
+(
+  sleep 1500
+  MSG="⏰  ¡Se acabó el tiempo ($LIMITE)! A partir de aquí entregas TARDE.
+    No pasa nada: termina lo que falte y corrige igual con ./corrige.sh"
+  printf '%s\n' "$MSG" > /dev/tty 2>/dev/null || printf '%s\n' "$MSG"
+) < /dev/null > /dev/null 2>&1 &
+disown 2>/dev/null || true

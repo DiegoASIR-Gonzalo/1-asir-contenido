@@ -141,7 +141,7 @@
 </header>
 <nav class="indice" aria-label="Índice de comandos">
   <a href="#s-shell">shell</a><a href="#s-comod">comodines</a><a href="#s-redir">redirecciones</a><span class="grupo">·</span>
-  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
+  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a href="#sort">sort</a><a href="#source">source</a><a href="#stat">stat</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#touch">touch</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-func">funciones</a><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
 </nav>
 <main>
 
@@ -370,6 +370,53 @@ Everything is Ok (1 file)</pre>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> \nano        <span class="c"># el binario de verdad, sin el alias</span></pre>
 <pre class="sal vacio"></pre>
+  </div>
+</section>
+
+<section class="comando sh" id="s-func">
+  <h2>Funciones en .bashrc <small>mini-comandos hechos por ti</small><span class="chip">shell</span></h2>
+  <p class="uso">nombre() { comandos; } · source ~/.bashrc · type nombre · declare -F · unset -f nombre</p>
+  <ul class="flags">
+    <li>Una función junta varios comandos bajo un nombre. Viva en <code>~/.bashrc</code> = <strong>persistente</strong> (se lee al abrir cada terminal); si la escribes a mano en la terminal, se olvida al cerrarla.</li>
+    <li><code>source ~/.bashrc</code> la carga al momento sin cerrar la terminal.</li>
+    <li><code>$1</code> es el primer argumento que le pases: <code>mkcd proyectos/nuevo</code>. Con <strong>&quot;$1&quot;</strong> entre comillas, un nombre con espacios (<em>mis fotos</em>) cuenta como uno solo.</li>
+    <li><code>type nombre</code> enseña su definición · <code>declare -F</code> lista las funciones cargadas · <code>unset -f nombre</code> la borra de la sesión.</li>
+    <li>Diferencia con <code>alias</code>: el alias es el apodo de <em>un</em> comando; la función admite <strong>argumentos</strong> ($1, $2…), varias líneas y lógica (if, case, return).</li>
+  </ul>
+  <div class="caja tip">
+    <b>💡 truco de examen</b>
+    <p>Defínela en <code>~/.bashrc</code> y haz <code>source</code>: si solo la escribes en la terminal, en cuanto la cierres desaparece. Para que el profe la vea persistida: <code>tail -n 5 ~/.bashrc</code>.</p>
+  </div>
+  <div class="ej">
+<pre class="cmd"><span class="d">$</span> hora () { <span class="k">date</span> +%T; }     <span class="c"># función mínima: ver la hora</span></pre>
+<pre class="sal vacio"></pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> hora</pre>
+<pre class="sal">21:34:56</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">tail</span> -n 4 ~/.bashrc       <span class="c"># el mkcd de clase, así vive en el fichero</span></pre>
+<pre class="sal"><span class="c"># Crea una carpeta y entra en ella</span>
+mkcd() {
+  <span class="k">mkdir</span> -p <span class="s">"$1"</span> &amp;&amp; <span class="k">cd</span> <span class="s">"$1"</span>
+}</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">source</span> ~/.bashrc &amp;&amp; <span class="k">mkcd</span> proyectos/nuevo &amp;&amp; <span class="k">pwd</span></pre>
+<pre class="sal">/home/usuario/proyectos/nuevo</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">type</span> mkcd</pre>
+<pre class="sal">mkcd es una función
+mkcd () 
+{ 
+    mkdir -p "$1" &amp;&amp; cd "$1"
+}</pre>
+  </div>
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> <span class="k">declare</span> -F</pre>
+<pre class="sal">declare -f mkcd</pre>
   </div>
 </section>
 
