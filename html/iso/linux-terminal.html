@@ -191,6 +191,9 @@
   .act-pie{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:#c0bfbc}
   .act-pie button{font:inherit;background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer}
   .act-pie button:hover{color:#fff}
+  /* "Otras Cosas": reutiliza el panel de Actividades, pero entra por la derecha. Sus filas son enlaces (<a class="act-item">) */
+  .otras-panel{left:auto;right:0;border-right:0;border-left:1px solid rgba(255,255,255,.12);box-shadow:-8px 0 28px rgba(0,0,0,.45);transform:translateX(100%)}
+  a.act-item{text-decoration:none}
 
   /* ===== Ventana de actividad: enunciado + terminal (misma terminal que la principal) ===== */
   /* La ventana flota sobre el escritorio (sin fondo oscuro): la posición y el tamaño los pone el script */
@@ -395,9 +398,11 @@
   <h1 class="sr-only">Terminal Linux: guía de comandos de 1.º ASIR</h1>
   <!-- Botón "Actividades": abre/cierra el panel lateral con las actividades -->
   <button class="barra-btn" id="btn-act" type="button" aria-expanded="false" aria-controls="panel-act">Actividades</button>
-  <a class="barra-btn" href="chuleta.html">Chuleta</a>
   <button class="barra-btn" id="btn-restaurar" type="button" hidden>Mostrar ventana</button>
-  <span id="reloj"></span><span>ES ⏻</span>
+  <span id="reloj"></span>
+  <!-- Botón "Otras Cosas" (esquina superior derecha): abre/cierra el panel lateral derecho con recursos extra (Chuleta, etc.).
+       Para añadir subapartados nuevos mira el bloque "OTRAS COSAS" del script (array OTRAS_COSAS). -->
+  <button class="barra-btn" id="btn-otras" type="button" aria-expanded="false" aria-controls="panel-otras">Otras Cosas</button>
 </header>
 
 <main class="ventana">
@@ -475,6 +480,14 @@
   </div>
   <div class="act-lista" id="act-lista"></div>
   <div class="act-pie"><span id="act-progreso"></span><button type="button" id="act-borrar">Borrar progreso</button></div>
+</aside>
+
+<!-- Pestaña lateral derecha "Otras Cosas" (la lista se genera desde OTRAS_COSAS en el script; ahí se explica cómo añadir subapartados) -->
+<aside class="act-panel otras-panel" id="panel-otras" aria-label="Otras Cosas">
+  <div class="act-cab">
+    <h2>Otras Cosas</h2><p>Recursos extra de la guía.</p>
+  </div>
+  <div class="act-lista" id="otras-lista"></div>
 </aside>
 
 <!-- Ventana de una actividad: enunciado arriba y terminal interactiva debajo.
@@ -4141,8 +4154,76 @@ addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (!fondoAct.hidden){ cerrarAct(); return; }
   if (panelAct.classList.contains('abierto')){ alternarAct(false); return; }
+  if (panelOtras.classList.contains('abierto')){ alternarOtras(false); return; }
   if (ventanaPrincipal.classList.contains('minimizada')){ verEscritorio(false); return; }
   alternar(false);
+});
+
+/* =====================================================================
+   OTRAS COSAS (botón de la esquina superior derecha de la barra)
+   ---------------------------------------------------------------------
+   Panel lateral derecho que funciona igual que el de "Actividades": el botón
+   de la barra (btn-otras) lo abre y lo cierra; también se cierra con un clic
+   fuera o con Escape. Las filas de la lista se generan solas desde el array
+   OTRAS_COSAS: no hay que tocar HTML ni CSS para añadir un subapartado.
+
+   CÓMO AÑADIR UN SUBAPARTADO NUEVO
+     1. Añade un objeto más al array OTRAS_COSAS (justo debajo), con una coma
+        detrás del anterior. Campos:
+          titulo  (obligatorio)  Nombre que se ve en negrita.
+          desc    (opcional)     Frase corta bajo el nombre.
+          href    (*)            Página a la que lleva, p. ej. 'glosario.html'.
+          nueva   (opcional)     true = el enlace se abre en otra pestaña.
+          accion  (*)            Función que se ejecuta al pulsar, para abrir algo
+                                 sin salir de esta página, p. ej. () => abrirAct(0).
+          icono   (opcional)     Texto corto para el círculo de la izquierda
+                                 (si no se pone, lleva el número de orden).
+        (*) Hace falta uno de los dos: "href" o "accion". Si se ponen los dos, manda "href".
+     2. Si usa "href", crea ese archivo .html en la misma carpeta que este.
+     3. Guarda y recarga. Un subapartado incompleto se ignora y avisa en la consola.
+   ===================================================================== */
+const OTRAS_COSAS = [
+  { titulo: 'Chuleta', desc: 'Consulta rápida', href: 'chuleta.html' },
+  // Ejemplos (quita las // para probarlos):
+  // { titulo: 'Glosario', desc: 'Términos de Linux explicados', href: 'glosario.html', icono: 'G' },
+  // { titulo: 'Documentación', desc: 'Se abre en otra pestaña', href: 'https://www.gnu.org/manual/', nueva: true },
+  // { titulo: 'Un aviso', desc: 'Ejecuta código sin salir de la página', accion: () => avisar('Hola') },
+];
+
+const btnOtras = $('btn-otras'), panelOtras = $('panel-otras'), listaOtras = $('otras-lista');
+
+OTRAS_COSAS.forEach((sub, i) => {
+  if (!sub || !sub.titulo || !(sub.href || typeof sub.accion === 'function')){
+    console.warn('Otras Cosas: el subapartado ' + (i + 1) + ' necesita "titulo" y también "href" o "accion"; se ignora.');
+    return;
+  }
+  const fila = document.createElement(sub.href ? 'a' : 'button');
+  fila.className = 'act-item';
+  if (sub.href){
+    fila.href = sub.href;
+    if (sub.nueva){ fila.target = '_blank'; fila.rel = 'noopener'; }
+  } else {
+    fila.type = 'button';
+    fila.onclick = () => { alternarOtras(false); sub.accion(); };
+  }
+  const num = document.createElement('span'); num.className = 'act-num'; num.textContent = sub.icono || String(listaOtras.children.length + 1);
+  const txt = document.createElement('span'); txt.className = 'act-txt';
+  const nombre = document.createElement('b'); nombre.textContent = sub.titulo; txt.append(nombre);
+  if (sub.desc){ const d = document.createElement('small'); d.textContent = sub.desc; txt.append(d); }
+  fila.append(num, txt);
+  listaOtras.append(fila);
+});
+
+// Abre/cierra el panel. Al abrir, el foco va a la primera fila; al cerrar, vuelve al botón de la barra.
+function alternarOtras(abierto){
+  panelOtras.classList.toggle('abierto', abierto);
+  btnOtras.setAttribute('aria-expanded', abierto);
+  if (abierto){ const primera = listaOtras.firstElementChild; if (primera) primera.focus({ preventScroll: true }); }
+  else if (panelOtras.contains(document.activeElement)) btnOtras.focus();
+}
+btnOtras.onclick = () => alternarOtras(!panelOtras.classList.contains('abierto'));
+addEventListener('click', e => {   // clic fuera = cerrar (así también se cierra al abrir el panel de Actividades, y al revés)
+  if (panelOtras.classList.contains('abierto') && !panelOtras.contains(e.target) && !btnOtras.contains(e.target)) alternarOtras(false);
 });
 
 /* =====================================================================
