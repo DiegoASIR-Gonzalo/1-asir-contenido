@@ -424,7 +424,7 @@ const GRUPOS = [
         exp:'<h3>Tipos de clases | digit</h3><p>La clase <code>[[:digit:]]</code> lo ponemos para especificar un dígito.</p>' }  
     ]},
 
-  { titulo:"Varios Comandos", tema:"Tema 2", comandos:[
+  { titulo:"Varios Comandos 2", tema:"Tema 2", comandos:[
     { nombre:"apt", resumen:"Paquetes", diapositivas:[
       { cast:"cast/tema2/aptinstall.cast",
         exp:'<h3>apt</h3><p>El comando <code>apt</code> nos permite instalar o localizar paquetes dentro de las posibilidades de nuestro sistema.</p>' },
