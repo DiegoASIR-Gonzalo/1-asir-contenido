@@ -547,7 +547,9 @@
     .v-body { position: relative; flex: 1; min-height: 0; background: var(--bg); }
     .v-body[data-kind="video"] { aspect-ratio: 16 / 9; flex: none; max-height: calc(100dvh - 6.5rem); background: #000; }
     .v-body[data-kind="frame"] { height: min(78dvh, 760px); }
-    .v-body[data-kind="anim"]  { overflow: auto; max-height: calc(100dvh - 6.5rem); padding: 1.6rem 1.4rem 1.8rem; }
+    .v-body[data-kind="anim"],
+    .v-body[data-kind="quiz"]  { overflow: auto; max-height: calc(100dvh - 6.5rem); padding: 1.6rem 1.4rem 1.8rem; }
+    .v-body[data-kind="quiz"]  { min-height: min(60dvh, 520px); }
     .v-body iframe, .v-body video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
     .v-body[data-kind="frame"] iframe { background: #fff; }
 
@@ -582,6 +584,59 @@
     .an-net .pkt rect { fill: var(--accent); }
     .an-net .pkt text { fill: #fff; font: 600 11px "JetBrains Mono", monospace; }
     .an-cap { text-align: center; min-height: 3.2em; max-width: 560px; margin: 0 auto 1rem; }
+
+    /* cuestionarios (data-modal="quiz"): mismos tokens, bordes y radios que las tarjetas */
+    .qz { max-width: 640px; margin: 0 auto; }
+    .qz-top { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.3rem; }
+    .qz-count { font: 500 .78rem "JetBrains Mono", monospace; color: var(--muted); white-space: nowrap; }
+    .qz-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+    .qz-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .4s ease; }
+    .qz-kind { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .5rem; }
+    .qz-q { font-size: 1.15rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.35; margin-bottom: 1.1rem; outline: none; }
+    .qz code { font: 500 .88em "JetBrains Mono", monospace; padding: .1em .4em; border-radius: 6px; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .qz-opts { display: grid; gap: .6rem; margin-bottom: 1.1rem; }
+    .qz-opt {
+      display: flex; align-items: flex-start; gap: .8rem; width: 100%; text-align: left;
+      font: inherit; font-size: .93rem; color: var(--text); cursor: pointer;
+      padding: .8rem 1rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--surface);
+      transition: border-color .2s, background .2s, transform .2s;
+    }
+    .qz-opt:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 50%, transparent); transform: translateY(-1px); }
+    .qz-opt:disabled { cursor: default; }
+    .qz-opt[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+    .qz-opt.ok { border-color: #22c55e; background: color-mix(in srgb, #22c55e 10%, var(--surface)); }
+    .qz-opt.ko { border-color: #ef4444; background: color-mix(in srgb, #ef4444 10%, var(--surface)); }
+    .qz-key {
+      flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px;
+      font: 500 .78rem "JetBrains Mono", monospace; color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .qz-input {
+      width: 100%; font: inherit; font-size: .93rem; color: var(--text);
+      padding: .8rem 1rem; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .qz-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); }
+    .qz-input.ok { border-color: #22c55e; }
+    .qz-input.ko { border-color: #ef4444; }
+    .qz-fb {
+      padding: .85rem 1rem; margin-bottom: 1.1rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: .88rem; line-height: 1.5; color: var(--muted);
+    }
+    .qz-fb:empty { padding: 0; margin: 0; border: 0; }
+    .qz-fb strong { color: var(--text); }
+    .qz-fb[data-ok="true"]  { border-color: color-mix(in srgb, #22c55e 55%, transparent); }
+    .qz-fb[data-ok="false"] { border-color: color-mix(in srgb, #ef4444 55%, transparent); }
+    .qz .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .qz-end .qz-kind, .qz-end .qz-q { text-align: center; }
+    .qz-end .qz-q { font-size: 1.5rem; }
+    .an-out + .qz-kind { margin-top: 1.4rem; }
+    .qz-rev { display: grid; gap: .6rem; margin-bottom: 1.2rem; }
+    .qz-rev > div { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: .8rem 1rem; font-size: .88rem; }
+    .qz-rev small { display: block; color: var(--muted); font-size: .8rem; margin-top: .25rem; }
+    .qz-rev small:first-child { margin: 0 0 .25rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: .7rem; }
   </style>
 </head>
 <body>
@@ -758,6 +813,11 @@
             <span class="card-body"><strong>Simulador binario</strong><small>Animación interactiva: cambia los bits y mira el decimal y el hexadecimal.</small></span>
             <span class="arrow">✦</span>
           </a>
+          <a class="card" href="#" data-modal="quiz" data-quiz="hw-binario" title="Se abre en una ventana">
+            <span class="icon"><svg><use href="#i-quiz"/></svg></span>
+            <span class="card-body"><strong>Cuestionario de binario</strong><small>Test con corrección al momento: binario, decimal y hexadecimal.</small></span>
+            <span class="arrow">✦</span>
+          </a>
         </div>
         </div>
       </div>
@@ -877,6 +937,9 @@
 
           Animación JS propia: añade una función dentro de ANIMS (al final del archivo) y usa:
           <a class="card" href="#" data-modal="anim" data-anim="nombre"> ...igual que arriba... </a>
+
+          Cuestionario propio: copia cuestionarios/_plantilla.js como cuestionarios/nombre.js y usa:
+          <a class="card" href="#" data-modal="quiz" data-quiz="nombre"> ...igual que arriba... </a>
           -->
         </div>
         </div>
@@ -1565,12 +1628,14 @@
     })();
   </script>
 
+  <script src="cuestionarios/motor.js"></script>
   <script>
-    // ---------- VENTANA EMERGENTE (vídeo / página / animación JS) ----------
-    // Uso: <a class="card" href="..." data-modal="video|frame|anim" ...>
+    // ---------- VENTANA EMERGENTE (vídeo / página / animación JS / cuestionario) ----------
+    // Uso: <a class="card" href="..." data-modal="video|frame|anim|quiz" ...>
     //   video -> href (o data-src): YouTube o archivo .mp4/.webm/.ogg
     //   frame -> href (o data-src): página HTML o PDF dentro de la ventana
     //   anim  -> data-anim="nombre" (función dentro de ANIMS)
+    //   quiz  -> data-quiz="nombre" (carga cuestionarios/nombre.js; copia cuestionarios/_plantilla.js)
     // Opcional: data-title="Título". Con Ctrl/Cmd+clic el enlace se abre normal.
     (() => {
       const dlg = document.getElementById('viewer');
@@ -1735,6 +1800,11 @@
           const fn = ANIMS[card.dataset.anim];
           if (fn) cleanup = fn(bodyEl) || null;
           else bodyEl.innerHTML = '<p class="an-hint">No existe la animación «' + (card.dataset.anim || '') + '».</p>';
+        } else if (kind === 'quiz') {
+          if (window.HubQuiz && card.dataset.quiz) cleanup = HubQuiz.abrir(bodyEl, card.dataset.quiz) || null;
+          else bodyEl.innerHTML = '<p class="an-hint">' + (window.HubQuiz
+            ? 'A esta tarjeta le falta data-quiz="nombre".'
+            : 'No se encontró cuestionarios/motor.js.') + '</p>';
         } else {
           if (kind === 'video' && isVideoFile(src)) {
             bodyEl.append(make('video', { src, controls: true, autoplay: true, playsInline: true }));
