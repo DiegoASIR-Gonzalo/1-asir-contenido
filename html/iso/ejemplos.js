@@ -412,7 +412,8 @@ const GRUPOS = [
         ],
         exp:'<h3>Ejemplo 2 con wc</h3><p>Es practicamente lo mismo que el primer ejemplo solo que hemos especificado que el canal de entrada es el fichero <code>resultado.txt</code>.</p>' }
     ]}
-]},
+
+  ]},
     
   { titulo:"Expresiones Regulares y complejas", tema:"Tema 2", comandos:[
     { nombre:"Clases", resumen:"Uso de clases", diapositivas:[
