@@ -423,7 +423,9 @@ const GRUPOS = [
         exp:'<h3>Tipos de clases | blank</h3><p>La clase <code>[[:blank:]]</code> es practicamente un espacio en blanco (como dice su nombre en ingles).</p>' },
       { cast:"cast/expresiones_regulares/clases_digit.cast",
         exp:'<h3>Tipos de clases | digit</h3><p>La clase <code>[[:digit:]]</code> lo ponemos para especificar un dígito.</p>' }  
-    ]},
+    ]}
+  
+  ]},
 
   { titulo:"Varios Comandos 2", tema:"Tema 2", comandos:[
     { nombre:"apt", resumen:"Paquetes", diapositivas:[
