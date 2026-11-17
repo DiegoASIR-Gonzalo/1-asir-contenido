@@ -435,9 +435,9 @@ const GRUPOS = [
         exp:'<h3>apt | search</h3><p>El parametro <code>search</code> nos permite buscar un paquete dentro de los repositorios a los que puede acceder nuestro sistema.</p>' },
       { cast:"cast/tema2/aptpolicy.cast",
         exp:'<h3>apt | policy</h3><p>El parametro <code>policy</code> lo usaremos cuando queramos comprobar si un paquete lo tenemos instalado en nuestro sistema.</p>' },
-      { cast:"cast/tema2/aptfile.cast",
-        exp:'<h3>apt | list</h3><p>El parametro <code>list</code> sirve para listar los paquetes relacionado con otros paquetes.</p>' },
       { cast:"cast/tema2/aptlist.cast",
+        exp:'<h3>apt | list</h3><p>El parametro <code>list</code> sirve para listar los paquetes relacionado con otros paquetes.</p>' },
+      { cast:"cast/tema2/aptupdate.cast",
         exp:'<h3>apt | update</h3><p>El parametro <code>update</code> nos sirve para actualizar los enlaces de los repositorios a los que descargara nuestro gestor de paquetes.</p>' },
       { cast:"cast/tema2/aptpurge.cast",
         exp:'<h3>apt | purge</h3><p>El parametro <code>purge</code> se usa para eliminar paquetes, al igual que podemos usar tambien de la misma forma el <code>remove</code>.</p>' }
