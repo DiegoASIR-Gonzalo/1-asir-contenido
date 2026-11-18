@@ -26,4 +26,3 @@
 [6.720438, "o", "\u001b[?1h\u001b=\rwget:\u001b[m\r\n  Instalados: 1.25.0-2\u001b[m\r\n  Candidato:  1.25.0-2\u001b[m\r\n  Tabla de versión:\u001b[m\r\n *** 1.25.0-2 500\u001b[m\r\n"]
 [6.723697, "o", "        500 http://ftp.cica.es/debian trixie/main amd64 Packages\u001b[m\r\n        100 /var/lib/dpkg/status\u001b[m\r\n\r\u001b[K\u001b[?1l\u001b>"]
 [6.729759, "o", "\u001b[?2004h\u001b[38;5;245m┌─(\u001b[1;38;5;46musuario\u001b[38;5;245m-\u001b[1;38;5;51mdebian-326\u001b[38;5;245m)-[\u001b[1;38;5;141m~\u001b[38;5;245m]\u001b[38;5;245m\r\r\n└─\u001b[1;38;5;46m❯ \u001b[0m"]
-[8.365796, "o", "\u001b[?2004l\r\r\nexit\r\n"]

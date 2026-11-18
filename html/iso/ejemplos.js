@@ -464,7 +464,7 @@ const GRUPOS = [
       { cast:"cast/tema2/ssh/sshnormal.cast",
         exp:'<h3>Conexion SSH</h3><p>El comando <code>ssh</code> nos permite conectarnos a traves del protocolo SSH a un equipo de una red diferente o de la misma red.</p>' },
       { cast:"cast/tema2/ssh/sshkey.cast",
-        exp:'<h3>SSH pero con clave</h3><p>El parametro <code>-i</code> nos permite usar una clave publica o privada para conectarnos sin necesidad de contraseña a un equipo.</p>',
+        exp:'<h3>SSH pero con clave</h3><p>Podemos copiar nuestra clave pública a una máquina que queramos, mediante este comando.</p><p>Con el parametro <code>-i</code> en el comando <code>ssh</code> nos permitira usar una clave publica o privada para conectarnos sin necesidad de contraseña a un equipo.</p>',
         mini:{ boton:"¿Como creo una clave?", titulo:"Crear una clave SSH",
                cast:'cast/tema2/ssh/sshkeygen.cast',
                exp:'<h3>Solo el ejecutable</h3><p>Con <code>-b</code> (de <em>binary</em>) <code>whereis</code> enseña solo la ruta del ejecutable, sin la página del manual.</p>' } },

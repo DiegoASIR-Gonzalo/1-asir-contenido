@@ -61,4 +61,3 @@
 [10.675789, "o", "                                 \r"]
 [10.686829, "o", "\u001b[1;31mError: \u001b[0m\u001b[1mEl repositorio «http://deb.debian.org/debian buster-backports Release» no tiene un fichero de Publicación.\u001b[0m\r\n\u001b[1mNotice: \u001b[0mNo se puede actualizar de un repositorio como este de forma segura y por tanto está deshabilitado por omisión.\u001b[0m\r\n\u001b[1mNotice: \u001b[0mVea la página de manual apt-secure(8) para los detalles sobre la creación de repositorios y la configuración de usuarios.\u001b[0m\r\n"]
 [10.695506, "o", "\u001b[?2004h\u001b[38;5;245m┌─(\u001b[1;38;5;46musuario\u001b[38;5;245m-\u001b[1;38;5;51mdebian-326\u001b[38;5;245m)-[\u001b[1;38;5;141m~\u001b[38;5;245m]\u001b[38;5;245m\r\r\n└─\u001b[1;38;5;196m✘ \u001b[0m"]
-[12.731719, "o", "\u001b[?2004l\r\r\nexit\r\n"]
