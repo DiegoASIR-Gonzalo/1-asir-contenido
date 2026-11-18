@@ -568,6 +568,9 @@
 <script src="cast-player.js"></script>
 <script src="casts.js"></script>
 
+<!-- Mini-panel de ejemplo: botón en la explicación que abre un panel con un comando simulado (campo "mini" en ejemplos.js). Debe ir ANTES del script principal. -->
+<script src="mini-panel.js"></script>
+
 <!-- Datos de las actividades (ver instrucciones dentro del archivo). Debe ir ANTES del script principal.
      Si las repartes en varios archivos, añade aquí un <script src="..."> por cada uno; su orden decide el orden del panel. -->
 <script src="actividades.js"></script>
@@ -783,6 +786,7 @@ async function pintar(){
   $('contador').textContent = (s === 0 ? 'Explicación' : 'Ejemplo ' + s) + ' · ' + (s + 1) + ' / ' + cm.diapositivas.length;
   $('ant').disabled = s === 0; $('sig').disabled = s === cm.diapositivas.length - 1;
   $('explicacion').innerHTML = dia.exp;
+  if (window.MiniPanel) MiniPanel.montar(dia, $('explicacion'));   // botón(es) "mini" de la diapositiva (mini-panel.js)
 
   // Diapositiva con grabación de asciinema: { cast:"clave-o-ruta", maxPausa:0.8, exp:"..." }
   if (dia.cast){
@@ -4184,6 +4188,7 @@ addEventListener('keydown', e => {
    ===================================================================== */
 const OTRAS_COSAS = [
   { titulo: 'Chuleta', desc: 'Consulta rápida', href: 'chuleta.html' },
+  { titulo: 'Particionado', desc: 'Manual de particiones', href: 'particiones/particiones.html' }
   // Ejemplos (quita las // para probarlos):
   // { titulo: 'Glosario', desc: 'Términos de Linux explicados', href: 'glosario.html', icono: 'G' },
   // { titulo: 'Documentación', desc: 'Se abre en otra pestaña', href: 'https://www.gnu.org/manual/', nueva: true },

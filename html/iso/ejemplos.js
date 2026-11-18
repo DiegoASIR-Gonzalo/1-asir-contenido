@@ -34,6 +34,17 @@
      2) En un paso concreto con "info", p. ej.  { cmd:"ls -l", out:"...", info:"Lista en formato largo." }
         (tiene prioridad sobre el diccionario). Si un comando no tiene descripción, no sale globo.
 
+   
+-PANEL (botón dentro de la explicación): en cualquier diapositiva puedes añadir el campo "mini".
+   Sale un botón al final de la explicación que abre un panel pequeño con un comando simulado a un lado
+   y su explicación al otro. Usa el mismo patrón que una diapositiva (el motor está en mini-panel.js):
+     mini:{ boton:"Probar con -b",           ← texto del botón (opcional)
+            titulo:"whereis -b",             ← título de la ventana (opcional)
+            cmd:"whereis -b whoami", out:'whoami: /usr/bin/whoami',   ← o pasos:[...] o cast:"cast/x.cast"
+            exp:'<h3>Solo el ejecutable</h3><p>Explicación junto al comando.</p>' }
+   Para varios botones en la misma diapositiva, mini puede ser una lista: mini:[ {...}, {...} ].
+   Sin "exp" el panel muestra solo la terminal. Los globos (info / FUNCION_COMANDOS) también funcionan dentro.
+
    Plantilla para copiar y pegar un comando nuevo:
 
    { nombre:"mkdir", resumen:"Crear carpetas", diapositivas:[
@@ -101,7 +112,11 @@ const GRUPOS = [
 	{ nombre:"whereis", resumen:"Ruta de un comando", diapositivas:[
       { cmd:"whereis whoami",
         out:'whoami: /usr/bin/whoami /usr/share/man/man1/whoami.1.gz',
-        exp:'Podremos ver la ruta donde se aloja un comando.' }
+        exp:'Podremos ver la ruta donde se aloja un comando.',
+        // Ejemplo de mini-panel: botón al final de la explicación que abre un comando simulado con su propia explicación
+        mini:{ boton:"Probar con -b", titulo:"whereis -b",
+               cmd:"whereis -b whoami", out:'whoami: /usr/bin/whoami',
+               exp:'<h3>Solo el ejecutable</h3><p>Con <code>-b</code> (de <em>binary</em>) <code>whereis</code> enseña solo la ruta del ejecutable, sin la página del manual.</p>' } }
     ]}
   ]},
 
@@ -438,10 +453,25 @@ const GRUPOS = [
       { cast:"cast/tema2/aptlist.cast",
         exp:'<h3>apt | list</h3><p>El parametro <code>list</code> sirve para listar los paquetes relacionado con otros paquetes.</p>' },
       { cast:"cast/tema2/aptupdate.cast",
-        exp:'<h3>apt | update</h3><p>El parametro <code>update</code> nos sirve para actualizar los enlaces de los repositorios a los que descargara nuestro gestor de paquetes.</p>' },
+        exp:'<h3>apt | update</h3><p>El parametro <code>update</code> nos sirve para actualizar los enlaces de los repositorios a los que descargara nuestro gestor de paquetes.</p>',
+        mini:{ boton:"¿Como actualizo todo definitivamente?", titulo:"apt upgrade",
+               cast:'cast/tema2/aptupgrade.cast',
+               exp:'<h3>Actualizar todo</h3><p>Con <code>upgrade</code> actualizamos todo de verdad gracias a hacer anteriormente un <code>update</code>.</p>' } },        
       { cast:"cast/tema2/aptpurge.cast",
         exp:'<h3>apt | purge</h3><p>El parametro <code>purge</code> se usa para eliminar paquetes, al igual que podemos usar tambien de la misma forma el <code>remove</code>.</p>' }
+    ]},
+    { nombre:"ssh", resumen:"SSH", diapositivas:[
+      { cast:"cast/tema2/ssh/sshnormal.cast",
+        exp:'<h3>Conexion SSH</h3><p>El comando <code>ssh</code> nos permite conectarnos a traves del protocolo SSH a un equipo de una red diferente o de la misma red.</p>' },
+      { cast:"cast/tema2/ssh/sshkey.cast",
+        exp:'<h3>SSH pero con clave</h3><p>El parametro <code>-i</code> nos permite usar una clave publica o privada para conectarnos sin necesidad de contraseña a un equipo.</p>',
+        mini:{ boton:"¿Como creo una clave?", titulo:"Crear una clave SSH",
+               cast:'cast/tema2/ssh/sshkeygen.cast',
+               exp:'<h3>Solo el ejecutable</h3><p>Con <code>-b</code> (de <em>binary</em>) <code>whereis</code> enseña solo la ruta del ejecutable, sin la página del manual.</p>' } },
+      { cast:"cast/tema2/ssh/sshcomando.cast",
+        exp:'<h3>Ejecutar un comando por SSH</h3><p>Podremos ejecutar un comando si usamos comillas despues de la dirección IP.</p>' },
+      { cast:"cast/tema2/ssh/sshcomando2.cast",
+        exp:'<h3>Sin pseudo-terminal</h3><p>Podemos usar un comando sin pseudo-terminal con el parametro <code>-t<code>.</p>' },
     ]}
-    
   ]}
 ];
