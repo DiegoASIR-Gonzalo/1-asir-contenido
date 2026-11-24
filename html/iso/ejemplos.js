@@ -491,6 +491,6 @@ const GRUPOS = [
         mini:{ boton:"Más formas de sustitución", titulo:"Formas de sustituir",
                cast:'cast/tema2/sed/lineas/sedlin3.cast',
                exp:'<h3>Expresiones regulares</h3><p>Con expresiones regulares podremos sustituir líneas tambien.</p>' } },
-    ]},        
+    ]}
   ]}
 ];
