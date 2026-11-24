@@ -65,7 +65,12 @@ const CMD_SIM = vm.runInContext('CMD_SIM', ctx);
 
 /* ---------- 2) Datos ---------- */
 vm.runInContext(fs.readFileSync(DATOS, 'utf8'), ctx);
-const AVENTURA = ctx.AVENTURA;
+const AVENTURA_ANTERIOR = ctx.AVENTURA;
+vm.runInContext(fs.readFileSync(path.join(RAIZ, 'aventura', 'aventura-tema3.js'), 'utf8'), ctx);
+const AVENTURA_TEMA3 = ctx.AVENTURA_TEMA3;
+assert(AVENTURA_ANTERIOR && AVENTURA_TEMA3, 'faltan los datos de alguno de los dos exámenes');
+assert(AVENTURA_TEMA3.practicaSinEjemplo, 'el nuevo examen debe plantear retos sin dar la respuesta');
+const AVENTURA = { mundos:AVENTURA_ANTERIOR.mundos.concat(AVENTURA_TEMA3.mundos) };
 if (!AVENTURA || !Array.isArray(AVENTURA.mundos)){
   console.error(rojo('aventura-datos.js no define window.AVENTURA.mundos.'));
   process.exit(1);
@@ -90,11 +95,17 @@ function ejecutarEn(estado, cmds){
   return { salida: out, code };
 }
 
-const comandosDe = cmd => String(cmd)
-  .split(/;|&&|\|\|/)
-  .map(t => t.trim().split(/\s+/)[0])
-  .filter(Boolean)
-  .filter(t => !/^[<>]/.test(t) && !/^2>/.test(t) && !/^[A-Za-z_]\w*=/.test(t));
+const comandosDe = cmd => {
+  const comandos = [];
+  let inicio = true;
+  for (const token of ctx.tokenizar(String(cmd))){
+    if ([';', '&&', '||', '|'].includes(token)){ inicio = true; continue; }
+    if (!inicio) continue;
+    inicio = false;
+    if (!/^[<>]/.test(token) && !/^2>/.test(token) && !/^[A-Za-z_]\w*=/.test(token)) comandos.push(token);
+  }
+  return comandos;
+};
 
 /* Los alias definidos en el propio ejemplo son nombres válidos, no comandos. */
 const aliasDe = cmds => {
@@ -175,6 +186,7 @@ AVENTURA.mundos.forEach((mundo, mi) => {
             const antes = clonar(estado);
             const despues = clonar(estado);
             const r = ejecutarEn(despues, p.ejemplo);
+            assert(ctx.comprobarAprendizaje(p, [].concat(p.ejemplo).join('; ')).ok, 'la solución no cumple el aprendizaje pedido');
             if (!p.toleraError)
               assert.strictEqual(r.code, 0, 'el ejemplo "' + [].concat(p.ejemplo).join('; ') + '" termina en error');
             const v = ctx.comprobarMeta(despues, p.meta, r.salida);

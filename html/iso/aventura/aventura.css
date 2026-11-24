@@ -21,6 +21,87 @@
     linear-gradient(180deg,#1e0015 0%,#15000e 55%,#0d0008 100%);
 }
 .av[hidden]{display:none}
+.av-hud[hidden]{display:none}
+
+/* Selección de examen: cada tarjeta entra en un mapa y un progreso propios. */
+.av-eleccion{margin:auto 0;max-width:850px!important;padding:20px 0 34px}
+.av-eleccion>.av-kicker{color:#d9bbcf}
+.av-eleccion-titulo{font-size:clamp(28px,4vw,40px);line-height:1.15;text-wrap:balance;margin:8px 0 12px}
+.av-eleccion-texto{color:#dacbd6;max-width:60ch;line-height:1.65;margin:0 0 26px}
+.av-examenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.av-examen{display:flex;flex-direction:column;min-width:0;padding:0;overflow:hidden;border:1px solid #77526b;border-bottom-width:5px;border-radius:22px;background:#321329;color:#fff;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,transform .15s}
+.av-examen:hover{transform:translateY(-3px);border-color:#d6a4c1}
+.av-examen:focus-visible{outline:3px solid #f6d32d;outline-offset:5px}
+.av-examen--tema3{background:#103541;border-color:#3b7f87}
+.av-examen--tema3:hover{border-color:#86e8cb}
+.av-examen-antiguo{display:flex;align-items:center;justify-content:center;gap:22px;aspect-ratio:780/280;background:radial-gradient(ellipse at center,#784062,#2c1025)}
+.av-examen-antiguo>.av-svg{width:32px;height:32px;color:#e6bdcf}
+.av-examen-antiguo>.av-pinguino{width:58px;height:58px}
+.av-examen-paisaje{display:block;width:100%;height:auto;aspect-ratio:780/280;object-fit:cover}
+.av-examen-contenido{display:flex;flex:1;flex-direction:column;gap:9px;padding:22px}
+.av-examen-contenido>strong{font-size:22px;line-height:1.25;text-wrap:balance}
+.av-examen-subtitulo{font-size:14px;font-weight:700;color:#f1d3e3}
+.av-examen--tema3 .av-examen-subtitulo{color:#a1efdb}
+.av-examen-resumen{font-size:15px;line-height:1.6;color:#e0cfda}
+.av-examen--tema3 .av-examen-resumen{color:#c8e0e3}
+.av-examen-progreso{margin-top:auto;padding-top:12px;font-size:13px;color:#d0b7c6}
+.av-examen--tema3 .av-examen-progreso{color:#b4d9da}
+.av-examen-entrar{display:block;margin-top:4px;padding:11px 14px;border-radius:10px;background:#f0c65a;color:#382800;font-size:14px;font-weight:800;text-align:center}
+
+/* La ruta de las señales: paisaje nocturno y estaciones enlazadas. */
+.av.av--tema3{--acento:#167b69;--papel:#f3f8f8;--papel-txt:#15353e;--term:#092b38;background:radial-gradient(ellipse at 15% 0,rgba(24,116,118,.42),transparent 55%),linear-gradient(160deg,#061b29,#092d3a 65%,#071a29)}
+.av--tema3 .av-cab{background:rgba(4,22,33,.85);border-color:rgba(145,221,217,.15)}
+.av--tema3 .av-mapa{max-width:880px}
+.av--tema3 .av-hero{background:linear-gradient(145deg,rgba(24,85,95,.65),rgba(7,33,47,.9));border-color:rgba(138,224,212,.25);padding:24px}
+.av--tema3 .av-hero .av-kicker{color:#a9e6da}
+.av--tema3 .av-hero-texto{color:#d6e8ea;max-width:66ch}
+.av-atlas{margin:20px -6px 16px}
+.av-atlas img{display:block;width:100%;height:auto;border-radius:16px;border:1px solid rgba(164,232,228,.12)}
+.av--tema3 .av-camino{gap:38px;padding-left:16px}
+.av--tema3 .av-mundo{position:relative;padding:20px 18px 16px;border-color:#275462;background:linear-gradient(155deg,#103643,#0b2939)}
+.av--tema3 .av-mundo:not(:last-child)::after{content:"";position:absolute;left:30px;top:100%;height:39px;border-left:3px dashed #4e8b8f}
+.av--tema3 .av-mundo[data-estado="actual"]{border-color:#5fbaa9;box-shadow:0 5px 0 #061c2b,0 0 0 1px #225d61}
+.av--tema3 .av-mundo-emoji{background:#174959;border-color:#3a7c82;color:#a0f1db}
+.av--tema3 .av-mundo-txt p{color:#b6d2d8}
+.av--tema3 .av-nodos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;padding:18px 0 24px}
+.av--tema3 .av-nodos::before{left:15%;right:15%;top:63px;bottom:auto;height:55px;border:0;border-top:3px dashed #4b8d92;border-radius:50%}
+.av--tema3 .av-nodo-fila:nth-child(2){padding-top:24px}
+.av--tema3 .av-nodo{position:relative;min-height:178px;height:auto;flex-direction:column;gap:8px;padding:16px 10px;border:1px solid #315964;border-radius:18px;background:#123b49;text-align:center}
+.av--tema3 .av-nodo:hover:not(:disabled){background:#1a4c58;border-color:#8be1ce}
+.av--tema3 .av-nodo--actual{background:linear-gradient(145deg,#1b5d5d,#123d4c);border-color:#80e3c3}
+.av--tema3 .av-nodo--actual .av-nodo-circulo{background:#167b69;border-color:#89e3c1;box-shadow:0 4px 0 #07483e,0 0 0 6px rgba(80,215,176,.12)}
+.av--tema3 .av-nodo--bloqueada{background:#102d3c;border-color:#294b59}
+.av--tema3 .av-nodo--bloqueada .av-nodo-circulo{background:#173746;border-color:#3f6471}
+.av--tema3 .av-nodo-txt{flex:none}
+.av--tema3 .av-nodo-txt small{color:#b4d7da;margin-top:4px}
+.av--tema3 .av-nodo-flecha{display:none}
+.av--tema3 .av-rondas{margin-top:8px;border-radius:12px;background:rgba(0,0,0,.12)}
+.av--tema3 .av-rondas>summary{cursor:pointer;min-height:44px;padding:12px 10px;color:#beece2;font-size:13px;font-weight:700}
+.av--tema3 .av-subnodos{margin:0;padding:4px;border:0}
+.av--tema3 .av-subnodo{flex-wrap:wrap;gap:6px;padding:8px 4px}
+.av--tema3 .av-subnodo-txt small{color:#b9d4d9}
+.av--tema3 .av-subnodo-estado{color:#b4d4dc;font-size:11px}
+.av--tema3 .av-subnodo--actual .av-subnodo-estado{color:#a1efcf}
+.av--tema3 .av-reto{border-color:#497a80;background:#103542}
+.av--tema3 .av-reto-txt small{color:#bdd6dc}
+.av--tema3 .av-mundo[data-estado="bloqueado"] .av-mundo-cab{opacity:.8}
+.av--tema3 .av-enlace{color:#c7dee3}
+@media(max-width:640px){
+  .av-examenes{grid-template-columns:1fr}
+  .av-eleccion{padding-top:8px}
+  .av-examen-antiguo{max-height:140px}
+  .av-examen-paisaje{max-height:160px;object-fit:cover}
+  .av--tema3 .av-hero{padding:20px 16px}
+  .av--tema3 .av-camino{padding-left:0}
+  .av--tema3 .av-mundo{padding:16px 12px}
+  .av--tema3 .av-nodos{grid-template-columns:1fr;padding:14px 0}
+  .av--tema3 .av-nodos::before{left:38px;top:22px;bottom:22px;right:auto;width:0;height:auto;border:0;border-left:3px dashed #4b8d92;border-radius:0}
+  .av--tema3 .av-nodo-fila:nth-child(2){padding-top:0}
+  .av--tema3 .av-nodo{flex-direction:row;min-height:100px;padding:14px 12px;text-align:left}
+  .av--tema3 .av-nodo-txt{flex:1}
+  .av--tema3 .av-rondas{margin-left:72px}
+}
+@media(prefers-reduced-motion:reduce){.av-examen{transition:none}.av-examen:hover{transform:none}}
 
 /* Iconos SVG: tamaño por contexto, color heredado */
 .av-svg{width:1em;height:1em;display:block;flex:none}

@@ -3604,7 +3604,7 @@ window.AVENTURA = {
                   tipo: 'teoria',
                   titulo: 'grep puede entrar en carpetas',
                   html: '<p><code>grep -r TODO ~/proyecto</code> busca dentro de todos los ficheros de la carpeta, en todos sus niveles. <code>-r</code> significa <i>recursive</i>.</p><p>Más opciones:</p><ul><li><code>-l</code>: solo enseña el nombre de los ficheros donde aparece.</li><li><code>-w</code>: obliga a que coincida la palabra completa.</li><li><code>-F</code>: busca el texto tal cual, sin interpretar expresiones regulares.</li><li><code>-E</code>: permite expresiones regulares extendidas con <code>|</code>.</li></ul>',
-                  ejemplo: ['grep -r TODO ~/proyecto', 'grep -rl TODO ~/proyecto', 'grep -E "error|TODO" ~/proyecto/notas.txt'],
+                  ejemplo: ['grep -r TODO ~/proyecto', 'grep -rl TODO ~/proyecto', 'grep -rE "error|TODO" ~/proyecto'],
                   mas: '<p><code>grep</code> también lee de la entrada estándar: <code>ls ~/proyecto | grep txt</code> filtra la lista sin abrir ningún fichero.</p>'
                 },
                 {

@@ -11,7 +11,8 @@
      · No modifica el mundo de las actividades ni el del duelo: cada
        ronda monta su propio mundo virtual y lo tira al terminar.
 
-   El contenido está en aventura-datos.js (window.AVENTURA).
+   El contenido se elige entre aventura-datos.js (primer examen) y
+   aventura-tema3.js (La ruta de las señales), con guardados independientes.
    Se engancha a la barra superior como un botón más y se carga después
    del script principal, igual que duelo.js.
 
@@ -24,8 +25,13 @@
 (function () {
   'use strict';
 
-  const DATOS = window.AVENTURA;
-  if (!DATOS || !Array.isArray(DATOS.mundos) || !DATOS.mundos.length) {
+  const EXAMENES = [
+    { id:'basicos', clave:'aventura-v1', titulo:'Examen del 12 de noviembre', subtitulo:'Comandos Básicos I',
+      resumen:'Orientarte, organizar ficheros y dominar la shell.', datos:window.AVENTURA },
+    { id:'tema3', clave:'aventura-tema3-v1', titulo:'Examen del 25 de noviembre', subtitulo:'Tema 3 · La ruta de las señales',
+      resumen:'Una expedición de filtros, expresiones regulares y misiones de terminal.', datos:window.AVENTURA_TEMA3 }
+  ].filter(examen => examen.datos && Array.isArray(examen.datos.mundos) && examen.datos.mundos.length);
+  if (!EXAMENES.length) {
     console.warn('Aventura: no se encuentra window.AVENTURA (¿falta aventura-datos.js?).');
     return;
   }
@@ -34,7 +40,9 @@
     return;
   }
 
-  const CLAVE = 'aventura-v1';
+  let examenActual = EXAMENES[0];
+  let DATOS = examenActual.datos;
+  let CLAVE = examenActual.clave;
   const CLAVE_SONIDO = 'aventura-sonido';
   const byId = id => document.getElementById(id);
   const sinMovimiento = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -74,16 +82,23 @@
     '<ellipse cx="25" cy="59.5" rx="6" ry="2.4" fill="#f6a623"/>' +
     '<ellipse cx="39" cy="59.5" rx="6" ry="2.4" fill="#f6a623"/>' +
   '</svg>';
-  const iconoMundo = m => ({ orientarse: ICO.brujula, organizar: ICO.caja, shell: ICO.cono, avanzado: ICO.llave, buscar: ICO.lupa }[m.id] || ICO.estrella);
+  const iconoMundo = m => DATOS.practicaSinEjemplo
+    ? [ICO.lupa, ICO.subir, ICO.grafico, ICO.llave][DATOS.mundos.indexOf(m)] || ICO.estrella
+    : ({ orientarse: ICO.brujula, organizar: ICO.caja, shell: ICO.cono, avanzado: ICO.llave, buscar: ICO.lupa }[m.id] || ICO.estrella);
   const clonar = e => JSON.parse(JSON.stringify(e));
   const limpiar = h => String(h || '').replace(/<[^>]*>/g, '');
   const normalizar = t => String(t || '').trim().replace(/\s+/g, ' ');
   const sinTildes = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   /* ---------------- Progreso guardado ---------------- */
-  const TODOS = {};
-  DATOS.mundos.forEach(m => m.lecciones.forEach(l => { TODOS[l.id] = l; }));
-  const totalRondas = Object.values(TODOS).reduce((s, l) => s + l.rondas.length, 0);
+  let TODOS, totalRondas, totalLecciones;
+  function prepararDatos() {
+    TODOS = {};
+    DATOS.mundos.forEach(m => m.lecciones.forEach(l => { TODOS[l.id] = l; }));
+    totalLecciones = Object.keys(TODOS).length;
+    totalRondas = Object.values(TODOS).reduce((s, l) => s + l.rondas.length, 0);
+  }
+  prepararDatos();
 
   function normalizarDatos(g) {
     const base = {
@@ -182,7 +197,6 @@
   // de verdad. Así el mapa sigue teniendo un solo "Ahora" y el resto se ve en amarillo.
   const mundoBaseAbierto = i => i === 0 || mundoHecho(i - 1);
   const leccionBaseAbierta = (i, j) => mundoBaseAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id));
-  const totalLecciones = Object.keys(TODOS).length;
   const hechas = () => Object.keys(TODOS).filter(estaHecha).length;
   const rondasTotalesHechas = () => Object.keys(TODOS).reduce((s, id) => s + rondasHechas(id), 0);
 
@@ -235,7 +249,7 @@
         '<span class="av-marca-txt">Aventura <b>Linux</b></span>' +
       '</div>' +
       '<div class="av-prog" id="av-prog" role="progressbar" aria-label="Progreso de la ronda" hidden></div>' +
-      '<div class="av-hud">' +
+      '<div class="av-hud" id="av-hud">' +
         '<span class="av-pill av-pill--xp" id="av-xp-pill" title="Puntos de la aventura">' + ICO.estrella + '<b id="av-xp">0</b></span>' +
         '<span class="av-pill av-pill--fuego" title="Días seguidos">' + ICO.fuego + '<b id="av-racha">0</b></span>' +
         '<button class="av-icono av-sonido" id="av-sonido" type="button"></button>' +
@@ -328,7 +342,7 @@
   else document.querySelector('.barra').prepend(btn);
 
   /* ---------------- Estado de la vista ---------------- */
-  let vista = { tipo: 'mapa' };   // mapa | leccion | cierre | stats | glosario
+  let vista = { tipo: 'examenes' };   // examenes | mapa | leccion | cierre | stats | glosario
   let lec = null;                 // nodo y ronda en curso
   let respuesta = '';             // lo escrito en la terminal, para no perderlo al repintar
   let montada = null;             // clave de la pantalla que ya está en el DOM
@@ -338,10 +352,7 @@
     raiz.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
     if (typeof alternarAct === 'function') alternarAct(false);
-    vista = { tipo: 'mapa' };
-    montada = null;
-    inicioSesion = Date.now();
-    pintar();
+    elegirExamen();
     byId('av-cerrar').focus();
   }
 
@@ -355,6 +366,7 @@
 
   /* ---------------- Cabecera ---------------- */
   function pintarCabecera() {
+    byId('av-hud').hidden = vista.tipo === 'examenes';
     byId('av-xp').textContent = String(av.xp || 0);
     byId('av-racha').textContent = String(av.racha.dias || 0);
 
@@ -382,11 +394,72 @@
 
   function pintar() {
     pintarCabecera();
+    if (vista.tipo === 'examenes') return pintarExamenes();
     if (vista.tipo === 'mapa') return pintarMapa();
     if (vista.tipo === 'stats') return pintarStats();
     if (vista.tipo === 'glosario') return pintarGlosario();
     if (vista.tipo === 'cierre') return pintarCierre();
     return pintarLeccion();
+  }
+
+  /* Cada examen conserva su propia clave; el primero sigue leyendo el progreso antiguo. */
+  function elegirExamen() {
+    flushEntrada();
+    guardarPunto();
+    cerrarSesionTiempo();
+    lec = null; retoActual = null; respuesta = ''; montada = null;
+    raiz.className = 'av';
+    vista = { tipo:'examenes' };
+    pintar();
+  }
+
+  function seleccionarExamen(id) {
+    const examen = EXAMENES.find(item => item.id === id);
+    if (!examen) return;
+    flushEntrada();
+    guardarPunto();
+    cerrarSesionTiempo();
+    examenActual = examen; DATOS = examen.datos; CLAVE = examen.clave;
+    glosarioCache = null;
+    prepararDatos();
+    Object.assign(av, cargar());
+    lec = null; retoActual = null; respuesta = ''; montada = null;
+    raiz.className = 'av av--' + examen.id;
+    vista = { tipo:'mapa' };
+    inicioSesion = Date.now();
+    pintar();
+    byId('av-seguir').focus();
+  }
+
+  function pintarExamenes() {
+    pie.hidden = true; pie.innerHTML = ''; montada = null;
+    cuerpo.innerHTML = '<section class="av-eleccion">' +
+      '<p class="av-kicker">Aventura Linux · Elige tu recorrido</p>' +
+      '<h2 class="av-eleccion-titulo">¿Qué examen vas a preparar?</h2>' +
+      '<p class="av-eleccion-texto">Dos aventuras con su propio mapa, misiones y progreso. Puedes cambiar de examen cuando quieras.</p>' +
+      '<div class="av-examenes">' + EXAMENES.map(examen => {
+        let guardado = {};
+        try { guardado = JSON.parse(localStorage.getItem(examen.clave) || '{}') || {}; } catch (e) {}
+        const nodos = examen.datos.mundos.flatMap(m => m.lecciones);
+        const completas = nodos.filter(l => {
+          const progreso = (guardado.lecciones || {})[l.id] || {};
+          return progreso.hecha || Number(progreso.rondasHechas) >= l.rondas.length;
+        }).length;
+        return '<button class="av-examen av-examen--' + examen.id + '" type="button" data-examen="' + examen.id + '">' +
+          (examen.id === 'tema3'
+            ? '<img class="av-examen-paisaje" src="aventura/tema3-mapa.svg" alt="" width="780" height="280">'
+            : '<span class="av-examen-antiguo" aria-hidden="true">' + PINGUINO + ICO.brujula + ICO.carpeta + ICO.llave + '</span>') +
+          '<span class="av-examen-contenido"><strong>' + escapar(examen.titulo) + '</strong>' +
+            '<span class="av-examen-subtitulo">' + escapar(examen.subtitulo) + '</span>' +
+            '<span class="av-examen-resumen">' + escapar(examen.resumen) + '</span>' +
+            '<span class="av-examen-progreso">' + completas + ' / ' + nodos.length + ' misiones completadas</span>' +
+            '<span class="av-examen-entrar">' + (completas ? 'Continuar aventura' : 'Entrar en la aventura') + ' →</span>' +
+          '</span></button>';
+      }).join('') + '</div></section>';
+    cuerpo.scrollTop = 0;
+    cuerpo.querySelectorAll('[data-examen]').forEach(b => {
+      b.onclick = () => seleccionarExamen(b.dataset.examen);
+    });
   }
 
   /* ---- Pantalla: mapa de mundos ---- */
@@ -405,15 +478,18 @@
           '<div class="av-hero-cab">' +
             '<span class="av-hero-mascota" aria-hidden="true">' + PINGUINO + '</span>' +
             '<div>' +
-              '<p class="av-kicker">Repaso autónomo · 1.º ASIR</p>' +
-              '<h2 class="av-hero-titulo">' + (sig ? 'Tu aventura de Linux' : (retosHechos < DATOS.mundos.length ? 'Ahora, los retos' : '¡Aventura terminada!')) + '</h2>' +
+              '<p class="av-kicker">' + escapar(examenActual.titulo) + ' · 1.º ASIR</p>' +
+              '<h2 class="av-hero-titulo">' + (DATOS.practicaSinEjemplo ? escapar(DATOS.titulo) : (sig ? 'Tu aventura de Linux' : (retosHechos < DATOS.mundos.length ? 'Ahora, los retos' : '¡Aventura terminada!'))) + '</h2>' +
             '</div>' +
           '</div>' +
-          '<p class="av-hero-texto">' + (sig
+          (DATOS.practicaSinEjemplo ? '<div class="av-atlas"><img src="aventura/tema3-mapa.svg" alt="Mapa de cuatro estaciones conectadas por una ruta de señales" width="780" height="280"></div>' : '') +
+          '<p class="av-hero-texto">' + (DATOS.practicaSinEjemplo
+            ? 'La red ha perdido su señal. Recupera sus fragmentos en cuatro estaciones: busca pistas, transforma los datos y prepara el enlace final. Cada misión te enseña una herramienta y después te pide aplicarla a un caso distinto. Tú escribes los comandos; las pistas te ayudan a razonar.'
+            : (sig
             ? 'Cada comando es un nodo con varias rondas. La primera te lo explica y las siguientes te lo hacen practicar con variantes, cada vez un poco más difícil. El anillo se llena ronda a ronda. Sin prisa y sin castigos: si te atascas, pide ayuda.'
             : (retosHechos < DATOS.mundos.length
               ? 'Has completado todos los nodos. Cada mundo tiene un reto final que mezcla lo aprendido, con menos pistas. No resta puntos: solo comprueba si de verdad te lo sabes.'
-              : 'Has completado todos los nodos y todos los retos. Puedes repetir cualquiera cuando quieras: no se borra nada.')) + '</p>' +
+              : 'Has completado todos los nodos y todos los retos. Puedes repetir cualquiera cuando quieras: no se borra nada.'))) + '</p>' +
           (modoRey()
             ? '<p class="av-rey-aviso">' + ICO.corona + '<span><b>Modo rey activo.</b> Puedes abrir cualquier mundo, nodo, ronda o reto sin desbloquearlo. En este modo no se ganan puntos, pero sí se guarda lo que completes.</span></p>'
             : '') +
@@ -428,6 +504,7 @@
             (sig ? 'Continuar' + (nHechas ? ' donde lo dejaste' : '') : 'Repasar desde el principio') +
           '</button>' +
           '<div class="av-herramientas">' +
+            '<button class="av-btn av-btn--fantasma" type="button" id="av-elegir-examen">← Cambiar de examen</button>' +
             '<button class="av-btn av-btn--fantasma" type="button" id="av-stats">' + ICO.grafico + ' Estadísticas</button>' +
             '<button class="av-btn av-btn--fantasma" type="button" id="av-glosario">' + ICO.libro + ' Glosario</button>' +
           '</div>' +
@@ -503,7 +580,9 @@
                 hechasL + '/' + total + '</span>' : '') +
               '<span class="av-nodo-flecha" aria-hidden="true">›</span>' +
             '</button>' +
+            (DATOS.practicaSinEjemplo ? '<details class="av-rondas"><summary>Ver las ' + total + ' rondas</summary>' : '') +
             '<ol class="av-subnodos">' + subnodos + '</ol>' +
+            (DATOS.practicaSinEjemplo ? '</details>' : '') +
           '</li>';
       });
 
@@ -531,7 +610,7 @@
         '<span class="av-pie-sep" aria-hidden="true">·</span>' +
         '<button class="av-enlace" type="button" id="av-importar">' + ICO.subir + ' Importar</button>' +
         '<span class="av-pie-sep" aria-hidden="true">·</span>' +
-        '<button class="av-enlace" type="button" id="av-reiniciar">Reiniciar aventura y borrar el progreso</button>' +
+        '<button class="av-enlace" type="button" id="av-reiniciar">Reiniciar el progreso de este examen</button>' +
         '<span class="av-pie-sep" aria-hidden="true">·</span>' +
         '<button class="av-enlace av-enlace--rey" type="button" id="av-modo-rey" aria-pressed="' + modoRey() + '">' +
           ICO.corona + ' ' + (modoRey() ? 'Salir del Modo rey' : 'Modo rey') +
@@ -550,13 +629,14 @@
       else abrirLeccion(0, 0);
     };
     byId('av-stats').onclick = () => { vista = { tipo: 'stats' }; pintar(); };
+    byId('av-elegir-examen').onclick = elegirExamen;
     byId('av-glosario').onclick = () => { vista = { tipo: 'glosario' }; pintar(); };
     byId('av-exportar').onclick = exportarProgreso;
     byId('av-importar').onclick = () => byId('av-archivo').click();
     byId('av-archivo').onchange = importarProgreso;
     byId('av-reiniciar').onclick = () => {
       const extra = modoRey() ? '\n\nTambién se desactivará el Modo rey.' : '';
-      if (!window.confirm('¿Borrar el progreso de la aventura (rondas, puntos, retos, estadísticas y racha)?' + extra)) return;
+      if (!window.confirm('¿Borrar el progreso de «' + examenActual.titulo + '» (rondas, puntos, retos, estadísticas y racha)?' + extra)) return;
       av.xp = 0; av.racha = { dias: 0, ultima: '' }; av.lecciones = {}; av.retos = {};
       av.modoRey = false;
       av.stats = { intentos: 0, aciertos: 0, primerIntento: 0, primerAcierto: 0, tests: 0, testsOk: 0, ayudas: 0, segundos: 0 };
@@ -935,12 +1015,12 @@
   /* ---- Copia de seguridad del progreso ---- */
   function exportarProgreso() {
     flushEntrada();
-    const sobre = { app: 'aventura-linux', version: 3, exportado: new Date().toISOString(), datos: av };
+    const sobre = { app: 'aventura-linux', version: 3, examen:examenActual.id, exportado: new Date().toISOString(), datos: av };
     const blob = new Blob([JSON.stringify(sobre, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'aventura-linux-' + fecha(new Date()) + '.json';
+    a.download = 'aventura-linux-' + examenActual.id + '-' + fecha(new Date()) + '.json';
     document.body.append(a);
     a.click();
     a.remove();
@@ -953,6 +1033,7 @@
     const input = ev && ev.target;
     const archivo = input && input.files && input.files[0];
     if (!archivo) return;
+    const examenDestino = examenActual.id;
     const lector = new FileReader();
     lector.onload = () => {
       let sobre = null;
@@ -960,6 +1041,10 @@
       const datos = sobre && sobre.app === 'aventura-linux' ? sobre.datos : null;
       if (!datos || typeof datos !== 'object') {
         window.alert('Ese archivo no es una copia de la aventura. Debe ser el JSON que genera «Exportar progreso».');
+        return;
+      }
+      if ((sobre.examen || 'basicos') !== examenActual.id || examenDestino !== examenActual.id) {
+        window.alert('Esta copia pertenece a otro examen. Elige su recorrido antes de importarla.');
         return;
       }
       if (!window.confirm('Se sustituirá el progreso actual por el del archivo.\n\n¿Continuar?')) return;
@@ -1107,7 +1192,7 @@
           '<div class="av-tarjeta-cab">' + chipMundo() + '</div>' +
           '<h2 class="av-titulo">' + p.titulo + '</h2>' +
           '<p class="av-pide">' + p.pide + '</p>' +
-          (lec.examen
+          (lec.examen || DATOS.practicaSinEjemplo
             ? '<p class="av-reto-nota">' + ICO.trofeo + ' Reto: sin ejemplo. Usa lo que has aprendido; si te atascas, pide una pista.</p>'
             : '<p class="av-hazlo"><span>Escribe esto</span><code>' + ej + '</code></p>') +
           '<div class="av-term">' +
@@ -1220,7 +1305,7 @@
       let fb = '';
       if (lec.acierto) {
         fb += '<div class="av-msg av-msg--ok"><span class="av-msg-icono" aria-hidden="true">' + ICO.check + '</span>' +
-          '<div><b>¡Eso es!</b> Muy bien.</div></div>';
+          '<div><b>¡Eso es!</b> ' + (p.explica || 'Muy bien.') + '</div></div>';
       } else if (lec.aviso) {
         fb += '<div class="av-msg ' + (lec.paso ? 'av-msg--paso' : 'av-msg--mal') + '"><span class="av-msg-icono" aria-hidden="true">' +
           (lec.paso ? 'i' : '!') + '</span><div>' + lec.aviso + '</div></div>';
@@ -1293,7 +1378,10 @@
   }
 
   function irAlMapa() {
+    flushEntrada();
+    guardarPunto();
     vista = { tipo: 'mapa' };
+    lec = null;
     respuesta = '';
     montada = null;
     pintar();
@@ -1371,7 +1459,7 @@
     if (!inp) return;
     const p = lec.ronda.pantallas[lec.pantalla];
     let crudo = inp.value;
-    let linea = normalizar(crudo);
+    let linea = crudo.trim();
     let eco = true;
     if (lec.heredoc) {
       // Here-document en curso: se acumulan líneas hasta el delimitador.
@@ -1401,7 +1489,12 @@
     if (lec.intentos === 1) cuenta('primerIntento');
 
     const candidato = clonar(lec.estado);
-    const r = ejecutarEntrada(candidato, linea);
+    const tokens = tokenizar(linea);
+    const fabricaSalida = DATOS.practicaSinEjemplo && tokens.some((token, i) =>
+      [';', '&&', '||'].includes(token) || (token === '|' && ['echo', 'printf'].includes(tokens[i + 1])));
+    const r = fabricaSalida
+      ? { out:'', err:'Resuelve la misión con un comando o una tubería que trabaje con los datos del fichero, sin fabricar la respuesta.', code:1 }
+      : ejecutarEntrada(candidato, linea);
     const salida = (r.out || '') + (r.err || '');
     lec.hist.push(salida ? salida + '\n' : '');
     if (lec.hist.join('').split('\n').length > 220) lec.hist = lec.hist.slice(-120);
@@ -1409,10 +1502,11 @@
     // Primero se comprueba lo último que ha escrito. Si no llega, se prueba
     // con todo lo escrito en esta pantalla: así también vale hacerlo en dos
     // pasos (por ejemplo, "cd /etc" y después "pwd") en vez de en una línea.
-    const v = comprobarMeta(candidato, p.meta, salida);
+    const aprendizaje = fabricaSalida ? { ok:false, mensaje:r.err } : comprobarAprendizaje(p, linea);
+    const v = aprendizaje.ok ? comprobarMeta(candidato, p.meta, salida) : { ok:false, motivo:aprendizaje.mensaje };
     let vale = v;
     let bien = v.ok && (r.code === 0 || !!p.toleraError);
-    if (!bien && p.meta.salida == null && lec.salidaAcum) {
+    if (!bien && aprendizaje.ok && p.meta.salida == null && lec.salidaAcum) {
       const vAcum = comprobarMeta(candidato, p.meta, lec.salidaAcum + salida);
       if (vAcum.ok && (r.code === 0 || !!p.toleraError)) { bien = true; vale = vAcum; }
     }
@@ -1581,7 +1675,18 @@
       if (zona) zona.focus();
       return;
     }
-    if (lec.ayuda === 0) {
+    if (DATOS.practicaSinEjemplo) {
+      const pistas = p.pistas || [].concat(p.pista || 'Revisa el objetivo y la teoría de esta misión.');
+      if (lec.ayuda < pistas.length) {
+        lec.ayudaTexto = '<b>' + (lec.ayuda + 1) + '/' + pistas.length + '.</b> ' + pistas[lec.ayuda];
+        lec.ayuda++;
+      } else if (lec.examen) {
+        lec.ayudaTexto = 'Ya has consultado las pistas. Repasa la lección y aplica la idea al reto.';
+      } else {
+        lec.ayudaTexto = '<b>Una solución razonada:</b> <code>' + escapar([].concat(p.ejemplo).join('; ')) + '</code>' +
+          (p.explica ? '<br>' + p.explica : '') + '<br>Escríbela y comprueba qué selecciona o cambia antes de seguir.';
+      }
+    } else if (lec.ayuda === 0) {
       lec.ayuda = 1;
       lec.ayudaTexto = p.pista || ('Fíjate en el ejemplo de arriba: <code>' + escapar([].concat(p.ejemplo).join(' ; ')) + '</code>');
     } else if (lec.examen) {
@@ -1639,14 +1744,14 @@
   function flushEntrada() {
     clearTimeout(tEntrada);
     tEntrada = 0;
-    if (!lec || lec.repaso || lec.examen) return;
+    if (!lec || vista.tipo !== 'leccion' || lec.repaso || lec.examen) return;
     const prev = progresoDe(lec.def.id);
     av.lecciones[lec.def.id] = Object.assign({}, prev, { entrada: respuesta });
     guardar();
   }
 
   function guardarPunto() {
-    if (!lec || lec.repaso || lec.examen) return;
+    if (!lec || vista.tipo !== 'leccion' || lec.repaso || lec.examen) return;
     const prev = progresoDe(lec.def.id);
     const p = lec.ronda.pantallas[lec.pantalla];
     const datos = {
@@ -1852,7 +1957,7 @@
   window.addEventListener('pagehide', () => { flushEntrada(); cerrarSesionTiempo(); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { flushEntrada(); cerrarSesionTiempo(); }
-    else if (!raiz.hidden && !inicioSesion) inicioSesion = Date.now();
+    else if (!raiz.hidden && vista.tipo !== 'examenes' && !inicioSesion) inicioSesion = Date.now();
   });
 
   /* Lleva el scroll de la terminal al final, para ver siempre lo último. */

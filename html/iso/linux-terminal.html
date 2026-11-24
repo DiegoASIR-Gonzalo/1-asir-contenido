@@ -2382,62 +2382,535 @@ function cmd_find(e, args){
   }
   return { out, err, code: err ? 1 : 0 };
 }
-function cmd_grep(e, args, stdin){
-  let i = 0;
-  const flags = { i:false, v:false, c:false, n:false, r:false, l:false, w:false, E:false, F:false, q:false };
-  const patrones = [], resto = [];
-  for (let j = 0; j < args.length; j++){
-    const a = args[j];
-    if (a === '-e' || a === '--regexp'){
-      if (j + 1 >= args.length) return fallo('grep: falta el patrón después de ' + a);
-      patrones.push(args[++j]);
-      continue;
+/* Filtros del temario: regex POSIX y clases ASCII, sin ejecutar programas del alumno. */
+const CLASES_ASCII = {
+  blank:' \\t', space:' \\t\\n\\r\\f\\v', digit:'0-9', alpha:'A-Za-z', alnum:'A-Za-z0-9',
+  xdigit:'0-9A-Fa-f', lower:'a-z', upper:'A-Z', cntrl:'\\x00-\\x1f\\x7f', graph:'\\x21-\\x7e', print:'\\x20-\\x7e',
+  punct:'\\x21-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\x7e'
+};
+const errorFiltro = (cmd, err) => ({ out:'', err:cmd + ': ' + (err.message || err), code:2 });
+const literalRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const lineasFiltro = texto => (String(texto).match(/[^\n]*\n|[^\n]+$/g) || []).map(s => ({ texto:s.replace(/\n$/, ''), fin:s.endsWith('\n') ? '\n' : '' }));
+function fuentesFiltro(e, archivos, stdin){
+  if (!archivos.length) return [{ raw:'', texto:stdin || '' }];
+  return archivos.flatMap(raw => raw === '-' ? [{ raw, texto:stdin || '' }] : expandirGlob(e, raw).map(p => {
+    const destino = resolverEnlace(e, p), it = e.fs[destino];
+    if (!it) throw new Error(raw + ': No such file or directory');
+    if (it.tipo !== 'file' && it.tipo !== 'fifo') throw new Error(raw + ': no es un fichero');
+    return { raw:/[*?[]/.test(raw) ? rutaVisible(p) : raw, path:destino, texto:it.contenido || '' };
+  }));
+}
+function regexPosix(patron, extendida, ignora){
+  let s = String(patron).replace(/\[:([a-z]+):\]/g, (m, clase) => {
+    if (CLASES_ASCII[clase] == null) throw new Error('clase POSIX no admitida: ' + clase);
+    return CLASES_ASCII[clase];
+  });
+  let out = '';
+  for (let i = 0; i < s.length; i++){
+    const c = s[i];
+    if (c === '['){
+      let j = i + 1;
+      if (s[j] === '^') j++;
+      let clase = '';
+      if (s[j] === ']'){ clase = '\\]'; j++; }
+      for (; j < s.length && s[j] !== ']'; j++){
+        clase += s[j];
+        if (s[j] === '\\' && j + 1 < s.length) clase += s[++j];
+      }
+      if (j === s.length) throw new Error('expresión regular inválida: falta ]');
+      out += '[' + (s[i + 1] === '^' ? '^' : '') + clase + ']';
+      i = j; continue;
     }
-    if (a === '--color' || a.startsWith('--color=')) continue;
-    if (a.length > 1 && a.startsWith('-')){ for (const c of a.slice(1)) flags[c] = true; continue; }
-    resto.push(a);
+    if (c === '\\'){
+      if (++i === s.length) throw new Error('expresión regular inválida: barra final');
+      const sig = s[i];
+      if (sig === '<') out += '(?<![A-Za-z0-9_])(?=[A-Za-z0-9_])';
+      else if (sig === '>') out += '(?<=[A-Za-z0-9_])(?![A-Za-z0-9_])';
+      else if (sig === 'w') out += '[A-Za-z0-9_]';
+      else if (sig === 'W') out += '[^A-Za-z0-9_]';
+      else if (sig === 's') out += '[ \\t\\n\\r\\f\\v]';
+      else if (sig === 'S') out += '[^ \\t\\n\\r\\f\\v]';
+      else if (!extendida && '+?(){}|'.includes(sig)) out += sig;
+      else if ('bB123456789ntvfr'.includes(sig) || /[^A-Za-z0-9]/.test(sig)) out += '\\' + sig;
+      else out += literalRegex(sig);
+    } else if (!extendida && '+?(){}|'.includes(c)) out += '\\' + c;
+    else {
+      if (c === '(' && s[i + 1] === '?') throw new Error('sintaxis de regex no soportada: (?');
+      out += c;
+    }
   }
-  const patron = patrones.length ? patrones.join('|') : resto.shift();
-  if (patron == null) return fallo('grep: falta el patrón');
-  let cuerpo = flags.F ? patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : patron;
-  if (flags.w) cuerpo = '\\b(?:' + cuerpo + ')\\b';
-  let re;
-  try { re = new RegExp(cuerpo, flags.i ? 'i' : ''); }
-  catch { re = new RegExp(patron.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags.i ? 'i' : ''); }
-  let archivos = resto;
-  if (flags.r && !archivos.length) archivos = ['.'];
-  const lineas = [];
-  let total = 0;
-  const procesar = (texto, prefijo, nombre) => {
-    const ls = texto.split('\n');
-    if (ls.length && ls[ls.length - 1] === '') ls.pop();
-    let cuenta = 0;
-    ls.forEach((linea, n) => {
-      const coincide = re.test(linea) !== flags.v;
-      if (!coincide) return;
-      cuenta++;
-      if (!flags.c && !flags.l && !flags.q) lineas.push((prefijo || '') + (flags.n ? (n + 1) + ':' : '') + linea);
+  return new RegExp(out, ignora ? 'i' : '');
+}
+function buscarPosix(re, texto, desde){
+  const busqueda = new RegExp(re.source, re.flags + 'g');
+  busqueda.lastIndex = desde || 0;
+  let m = busqueda.exec(texto);
+  // ponytail: para las líneas cortas del aula, comprobar los finales conserva
+  // la alternativa POSIX más larga sin incorporar otro motor de regex.
+  if (m && re.source.includes('|')){
+    for (let fin = texto.length; fin > m.index + m[0].length; fin--){
+      const exacta = new RegExp('(?:' + re.source + ')(?=[\\s\\S]{' + (texto.length - fin) + '}$)', re.flags + 'y');
+      exacta.lastIndex = m.index;
+      const larga = exacta.exec(texto);
+      if (larga){ m = larga; break; }
+    }
+  }
+  return m;
+}
+function cmd_grep(e, args, stdin){
+  try {
+    const flags = new Set(), patrones = [], archivos = [];
+    const largas = { 'ignore-case':'i', 'invert-match':'v', count:'c', 'line-number':'n', recursive:'r',
+      'files-with-matches':'l', 'word-regexp':'w', 'extended-regexp':'E', 'basic-regexp':'G',
+      'fixed-strings':'F', quiet:'q', silent:'q', 'only-matching':'o', 'line-regexp':'x', 'no-filename':'h', 'with-filename':'H' };
+    let fin = false, explicito = false;
+    const añadir = (op, val) => {
+      if (val == null) throw new Error('falta un argumento después de -' + op);
+      explicito = true;
+      if (op === 'e') patrones.push(...val.split('\n'));
+      else patrones.push(...fuentesFiltro(e, [val], stdin).flatMap(f => lineasFiltro(f.texto).map(l => l.texto)));
+    };
+    for (let i = 0; i < args.length; i++){
+      const a = args[i];
+      if (!fin && a === '--'){ fin = true; continue; }
+      if (!fin && /^--color(?:=|$)/.test(a)) continue;
+      if (!fin && a.startsWith('--')){
+        const m = /^--(regexp|file)(?:=([\s\S]*))?$/.exec(a);
+        if (m){ añadir(m[1] === 'regexp' ? 'e' : 'f', m[2] == null ? args[++i] : m[2]); continue; }
+        const flag = largas[a.slice(2)];
+        if (!flag) throw new Error('opción no soportada: ' + a);
+        flags.add(flag); continue;
+      }
+      if (!fin && a.startsWith('-') && a !== '-'){
+        for (let j = 1; j < a.length; j++){
+          const op = a[j];
+          if (op === 'e' || op === 'f'){ añadir(op, a.slice(j + 1) || args[++i]); break; }
+          if (!'ivcnrlwEFGqoxhH'.includes(op)) throw new Error('opción no soportada: -' + op);
+          flags.add(op);
+        }
+        continue;
+      }
+      archivos.push(a);
+    }
+    if (!explicito){
+      if (!archivos.length) throw new Error('falta el patrón');
+      patrones.push(...archivos.shift().split('\n'));
+    }
+    if (['E','F','G'].filter(f => flags.has(f)).length > 1) throw new Error('modos de patrón incompatibles');
+    const regs = patrones.map(pat => {
+      let re = flags.has('F') ? new RegExp(literalRegex(pat), flags.has('i') ? 'i' : '') : regexPosix(pat, flags.has('E'), flags.has('i'));
+      let cuerpo = re.source;
+      if (flags.has('x')) cuerpo = '^(?:' + cuerpo + ')$';
+      if (flags.has('w')) cuerpo = '(?<![A-Za-z0-9_])(?:' + cuerpo + ')(?![A-Za-z0-9_])';
+      return new RegExp(cuerpo, re.flags);
     });
-    total += cuenta;
-    if (flags.c && !flags.l && !flags.q && cuenta) lineas.push((prefijo || '') + cuenta);
-    if (flags.l && cuenta && !flags.q) lineas.push(nombre);
-  };
-  const recorrer = (p, raw) => {
-    const it = e.fs[p];
-    if (!it) return;
-    if (it.tipo === 'file'){
-      procesar(it.contenido || '', archivos.length > 1 || flags.r ? raw + ':' : '', raw);
-      return;
+    const fuentes = [], errores = [];
+    const rec = (p, raw) => {
+      const destino = resolverEnlace(e, p), it = e.fs[destino];
+      if (!it){ errores.push(raw + ': No such file or directory'); return; }
+      if (it.tipo === 'dir'){
+        if (!flags.has('r')){ errores.push(raw + ': Is a directory'); return; }
+        for (const hijo of listarHijos(e, destino, true)){
+          if (e.fs[hijo].tipo !== 'link') rec(hijo, raw.replace(/\/$/, '') + '/' + nombreDe(hijo));
+        }
+      } else fuentes.push({ raw, texto:it.contenido || '' });
+    };
+    if (flags.has('r') && !archivos.length) archivos.push('.');
+    if (!archivos.length) fuentes.push({ raw:'', texto:stdin || '' });
+    else for (const raw of archivos){
+      if (raw === '-') fuentes.push({ raw:'(standard input)', texto:stdin || '' });
+      else for (const p of expandirGlob(e, raw)) rec(p, /[*?[]/.test(raw) ? rutaVisible(p) : raw);
     }
-    if (it.tipo === 'dir' && flags.r){
-      for (const h of listarHijos(e, p, true)) recorrer(h, raw.replace(/\/$/, '') + '/' + nombreDe(h));
+    const salida = [];
+    let total = 0;
+    for (const fuente of fuentes){
+      let cuenta = 0;
+      const prefijo = flags.has('H') || (!flags.has('h') && (archivos.length > 1 || flags.has('r') || fuentes.length > 1)) ? fuente.raw + ':' : '';
+      lineasFiltro(fuente.texto).forEach((registro, i) => {
+        const texto = registro.texto, coincide = regs.some(re => re.test(texto));
+        if (coincide === flags.has('v')) return;
+        cuenta++;
+        if (flags.has('q') || flags.has('c') || flags.has('l')) return;
+        const comienzo = prefijo + (flags.has('n') ? (i + 1) + ':' : '');
+        if (!flags.has('o')){ salida.push(comienzo + texto); return; }
+        if (flags.has('v')) return;
+        let desde = 0;
+        while (desde <= texto.length){
+          const encontrados = regs.map(re => buscarPosix(re, texto, desde)).filter(Boolean).sort((a, b) => a.index - b.index || b[0].length - a[0].length);
+          const m = encontrados[0];
+          if (!m) break;
+          if (m[0]) salida.push(comienzo + m[0]);
+          desde = m.index + Math.max(1, m[0].length);
+        }
+      });
+      total += cuenta;
+      if (flags.has('q') && cuenta) return exito();
+      if (flags.has('l') && cuenta) salida.push(fuente.raw);
+      else if (flags.has('c') && !flags.has('q')) salida.push(prefijo + cuenta);
     }
+    return { out:flags.has('q') ? '' : salida.join('\n'), err:errores.map(s => 'grep: ' + s).join('\n'), code:errores.length ? 2 : total ? 0 : 1 };
+  } catch (err){ return errorFiltro('grep', err); }
+}
+function leerDelimitado(s, inicio, delimitador){
+  let texto = '';
+  for (let i = inicio; i < s.length; i++){
+    if (s[i] === delimitador) return { texto, fin:i + 1 };
+    if (s[i] === '\\' && i + 1 < s.length){
+      const sig = s[++i];
+      texto += sig === delimitador ? sig : '\\' + sig;
+    } else texto += s[i];
+  }
+  throw new Error('falta el delimitador de cierre ' + delimitador);
+}
+function reemplazoSed(texto, m){
+  return texto.replace(/\\([\s\S])|&/g, (s, c) => {
+    if (!c) return m[0];
+    if (/[1-9]/.test(c)) return m[Number(c)] || '';
+    return ({ n:'\n', t:'\t', r:'\r', '\\':'\\', '&':'&' })[c] || c;
+  });
+}
+function sustituirPosix(texto, re, reemplazo, global){
+  let out = '', cursor = 0, desde = 0;
+  while (desde <= texto.length){
+    const m = buscarPosix(re, texto, desde);
+    if (!m) break;
+    // Después de una coincidencia no vacía, sed no repite una vacía justo al lado.
+    if (m[0] === '' && m.index === cursor && cursor > 0){ desde++; continue; }
+    out += texto.slice(cursor, m.index) + reemplazoSed(reemplazo, m);
+    cursor = m.index + m[0].length;
+    if (!global) break;
+    desde = m.index + Math.max(1, m[0].length);
+  }
+  return out + texto.slice(cursor);
+}
+function programaSed(script, extendida){
+  const comandos = [];
+  let i = 0;
+  const espacio = () => { while (/[ \t]/.test(script[i] || '') && i < script.length) i++; };
+  const direccion = () => {
+    espacio();
+    if (script[i] === '$'){ i++; return { tipo:'ultima' }; }
+    const num = /^\d+/.exec(script.slice(i));
+    if (num){ i += num[0].length; if (Number(num[0]) < 1) throw new Error('dirección no soportada: 0'); return { tipo:'numero', n:Number(num[0]) }; }
+    if (script[i] === '/'){
+      const p = leerDelimitado(script, ++i, '/'); i = p.fin;
+      return { tipo:'regex', re:regexPosix(p.texto, extendida, false) };
+    }
+    return null;
   };
-  if (archivos.length){
-    for (const raw of archivos) recorrer(rutaAbs(raw, e.cwd), raw);
-  } else procesar(stdin || '', '', '');
-  if (flags.q) return exito('');
-  return exito(flags.c && archivos.length <= 1 && !flags.r ? String(total) : lineas.join('\n'));
+  while (i < script.length){
+    if (/[\s;]/.test(script[i])){ i++; continue; }
+    const a = direccion(); espacio();
+    let b = null;
+    if (script[i] === ','){ i++; b = direccion(); if (!a || !b) throw new Error('intervalo no válido'); }
+    espacio();
+    const invertir = script[i] === '!'; if (invertir) i++;
+    espacio();
+    const op = script[i++], cmd = { a, b, invertir, op, activo:false };
+    if (op === 's'){
+      const delim = script[i++];
+      if (!delim || /[\w\s\\]/.test(delim)) throw new Error('delimitador de sustitución no soportado');
+      const p = leerDelimitado(script, i, delim), r = leerDelimitado(script, p.fin, delim);
+      i = r.fin;
+      const f = /^[^;\n]*/.exec(script.slice(i))[0].trim(); i += /^[^;\n]*/.exec(script.slice(i))[0].length;
+      if (!/^[giI]*$/.test(f)) throw new Error('flags de sustitución no soportados: ' + f);
+      cmd.re = regexPosix(p.texto, extendida, /i/i.test(f)); cmd.reemplazo = r.texto; cmd.global = f.includes('g');
+      if (/\\[ULEul]/.test(r.texto)) throw new Error('conversión de mayúsculas en reemplazo no soportada');
+      let grupos = 0, clase = false;
+      for (let j = 0; j < cmd.re.source.length; j++){
+        const c = cmd.re.source[j];
+        if (c === '\\'){ j++; continue; }
+        if (c === '[') clase = true; else if (c === ']') clase = false;
+        if (!clase && c === '(' && cmd.re.source[j + 1] !== '?') grupos++;
+      }
+      for (const m of r.texto.matchAll(/\\([1-9])/g)) if (Number(m[1]) > grupos) throw new Error('referencia de grupo inexistente: ' + m[0]);
+    } else if (op !== 'p' && op !== 'd') throw new Error('acción no soportada: ' + (op || '(vacía)') + '; usa p, d o s');
+    espacio();
+    if (i < script.length && !';\n'.includes(script[i])) throw new Error('sintaxis no soportada después de ' + op);
+    comandos.push(cmd);
+  }
+  return comandos;
+}
+function aplicarSed(texto, comandos, silencioso){
+  const registros = lineasFiltro(texto), out = [];
+  const coincide = (a, n, linea) => !a || (a.tipo === 'numero' ? n >= a.n : a.tipo === 'ultima' ? n === registros.length : a.re.test(linea));
+  registros.forEach((registro, indice) => {
+    let linea = registro.texto, borrada = false;
+    const n = indice + 1;
+    for (const cmd of comandos){
+      let elegida;
+      if (!cmd.b) elegida = !cmd.a || (cmd.a.tipo === 'numero' ? n === cmd.a.n : coincide(cmd.a, n, linea));
+      else {
+        const empieza = !cmd.activo && (cmd.a.tipo === 'numero' ? n === cmd.a.n : coincide(cmd.a, n, linea));
+        elegida = cmd.activo || empieza;
+        if (elegida){
+          cmd.activo = true;
+          if ((!empieza || cmd.b.tipo !== 'regex') && coincide(cmd.b, n, linea)) cmd.activo = false;
+        }
+      }
+      if (cmd.invertir) elegida = !elegida;
+      if (!elegida) continue;
+      if (cmd.op === 'd'){ borrada = true; break; }
+      if (cmd.op === 'p') out.push(linea + registro.fin);
+      if (cmd.op === 's') linea = sustituirPosix(linea, cmd.re, cmd.reemplazo, cmd.global);
+    }
+    if (!borrada && !silencioso) out.push(linea + registro.fin);
+  });
+  return out.join('');
+}
+function cmd_sed(e, args, stdin){
+  try {
+    let silencioso = false, extendida = false, editar = false, sufijo = '', fin = false;
+    const scripts = [], resto = [];
+    for (let i = 0; i < args.length; i++){
+      const a = args[i];
+      if (!fin && a === '--'){ fin = true; continue; }
+      if (!fin && a.startsWith('-') && a !== '-'){
+        for (let j = 1; j < a.length; j++){
+          if (a[j] === 'n') silencioso = true;
+          else if (a[j] === 'E' || a[j] === 'r') extendida = true;
+          else if (a[j] === 'i'){ editar = true; sufijo = a.slice(j + 1); break; }
+          else if (a[j] === 'e'){
+            const script = a.slice(j + 1) || args[++i];
+            if (script == null) throw new Error('falta el programa después de -e');
+            scripts.push(script); break;
+          } else throw new Error('opción no soportada: -' + a[j]);
+        }
+      } else resto.push(a);
+    }
+    if (!scripts.length){ if (!resto.length) throw new Error('falta el programa'); scripts.push(resto.shift()); }
+    const programa = () => scripts.flatMap(s => programaSed(s, extendida));
+    programa(); // Validar todas las acciones antes de escribir o crear copias.
+    const fuentes = fuentesFiltro(e, resto, stdin);
+    if (!editar) return exito(aplicarSed(fuentes.map(f => f.texto).join(''), programa(), silencioso));
+    if (!resto.length || fuentes.some(f => !f.path)) throw new Error('-i necesita ficheros');
+    for (const f of fuentes){
+      if (sufijo && e.fs[f.path + sufijo] && e.fs[f.path + sufijo].tipo === 'dir') throw new Error('la copia de seguridad es un directorio');
+    }
+    const cambios = fuentes.map(f => ({ ...f, nuevo:aplicarSed(f.texto, programa(), silencioso) }));
+    for (const f of cambios){
+      if (sufijo) e.fs[f.path + sufijo] = { ...e.fs[f.path] };
+      e.fs[f.path] = { ...e.fs[f.path], contenido:f.nuevo };
+    }
+    return exito();
+  } catch (err){ return errorFiltro('sed', err); }
+}
+function atomoAwk(s){
+  const m = /^(\$NF|\$\d+|NR\b|NF\b|"(?:\\.|[^"\\])*"|-?\d+(?:\.\d+)?)/.exec(s);
+  if (!m) throw new Error('expresión no soportada: ' + s);
+  const t = m[0];
+  return { token:t, fin:t.length };
+}
+const cadenaFiltro = s => s.replace(/\\([\\"ntrfv])/g, (m, c) => ({ n:'\n', t:'\t', r:'\r', f:'\f', v:'\v' })[c] || c);
+function valorAwk(token, fila){
+  if (token === 'NR') return fila.nr;
+  if (token === 'NF') return fila.campos.length;
+  if (token === '$0') return fila.texto;
+  if (token === '$NF') return fila.campos[fila.campos.length - 1] || '';
+  if (token[0] === '$') return fila.campos[Number(token.slice(1)) - 1] || '';
+  if (token[0] === '"') return cadenaFiltro(token.slice(1, -1));
+  return Number(token);
+}
+function impresionAwk(s){
+  if (!s.trim()) return [['$0']];
+  const grupos = [[]];
+  let i = 0;
+  while (i < s.length){
+    if (/\s/.test(s[i])){ i++; continue; }
+    if (s[i] === ','){
+      if (!grupos[grupos.length - 1].length) throw new Error('print incompleto');
+      grupos.push([]); i++; continue;
+    }
+    const a = atomoAwk(s.slice(i)); grupos[grupos.length - 1].push(a.token); i += a.fin;
+  }
+  if (!grupos[grupos.length - 1].length) throw new Error('print incompleto');
+  return grupos;
+}
+function condicionAwk(s){
+  const condiciones = [];
+  let i = 0;
+  const espacio = () => { while (i < s.length && /\s/.test(s[i])) i++; };
+  while (i < s.length){
+    espacio();
+    let izquierda = '$0', op = '~', derecha, re;
+    if (s[i] === '/' || s.slice(i, i + 2) === '!/'){
+      if (s[i] === '!'){ op = '!~'; i++; }
+      const p = leerDelimitado(s, ++i, '/'); i = p.fin; re = regexPosix(p.texto, true, false);
+    } else {
+      const a = atomoAwk(s.slice(i)); izquierda = a.token; i += a.fin; espacio();
+      const operador = /^(==|!=|>=|<=|!~|~|>|<)/.exec(s.slice(i));
+      if (!operador) throw new Error('condición no soportada: ' + s.slice(i));
+      op = operador[0]; i += op.length; espacio();
+      if (op === '~' || op === '!~'){
+        if (s[i++] !== '/') throw new Error('~ necesita /ERE/');
+        const p = leerDelimitado(s, i, '/'); i = p.fin; re = regexPosix(p.texto, true, false);
+      } else { const b = atomoAwk(s.slice(i)); derecha = b.token; i += b.fin; }
+    }
+    condiciones.push({ izquierda, op, derecha, re }); espacio();
+    if (i === s.length) break;
+    if (s.slice(i, i + 2) !== '&&') throw new Error('condición no soportada: ' + s.slice(i));
+    i += 2; espacio();
+    if (i === s.length) throw new Error('condición incompleta después de &&');
+  }
+  return condiciones;
+}
+function cmd_awk(e, args, stdin){
+  try {
+    let fs = ' ', i = 0;
+    for (; i < args.length; i++){
+      if (args[i] === '--'){ i++; break; }
+      if (!args[i].startsWith('-') || args[i] === '-') break;
+      if (!args[i].startsWith('-F')) throw new Error('opción no soportada: ' + args[i]);
+      fs = args[i].slice(2) || args[++i];
+      if (fs == null) throw new Error('falta el separador después de -F');
+      fs = cadenaFiltro(fs);
+    }
+    const script = args[i++];
+    if (script == null) throw new Error('falta el programa');
+    const programa = /^\s*([\s\S]*?)\{\s*print(?:\s+([\s\S]*?))?\s*;?\s*\}\s*$/.exec(script);
+    if (!programa) throw new Error('programa no soportado; usa condición {print campos}');
+    const condiciones = condicionAwk(programa[1].trim()), impresion = impresionAwk(programa[2] || '');
+    const separador = fs.length > 1 && fs !== ' ' ? regexPosix(fs, true, false) : null;
+    const lineas = fuentesFiltro(e, args.slice(i), stdin).flatMap(f => lineasFiltro(f.texto));
+    const out = [];
+    lineas.forEach((l, n) => {
+      const texto = l.texto, campos = !texto ? [] : fs === ' ' ? texto.trim().split(/[ \t]+/).filter(Boolean) : fs === '' ? Array.from(texto) : separador ? texto.split(separador) : texto.split(fs);
+      const fila = { texto, campos, nr:n + 1 };
+      const vale = condiciones.every(c => {
+        const a = valorAwk(c.izquierda, fila), b = c.derecha == null ? null : valorAwk(c.derecha, fila);
+        if (c.re) return c.re.test(String(a)) === (c.op === '~');
+        if (c.op === '==') return typeof a === 'number' && typeof b === 'number' ? a === b : String(a) === String(b);
+        if (c.op === '!=') return String(a) !== String(b);
+        const x = !isNaN(Number(a)) && !isNaN(Number(b)) ? Number(a) : String(a);
+        const y = typeof x === 'number' ? Number(b) : String(b);
+        return c.op === '>=' ? x >= y : c.op === '<=' ? x <= y : c.op === '>' ? x > y : x < y;
+      });
+      if (vale) out.push(impresion.map(grupo => grupo.map(t => valorAwk(t, fila)).join('')).join(' '));
+    });
+    return exito(out.join('\n') + (out.length ? '\n' : ''));
+  } catch (err){ return errorFiltro('awk', err); }
+}
+function cmd_rename(e, args){
+  try {
+    let ensayo = false, mostrar = false, i = 0;
+    for (; i < args.length; i++){
+      const a = args[i];
+      if (a === '--'){ i++; break; }
+      if (!a.startsWith('-') || a === '-') break;
+      if (!/^-[nv]+$/.test(a)) throw new Error('opción no soportada: ' + a);
+      ensayo = ensayo || a.includes('n'); mostrar = mostrar || a.includes('v');
+    }
+    const expr = args[i++];
+    if (!expr || expr[0] !== 's' || !expr[1] || /[\w\s\\]/.test(expr[1])) throw new Error('solo se admite s/patrón/reemplazo/gi');
+    const p = leerDelimitado(expr, 2, expr[1]), r = leerDelimitado(expr, p.fin, expr[1]), flags = expr.slice(r.fin);
+    if (!/^(?:g?i?|i?g?)$/.test(flags)) throw new Error('flags no soportados: ' + flags);
+    const re = regexPosix(p.texto, true, flags.includes('i'));
+    const regex = new RegExp(re.source, re.flags + (flags.includes('g') ? 'g' : ''));
+    if (!args.slice(i).length) throw new Error('faltan ficheros');
+    if (/\$(?![1-9])|\\[A-Za-z]/.test(r.texto)) throw new Error('reemplazo no soportado; usa texto y $1…$9');
+    const cambios = [], vistos = new Set(), destinos = new Set();
+    for (const raw of args.slice(i)) for (const origen of expandirGlob(e, raw)){
+      if (vistos.has(origen)) continue;
+      vistos.add(origen);
+      if (!e.fs[origen]) throw new Error(raw + ': No such file or directory');
+      const relativo = origen.startsWith(e.cwd + '/') ? origen.slice(e.cwd.length + 1) : origen;
+      const nombre = raw.startsWith('/') ? origen : raw.startsWith('~/') ? rutaVisible(origen) : raw.startsWith('./') ? './' + relativo : relativo;
+      const nuevo = nombre.replace(regex, (...m) => r.texto.replace(/\\([\s\S])|\$([1-9])/g, (s, literal, grupo) => grupo ? typeof m[Number(grupo)] === 'string' ? m[Number(grupo)] : '' : literal));
+      if (nuevo === nombre) continue;
+      if (!nuevo || !nombreDe(nuevo)) throw new Error('nombre de destino vacío');
+      const destino = rutaAbs(nuevo, e.cwd);
+      if (destino === origen) continue;
+      if (!esDir(e, padreDe(destino))) throw new Error(nuevo + ': No such file or directory');
+      if (destino.startsWith(origen + '/')) throw new Error('no se puede mover una carpeta dentro de sí misma');
+      const arbol = [origen].concat(e.fs[origen].tipo === 'dir' ? Object.keys(e.fs).filter(x => x.startsWith(origen + '/')) : []);
+      for (const p of arbol){
+        const d = destino + p.slice(origen.length);
+        if (e.fs[d] || destinos.has(d)) throw new Error('el destino ya existe o hay una colisión: ' + nuevo);
+        destinos.add(d);
+      }
+      cambios.push({ origen, destino, nombre, nuevo, arbol });
+    }
+    if (!ensayo) for (const c of cambios){
+      for (const p of c.arbol) e.fs[c.destino + p.slice(c.origen.length)] = e.fs[p];
+      for (const p of c.arbol) delete e.fs[p];
+    }
+    return exito(ensayo || mostrar ? cambios.map(c => ensayo ? 'rename(' + c.nombre + ', ' + c.nuevo + ')' : c.nombre + ' renamed as ' + c.nuevo).join('\n') : '');
+  } catch (err){ return errorFiltro('rename', err); }
+}
+function conjuntoTr(s){
+  s = s.replace(/\[:([a-z]+):\]/g, (m, clase) => {
+    if (CLASES_ASCII[clase] == null) throw new Error('clase ASCII no soportada: ' + clase);
+    return CLASES_ASCII[clase];
+  });
+  s = s.replace(/\\x([0-9a-f]{2})/gi, (m, n) => String.fromCharCode(parseInt(n, 16)));
+  s = cadenaFiltro(s);
+  if (/\\/.test(s)) throw new Error('escape no soportado en el conjunto');
+  let out = '';
+  for (let i = 0; i < s.length; i++){
+    if (i + 2 < s.length && s[i + 1] === '-'){
+      const a = s.charCodeAt(i), b = s.charCodeAt(i + 2);
+      if (a > b || b > 127) throw new Error('rango ASCII no válido');
+      for (let n = a; n <= b; n++) out += String.fromCharCode(n);
+      i += 2;
+    } else {
+      if (s.charCodeAt(i) > 127) throw new Error('solo se admiten conjuntos ASCII');
+      out += s[i];
+    }
+  }
+  return out;
+}
+function cmd_tr(e, args, stdin){
+  try {
+    let borrar = false, comprimir = false, i = 0;
+    for (; i < args.length; i++){
+      if (args[i] === '--'){ i++; break; }
+      if (!args[i].startsWith('-') || args[i] === '-') break;
+      if (!/^-[ds]+$/.test(args[i])) throw new Error('opción no soportada: ' + args[i]);
+      borrar = borrar || args[i].includes('d'); comprimir = comprimir || args[i].includes('s');
+    }
+    const sets = args.slice(i).map(conjuntoTr);
+    const necesarios = borrar ? comprimir ? 2 : 1 : comprimir ? sets.length : 2;
+    if (sets.length < 1 || sets.length > 2 || sets.length !== necesarios || (!borrar && sets.length === 2 && !sets[1].length)) throw new Error('conjuntos incompletos o no soportados');
+    let out = '', anterior = null;
+    for (let c of stdin || ''){
+      const pos = sets[0].indexOf(c);
+      if (borrar && pos >= 0) continue;
+      if (!borrar && sets.length === 2 && pos >= 0) c = sets[1][Math.min(pos, sets[1].length - 1)];
+      const squeeze = comprimir && sets[sets.length - 1].includes(c);
+      if (!squeeze || c !== anterior) out += c;
+      anterior = c;
+    }
+    return exito(out);
+  } catch (err){ return errorFiltro('tr', err); }
+}
+function cmd_uniq(e, args, stdin){
+  try {
+    const flags = new Set(), files = [];
+    let fin = false;
+    for (const a of args){
+      if (!fin && a === '--'){ fin = true; continue; }
+      if (!fin && a.startsWith('-') && a !== '-'){
+        if (!/^-[cdu]+$/.test(a)) throw new Error('opción no soportada: ' + a);
+        for (const f of a.slice(1)) flags.add(f);
+      } else files.push(a);
+    }
+    if (files.length > 1) throw new Error('solo se admite un fichero de entrada; usa > para guardar');
+    const grupos = [];
+    for (const l of lineasFiltro(fuentesFiltro(e, files, stdin)[0].texto)){
+      const ultimo = grupos[grupos.length - 1];
+      if (ultimo && ultimo.texto === l.texto) ultimo.n++;
+      else grupos.push({ texto:l.texto, n:1 });
+    }
+    const out = grupos.filter(g => (!flags.has('d') || g.n > 1) && (!flags.has('u') || g.n === 1))
+      .map(g => (flags.has('c') ? String(g.n).padStart(7) + ' ' : '') + g.texto);
+    return exito(out.join('\n') + (out.length ? '\n' : ''));
+  } catch (err){ return errorFiltro('uniq', err); }
+}
+function cmd_less(e, args, stdin){
+  try {
+    if (args.some(a => a.startsWith('-') && a !== '-')) throw new Error('opciones no soportadas; lectura textual sin sesión interactiva');
+    return exito(fuentesFiltro(e, args, stdin).map(f => f.texto).join(''));
+  } catch (err){ return errorFiltro('less', err); }
 }
 function cmd_tee(e, args, stdin){
   const append = args.includes('-a') || args.includes('--append');
@@ -2968,6 +3441,10 @@ const CMD_SIM = {
   pwd: cmd_pwd, cd: cmd_cd, ls: cmd_ls, mkdir: cmd_mkdir, touch: cmd_touch, rm: cmd_rm, rmdir: cmd_rmdir,
   cp: cmd_cp, mv: cmd_mv, cat: cmd_cat, echo: cmd_echo, ln: cmd_ln, chmod: cmd_chmod,
   file: cmd_file, tree: cmd_tree, find: cmd_find, grep: cmd_grep, wc: cmd_wc,
+  egrep:(e, args, stdin) => cmd_grep(e, ['-E'].concat(args), stdin),
+  fgrep:(e, args, stdin) => cmd_grep(e, ['-F'].concat(args), stdin),
+  rgrep:(e, args, stdin) => cmd_grep(e, ['-r'].concat(args), stdin),
+  sed:cmd_sed, awk:cmd_awk, rename:cmd_rename, tr:cmd_tr, uniq:cmd_uniq, less:cmd_less, more:cmd_less,
   head: cmd_head, tail: cmd_tail, sort: cmd_sort, du: cmd_du, type: cmd_type,
   whereis: cmd_whereis, source: cmd_source, '.': cmd_source, whoami: () => exito('usuario'), who: cmd_who, users: cmd_users, ps: cmd_ps, cut: cmd_cut, time: cmd_time, date: cmd_date, umask: cmd_umask,
   history: cmd_history, stat: cmd_stat, basename: cmd_basename, dirname: cmd_dirname, cal: cmd_cal, ncal: cmd_ncal, hwclock: cmd_hwclock, readlink: cmd_readlink, mkfifo: cmd_mkfifo, alias: cmd_alias, unalias: cmd_unalias,
@@ -2975,10 +3452,18 @@ const CMD_SIM = {
 };
 
 /* ---- Intérprete de una línea ---- */
+const argumentoLiteral = token => typeof token === 'string' ? token.replace(/^\u0003/, '') : token;
 function tokenizar(linea){
   const out = [];
-  let actual = '', comilla = null;
-  const empujar = () => { if (actual !== ''){ out.push(actual); actual = ''; } };
+  let actual = '', comilla = null, iniciado = false, protegido = false;
+  const empujar = () => {
+    if (actual !== '' || iniciado){
+      // Conserva los operadores citados como datos hasta ejecutar el comando.
+      const operador = /^(?:[|;&<>]+|\d*[<>].*)$/.test(actual);
+      out.push(protegido && operador ? '\u0003' + actual : actual);
+      actual = ''; iniciado = false; protegido = false;
+    }
+  };
   for (let i = 0; i < linea.length; i++){
     const ch = linea[i];
     if (comilla){
@@ -2991,10 +3476,11 @@ function tokenizar(linea){
       else actual += ch;
       continue;
     }
-    if (ch === '"' || ch === "'"){ comilla = ch; continue; }
+    if (ch === '"' || ch === "'"){ comilla = ch; iniciado = true; protegido = true; continue; }
     if (ch === '\\' && i + 1 < linea.length){
       const sig = linea[i + 1];
       if (sig === ';' && actual === ''){ out.push('\u0001;'); i++; continue; }
+      protegido = true;
       actual += ('ntb\\'.includes(sig)) ? '\\' + sig : sig;
       i++;
       continue;
@@ -3022,9 +3508,12 @@ function tokenizar(linea){
   return out;
 }
 function ejecutarSimple(e, tokens, stdin = ''){
-  const cmd = tokens[0];
+  const cmd = argumentoLiteral(tokens[0]);
   if (!cmd) return exito('');
-  let args = tokens.slice(1).flatMap(a => expandirLlaves(a));   // {1..10} y {a,b} se expanden como en bash
+  // Las llaves de estos argumentos pertenecen al patrón/programa del filtro.
+  const filtro = ['grep','egrep','fgrep','rgrep','sed','awk','rename','tr','uniq','less','more'].includes(cmd);
+  const argumentos = tokens.slice(1).map(argumentoLiteral);
+  let args = filtro ? argumentos : argumentos.flatMap(a => expandirLlaves(a));
   // Los comodines se expanden como en bash para los comandos que reciben ficheros.
   // find y grep quedan fuera porque sus patrones no son rutas.
   if (['cp','mv','rm','cat','chmod','ln','du','file','wc','touch'].includes(cmd)){
@@ -3053,7 +3542,7 @@ function extraerRedirecciones(tokens){
     if (fdOut){ redirs.push({ tipo:'fd', origen:Number(fdOut[1]) }); continue; }
     if (fdIn){ redirs.push({ tipo:'fdin', origen:Number(fdIn[1]) }); continue; }
     if (!REDIRS_SALIDA.has(t) && t !== '<'){ resto.push(t); continue; }
-    const destino = tokens[++i];
+    const destino = argumentoLiteral(tokens[++i]);
     if (!destino) return { error:'bash: falta el fichero de redirección' };
     if (t === '<') redirs.push({ tipo:'in', destino });
     else redirs.push({ tipo:'out', fd:t.startsWith('2') ? 2 : 1, ambos:t.startsWith('&'), append:/>>$/.test(t), destino });
@@ -3146,7 +3635,20 @@ function expandirVariables(e, tokens){
     return (e.vars && e.vars[n] != null) ? String(e.vars[n]) : '';
   };
   return tokens.map(t => t.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*|\?)\}|\$([A-Za-z_][A-Za-z0-9_]*|\?)/g,
-    (m, a, b) => valor(a || b)));
+    (m, a, b) => valor(a || b)).replace(/\u0002/g, '$'));
+}
+// Las comillas simples y \$ protegen el dólar frente a las dos expansiones.
+function protegerDolares(linea){
+  let out = '', comilla = null;
+  for (let i = 0; i < linea.length; i++){
+    const c = linea[i];
+    if (c === '\\' && comilla !== "'" && i + 1 < linea.length){
+      const sig = linea[++i]; out += c + (sig === '$' ? '\u0002' : sig); continue;
+    }
+    if ((c === "'" || c === '"') && (!comilla || comilla === c)) comilla = comilla ? null : c;
+    out += c === '$' && comilla === "'" ? '\u0002' : c;
+  }
+  return out;
 }
 /* ---- Canales (exec 5> fichero, >&5, <&5) ---- */
 function ejecutarExec(e, linea){
@@ -3236,7 +3738,7 @@ function ejecutarLinea(e, linea, _sub, stdin){
   const bucle = ejecutarFor(e, linea, _sub);
   if (bucle) return bucle;
   // Sustitución de comandos: $(comando) se cambia por su salida.
-  linea = String(linea).replace(/\$\(([^()]*)\)/g, (m, inner) =>
+  linea = protegerDolares(String(linea)).replace(/\$\(([^()]*)\)/g, (m, inner) =>
     quitarHtml((ejecutarLinea(e, inner, true).out || '')).trim());
   e.vars = e.vars || {};
   e.vars.PWD = e.cwd;
@@ -3378,12 +3880,46 @@ function comprobarAprendizaje(paso, t){
   const tokens = tokenizar(t);
   if (req.comando && tokens[0] !== req.comando)
     return { ok:false, mensaje:'Este paso practica el comando ' + req.comando + '; revisa qué comando estás usando.' };
+  let usadas = new Set(tokens);
+  const argumentos = new Set(tokens.map(argumentoLiteral));
+  if (['grep','egrep','fgrep','rgrep','rename'].includes(tokens[0])){
+    usadas = new Set();
+    const largas = { 'fixed-strings':'F', 'extended-regexp':'E', 'basic-regexp':'G', 'perl-regexp':'P', file:'f', regexp:'e',
+      'ignore-case':'i', 'invert-match':'v', count:'c', 'line-number':'n', recursive:'r', 'files-with-matches':'l',
+      'word-regexp':'w', 'line-regexp':'x', 'only-matching':'o', quiet:'q', silent:'q' };
+    for (let i = 1; i < tokens.length; i++){
+      const token = tokens[i];
+      if (token === '--') break;
+      if (token.startsWith('--')){
+        const igual = token.indexOf('='), nombre = token.slice(2, igual < 0 ? undefined : igual);
+        const flag = largas[nombre];
+        if (flag) usadas.add('-' + flag);
+        if (['e','f'].includes(flag)) argumentos.add(igual < 0 ? argumentoLiteral(tokens[++i]) : token.slice(igual + 1));
+        continue;
+      }
+      if (!/^-[^-]/.test(token)){
+        if (tokens[0] === 'rename') break;
+        continue;
+      }
+      for (let j = 1; j < token.length; j++){
+        const flag = token[j];
+        usadas.add('-' + flag);
+        if (tokens[0] !== 'rename' && 'efmABC'.includes(flag)){
+          argumentos.add(token.slice(j + 1) || argumentoLiteral(tokens[++i]));
+          break;
+        }
+      }
+    }
+  }
+  const prohibida = [].concat(req.sinOpciones || []).find(op => usadas.has(op));
+  if (prohibida)
+    return { ok:false, mensaje:'Este ejercicio pide practicar la sintaxis indicada sin ' + prohibida + '; revisa el modo de la expresión regular.' };
   const opciones = [].concat(req.opciones || []);
-  const faltaOpcion = opciones.find(op => !tokens.includes(op));
+  const faltaOpcion = opciones.find(op => !usadas.has(op));
   if (faltaOpcion)
     return { ok:false, mensaje:'El objetivo necesita el filtro ' + faltaOpcion + '; revisa cómo se aplica en este comando.' };
   const valores = [].concat(req.valores || []);
-  const faltaValor = valores.find(valor => !tokens.includes(String(valor)));
+  const faltaValor = valores.find(valor => !argumentos.has(String(valor)));
   if (faltaValor)
     return { ok:false, mensaje:'El filtro está incompleto: falta indicar el tipo o valor que pide el ejercicio.' };
   return { ok:true, mensaje:'' };
@@ -4188,6 +4724,7 @@ addEventListener('keydown', e => {
    ===================================================================== */
 const OTRAS_COSAS = [
   { titulo: 'Chuleta', desc: 'Consulta rápida', href: 'chuleta.html' },
+  { titulo: 'Examen · tema 3', desc: 'Regex, sed, awk y ejercicios resueltos', href: 'chuleta.html#s-tema3' },
   { titulo: 'Particionado', desc: 'Manual de particiones', href: 'particiones/particiones.html' }
   // Ejemplos (quita las // para probarlos):
   // { titulo: 'Glosario', desc: 'Términos de Linux explicados', href: 'glosario.html', icono: 'G' },
@@ -4405,8 +4942,10 @@ else {
 <script src="duelo.js"></script>
 
 <!-- AVENTURA GUIADA. Va DESPUÉS del script principal porque reutiliza su intérprete de comandos.
-     Contenido (textos, ejemplos y tests): aventura/aventura-datos.js · Motor: aventura/aventura.js -->
+     Contenido: aventura/aventura-datos.js (examen del 12/11/2026) y aventura/aventura-tema3.js (tema 3).
+     Motor y selector de examen: aventura/aventura.js -->
 <script src="aventura/aventura-datos.js"></script>
+<script src="aventura/aventura-tema3.js"></script>
 <script src="aventura/aventura.js"></script>
 </body>
 </html>
