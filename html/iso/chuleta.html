@@ -77,6 +77,10 @@
   .ej .cmd .d{color:var(--marca);font-weight:800}
   .ej .sal{padding:0 13px 9px;border-top:1px dashed #e8dcd2;background:#f6f0e9;color:#41363e;white-space:pre}
   .ej .sal.vacio{display:none}
+  .ej .explicacion{margin:0;padding:9px 13px;border-top:1px solid var(--linea);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+  .ej .explicacion strong{color:var(--vino)}
+  .chuleta-resumen td:first-child{width:36%}
+  caption{text-align:left;font-weight:700;color:var(--vino);padding:4px 0 7px}
   .copiar{position:absolute;top:4px;right:6px;font:600 11px "Ubuntu",sans-serif;color:#8a7595;background:none;border:1px solid #dcd2c8;border-radius:7px;padding:2px 8px;cursor:pointer;opacity:0;transition:opacity .15s}
   .ej:hover .copiar,.copiar:focus-visible{opacity:1}
   .copiar.hecho{color:#1e7a42;border-color:#9ccfae;opacity:1}
@@ -178,16 +182,16 @@
 <nav class="indice" aria-label="Índice de comandos">
   <a href="#s-tema3">tema 3</a><a class="examen3" href="#s-regex">regex</a><a href="#s-recetas">ejercicios</a><span class="grupo">·</span>
   <a href="#s-shell">shell</a><a href="#s-comod">comodines</a><a href="#s-redir">redirecciones</a><span class="grupo">·</span>
-  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#asciinema">asciinema</a><a href="#awk">awk</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a class="examen3" href="#egrep">egrep</a><a href="#file">file</a><a class="examen3" href="#find">find</a><a href="#foremost">foremost</a><a class="examen3" href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#join">join</a><a class="examen3" href="#less">less / more</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#nl">nl</a><a href="#od">od</a><a href="#paste">paste</a><a href="#printf">printf</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a class="examen3" href="#rename">rename</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a class="examen3" href="#sed">sed</a><a class="examen3" href="#sort">sort</a><a href="#source">source</a><a href="#split">split</a><a href="#ssh">ssh</a><a href="#stat">stat</a><a href="#tac">tac</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#tmux">tmux</a><a href="#touch">touch</a><a href="#tr">tr</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#uniq">uniq</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-func">funciones</a><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
+  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#asciinema">asciinema</a><a class="examen3" href="#awk">awk</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a class="examen3" href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a class="examen3" href="#egrep">egrep</a><a href="#file">file</a><a class="examen3" href="#find">find</a><a href="#foremost">foremost</a><a class="examen3" href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#join">join</a><a class="examen3" href="#less">less / more</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#nl">nl</a><a href="#od">od</a><a href="#paste">paste</a><a href="#printf">printf</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a class="examen3" href="#rename">rename</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a class="examen3" href="#sed">sed</a><a class="examen3" href="#sort">sort</a><a href="#source">source</a><a href="#split">split</a><a class="examen3" href="#ssh">ssh</a><a href="#stat">stat</a><a href="#tac">tac</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a class="examen3" href="#tmux">tmux</a><a href="#touch">touch</a><a href="#tr">tr</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#uniq">uniq</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-func">funciones</a><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
 </nav>
 <main>
 
 <section class="comando tx" id="s-tema3">
   <h2>Repaso del tema 3 <small>filtros, expresiones regulares y sesión remota</small><span class="chip">texto</span></h2>
 <p class="lede">Comandos Básicos II y prácticas de clase: busca el verbo del enunciado y salta al ejemplo. Las salidas de sistema son orientativas; los ejemplos con <code>printf</code> se pueden reproducir tal cual.</p>
-<p class="leyenda-examen">En rojo: sed, less, more, sort, grep, egrep, find, rename y expresiones regulares.</p>
+<p class="leyenda-examen">En rojo: awk, cut, sed, less, more, sort, grep, egrep, find, rename, tmux, ssh y expresiones regulares.</p>
 <nav class="repaso" aria-label="Repaso del tema 3">
-  <a class="examen3" href="#s-regex">BRE · ERE · PCRE</a><a class="examen3" href="#grep">grep</a><a class="examen3" href="#egrep">egrep</a><a href="#s-regex-red">IP · MAC · correo</a><a class="examen3" href="#sed">sed</a><a href="#awk">awk / print</a><a class="examen3" href="#less">less / more</a><a class="examen3" href="#rename">rename</a><a href="#ssh">SSH</a><a href="#tmux">tmux</a><a href="#s-recetas">Ejercicios resueltos</a>
+  <a class="examen3" href="#s-regex">BRE · ERE · PCRE</a><a class="examen3" href="#grep">grep</a><a class="examen3" href="#egrep">egrep</a><a href="#s-regex-red">IP · MAC · correo</a><a class="examen3" href="#sed">sed</a><a class="examen3" href="#awk">awk / print</a><a class="examen3" href="#cut">cut</a><a class="examen3" href="#less">less / more</a><a class="examen3" href="#rename">rename</a><a class="examen3" href="#ssh">SSH</a><a class="examen3" href="#tmux">tmux</a><a href="#s-recetas">Ejercicios resueltos</a>
 </nav>
 <ul class="flags">
   <li><strong>Filtrar líneas:</strong> <code>grep</code>. <strong>Extraer solo coincidencias:</strong> <code>grep -o</code>. <strong>Transformar texto:</strong> <code>sed</code>. <strong>Comparar campos:</strong> <code>awk</code>.</li>
@@ -233,36 +237,43 @@
     <li><code>comando1 || comando2</code> el segundo solo si el primero falló.</li>
     <li><code>&quot;…&quot;</code> respeta <code>$var</code>; <code>'…'</code> no lo expande.</li>
     <li><code>$(comando)</code> <span class="term">sustitución de comandos</span>: mete la salida de un comando dentro de otro. Antiguo: con backticks <code>`comando`</code> (mismo resultado; <code>$(…)</code> se puede anidar y es lo recomendado).</li>
-    <li><code>for i in lista; do …; done</code> bucle (una línea o con saltos; las llaves <code>{ }</code> son opcionales).</li>
+    <li><code>for i in lista; do …; done</code> bucle (una línea o con saltos; las llaves de <code>{A..D}</code> generan la lista; <code>do</code> y <code>done</code> delimitan el bucle).</li>
     <li><code>history</code> se guarda en <code>~/.bash_history</code> (variable <code>$HISTFILE</code>).</li>
   </ul>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> $PWD</pre>
 <pre class="sal">/home/usuario/prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra la ruta de la carpeta en la que estás. $PWD es la variable que guarda esa ruta.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "Tienes $(ls | wc -l) ficheros en $(pwd)"</pre>
 <pre class="sal">Tienes 3 ficheros en /home/usuario/prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta las líneas que produce ls y mete el número y la carpeta actual dentro del mensaje. $(...) se sustituye por la salida del comando; ls no incluye los ocultos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "Tienes `ls | wc -l` ficheros en `pwd`"</pre>
 <pre class="sal">Tienes 3 ficheros en /home/usuario/prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Hace lo mismo que el ejemplo anterior, pero usa acentos graves para insertar los resultados de ls y pwd en el mensaje.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> prueba &amp;&amp; <span class="k">cp</span> documento.txt prueba/</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea la carpeta prueba y, solo si se crea bien, copia documento.txt dentro. &amp;&amp; evita la copia cuando mkdir falla.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> || <span class="k">apt-get</span> update</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta instalar htop aceptando las preguntas. Si falla, actualiza la lista de paquetes; || no vuelve a intentar la instalación después.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">for</span> i in {A..D}; <span class="k">do</span> for j in {1..2}; <span class="k">do</span> touch $i$j.txt; done; <span class="k">done</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Combina cada letra de A a D con los números 1 y 2 y crea ocho archivos: A1.txt, A2.txt, hasta D2.txt. Los dos for recorren esas combinaciones.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span></pre>
 <pre class="sal">A1.txt  A2.txt  B1.txt  B2.txt  C1.txt  C2.txt  D1.txt  D2.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista los nombres visibles de la carpeta actual; aquí permite comprobar los ocho archivos creados por los bucles.</p>
   </div>
 </section>
 
@@ -279,32 +290,59 @@
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> {a..g}</pre>
 <pre class="sal">a b c d e f g</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Expande {a..g} en las letras de a a g y las muestra separadas por espacios.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> {a,b}{1,2}</pre>
 <pre class="sal">a1 a2 b1 b2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Combina cada letra con cada número: a1, a2, b1 y b2. Las llaves generan texto aunque no existan archivos con esos nombres.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> {old,stable,unstable}-release</pre>
 <pre class="sal">old-release stable-release unstable-release</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Genera y muestra old-release, stable-release y unstable-release a partir de la lista entre llaves.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> /dev/tty[1-4]</pre>
 <pre class="sal">/dev/tty1  /dev/tty2  /dev/tty3  /dev/tty4</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista los dispositivos /dev/tty1 a /dev/tty4 que existan. [1-4] representa un solo dígito de ese rango.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> /dev/tty??          <span class="c"># tty + EXACTAMENTE 2 caracteres: tty0 no entra</span></pre>
 <pre class="sal">/dev/tty10  /dev/tty11  /dev/tty12  /dev/ttyS0</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista nombres que empiezan por tty y tienen exactamente dos caracteres más. Cada ? ocupa un carácter; tty0 no coincide.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> fich[^a-q].txt</pre>
 <pre class="sal">fichr.txt  fichz.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista nombres fichX.txt cuyo carácter X no esté entre a y q. Los corchetes negados afectan a una sola posición.</p>
   </div>
 </section>
 
 <section class="comando tx examen3" id="s-regex">
   <h2>Expresiones regulares <small>BRE, ERE, PCRE y patrones de clase</small><span class="chip">texto</span></h2>
 <p class="lede">Una expresión regular busca <strong>contenido</strong>. El comodín de la shell selecciona <strong>nombres de ficheros</strong>: en <code>grep 'a.*' *.txt</code>, Bash expande <code>*.txt</code> y grep interpreta <code>a.*</code>.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de expresiones regulares" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de expresiones regulares</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>^ · $</code></td><td>Inicio · final de línea.</td></tr>
+<tr><td><code>.</code></td><td>Un carácter cualquiera.</td></tr>
+<tr><td><code>[abc] · [^abc]</code></td><td>Un carácter de esa lista · un carácter que no esté en esa lista.</td></tr>
+<tr><td><code>[0-9] · [[:digit:]]</code></td><td>Un dígito.</td></tr>
+<tr><td><code>[[:blank:]] · [[:space:]]</code></td><td>Espacio o tabulador · caracteres de espacio en blanco, incluidos saltos de línea.</td></tr>
+<tr><td><code>*</code></td><td>Cero o más repeticiones del elemento anterior.</td></tr>
+<tr><td><code>+ · ?</code></td><td>En ERE: una o más repeticiones · cero o una.</td></tr>
+<tr><td><code>{n} · {n,m}</code></td><td>En ERE: exactamente n repeticiones · de n a m repeticiones.</td></tr>
+<tr><td><code>(uno|dos)</code></td><td>En ERE: agrupar y elegir una de las dos alternativas.</td></tr>
+<tr><td><code>\(…\) · \{n\}</code></td><td>En BRE: agrupar · repetir exactamente n veces.</td></tr>
+<tr><td><code>\1</code></td><td>Volver a coincidir con lo capturado por el primer grupo, en motores que admitan referencias.</td></tr>
+<tr><td><code>\. · \*</code></td><td>Buscar un punto literal · un asterisco literal.</td></tr>
+<tr><td><code>grep -E · grep -P · grep -F</code></td><td>Elegir ERE · PCRE · texto literal, respectivamente.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="tabla-scroll" role="region" aria-label="Elegir motor de expresiones regulares" tabindex="0">
 <table>
 <thead><tr><th scope="col">Modo</th><th scope="col">Se utiliza en</th><th scope="col">Idea clave</th></tr></thead>
@@ -373,6 +411,7 @@
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 7 80 389 8080 abc | grep -E '^[0-9]{3}$'</pre>
 <pre class="sal">389</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea cinco líneas y conserva solo la que tiene exactamente tres dígitos: 389. ^ y $ obligan a que toda la línea cumpla el patrón.</p>
 </div>
 <p class="nota"><code>-x</code> permite lo mismo: <code>grep -Ex '[0-9]{3}'</code>.</p>
 <div class="ej">
@@ -380,70 +419,83 @@
 <pre class="sal">ac
 abc
 abbc</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva ac, abc y abbc: b* permite cero o más letras b entre a y c. axc queda fuera.</p>
 </div>
 <p class="nota"><code>*</code> admite cero b; <code>+</code> exigiría al menos una.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' color colour colouur | grep -E '^colou?r$'</pre>
 <pre class="sal">color
 colour</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva color y colour. u? permite que haya una u o ninguna; colouur tiene dos y se descarta.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' abab ab ababab | grep '^\(ab\)\{2\}$'</pre>
 <pre class="sal">abab</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva abab: en regex básica, \(ab\) agrupa ab y \{2\} exige repetir ese grupo exactamente dos veces.</p>
 </div>
 <p class="nota">En ERE: <code>grep -E '^(ab){2}$'</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' gato perro gatoperro | grep -E '^(gato|perro)$'</pre>
 <pre class="sal">gato
 perro</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva gato o perro como líneas completas. Los paréntesis agrupan las alternativas y | significa «o».</p>
 </div>
 <p class="nota">Los paréntesis importan: <code>^gato|perro$</code> tiene otro significado.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' a.b a-b | grep -F 'a.b'</pre>
 <pre class="sal">a.b</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca el texto literal a.b. Con -F el punto es un punto normal y no coincide con el guion de a-b.</p>
 </div>
 <p class="nota">Con regex: <code>grep 'a\.b'</code>. Un punto sin escapar también encontraría <code>a-b</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' hola-hola hola-adios | grep -E '^([a-z]+)-\1$'</pre>
 <pre class="sal">hola-hola</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva hola-hola porque la palabra de después del guion debe ser igual a la capturada antes. \1 recupera ese primer grupo.</p>
 </div>
 <p class="nota"><code>\1</code> exige el mismo texto que capturó el primer grupo; no cualquier palabra.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'aula 204' aula_204 | grep -P '^\w+\s+\d{3}$'</pre>
 <pre class="sal">aula 204</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva aula 204: -P activa PCRE, \w+ pide caracteres de palabra, \s+ espacios y \d{3} tres dígitos. aula_204 no tiene ese espacio.</p>
 </div>
 <p class="nota">Una palabra, al menos un blanco y tres dígitos. GNU grep también ofrece algunas abreviaturas en BRE/ERE; las clases POSIX resultan más portables.</p>
 <h3 id="s-regex-red">Recetas de clase: alias, IPv4, MAC, email y URL</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -nE '^[[:blank:]]*alias[[:blank:]]+' ~/.bashrc</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca las definiciones de alias de ~/.bashrc y muestra su número de línea. Acepta espacios o tabuladores antes de alias y exige separación después.</p>
 </div>
 <p class="nota">Alias activos, con o sin sangría. Cambia el patrón a <code>^[[:blank:]]*#[[:blank:]]*alias[[:blank:]]+</code> para los comentados, o a <code>^[[:blank:]]*#?[[:blank:]]*alias[[:blank:]]+</code> para ambos. En BRE: <code>^[[:blank:]]*#\?[[:blank:]]*alias[[:blank:]]\+</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'inet 172.22.1.1/24 brd 172.22.1.255' | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}'</pre>
 <pre class="sal">172.22.1.1
 172.22.1.255</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae solo los dos fragmentos con aspecto de IPv4, uno por línea. Este patrón reconoce la forma, pero también admitiría octetos mayores que 255.</p>
 </div>
 <p class="nota">En la máquina: <code>ip a | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}'</code>. En BRE: <code>\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}</code>. Extrae direcciones y broadcast; reconoce formato, también aceptaría <code>999.999.999.999</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 172.22.1.1 999.1.1.1 256.1.1.1 | grep -Ex '((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])'</pre>
 <pre class="sal">172.22.1.1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprueba la línea completa y conserva solo IPv4 con cuatro números de 0 a 255. Acepta 172.22.1.1 y descarta las que empiezan por 999 o 256.</p>
 </div>
 <p class="nota">Validación de una línea completa: cada octeto está entre 0 y 255, sin ceros iniciales en octetos de varias cifras.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' bc:24:11:bb:6a:a6 BC:24:11:BB:6A:A6 bc:24:11:bb:6a:a6:ff | grep -Ex '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}'</pre>
 <pre class="sal">bc:24:11:bb:6a:a6
 BC:24:11:BB:6A:A6</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva las MAC con seis pares hexadecimales separados por dos puntos, en mayúsculas o minúsculas. La que tiene siete pares queda fuera.</p>
 </div>
 <p class="nota">Cinco grupos con dos puntos y un último grupo sin ellos: seis octetos. Para extraer de <code>ip a</code>: <code>grep -oE</code> con el mismo patrón sin <code>-x</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'Maintainer: Ana &lt;ana.luengo+asir@example.org&gt;' | grep -oEi '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}'</pre>
 <pre class="sal">ana.luengo+asir@example.org</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae ana.luengo+asir@example.org del texto. -o devuelve solo el correo y -i permite letras mayúsculas; es un patrón práctico para correos sencillos.</p>
 </div>
 <p class="nota">Extracción práctica de emails como en <code>apt show wireshark | grep -oEi …</code>. Es un patrón simplificado, no una validación completa de todas las direcciones admitidas.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'Web: https://aula.example.org/tema3' | grep -oE "https?://[^[:space:]&lt;&gt;\"']+"</pre>
 <pre class="sal">https://aula.example.org/tema3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae la dirección que empieza por http:// o https:// y se detiene ante espacios, comillas o signos de cierre. No comprueba si la web existe.</p>
 </div>
 <p class="nota">Encuentra URLs http/https; podría incluir puntuación final de una frase. En grep no necesitas escapar <code>/</code>; en sed con delimitador <code>/</code>, sí.</p>
 <div class="caja tip"><b>Errores frecuentes del examen</b><p><code>[^#]*</code> admite cero caracteres, así que <code>grep '^[^#]*'</code> puede seleccionar incluso comentarios. Para excluirlos: <code>grep -v '^[[:blank:]]*#'</code>. <code>^$</code> no elimina líneas con espacios; usa <code>^[[:space:]]*$</code>. Y <code>grep -E 'a\+'</code> busca una a seguida de un signo + literal: para repetir, escribe <code>a+</code>.</p></div>
@@ -467,53 +519,65 @@ BC:24:11:BB:6A:A6</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> &gt; <span class="k">lista.txt</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Guarda el listado detallado en lista.txt en vez de mostrarlo. &gt; crea el archivo o sustituye su contenido anterior.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span>        <span class="c"># orden alfabético: por el usuario, que abre cada línea</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Obtiene las sesiones conectadas, las ordena por el texto inicial de cada línea (el usuario) y guarda el resultado en persona, sustituyendo lo anterior.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y*</pre>
 <pre class="sal"><span class="e">ls: no se puede acceder a 'z*': No existe el archivo o el directorio</span>
 y1  y2  y3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta listar los nombres que empiezan por z y por y. Si alguno de los patrones no encuentra archivos, ls puede mostrar un error.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y* 2&gt; <span class="k">errores.log</span></pre>
 <pre class="sal">y1  y2  y3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista esos mismos nombres, pero guarda los mensajes de error en errores.log. Los resultados correctos siguen saliendo en pantalla.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y* &gt; <span class="k">resulconError.log</span> 2&gt;&amp;1   <span class="c"># = 1&gt; resulconError.log 2&gt;&amp;1</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Guarda tanto el listado como los errores en resulconError.log. Primero dirige la salida al archivo y después une el canal de errores con esa salida.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> z* y* &amp;&gt; <span class="k">todo.log</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Guarda la salida y los errores juntos en todo.log. &amp;&gt; es la forma abreviada de Bash para redirigir ambos canales.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /noexiste <span class="f">-type</span> d 2&gt; <span class="k">malos</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca directorios en una ruta inexistente y guarda el error en malos. No aparecen resultados porque /noexiste no existe.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> malos</pre>
 <pre class="sal"><span class="e">find: '/noexiste': No existe el archivo o el directorio</span></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el contenido de malos para leer el error que se guardó en el ejemplo anterior.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> &lt; <span class="k">resultado.log</span>             <span class="c"># sin nombre de fichero: wc no sabe de dónde vienen los datos</span></pre>
 <pre class="sal">47</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta las líneas de resultado.log leyendo su contenido por la entrada estándar. Por eso la respuesta contiene el número, sin el nombre del archivo.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> &lt;&lt;EOF &gt; <span class="k">mensaje.txt</span>
 hola
 EOF</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Escribe hola y un salto de línea en mensaje.txt. El bloque termina en EOF; esa palabra de cierre no se guarda en el archivo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> mensaje.txt</pre>
 <pre class="sal">hola</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra mensaje.txt para comprobar el texto que acabas de guardar.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /etc <span class="f">-type</span> f | <span class="k">tee</span> ficheros.txt | <span class="k">wc</span> <span class="f">-l</span></pre>
 <pre class="sal">3481</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos bajo /etc, guarda sus rutas en ficheros.txt y cuenta esas rutas. tee deja pasar la misma lista a wc; los errores no se incluyen en la cuenta.</p>
   </div>
 </section>
 
@@ -532,10 +596,12 @@ EOF</pre>
 <pre class="sal">Scanning the drive: 1 file, 42 bytes (1 KiB)
 Creating archive: comprimido.7z
 Everything is Ok (1 file)</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea comprimido.7z con documento.txt dentro. La acción a añade archivos al contenedor, o lo crea si aún no existe.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> 7z x comprimido.7z <span class="f">-odescompresion/</span></pre>
 <pre class="sal">descompresion/documento.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae comprimido.7z en descompresion/ conservando las carpetas internas. -o se escribe pegado a la ruta de destino.</p>
   </div>
 </section>
 
@@ -555,22 +621,27 @@ Everything is Ok (1 file)</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">alias</span> nano='nano -l'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea un atajo: al escribir nano se ejecutará nano -l, con números de línea. Dura en esta shell salvo que lo guardes en su configuración.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">type</span> nano</pre>
 <pre class="sal">nano es `nano -l'</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Indica cómo interpreta la shell el nombre nano; aquí muestra el alias definido antes.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">alias</span> up="sudo apt update" ug="sudo apt update -y &amp;&amp; sudo apt upgrade -y"</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Define dos atajos: up actualiza la lista de paquetes y ug actualiza la lista y después los paquetes. Dentro de ug, &amp;&amp; continúa solo si la actualización de la lista funciona.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">unalias</span> nano</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Elimina el alias nano de la sesión actual. Si estaba guardado en ~/.bashrc, seguirá allí hasta que lo edites.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> \nano        <span class="c"># el binario de verdad, sin el alias</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ejecuta nano sin expandir el alias nano. La barra inicial impide que Bash sustituya ese nombre por el atajo.</p>
   </div>
 </section>
 
@@ -591,10 +662,12 @@ Everything is Ok (1 file)</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> hora () { <span class="k">date</span> +%T; }     <span class="c"># función mínima: ver la hora</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Define una función llamada hora que ejecuta date +%T. Todavía no muestra la hora: solo deja preparada la función.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> hora</pre>
 <pre class="sal">21:34:56</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ejecuta la función anterior y muestra la hora actual con horas, minutos y segundos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tail</span> -n 4 ~/.bashrc       <span class="c"># el mkcd de clase, así vive en el fichero</span></pre>
@@ -602,10 +675,12 @@ Everything is Ok (1 file)</pre>
 mkcd() {
   <span class="k">mkdir</span> -p <span class="s">"$1"</span> &amp;&amp; <span class="k">cd</span> <span class="s">"$1"</span>
 }</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las cuatro últimas líneas de ~/.bashrc para consultar la definición de mkcd guardada en ese archivo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">source</span> ~/.bashrc &amp;&amp; <span class="k">mkcd</span> proyectos/nuevo &amp;&amp; <span class="k">pwd</span></pre>
 <pre class="sal">/home/usuario/proyectos/nuevo</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Recarga ~/.bashrc, llama a mkcd para crear y entrar en proyectos/nuevo y muestra la ruta final. Cada &amp;&amp; continúa solo si el paso anterior funciona.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">type</span> mkcd</pre>
@@ -614,10 +689,12 @@ mkcd ()
 { 
     mkdir -p "$1" &amp;&amp; cd "$1"
 }</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra qué es mkcd y, si es una función, su definición. Sirve para comprobar qué ejecutará ese nombre.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">declare</span> -F</pre>
 <pre class="sal">declare -f mkcd</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista los nombres de las funciones definidas en la shell actual, sin mostrar su código.</p>
   </div>
 </section>
 
@@ -637,6 +714,7 @@ mkcd ()
 Des:2 http://deb.debian.org/debian bookworm-updates InRelease [52,1 kB]
 Obj:3 http://seguridad.debian.org bookworm-security InRelease
 Leyendo lista de paquetes... Hecho</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Actualiza la lista local de paquetes disponibles con permisos de administrador. No instala las versiones nuevas de los programas.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt-get</span> update &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> clean</pre>
@@ -644,21 +722,25 @@ Leyendo lista de paquetes... Hecho</pre>
 Se instalarán los siguientes paquetes NUEVOS: htop
 Desempaquetando htop (3.3.0-1) ...
 Configurando htop (3.3.0-1) ...</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Actualiza la lista, instala htop aceptando las preguntas y limpia los paquetes descargados de la caché. &amp;&amp; detiene la cadena si un paso falla.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> || <span class="k">sudo</span> <span class="k">apt-get</span> update</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta instalar htop; si falla, actualiza la lista de paquetes. La instalación no se repite automáticamente tras esa actualización.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">apt</span> policy ncal</pre>
 <pre class="sal">ncal:
   Instalados: 12.1.7-1
   Candidato:  12.1.7-1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta qué versión de ncal está instalada, cuál se instalaría y qué repositorios la ofrecen.</p>
   </div>
   <h3>Repositorios: formato clásico y deb822</h3>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "deb http://repo.cica.es/debian stable main" &gt; /etc/apt/sources.list.d/cica.list</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Escribe esa entrada de repositorio en cica.list, reemplazando su contenido. La redirección requiere una shell con permisos para escribir en /etc.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> &lt;&lt;EOF &gt; /etc/apt/sources.list.d/cica.sources
@@ -670,6 +752,7 @@ Architectures: amd64
 Signed-By: /usr/share/keyrings/cica-archive-keyring.gpg
 EOF</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Guarda una definición de repositorio en formato deb822 dentro de cica.sources. EOF cierra el bloque; la clave indicada en Signed-By debe existir y la escritura requiere permisos de administrador.</p>
   </div>
 </section>
 
@@ -687,31 +770,38 @@ EOF</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> asciinema rec -t 'Práctica de grep' -i 2 grep.cast</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Graba la terminal en grep.cast con el título Práctica de grep y limita las pausas inactivas a dos segundos. Termina la grabación con exit o Ctrl+D.</p>
   </div>
   <p class="nota">Dentro de la sesión ejecuta tus comandos y escribe <code>exit</code> para finalizar y guardar <code>grep.cast</code>.</p>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> asciinema play grep.cast</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Reproduce en la terminal la sesión guardada en grep.cast.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> asciinema play -s 2 -i 1 grep.cast</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Reproduce la grabación al doble de velocidad y limita los periodos de inactividad a un segundo.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> asciinema cat grep.cast &gt; salida.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae el texto de la grabación y lo guarda en salida.txt. La redirección sustituye el contenido anterior de ese archivo.</p>
   </div>
   <p class="nota">Ayuda: <code>asciinema rec --help</code> y <code>asciinema play --help</code>. <a href="https://docs.asciinema.org/manual/cli/quick-start/">Guía oficial</a> · <a href="https://docs.asciinema.org/manual/cli/shortcuts/">Atajos del reproductor de terminal</a>.</p>
 </section>
 
-<section class="comando tx" id="awk">
+<section class="comando tx examen3" id="awk">
   <h2>awk / print <small>seleccionar registros y trabajar con campos</small><span class="chip">texto</span></h2>
 <p class="lede">Lee registros (normalmente líneas) y campos. Usa ERE en <code>/patrón/</code>; <code>print</code> es una acción de awk, no un comando de Bash.</p>
 <p class="uso">awk [-F 'separador'] 'condición {acción}' [fichero…]</p>
 <div class="tabla-scroll" role="region" aria-label="Sintaxis básica de awk" tabindex="0">
-<table>
+<table class="chuleta-resumen">
+<caption>Chuleta de AWK</caption>
 <thead><tr><th scope="col">Elemento</th><th scope="col">Significado</th></tr></thead>
 <tbody>
+<tr><td><code>-F separador</code></td><td>Elegir cómo dividir las líneas en campos.</td></tr>
+<tr><td><code>-v nombre=valor</code></td><td>Pasar un valor a una variable antes de procesar los datos.</td></tr>
 <tr><td><code>$0</code></td><td>Línea completa.</td></tr>
 <tr><td><code>$1</code>, <code>$2</code>, …, <code>$NF</code></td><td>Primer campo, segundo, último. Separador por defecto: grupos de espacios/tabuladores.</td></tr>
 <tr><td><code>NF</code> / <code>NR</code> / <code>FNR</code></td><td>Número de campos / número de registro total / número de registro en el fichero actual.</td></tr>
@@ -727,26 +817,31 @@ EOF</pre>
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'ana:x:1000:/bin/bash' 'luis:x:1001:/bin/sh' | awk -F: '{print $1,$NF}'</pre>
 <pre class="sal">ana /bin/bash
 luis /bin/sh</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea dos registros separados por dos puntos. -F: divide cada uno en campos y print muestra el primero ($1) y el último ($NF): nombre y shell.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> awk -F: '$1 == "usuario" &amp;&amp; $7 == "/bin/bash" {print $0}' /etc/passwd</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee /etc/passwd y muestra la línea completa solo cuando el nombre sea usuario y la shell sea exactamente /bin/bash. &amp;&amp; exige las dos condiciones.</p>
 </div>
 <p class="nota">Para comprobar el final del campo: <code>awk -F: '$7 ~ /bash$/ {print $1}' /etc/passwd</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'ana 3' 'luis 5' | awk '{total += $2} END {print "Total:",total}' </pre>
 <pre class="sal">Total: 8</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Suma los valores del segundo campo (3 y 5). END imprime una sola vez el total al terminar: Total: 8.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' uno dos tres cuatro | awk 'NR &gt;= 2 {print NR,$0}'</pre>
 <pre class="sal">2 dos
 3 tres
 4 cuatro</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Omite la primera línea y muestra las demás con su número. NR cuenta las líneas leídas y $0 representa el texto completo de cada una.</p>
 </div>
 <p class="nota">Desde el segundo registro hasta el final. <code>NF</code> no es el número de la última línea.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> awk '$1 !~ /^#/ &amp;&amp; $2 ~ /^389\/(tcp|udp)$/ {print $1,$2}' /etc/services</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descarta los registros cuyo primer campo empieza por # y selecciona los que tienen exactamente 389/tcp o 389/udp en el segundo. Imprime el nombre del servicio y su puerto/protocolo.</p>
 </div>
 <p class="nota">Filtra el segundo campo completo. Evita confundir el puerto 389 con el 1389.</p>
 </section>
@@ -760,10 +855,12 @@ luis /bin/sh</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">basename</span> /home/usuario/fichero1.txt</pre>
 <pre class="sal">fichero1.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita la parte de carpetas de la ruta y muestra solo fichero1.txt. No modifica ni busca el archivo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">basename</span> /home/usuario/fichero1.txt txt</pre>
 <pre class="sal">fichero1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita las carpetas y también el sufijo literal txt. El resultado es fichero1. porque el punto no estaba incluido en el sufijo.</p>
   </div>
 </section>
 
@@ -782,14 +879,17 @@ luis /bin/sh</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">bzip2</span> <span class="f">-k</span> documento.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprime documento.txt en documento.txt.bz2. -k conserva también el archivo original sin comprimir.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> documento.txt*</pre>
 <pre class="sal">documento.txt  documento.txt.bz2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista los nombres que empiezan por documento.txt para comprobar que están el original y la copia .bz2.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">bunzip2</span> documento.txt.bz2</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descomprime documento.txt.bz2 y, si termina bien, elimina el .bz2. Si documento.txt ya existe por el ejemplo con -k, rechaza sobrescribirlo; solo se fuerza el reemplazo añadiendo -f.</p>
   </div>
 </section>
 
@@ -813,6 +913,7 @@ lu ma mi ju vi sá do
 12 13 14 15 16 17 18
 19 20 21 22 23 24 25
 26 27 28 29 30 31</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el calendario de octubre de 2026. El primer número es el mes y el segundo el año.</p>
   </div>
 </section>
 
@@ -828,14 +929,17 @@ lu ma mi ju vi sá do
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> fich1 fich2 &gt; <span class="k">unidos.txt</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Une el contenido de fich1 y después fich2 en unidos.txt. &gt; crea el archivo de destino o reemplaza su contenido.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> enlafich1          <span class="c"># leer a través de un <span class="term">enlace simbólico</span></span></pre>
 <pre class="sal">hola</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee el archivo al que apunta el enlace simbólico enlafich1. Fallará si el enlace no lleva a un destino existente y accesible.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> <span class="f">-n</span> fich1</pre>
 <pre class="sal">1	hola</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra fich1 numerando todas sus líneas, incluidas las vacías.</p>
   </div>
 </section>
 
@@ -850,18 +954,22 @@ lu ma mi ju vi sá do
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cd</span> prueba/dir3; <span class="k">pwd</span></pre>
 <pre class="sal">/home/usuario/prueba/dir3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Entra en prueba/dir3 y después muestra la ruta actual. El punto y coma ejecuta pwd incluso si cd falla.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> cd; <span class="k">pwd</span></pre>
 <pre class="sal">/home/usuario</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Vuelve a tu carpeta personal y muestra su ruta. cd sin argumentos usa la carpeta indicada por $HOME.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cd</span> -</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Regresa a la carpeta en la que estabas antes del último cd y muestra esa ruta.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cd</span> dir3; <span class="k">cd</span> enlacedir1   <span class="c"># entrar por un enlace simbólico</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Entra en dir3 y después en el directorio al que apunta enlacedir1. La segunda ruta se interpreta desde dir3 si el primer cd funciona.</p>
   </div>
 </section>
 
@@ -880,38 +988,47 @@ lu ma mi ju vi sá do
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> 666 fich1; <span class="k">ls</span> <span class="f">-l</span> fich1</pre>
 <pre class="sal">-rw-rw-rw- 1 usuario usuario 6 nov 11 10:12 fich1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Da lectura y escritura sobre fich1 a dueño, grupo y otros (666), sin ejecución. Después muestra sus permisos con ls -l.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> a-w dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2</pre>
 <pre class="sal">dr-xr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita la escritura de dir2 a todos los usuarios y muestra los permisos resultantes. ls -d consulta la carpeta en sí.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> u=rwx,go=rx dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2</pre>
 <pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Fija dir2 en 755: el dueño puede leer, escribir y entrar; grupo y otros pueden leer y entrar. Después comprueba los permisos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> <span class="f">-R</span> 600 privada/</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Aplica 600 a privada y a todo su contenido: solo el dueño conserva lectura y escritura. En las carpetas también quita x, por lo que impide el acceso normal a su interior.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> a-w dir2</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita el permiso de escritura de dir2 a dueño, grupo y otros. No borra el contenido que ya tiene.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> dir2/dir21</pre>
 <pre class="sal"><span class="e">mkdir: no se puede crear el directorio 'dir21': Permiso denegado</span></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta crear dir21 dentro de dir2. Para un usuario normal falla si se ha quitado la escritura del directorio padre en el paso anterior.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">chmod</span> 755 dir2; <span class="k">chmod</span> o-r dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># 755 → 751: a otros solo le queda la x</span></pre>
 <pre class="sal">drwxr-x--x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Parte de 755 y quita la lectura a otros, dejando 751. Los demás usuarios pueden atravesar dir2 si conocen el nombre de destino, pero no listar sus nombres.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> dir2; <span class="k">ls</span> <span class="f">-ld</span> dir2     <span class="c"># ¿permisos por omisión?</span></pre>
 <pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea dir2 y muestra sus permisos iniciales, que dependen de la umask. Para probarlo, dir2 debe no existir todavía.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 022; <span class="k">mkdir</span> dira; <span class="k">ls</span> <span class="f">-ld</span> dira</pre>
 <pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Fija la umask en 022, crea dira y comprueba sus permisos. En condiciones normales parte de 777 y queda en 755.</p>
   </div>
 </section>
 
@@ -925,10 +1042,12 @@ lu ma mi ju vi sá do
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">compress</span> documento.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprime documento.txt en documento.txt.Z y, si la compresión se realiza, sustituye el original por el archivo comprimido.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">uncompress</span> documento.txt.Z</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Recupera documento.txt desde documento.txt.Z. Al terminar correctamente elimina el archivo comprimido.</p>
   </div>
 </section>
 
@@ -950,32 +1069,57 @@ lu ma mi ju vi sá do
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cp</span> mensaje dir1; <span class="k">cp</span> mensaje dir2; <span class="k">cp</span> mensaje dir3</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia mensaje en cada una de las carpetas dir1, dir2 y dir3. Las tres deben existir; ; intenta cada copia aunque falle una anterior.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> dir*/mensaje     <span class="c"># comprobar los tres de una vez</span></pre>
 <pre class="sal">dir1/mensaje  dir2/mensaje  dir3/mensaje</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca y muestra mensaje dentro de las carpetas cuyo nombre empieza por dir. Sirve para comprobar las copias anteriores.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cp</span> /bin/u* nuevo1/</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia en nuevo1/ las entradas de /bin cuyo nombre empieza por u. La carpeta de destino debe existir; sin -r no copia directorios.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cp</span> /etc/rc2.d/* dir31/       <span class="c"># los guiones de arranque rc2.d</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia las entradas visibles de /etc/rc2.d en dir31/, que debe existir. Con la configuración habitual de cp, los enlaces a archivos se copian como el contenido de sus destinos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cp</span> <span class="f">-r</span> /home/otro/prueba dir11/     <span class="c"># copia el directorio entero</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia el directorio prueba y todo su contenido dentro de dir11/ si esta carpeta ya existe. -r permite recorrer las subcarpetas.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cp</span> <span class="f">-a</span> backup/ restaurado/          <span class="c"># con permisos y fechas intactos</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia backup con su contenido y conserva atributos como permisos, fechas y enlaces. Si restaurado no existe lo crea como copia; si existe, crea backup dentro.</p>
   </div>
 </section>
 
-<section class="comando tx" id="cut">
+<section class="comando tx examen3" id="cut">
   <h2>cut <small>corta campos o columnas de cada línea</small><span class="chip">texto</span></h2>
   <p class="uso">cut -d separador -f campos fichero</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de CUT" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de CUT</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>-d ':'</code></td><td>Usar dos puntos como separador de campos; por defecto es el tabulador.</td></tr>
+<tr><td><code>-f 1</code></td><td>Mostrar solo el primer campo.</td></tr>
+<tr><td><code>-f 1,7</code></td><td>Mostrar los campos 1 y 7 en el orden en que aparecen en la línea.</td></tr>
+<tr><td><code>-f 1-3</code></td><td>Mostrar del primer campo al tercero, ambos incluidos.</td></tr>
+<tr><td><code>-f -3</code></td><td>Mostrar desde el primer campo hasta el tercero.</td></tr>
+<tr><td><code>-f 3-</code></td><td>Mostrar desde el tercer campo hasta el final.</td></tr>
+<tr><td><code>-c 1-5,10-15</code></td><td>Seleccionar posiciones de caracteres, sin dividir en campos.</td></tr>
+<tr><td><code>-b 1-5</code></td><td>Seleccionar los primeros cinco bytes; un carácter con tilde puede ocupar varios bytes.</td></tr>
+<tr><td><code>-s</code></td><td>Con <code>-f</code>, omitir las líneas que no tienen el separador.</td></tr>
+<tr><td><code>--complement</code></td><td>Mostrar lo que queda fuera de la selección.</td></tr>
+<tr><td><code>--output-delimiter=';'</code></td><td>Separar los fragmentos de salida con punto y coma.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-d :</code> carácter separador.</li>
     <li><code>-f 1</code> campo 1; <code>-f 1,7</code> varios; <code>-f 1-3</code> un rango.</li>
@@ -986,16 +1130,19 @@ lu ma mi ju vi sá do
 <pre class="sal">root
 daemon
 usuario</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Separa cada línea de /etc/passwd por dos puntos y muestra el primer campo: el nombre de cada cuenta.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1,7 /etc/passwd        <span class="c"># usuario y shell que usa</span></pre>
 <pre class="sal">root:/bin/bash
 daemon:/usr/sbin/nologin
 usuario:/bin/bash</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los campos 1 y 7 de /etc/passwd: nombre de usuario y shell, separados por dos puntos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1 /etc/passwd | <span class="k">wc</span> <span class="f">-l</span></pre>
 <pre class="sal">47</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae los nombres de las cuentas y cuenta sus líneas. Cuenta registros de /etc/passwd, incluidas las cuentas del sistema.</p>
   </div>
 <p class="nota"><code>cut -c 1-5,10-15</code> selecciona posiciones; <code>cut -d ';' -f 1,3</code> campos; <code>-f -3</code> hasta el tercero y <code>-f 3-</code> desde el tercero. <code>cut</code> usa un único carácter separador; para varios espacios consecutivos usa <code>awk</code> o normaliza primero con <code>tr -s</code>. Un CSV con comillas y separadores dentro de campos necesita un lector de CSV.</p>
 </section>
@@ -1014,26 +1161,32 @@ usuario:/bin/bash</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">date</span> +%F</pre>
 <pre class="sal">2026-11-11</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra la fecha actual con el formato año-mes-día, por ejemplo 2026-11-24.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">date</span> +%B</pre>
 <pre class="sal">noviembre</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el nombre completo del mes actual. El idioma depende de la configuración regional.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">date</span> +%d%m%y</pre>
 <pre class="sal">111126</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra día, mes y año de dos cifras, todo seguido y sin separadores: por ejemplo 241126.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">date</span> <span class="f">-d</span> tomorrow +%A</pre>
 <pre class="sal">jueves</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Calcula la fecha de mañana y muestra solo su día de la semana. No cambia el reloj del sistema.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">date</span> <span class="f">-d</span> "4 weeks ago"</pre>
 <pre class="sal">oct 14 10:12:00 CET 2026</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Calcula y muestra la fecha y hora de hace cuatro semanas respecto al momento actual. No modifica el reloj.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">date</span> <span class="f">-d</span> "next friday"</pre>
 <pre class="sal">vie nov 13 00:00:00 CET 2026</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Calcula y muestra la fecha del próximo viernes según GNU date. El resultado depende del día en que lo ejecutes.</p>
   </div>
 </section>
 
@@ -1050,6 +1203,7 @@ usuario:/bin/bash</pre>
 <pre class="sal">S.ficheros     Tamaño Usados Disp Uso% Montado en
 /dev/sda2         20G    6,3G  12G  35% /
 tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el espacio total, usado y disponible de los sistemas de archivos montados. -h presenta los tamaños en unidades fáciles de leer.</p>
   </div>
 </section>
 
@@ -1059,6 +1213,7 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">dirname</span> /home/usuario/fichero1.txt</pre>
 <pre class="sal">/home/usuario</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita el último componente de la ruta y muestra /home/usuario. Solo trabaja con el texto de la ruta; no necesita que exista.</p>
   </div>
 </section>
 
@@ -1076,10 +1231,12 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
 4,0K	./prueba/dir2
 4,0K	./prueba/dir3
 16K	./prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra cuánto espacio en disco ocupa ~/prueba y sus subdirectorios, con tamaños legibles. La última cifra resume toda la carpeta.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">du</span> <span class="f">-sh</span> ~/prueba</pre>
 <pre class="sal">16K	./prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra únicamente el total de espacio ocupado por ~/prueba. -s resume y -h usa unidades legibles.</p>
   </div>
 </section>
 
@@ -1096,21 +1253,43 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "hola" &gt; <span class="k">saludo.txt</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Escribe hola en saludo.txt. Si ya existía, &gt; sustituye su contenido.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> <span class="f">-e</span> "linea1\nlinea2"</pre>
 <pre class="sal">linea1
 linea2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Interpreta \n como un salto de línea gracias a -e y muestra linea1 y linea2 en líneas distintas.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> <span class="f">-n</span> "sin salto" ; <span class="k">echo</span> ""</pre>
 <pre class="sal">sin salto</pre>
+<p class="explicacion"><strong>Qué hace:</strong> El primer echo escribe sin salto final por -n; el segundo añade ese salto. El punto y coma ejecuta ambos en orden.</p>
   </div>
 </section>
 
 <section class="comando tx examen3" id="egrep">
   <h2>egrep <small>expresiones regulares extendidas, como en clase</small><span class="chip">texto</span></h2>
   <p class="uso">egrep [opciones] 'expresión extendida' [fichero…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de EGREP" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de EGREP</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>egrep &#x27;patrón&#x27; fichero</code></td><td>Filtrar con expresiones regulares extendidas; equivale a <code>grep -E</code>, la forma recomendada.</td></tr>
+<tr><td><code>-i</code></td><td>Ignorar mayúsculas y minúsculas.</td></tr>
+<tr><td><code>-n</code></td><td>Mostrar el número de línea.</td></tr>
+<tr><td><code>-v</code></td><td>Mostrar las líneas que no coinciden.</td></tr>
+<tr><td><code>-o</code></td><td>Mostrar solo los fragmentos coincidentes.</td></tr>
+<tr><td><code>-c</code></td><td>Contar líneas coincidentes, aunque contengan varias apariciones.</td></tr>
+<tr><td><code>-x</code></td><td>Exigir que coincida la línea completa.</td></tr>
+<tr><td><code>-r</code></td><td>Buscar también dentro de subcarpetas.</td></tr>
+<tr><td><code>-e patrón</code></td><td>Añadir otro patrón: basta con que coincida cualquiera.</td></tr>
+<tr><td><code>(uno|dos)</code></td><td>Elegir entre alternativas; los paréntesis y <code>|</code> no llevan barra en ERE.</td></tr>
+<tr><td><code>+ · ? · {n}</code></td><td>Una o más repeticiones · cero o una · exactamente n repeticiones.</td></tr>
+</tbody>
+</table>
+</div>
   <p class="lede"><code>egrep</code> equivale a <code>grep -E</code>: interpreta ERE directamente, sin añadir <code>-E</code>. Los grupos <code>()</code>, alternativas <code>|</code> y cuantificadores <code>+</code>, <code>?</code>, <code>{n,m}</code> se escriben sin escapar.</p>
   <ul class="flags">
     <li>Comparación: <code>grep 'a\{3\}'</code> (BRE) = <code>grep -E 'a{3}'</code> = <code>egrep 'a{3}'</code> (ERE).</li>
@@ -1122,26 +1301,31 @@ linea2</pre>
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'error: disco' 'aviso: memoria' 'info: inicio' | egrep '^(error|aviso):'</pre>
 <pre class="sal">error: disco
 aviso: memoria</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Genera tres mensajes y conserva los que empiezan por error: o aviso:. egrep interpreta (error|aviso) como dos alternativas.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 80 389 8080 | egrep '^[0-9]{3}$'</pre>
 <pre class="sal">389</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva solo 389 porque exige exactamente tres dígitos desde el principio hasta el final de la línea.</p>
   </div>
   <h3>IP y MAC de las grabaciones</h3>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'inet 172.22.1.1/24 brd 172.22.1.255' | egrep -o '([0-9]{1,3}\.){3}[0-9]{1,3}'</pre>
 <pre class="sal">172.22.1.1
 172.22.1.255</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae la IP y la dirección de broadcast del texto, una por línea. -o muestra solo las coincidencias; el patrón reconoce su forma, no valida el rango de los octetos.</p>
   </div>
   <p class="nota">En la máquina: <code>ip a | egrep -o '([0-9]{1,3}\.){3}[0-9]{1,3}'</code>. Este patrón reconoce el formato; para exigir octetos entre 0 y 255 consulta la <a href="#s-regex-red">receta IPv4 estricta</a>.</p>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'BC:24:11:BB:6A:A6' 'bc:24:11:bb:6a:a6:ff' | egrep -ix '([0-9a-f]{2}:){5}[0-9a-f]{2}'</pre>
 <pre class="sal">BC:24:11:BB:6A:A6</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva la MAC de seis pares aunque use mayúsculas. -i ignora la caja y -x exige que el patrón abarque toda la línea.</p>
   </div>
   <h3>Excluir comentarios y líneas en blanco</h3>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' '# comentario' '   # otro' '' '   ' 'dato=1' | egrep -v '^[[:space:]]*(#|$)'</pre>
 <pre class="sal">dato=1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descarta comentarios, líneas vacías y líneas que solo tienen espacios. -v invierte el patrón, de modo que queda dato=1.</p>
   </div>
   <p class="nota">Es el nombre antiguo que aparece en las prácticas. Cuando veas <code>grep -E</code> en esta chuleta puedes escribir <code>egrep</code> con el mismo patrón y opciones; por ejemplo, <code>grep -oEi</code> equivale a <code>egrep -oi</code>.</p>
 </section>
@@ -1156,10 +1340,12 @@ aviso: memoria</pre>
 <pre class="sal">/home/usuario/.bashrc: ASCII text
 /dev/ttys0:            character special (5/0)
 /bin/ls:                ELF 64-bit LSB executable, x86-64</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Identifica el tipo de cada ruta por sus características y contenido: texto, dispositivo, ejecutable, etc. Si alguna no existe, lo indica.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> / <span class="f">-type</span> f <span class="f">-user</span> usuario <span class="f">-exec</span> file {} +</pre>
 <pre class="sal">/home/usuario/.bashrc: ASCII text</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Recorre / buscando archivos del usuario usuario y pasa los encontrados a file en grupos. {} representa sus rutas y + reduce el número de ejecuciones.</p>
   </div>
 </section>
 
@@ -1167,8 +1353,32 @@ aviso: memoria</pre>
   <h2>find <small>busca ficheros y directorios</small><span class="chip">búsqueda</span></h2>
   <p class="lede">El buscador del sistema: recorre un árbol de carpetas filtrando por tipo, nombre, tamaño, tiempos, permisos o inodo, y con cada resultado ejecuta lo que pidas.</p>
   <p class="uso">find ruta [criterios] [-a|-o|-not] [acciones: -print -ls -exec -ok]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de FIND" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de FIND</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>-name &#x27;*.txt&#x27;</code></td><td>Buscar por nombre; distingue mayúsculas y minúsculas.</td></tr>
+<tr><td><code>-iname &#x27;*.txt&#x27;</code></td><td>Buscar por nombre ignorando mayúsculas y minúsculas.</td></tr>
+<tr><td><code>-type f</code></td><td>Buscar archivos normales.</td></tr>
+<tr><td><code>-type d</code></td><td>Buscar directorios.</td></tr>
+<tr><td><code>-maxdepth 1</code></td><td>Examinar la ruta inicial y sus hijos directos, sin entrar en subdirectorios.</td></tr>
+<tr><td><code>-size +10M</code></td><td>Tamaño superior a 10 MiB.</td></tr>
+<tr><td><code>-size -10M</code></td><td>Tamaño inferior a 10 MiB según las unidades redondeadas de find; consulta la nota inferior.</td></tr>
+<tr><td><code>-mtime -7</code></td><td>Modificados hace menos de 7 días (bloques de 24 horas).</td></tr>
+<tr><td><code>-empty</code></td><td>Archivos de cero bytes o directorios sin entradas.</td></tr>
+<tr><td><code>-perm 644</code></td><td>Permisos exactamente 644: dueño lee y escribe; grupo y otros leen.</td></tr>
+<tr><td><code>-user usuario</code></td><td>Elementos cuyo propietario es usuario.</td></tr>
+<tr><td><code>-o</code></td><td>OR: basta con cumplir uno de los criterios; agrupa alternativas con <code>\( … \)</code>.</td></tr>
+<tr><td><code>!</code></td><td>Negación: seleccionar lo que no cumple el criterio siguiente.</td></tr>
+<tr><td><code>-exec comando {} \;</code></td><td>Ejecutar un comando por resultado; <code>{}</code> representa su ruta.</td></tr>
+<tr><td><code>-regex &#x27;patrón&#x27;</code></td><td>Buscar mediante una expresión regular que debe coincidir con la ruta completa, no solo con el nombre.</td></tr>
+</tbody>
+</table>
+</div>
+<p class="nota">find redondea el tamaño hacia arriba en la unidad elegida: <code>-size -10M</code> acepta hasta 9 MiB. Para pedir estrictamente menos de 10 MiB en bytes, usa <code>-size -10485760c</code>. En <code>-regex</code> se compara la ruta completa; para ERE, coloca <code>-regextype posix-extended</code> antes de <code>-regex</code>.</p>
   <ul class="flags cols">
-    <li><strong>-name</strong> por nombre (comodines entre comillas). <strong>-user</strong> / <strong>-group</strong> por propietario (nombre o <span class="term">UID</span>/GUID; <code>id</code> te dice los tuyos).</li>
+    <li><strong>-name</strong> por nombre (comodines entre comillas). <strong>-user</strong> / <strong>-group</strong> por propietario o grupo (nombre o <span class="term">UID</span>/GID; <code>id</code> te dice los tuyos).</li>
     <li><strong>Tiempos en días:</strong> <code>-<span class="term">mtime</span></code> (modificación), <code>-<span class="term">atime</span></code> (acceso), <code>-<span class="term">ctime</span></code> (cambio). Ojo, cuentan bloques de 24 h hacia atrás: <code>-mtime 1</code> = entre 24 y 48 horas (no «ayer y hoy») · <code>+1</code> = 48 horas o más · <code>-1</code> = menos de 24 horas.</li>
     <li><strong>Tiempos en minutos:</strong> <code>-mmin</code>, <code>-amin</code>, <code>-cmin</code>.</li>
     <li><strong>-newer ref:</strong> modificados más recientemente que el fichero <code>ref</code>. <code>! -newer ref</code> los no más nuevos. Entre dos: <code>-newer ref1 ! -newer ref2</code>.</li>
@@ -1205,99 +1415,122 @@ aviso: memoria</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /usr/include <span class="f">-name</span> "*.h"</pre>
 <pre class="sal">/usr/include/stdio.h
 /usr/include/stdlib.h</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca bajo /usr/include nombres que terminan en .h. Las comillas dejan que sea find quien interprete el comodín, también en subdirectorios.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> / <span class="f">-type</span> f <span class="f">-user</span> root</pre>
 <pre class="sal">/usr/bin/pwd
 /usr/bin/whoami</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Recorre el sistema desde / y muestra archivos normales cuyo propietario es root. Puede mostrar errores en carpetas a las que no tengas acceso.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /usr/bin <span class="f">-type</span> f <span class="f">-empty</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos normales de cero bytes dentro de /usr/bin y sus subcarpetas. -empty exige que estén vacíos.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-size</span> +5k</pre>
 <pre class="sal">./grande.log</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca desde la carpeta actual elementos cuyo tamaño sea superior a 5 KiB. El punto indica la carpeta actual y k usa bloques de 1024 bytes.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-size</span> 100c</pre>
 <pre class="sal">./vacio</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca elementos que midan exactamente 100 bytes. La c pide bytes, sin redondear a bloques mayores.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-size</span> 0 <span class="f">-type</span> f</pre>
 <pre class="sal">./vacio</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos normales vacíos bajo la carpeta actual. -type f excluye los directorios y -size 0 exige cero bytes.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-name</span> "p*" <span class="f">-type</span> d <span class="f">-print</span></pre>
 <pre class="sal">./prueba
 ./proyectos</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca directorios cuyo nombre empieza por p y muestra sus rutas. -print hace explícita la impresión de resultados.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-user</span> rafa</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos normales propiedad de rafa en la carpeta actual y sus subcarpetas.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-user</span> 1000 <span class="f">-print</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos normales del usuario con identificador 1000 y muestra sus rutas. Aquí se usa el UID numérico en vez del nombre.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-newer</span> referencia1.txt</pre>
 <pre class="sal">./tareas.odp</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca elementos modificados después de referencia1.txt. Compara sus fechas de modificación; el archivo de referencia debe existir.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> ~/ <span class="f">-newermt</span> "1 week ago" <span class="f">-name</span> "*odp"</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca dentro de tu carpeta personal nombres que terminan en odp y se modificaron después de hace una semana. Ese patrón no exige un punto antes de odp.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-newermt</span> "2020-11-01" ! <span class="f">-newermt</span> "2020-11-30" <span class="f">-ls</span></pre>
 <pre class="sal">1179649    4 -rw-r--r--   1 usuario usuario    6 nov 15 08:00 ./nota</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra con detalles elementos modificados después del inicio del 1 de noviembre de 2020 y no después del inicio del día 30. ! niega el segundo límite; no incluye todo el día 30.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-perm</span> 664 <span class="f">-type</span> f</pre>
 <pre class="sal">./fich1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos normales con permisos exactamente 664: dueño y grupo leen y escriben, otros solo leen.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-perm</span> /u+w,g+w <span class="f">-type</span> d</pre>
 <pre class="sal">./prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca directorios donde el dueño o el grupo tengan escritura. La barra de -perm /... exige que esté presente al menos uno de esos permisos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f \( <span class="f">-name</span> "*.jpg" <span class="f">-o</span> <span class="f">-name</span> "*.png" \) <span class="f">-print</span></pre>
 <pre class="sal">./foto.jpg
 ./logo.png</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos normales con nombre terminado en .jpg o .png. Los paréntesis escapados agrupan las dos alternativas para que -type f se aplique a ambas.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ln</span> Prueba hardlinkaPrueba; <span class="k">ls</span> <span class="f">-li</span> Prueba hardlinkaPrueba</pre>
 <pre class="sal">82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 Prueba
 82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 hardlinkaPrueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea hardlinkaPrueba como otro nombre del mismo archivo Prueba y muestra los inodos. Los dos nombres comparten datos y número de inodo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-inum</span> 82954 <span class="f">-ls</span></pre>
 <pre class="sal">82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 ./Prueba
 82954 4 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 ./hardlinkaPrueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca las rutas con inodo 82954 y muestra sus detalles. Permite localizar los enlaces duros de ese archivo dentro del árbol recorrido.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" <span class="f">-exec</span> rm <span class="f">-f</span> {} \;</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Borra sin preguntar cada archivo normal acabado en .jpg que encuentre bajo la carpeta actual. {} se sustituye por una ruta y \; termina la acción; rm no usa papelera.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" <span class="f">-ok</span> rm <span class="f">-f</span> {} \;</pre>
 <pre class="sal">&lt; rm … ./foto.jpg &gt; ? y</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca los mismos .jpg, pero pregunta antes de ejecutar rm para cada resultado. -ok permite decidir cada borrado.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">time</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" <span class="f">-exec</span> rm <span class="f">-f</span> {} \;</pre>
 <pre class="sal">real 0m0.012s</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Realiza ese borrado de .jpg y mide cuánto tarda. time informa del tiempo; no convierte el comando en una simulación.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /noexiste <span class="f">-type</span> d 2&gt; <span class="k">malos</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta buscar directorios en /noexiste y escribe el error en malos. 2&gt; redirige únicamente los errores y sustituye el contenido anterior.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> ~ <span class="f">-type</span> d &gt; <span class="k">direc</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca directorios en tu carpeta personal y guarda sus rutas en direc. &gt; reemplaza el contenido previo; los errores siguen en pantalla.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /etc <span class="f">-type</span> f 1&gt;&gt; <span class="k">direc</span> 2&gt;&gt; <span class="k">malos</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos bajo /etc y añade sus rutas a direc y los errores a malos. Los dos &gt;&gt; conservan el contenido anterior de los archivos.</p>
   </div>
 </section>
 
@@ -1311,11 +1544,13 @@ aviso: memoria</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt</span> install foremost <span class="f">-y</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Instala foremost con permisos de administrador y acepta las preguntas de apt automáticamente.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">foremost</span> <span class="f">-o</span> recuperado imagen.dd</pre>
 <pre class="sal">Processing: imagen.dd
 |*jpg/ |*pdf/ |*odt/</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Examina imagen.dd buscando archivos recuperables y los guarda en recuperado. Trabaja sobre esa imagen de disco; la carpeta de salida debe ser nueva o estar vacía.</p>
   </div>
 </section>
 
@@ -1324,7 +1559,8 @@ aviso: memoria</pre>
 <p class="lede">Selecciona líneas de un fichero o de la salida de otro comando. Sin fichero lee la entrada estándar. Para consultar un fichero usa <code>grep patrón fichero</code>; para un flujo, <code>comando | grep patrón</code>.</p>
 <p class="uso">grep [opciones] [-E|-F|-P] -e 'patrón' [fichero…]</p>
 <div class="tabla-scroll" role="region" aria-label="Opciones de grep para el examen" tabindex="0">
-<table>
+<table class="chuleta-resumen">
+<caption>Chuleta de GREP</caption>
 <thead><tr><th scope="col">Opción</th><th scope="col">Qué devuelve</th></tr></thead>
 <tbody>
 <tr><td><code>-i</code> · <code>--color=auto</code></td><td>Ignorar mayúsculas / resaltar coincidencias.</td></tr>
@@ -1346,50 +1582,60 @@ aviso: memoria</pre>
 <pre class="sal">1:lunes
 2:Lima
 4:luces</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva las líneas que empiezan por l o L y añade su número. -i ignora mayúsculas, -n numera y ^ fija el principio.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'ip ip' ip nada | grep -c ip</pre>
 <pre class="sal">2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta las líneas que contienen ip: hay dos, aunque la primera lo contiene dos veces. -c cuenta líneas, no apariciones.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'ip ip' ip nada | grep -o ip | wc -l</pre>
 <pre class="sal">3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae cada aparición de ip por separado y cuenta esas salidas: hay tres. Combinar -o y wc -l permite contar apariciones.</p>
 </div>
 <p class="nota">Tres coincidencias repartidas entre dos líneas.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -E '^Package:|^Version:' paquete.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las líneas de paquete.txt que empiezan por Package: o Version:. -E activa las alternativas de la expresión regular.</p>
 </div>
 <p class="nota">OR: también <code>grep -e '^Package:' -e '^Version:' paquete.txt</code> o, en BRE, <code>grep '^Package:\|^Version:' paquete.txt</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep '^deb' sources.list | grep 'main'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Primero conserva líneas que empiezan por deb y después, entre esas, las que contienen main. La tubería exige que pasen ambos filtros.</p>
 </div>
 <p class="nota">AND sin importar qué texto aparece entre ambos. <code>grep '^deb.*main'</code> exige ese orden; para dos palabras en cualquier orden usa dos grep.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -Ev '^[[:space:]]*(#|$)' config.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra solo las líneas activas de config.txt: elimina comentarios con posibles espacios iniciales y líneas vacías o compuestas solo de blancos.</p>
 </div>
 <p class="nota">Quita comentarios con posible sangría y líneas en blanco. La opción <code>-v</code> niega la selección completa.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -n -e '-backports' -e '-security' sources.list</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca -backports o -security en sources.list y numera las líneas. Cada -e introduce un patrón, aunque empiece por un guion.</p>
 </div>
 <p class="nota"><code>-e</code> protege patrones que empiezan por guion. Para un solo literal: <code>grep -F -- '-security' sources.list</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -rin --include='*.conf' -- 'os_prober' /etc 2&gt;/dev/null</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca os_prober en archivos .conf de /etc y sus subcarpetas, sin distinguir mayúsculas, y numera las líneas. Oculta los errores de acceso con 2&gt;/dev/null.</p>
 </div>
 <p class="nota">Busca dentro de los ficheros de configuración. <code>2&gt;/dev/null</code> oculta errores de acceso; no los convierte en ausencia de coincidencias.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' error aviso | grep -q error
 <span class="d">$</span> echo $?</pre>
 <pre class="sal">0</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca error sin imprimir coincidencias por -q y después muestra el código de salida. Aquí es 0 porque lo encuentra; 1 indicaría ausencia y 2 un error de grep.</p>
 </div>
 <p class="nota">Códigos: <code>0</code> encontró, <code>1</code> no encontró, <code>2</code> hubo un error. Consulta <code>$?</code> inmediatamente después de grep.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ip a | grep -oE -f criterios.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee los patrones de criterios.txt y extrae de ip a los fragmentos que coincidan con cualquiera. -E activa regex extendidas y -o devuelve solo esos fragmentos.</p>
 </div>
 <p class="nota"><code>criterios.txt</code>: un patrón por línea, por ejemplo IPv4 y MAC del apartado de <a href="#s-regex-red">recetas de clase</a>. No pongas líneas vacías: un patrón vacío coincide en todas las líneas (y <code>-o</code> omite coincidencias vacías).</p>
 <p class="nota">Más ejemplos aplicados a <code>/etc/services</code>, <code>apt</code> y <code>man tar</code> en <a href="#s-recetas">Ejercicios resueltos</a>. Para distinguir sintaxis consulta la <a class="examen3" href="#s-regex">tabla BRE/ERE</a>.</p>
@@ -1407,20 +1653,24 @@ aviso: memoria</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">gzip</span> <span class="f">-k</span> documento.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprime documento.txt en documento.txt.gz conservando el original gracias a -k.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> documento.txt*</pre>
 <pre class="sal">documento.txt  documento.txt.gz</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista los nombres que empiezan por documento.txt para comprobar el original y el archivo .gz.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">gunzip</span> documento.txt.gz</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descomprime documento.txt.gz y elimina el .gz si termina bien. Si el original sigue existiendo por -k, pedirá confirmación para sobrescribirlo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-czvf</span> copia.tar.gz documentos/</pre>
 <pre class="sal">documentos/
 documentos/documento1.txt
 documentos/documento2.odt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Agrupa documentos/ y sus subcarpetas en copia.tar.gz y comprime con gzip. -c crea, -z comprime, -v muestra entradas y -f nombra el archivo.</p>
   </div>
 </section>
 
@@ -1439,6 +1689,7 @@ documentos/documento2.odt</pre>
 <pre class="sal">root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las tres primeras líneas de /etc/passwd. -n 3 limita la salida a tres líneas.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> | <span class="k">head</span> <span class="f">-n</span> 5</pre>
@@ -1447,6 +1698,7 @@ A2.txt
 B1.txt
 B2.txt
 C1.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista la carpeta actual y se queda con las cinco primeras líneas del listado. No incluye los nombres ocultos salvo que se pida a ls.</p>
   </div>
 </section>
 
@@ -1473,39 +1725,48 @@ C1.txt</pre>
 <pre class="sal">  11  ls -l
   12  cd prueba
   13  history 3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las tres entradas más recientes del historial de esta shell junto con sus números.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> $HISTFILE</pre>
 <pre class="sal">/home/usuario/.bash_history</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra la ruta del archivo donde Bash guarda el historial. Normalmente es ~/.bash_history.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">apt</span> install ncal         <span class="c"># olvide el sudo…</span>
 E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <pre class="sal"><span class="e">E: No se pudo abrir el archivo de bloqueo - ¿root?</span></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta instalar ncal sin sudo. En una sesión de usuario normal falla porque apt necesita permisos de administrador.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> !!                  <span class="c"># repite el anterior con sudo delante</span></pre>
 <pre class="sal">sudo apt install ncal</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Recupera el comando anterior y le antepone sudo. En este caso vuelve a intentar apt install ncal con permisos de administrador.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> fich1.txt</pre>
 <pre class="sal">fich1.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista fich1.txt para comprobar si existe y preparar el comando que se retocará después.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ^txt^log                 <span class="c"># ls fich1.log</span></pre>
 <pre class="sal">ls fich1.log</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Repite el último comando sustituyendo la primera aparición de txt por log. Así, ls fich1.txt pasa a ser ls fich1.log.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cd</span> /etc</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cambia a /etc y deja esa ruta como último argumento del comando más reciente.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> !$                  <span class="c"># el último argumento: /etc</span></pre>
 <pre class="sal">/etc</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el último argumento del comando anterior. Después de cd /etc imprime /etc.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> !ls                      <span class="c"># re-ejecuta el último que empezó por ls</span></pre>
 <pre class="sal">fich1.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca en el historial el último comando que empieza por ls y lo vuelve a ejecutar. No se limita a mostrarlo.</p>
   </div>
 </section>
 
@@ -1520,6 +1781,7 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sudo</span> <span class="k">apt-get</span> update &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> install htop <span class="f">-y</span> &amp;&amp; <span class="k">sudo</span> <span class="k">apt-get</span> clean</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Actualiza la lista de paquetes, instala htop y limpia la caché de descargas. Cada &amp;&amp; continúa únicamente si el paso anterior termina bien.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">htop</span></pre>
@@ -1528,6 +1790,7 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 [|Main 8.3%] Uptime: 01:12:44
     PID USER      CPU% MEM%   TIME+  COMMAND
    2143 usuario    0.7  0.3  0:01.12 bash</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre el visor interactivo de procesos para consultar consumo de CPU, memoria y programas en ejecución. Puedes salir con F10 o q.</p>
   </div>
 </section>
 
@@ -1541,6 +1804,7 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">hwclock</span></pre>
 <pre class="sal">2026-11-11 10:12:04.123456+01:00</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta la fecha y hora del reloj de hardware del equipo. No lo cambia y puede requerir permisos de administrador.</p>
   </div>
 </section>
 
@@ -1557,10 +1821,12 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">id</span></pre>
 <pre class="sal">uid=1000(usuario) gid=1000(usuario) grupos=1000(usuario),24(cdrom),27(sudo)</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra tu identificador de usuario (UID), grupo principal (GID) y los grupos a los que perteneces.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">id</span> <span class="f">-u</span></pre>
 <pre class="sal">1000</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra solo tu UID numérico. -u omite los nombres y la información de grupos.</p>
   </div>
 </section>
 
@@ -1572,6 +1838,7 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> join -t: -1 1 -2 1 usuarios-ordenados.txt grupos-ordenados.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Une las líneas de ambos archivos que tengan el mismo primer campo, separado por dos puntos. Deben estar ordenados por esa clave; por defecto solo muestra las parejas encontradas.</p>
 </div>
 <p class="nota">Si la clave está en el primer campo: prepara ambos con <code>sort -t: -k1,1</code>. No se detiene por una clave sin pareja; por defecto omite esas líneas.</p>
 </section>
@@ -1581,15 +1848,41 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <section class="comando tx examen3" id="less">
   <h2>less / more <small>leer por páginas y buscar dentro del texto</small><span class="chip">texto</span></h2>
 <p class="uso">less [-N] [-S] fichero</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de LESS y MORE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de LESS y MORE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>less fichero</code></td><td>Leer un archivo por páginas y moverse hacia delante o atrás.</td></tr>
+<tr><td><code>more fichero</code></td><td>Leer por páginas con el visor more; <code>Espacio</code> avanza y <code>q</code> sale.</td></tr>
+<tr><td><code>less -N fichero</code></td><td>Mostrar números de línea en less.</td></tr>
+<tr><td><code>less -S fichero</code></td><td>No partir las líneas largas; recorrerlas con flechas horizontales.</td></tr>
+<tr><td><code>Espacio · Enter</code></td><td>Avanzar una página · avanzar una línea en ambos visores.</td></tr>
+<tr><td><code>b</code></td><td>Retroceder una página en less; en more puede depender de que se esté leyendo un archivo y de la versión.</td></tr>
+<tr><td><code>g · G</code></td><td>En less, ir al principio · ir al final.</td></tr>
+<tr><td><code>/patrón · ?patrón</code></td><td>En less, buscar hacia delante · buscar hacia atrás.</td></tr>
+<tr><td><code>n · N</code></td><td>En less, repetir la búsqueda en la misma dirección · en la contraria.</td></tr>
+<tr><td><code>q</code></td><td>Salir del visor sin modificar el archivo.</td></tr>
+</tbody>
+</table>
+</div>
 <ul class="flags"><li><code>-N</code> números de línea; <code>-S</code> corta las líneas largas en pantalla (flechas para desplazarte).</li><li><kbd>Espacio</kbd> / <kbd>b</kbd>: página adelante / atrás. <kbd>Enter</kbd>: una línea. <kbd>g</kbd> / <kbd>G</kbd>: inicio / final. <kbd>q</kbd>: salir.</li><li><code>/patrón</code> busca hacia delante, <code>?patrón</code> hacia atrás. <kbd>n</kbd> repite la búsqueda en la misma dirección; <kbd>N</kbd> en la contraria. Admite regex.</li><li><kbd>v</kbd> abre el editor configurado; el manual y los ficheros se pueden recorrer sin volcarlos enteros.</li></ul>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> less -N /etc/services</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre /etc/services para leerlo por páginas con números de línea. Usa / para buscar, n para la siguiente coincidencia y q para salir.</p>
 </div>
 <p class="nota">Dentro de less escribe <code>/[[:blank:]]389/</code>, pulsa Enter y después <kbd>n</kbd> para continuar. En el manual: <code>man tar</code>, busca <code>/--create</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ip a | less -S</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre la salida de ip a en un visor. -S mantiene cada línea larga en una sola fila y permite recorrerla con las flechas horizontales.</p>
+</div>
+
+<div class="ej">
+<pre class="cmd"><span class="d">$</span> more /etc/services</pre>
+<pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre /etc/services en more para leerlo por páginas. Pulsa Espacio para avanzar, Enter para una línea y q para salir.</p>
 </div>
 </section>
 
@@ -1605,29 +1898,35 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ln</span> <span class="f">-s</span> dir1 dir3/enlacedir1</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea dentro de dir3 un enlace llamado enlacedir1 cuyo destino literal es dir1. Al ser una ruta relativa, apunta a dir3/dir1; si querías el dir1 vecino, usa ../dir1 como destino.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> dir3</pre>
 <pre class="sal">total 0
 lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los detalles de dir3. Los enlaces simbólicos aparecen con una flecha seguida de la ruta que guardan, exista o no ese destino.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ln</span> prueba/dir1/fich1 prueba/dir1/enlace</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea enlace como otro nombre del mismo archivo fich1. Es un enlace duro: ambos nombres comparten los datos y los permisos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-li</span> prueba/dir1</pre>
 <pre class="sal">total 8
 82954 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 enlace
 82954 -rw-r--r-- 2 usuario usuario 6 nov 11 10:12 fich1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista los detalles y el inodo de las entradas de prueba/dir1. Los enlaces duros al mismo archivo tienen el mismo número de inodo.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ln</span> <span class="f">-s</span> prueba/dir2/enlace prueba/dir1/enlafich1</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea enlafich1 con el destino literal prueba/dir2/enlace. Al ser relativo, se busca desde prueba/dir1; para apuntar al dir2 vecino el destino sería ../dir2/enlace.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> prueba/dir1/enlafich1     <span class="c"># lee a través del enlace</span></pre>
 <pre class="sal">hola</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Intenta leer el destino de enlafich1. Solo muestra contenido si la cadena de enlaces lleva a un archivo existente; con el destino relativo anterior puede fallar.</p>
   </div>
 </section>
 
@@ -1643,39 +1942,45 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">updatedb</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Actualiza la base de datos que consulta locate. Suele requerir permisos de administrador; los cambios recientes no aparecen hasta actualizarla.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">locate</span> passwd</pre>
 <pre class="sal">/etc/passwd
 /etc/passwd-
 /etc/pam.d/passwd</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca rutas que contengan passwd en esa base de datos. Es rápido porque no recorre el disco en ese momento.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">locate</span> <span class="f">-c</span> "*.mp3"</pre>
 <pre class="sal">17</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta las rutas de la base de datos que coinciden con *.mp3, en vez de mostrar cada una.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">locate</span> --regex 'bin/wc$'</pre>
 <pre class="sal">/usr/bin/wc</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca en la base de datos rutas que terminen en bin/wc. --regex interpreta el patrón como expresión regular y $ fija el final.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">locate</span> <span class="f">-i</span> "motd"</pre>
 <pre class="sal">/etc/motd</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca rutas que contengan motd sin distinguir mayúsculas de minúsculas.</p>
   </div>
 </section>
 
 <section class="comando pr" id="lsof">
   <h2>lsof <small>ficheros abiertos por los procesos</small><span class="chip">procesos</span></h2>
-  <p class="uso">lsof [-p PID] [-d fd] [fichero]</p>
+  <p class="uso">lsof [-a] [-p PID] [-d fd] [fichero]</p>
   <ul class="flags">
     <li>Lista <strong>todo fichero abierto</strong>: ficheros normales, tuberías, sockets y /dev.</li>
     <li><code>lsof /var/log/syslog</code> quién tiene abierto ese fichero · <code>lsof -p 4565</code> todo lo que tiene abierto ese proceso.</li>
-    <li><code>lsof -p 4565 -d 5</code> solo el canal (descriptor) 5: dónde quedó conectado un <code>exec 5&gt; tuberia</code>.</li>
+    <li><code>lsof -a -p 4565 -d 5</code> solo el canal (descriptor) 5 de ese proceso: dónde quedó conectado un <code>exec 5&gt; tuberia</code>. <code>-a</code> exige cumplir ambos filtros; sin él se combinan con OR.</li>
   </ul>
   <div class="ej">
-<pre class="cmd"><span class="d">$</span> <span class="k">lsof</span> <span class="f">-p</span> 4565 <span class="f">-d</span> 5</pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">lsof</span> <span class="f">-a</span> <span class="f">-p</span> 4565 <span class="f">-d</span> 5</pre>
 <pre class="sal">COMMAND  PID    USER  FD  TYPE DEVICE SIZE/OFF NODE NAME
 bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta el descriptor 5 del proceso 4565 para identificar el archivo o recurso abierto. -a exige que se cumplan tanto el filtro de proceso (-p) como el de descriptor (-d); puede requerir permisos para verlo.</p>
   </div>
 </section>
 
@@ -1696,6 +2001,7 @@ bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> /bin/u*</pre>
 <pre class="sal">-rwsr-xr-x 1 root root 97536 feb 13  2024 /bin/umount
 -rwxr-xr-x 1 root root 35344 mar  1  2024 /bin/uname</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra en formato detallado las rutas de /bin cuyo nombre empieza por u. Si una coincidencia es un directorio, ls puede listar su contenido.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-liha</span> ~</pre>
@@ -1705,27 +2011,33 @@ bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
 651103 -rw------- 1 usuario usuario  2,2K nov 11 10:12 .bash_history
 640933 -rw-r--r-- 1 usuario usuario   220 oct 28 09:00 .bashrc
 641001 drwxr-xr-x 4 usuario usuario 4,0K nov 11 10:12 prueba</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista tu carpeta personal con ocultos, detalles, inodos y tamaños legibles. Combina -l, -i, -h y -a en una sola opción.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-d</span> */</pre>
 <pre class="sal">dir1/  dir2/  dir3/</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los directorios visibles que coinciden con */ sin entrar a listar su contenido. -d trata cada carpeta como una entrada.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-ld</span> prueba/dir2     <span class="c"># la carpeta en sí, con formato largo</span></pre>
 <pre class="sal">drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 prueba/dir2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los permisos y datos de prueba/dir2 como carpeta. -d evita listar los archivos que contiene.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> /dev/tt*</pre>
 <pre class="sal">crw--w---- 1 root tty  4,0 nov 11 09:00 /dev/tty0
 crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista con detalles las entradas de /dev cuyo nombre empieza por tt, incluidos los dispositivos de terminal que coincidan.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-r</span> /etc/t*      <span class="c"># los /etc/t… en orden inverso</span></pre>
 <pre class="sal">tmpfiles.d  timezone  terminfo</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista las rutas de /etc que empiezan por t en orden inverso. -r invierte el orden habitual de ls.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> /dev/tty2    <span class="c"># ¿existe? ¿cuándo se actualizó?</span></pre>
 <pre class="sal">crw--w---- 1 root tty 4,2 nov 11 09:00 /dev/tty2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta los datos y permisos del dispositivo /dev/tty2. Si no existe, ls muestra un error.</p>
   </div>
 </section>
 
@@ -1743,6 +2055,7 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">md5sum</span> fich1 fich2</pre>
 <pre class="sal">d41d8cd98f00b204e9800998ecf8427e  fich1
 3f2a9db5c11a4bb89a7f5f0a9a0e2a1d  fich2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Calcula una huella MD5 para fich1 y otra para fich2. Sirve para comparar su contenido; dos nombres distintos pueden tener la misma huella si contienen lo mismo.</p>
   </div>
 </section>
 
@@ -1756,14 +2069,17 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> <span class="f">-p</span> dir3/dir31/dir311 dir3/dir31/dir312</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea dir311 y dir312 dentro de dir3/dir31. -p crea también las carpetas intermedias que falten y acepta las que ya existan.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> ../correo/menus     <span class="c"># sin moverte del directorio actual</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea menus dentro de correo en la carpeta superior. .. sube un nivel; como no lleva -p, correo debe existir.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> <span class="f">-m</span> 700 carpeta1</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea carpeta1 con permisos 700: solo su dueño puede leerla, escribir en ella y entrar.</p>
   </div>
 </section>
 
@@ -1777,18 +2093,22 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkfifo</span> tuberia</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea una tubería con nombre llamada tuberia. Es un canal de comunicación entre procesos, no un archivo de texto corriente.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> tuberia</pre>
 <pre class="sal">prw-r--r-- 1 usuario usuario 0 nov 11 10:12 tuberia</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprueba el tipo y los permisos de tuberia. La p inicial de ls -l indica que es una FIFO.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> hola &gt; <span class="k">tuberia</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Envía hola a la FIFO. El comando puede quedarse esperando hasta que otro proceso abra tuberia para leer; usa otra terminal para el siguiente ejemplo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> tuberia</pre>
 <pre class="sal">hola</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee la FIFO y muestra hola cuando haya un escritor. Al terminar la escritura, cat recibe el fin de entrada; los datos no quedan guardados como en un archivo normal.</p>
   </div>
 </section>
 
@@ -1803,14 +2123,17 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mv</span> dir31 dir2/           <span class="c"># mueve dir31 debajo de dir2</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Mueve dir31 y su contenido dentro de dir2/, que debe existir. La ruta final será dir2/dir31.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mv</span> mensaje .mensaje      <span class="c"># ocultarlo: nombre que empieza por punto</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Renombra mensaje como .mensaje. El punto inicial hace que los listados habituales lo oculten; ls -a permite verlo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mv</span> fich1 fich2</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Renombra fich1 a fich2 si fich2 no es una carpeta. Si ya existe un archivo fich2, mv puede sobrescribirlo.</p>
   </div>
 </section>
 
@@ -1834,6 +2157,7 @@ vi  2  9 16 23 30
 sá  3 10 17 24 31
 do  4 11 18 25
    40 41 42 43 44</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el calendario de octubre de 2026 con el formato de ncal e incluye los números de semana gracias a -w.</p>
   </div>
 </section>
 
@@ -1849,10 +2173,12 @@ do  4 11 18 25
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">nano</span> <span class="f">-l</span> guion.sh        <span class="c"># escribes el guion y lo guardas</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre guion.sh en el editor nano mostrando números de línea. Guarda con Ctrl+O y sal con Ctrl+X para poder ejecutarlo después.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">bash</span> guion.sh</pre>
 <pre class="sal">hola desde el guion</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ejecuta con Bash las instrucciones guardadas en guion.sh. No necesita permiso de ejecución porque se lo pasas al intérprete.</p>
   </div>
 </section>
 
@@ -1862,6 +2188,7 @@ do  4 11 18 25
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> nl -b a texto.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra texto.txt numerando todas las líneas, incluidas las vacías. -b a pide numeración para todas.</p>
 </div>
 </section>
 
@@ -1873,6 +2200,7 @@ do  4 11 18 25
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf 'a\tb\n' | cat -A</pre>
 <pre class="sal">a^Ib$</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Genera una a, un tabulador, una b y un salto de línea. cat -A hace visibles el tabulador como ^I y el final de línea como $; aquí no se está ejecutando od.</p>
 </div>
 </section>
 
@@ -1884,6 +2212,7 @@ do  4 11 18 25
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> paste -d ';' nombres.txt notas.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Une en una fila la línea correspondiente de nombres.txt y notas.txt, con un punto y coma entre ambas. No compara claves: empareja por posición.</p>
 </div>
 <p class="nota">Si contienen <code>Ana</code>/<code>Luis</code> y <code>8</code>/<code>9</code>, devuelve <code>Ana;8</code> y <code>Luis;9</code>.</p>
 </section>
@@ -1894,6 +2223,7 @@ do  4 11 18 25
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf 'Usuario: %s\tNota: %d\n' Ana 8</pre>
 <pre class="sal">Usuario: Ana	Nota: 8</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra Usuario: Ana, un tabulador y Nota: 8, seguido de un salto de línea. %s recibe texto y %d un número entero; \t y \n controlan el formato.</p>
 </div>
 </section>
 
@@ -1910,12 +2240,14 @@ do  4 11 18 25
 <pre class="sal">    PID TTY          TIME CMD
    2143 pts/0    00:00:00 bash
    2201 pts/0    00:00:00 ps</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Obtiene los procesos de la terminal actual y ordena numéricamente sus líneas por el principio, donde está el PID. La cabecera también participa en la ordenación.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ps</span> aux | <span class="k">head</span> <span class="f">-n</span> 3</pre>
 <pre class="sal">USER   PID %CPU %MEM    VSZ   RSS TTY  STAT START  TIME COMMAND
 root     1  0.0  0.1 166572  6848 ?    Ss   09:00  0:01 /sbin/init
 root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Obtiene una lista amplia de procesos y muestra sus tres primeras líneas: normalmente la cabecera y dos procesos. No selecciona los que más recursos consumen.</p>
   </div>
 </section>
 
@@ -1925,10 +2257,12 @@ root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cd</span> prueba/dir3; <span class="k">pwd</span></pre>
 <pre class="sal">/home/usuario/prueba/dir3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Entra en prueba/dir3 y muestra la ruta actual. Como hay ;, pwd se ejecuta incluso si no se pudo cambiar de carpeta.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">type</span> pwd</pre>
 <pre class="sal">pwd es una orden interna del interprete</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Indica cómo resuelve la shell el nombre pwd. En Bash normalmente es un comando interno, aunque también pueda existir /usr/bin/pwd.</p>
   </div>
 </section>
 
@@ -1946,10 +2280,12 @@ root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
 <pre class="sal">RAR 7.00   Copyright ...
 Creating archive comprimido.rar
 Add  documentos/documento1.txt  OK</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Añade documentos/ al archivo comprimido.rar. Para incluir de forma recursiva todo el contenido de la carpeta en RAR, añade -r al comando.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">unrar</span> x comprimido.rar</pre>
 <pre class="sal">Extracting  documentos/documento1.txt  OK</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae comprimido.rar en la carpeta actual manteniendo su estructura interna de directorios.</p>
   </div>
 </section>
 
@@ -1963,10 +2299,12 @@ Add  documentos/documento1.txt  OK</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">readlink</span> dir3/enlacedir1</pre>
 <pre class="sal">dir1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra la ruta literal guardada dentro de enlacedir1. No muestra el contenido del destino ni convierte necesariamente la ruta en absoluta.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">readlink</span> <span class="f">-f</span> dir3/enlacedir1</pre>
 <pre class="sal">/home/usuario/prueba/dir1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Resuelve los enlaces y muestra la ruta absoluta normalizada del destino. La resolución puede fallar si faltan componentes intermedios de la ruta.</p>
   </div>
 </section>
 
@@ -1974,20 +2312,39 @@ Add  documentos/documento1.txt  OK</pre>
   <h2>rename <small>renombrar varios ficheros mediante patrones</small><span class="chip">ficheros</span></h2>
 <p class="lede">En el <strong>rename de Perl</strong> de las prácticas, <code>s/patrón/reemplazo/</code> cambia los nombres de los ficheros. Usa <code>rename --help</code> para identificar la variante instalada.</p>
 <p class="uso">rename [-n] [-v] 's/patrón/reemplazo/[g][i]' ./ficheros…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de RENAME (Perl)" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de RENAME (Perl)</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>-n</code></td><td>Simular los cambios sin renombrar ningún archivo.</td></tr>
+<tr><td><code>-v</code></td><td>Mostrar los nombres que se cambian al aplicar la expresión.</td></tr>
+<tr><td><code>-d</code></td><td>Aplicar la expresión solo al nombre, sin cambiar la parte de carpetas de la ruta.</td></tr>
+<tr><td><code>s/antes/después/</code></td><td>Sustituir la primera coincidencia en cada nombre; no cambia el contenido.</td></tr>
+<tr><td><code>s/antes/después/g</code></td><td>Sustituir todas las coincidencias de cada nombre.</td></tr>
+<tr><td><code>s/antes/después/i</code></td><td>Buscar sin distinguir mayúsculas y minúsculas.</td></tr>
+<tr><td><code>s/\.txt$/.md/</code></td><td>Cambiar la extensión final .txt por .md; <code>\.</code> es un punto literal.</td></tr>
+<tr><td><code>--help</code></td><td>Consultar la variante instalada: la sintaxis de Perl difiere de rename.ul.</td></tr>
+</tbody>
+</table>
+</div>
 <ul class="flags"><li><code>-n</code> muestra lo que haría sin renombrar; <code>-v</code> muestra los cambios al aplicarlos. <code>-d</code> limita el cambio al nombre, sin tocar las carpetas de la ruta.</li><li><code>s/…/…/</code> es una expresión, <strong>no una opción <code>-s</code></strong>. En <code>rename.ul</code> (util-linux), <code>-s</code> actúa sobre el destino de enlaces simbólicos y la sintaxis es diferente: <code>rename.ul antes después ficheros…</code>.</li><li><code>g</code> cambia todas las coincidencias de un nombre; <code>i</code> ignora mayúsculas. <code>$</code> limita el patrón al final del nombre.</li></ul>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> rename -n 's/\.txt$/.md/' ./apuntes.txt</pre>
 <pre class="sal">rename(./apuntes.txt, ./apuntes.md)</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Simula cambiar apuntes.txt a apuntes.md. \.txt$ exige la extensión al final y -n muestra el cambio sin aplicarlo.</p>
 </div>
 <p class="nota">Primero simulación; para aplicar, cambia <code>-n</code> por <code>-v</code>. Requiere que exista <code>apuntes.txt</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> rename -n 's/[[:blank:]]+/_/g' ./*</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Simula sustituir cada grupo de espacios o tabuladores de los nombres visibles por _. g repite el cambio en todo el nombre; no modifica el contenido de los archivos.</p>
 </div>
 <p class="nota">Sustituye grupos de espacios/tabuladores de los nombres por guiones bajos; no modifica el contenido.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> rename -n 's/-[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}$//' ./fich*</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Simula quitar un guion seguido de un UUID completo al final de los nombres fich*. Los grupos hexadecimales tienen tamaños 8-4-4-4-12; -n evita renombrar todavía.</p>
 </div>
 <p class="nota">Ejercicio de la captura: <code>fich01-b7c8931d-bfec-4e90-b5a8-3f878104255d</code> pasaría a <code>fich01</code>. El guion y UUID completos deben estar al final.</p>
 </section>
@@ -2007,18 +2364,22 @@ Add  documentos/documento1.txt  OK</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">rm</span> <span class="f">-r</span> dir1</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Borra dir1 y todo su contenido, incluidas las subcarpetas, gracias a -r. No lo envía a una papelera.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">rm</span> <span class="f">-r</span> ../fuentes/dir2 ../fuentes/dir3</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Borra recursivamente dir2 y dir3 dentro de ../fuentes. Las rutas parten de la carpeta superior a la actual.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">rm</span> fich$i.txt        <span class="c"># dentro de un for</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Borra el archivo cuyo nombre se obtiene al sustituir $i. Por ejemplo, si i vale 3, intenta borrar fich3.txt; se usa dentro de un bucle.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">rm</span> fich[a-z].txt</pre>
 <pre class="sal"><span class="e">rm: no se puede eliminar 'fich[a-z].txt': No existe el archivo o el directorio</span></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Borra archivos llamados ficha.txt, fichb.txt, etc., con una sola letra entre a y z después de fich. El comodín no incluye fichab.txt.</p>
   </div>
 </section>
 
@@ -2032,10 +2393,12 @@ Add  documentos/documento1.txt  OK</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">rmdir</span> dir1</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Elimina dir1 solo si está vacío. Si contiene archivos o subdirectorios, rmdir falla y lo conserva.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">rmdir</span> <span class="f">-p</span> dir3/dir31/dir311</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Elimina dir311 y después intenta quitar dir31 y dir3. -p sube por los padres; cada carpeta debe estar vacía para poder borrarla.</p>
   </div>
 </section>
 
@@ -2053,19 +2416,23 @@ Add  documentos/documento1.txt  OK</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">scp</span> fichero.txt usuario@servidor:/home/usuario/     <span class="c"># local → remoto</span></pre>
 <pre class="sal">fichero.txt     100%  1234    45.2KB/s   00:00</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia fichero.txt desde tu equipo a /home/usuario/ del servidor, autenticándote como usuario.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">scp</span> usuario@servidor:/etc/motd .                   <span class="c"># remoto → local</span></pre>
 <pre class="sal">motd            100%    42    12.0KB/s   00:00</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descarga /etc/motd del servidor a la carpeta local actual. El punto final es el destino local.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">scp</span> <span class="f">-r</span> carpeta/ usuario@servidor:/tmp/</pre>
 <pre class="sal">fich1.txt       100%  1234    40.1KB/s   00:00
 fich2.txt       100%  5678    38.5KB/s   00:00</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia carpeta/ con todo su contenido al directorio /tmp/ remoto. -r incluye las subcarpetas.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">scp</span> <span class="f">-P</span> 2222 fichero.txt usuario@servidor:/tmp/</pre>
 <pre class="sal"><span class="e">ssh: connect to host servidor port 2222: Connection refused</span></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia fichero.txt a /tmp/ del servidor conectando por el puerto 2222. En scp el puerto se indica con -P mayúscula; si la conexión se rechaza, no se realiza la copia.</p>
   </div>
   <div class="caja pel">
     <b>⚠ ¡ojo!</b>
@@ -2077,6 +2444,25 @@ fich2.txt       100%  5678    38.5KB/s   00:00</pre>
   <h2>sed <small>direcciones, filtros y sustituciones</small><span class="chip">texto</span></h2>
 <p class="lede">Editor de flujo: filtra o transforma cada línea y escribe el resultado en pantalla. <code>-E</code> cambia BRE por ERE; <code>-n</code> desactiva la impresión automática y se combina con <code>p</code>.</p>
 <p class="uso">sed [-n] [-E] [-e 'acción'] [-f guion.sed] [fichero…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de SED" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de SED</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>-n</code></td><td>No imprimir todas las líneas automáticamente; usar <code>p</code> para elegir cuáles mostrar.</td></tr>
+<tr><td><code>-E</code></td><td>Usar expresiones regulares extendidas (ERE).</td></tr>
+<tr><td><code>-e &#x27;acción&#x27;</code></td><td>Añadir una instrucción; se pueden encadenar varias con más opciones <code>-e</code>.</td></tr>
+<tr><td><code>-f guion.sed</code></td><td>Leer las instrucciones desde un archivo.</td></tr>
+<tr><td><code>-i.bak</code></td><td>Modificar el archivo y guardar antes una copia con sufijo .bak.</td></tr>
+<tr><td><code>2,5p</code></td><td>Imprimir desde la línea 2 hasta la 5, ambas incluidas; combinar con <code>-n</code>.</td></tr>
+<tr><td><code>/patrón/d</code></td><td>Quitar de la salida las líneas que coinciden.</td></tr>
+<tr><td><code>s/antes/después/</code></td><td>Cambiar la primera coincidencia de cada línea.</td></tr>
+<tr><td><code>s/antes/después/g</code></td><td>Cambiar todas las coincidencias de cada línea.</td></tr>
+<tr><td><code>&amp; · \1 · \2</code></td><td>En el reemplazo: texto completo coincidente · primer grupo capturado · segundo grupo.</td></tr>
+<tr><td><code>a\texto · i\texto</code></td><td>Añadir texto después · insertar texto antes de las líneas seleccionadas.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="tabla-scroll" role="region" aria-label="Direcciones e intervalos de sed" tabindex="0">
 <table>
 <thead><tr><th scope="col">Dirección</th><th scope="col">Selecciona</th><th scope="col">Ejemplo</th></tr></thead>
@@ -2110,16 +2496,19 @@ fich2.txt       100%  5678    38.5KB/s   00:00</pre>
 <pre class="cmd"><span class="d">$</span> printf '%s\n' uno dos tres cuatro | sed -n '2,3p'</pre>
 <pre class="sal">dos
 tres</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Genera cuatro líneas y muestra únicamente la segunda y la tercera. -n quita la impresión automática y 2,3p imprime ese intervalo, incluidos los extremos.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' '# comentario' '' '   ' 'dato=1' | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d'</pre>
 <pre class="sal">dato=1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita de la salida los comentarios, aunque tengan espacios delante, y las líneas vacías o de blancos. Cada d descarta la línea que cumple su patrón; queda dato=1.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' inicio dato fin fuera | sed -n '/^inicio$/,/^fin$/p'</pre>
 <pre class="sal">inicio
 dato
 fin</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra desde la línea inicio hasta la línea fin, incluidas ambas. La línea fuera queda excluida por estar después del intervalo.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' uno dos | sed -e '1i\Cabecera' -e '$a\Pie'</pre>
@@ -2127,50 +2516,60 @@ fin</pre>
 uno
 dos
 Pie</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Inserta Cabecera antes de la primera línea y Pie después de la última. Cada -e añade una instrucción al mismo recorrido del texto.</p>
 </div>
 <h3>Sustituir: delimitadores, grupos y coincidencia completa</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'rojo rojo' | sed 's/rojo/azul/'</pre>
 <pre class="sal">azul rojo</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cambia solo la primera aparición de rojo de cada línea por azul. El resultado de esta línea es azul rojo.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'rojo rojo' | sed 's/rojo/azul/g'</pre>
 <pre class="sal">azul azul</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cambia todas las apariciones de rojo de cada línea por azul. La g de la sustitución produce azul azul.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' '/home/ana/docs' | sed 's|/home/|/srv/|g'</pre>
 <pre class="sal">/srv/ana/docs</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Sustituye /home/ por /srv/. Usa | como delimitador para no tener que escapar las barras de la ruta; muestra /srv/ana/docs.</p>
 </div>
 <p class="nota">Puedes cambiar el delimitador de <code>s</code> por <code>|</code> para no escapar las barras de las rutas.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'nameserver 8.8.8.8' | sed 's/8\.8\.8\.8/1.1.1.1/g'</pre>
 <pre class="sal">nameserver 1.1.1.1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cambia la dirección 8.8.8.8 por 1.1.1.1. Los puntos escapados representan puntos literales y g cambia todas las apariciones de cada línea.</p>
 </div>
 <p class="nota">Los puntos de la IP original se escapan porque pertenecen al patrón. No se ha modificado ningún fichero.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'Ana Luengo' | sed -E 's/^([^ ]+) (.+)$/\2, \1/'</pre>
 <pre class="sal">Luengo, Ana</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Captura el nombre y el resto de la línea y los intercambia. \2 y \1 recuperan esos grupos, por lo que muestra Luengo, Ana.</p>
 </div>
 <p class="nota">En BRE: <code>sed 's/^\([^ ]\+\) \(.\+\)$/\2, \1/'</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'puerto 80' | sed 's/[0-9][0-9]*/[&amp;]/g'</pre>
 <pre class="sal">puerto [80]</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Rodea cada grupo de dígitos con corchetes. &amp; representa todo el texto coincidente, así que puerto 80 pasa a puerto [80].</p>
 </div>
 <p class="nota"><code>&amp;</code> en el reemplazo representa toda la coincidencia; <code>\1</code> solo el primer grupo. Para un &amp; literal, <code>\&amp;</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'área de sistemas' | sed 's/.*/\U&amp;/'</pre>
 <pre class="sal">ÁREA DE SISTEMAS</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Convierte toda la línea en mayúsculas con la extensión \U de GNU sed. &amp; recupera la línea completa que coincidió con .*.</p>
 </div>
 <p class="nota"><code>\U</code> y <code>\L</code> son extensiones de GNU sed. La conversión de letras acentuadas requiere un locale adecuado, por ejemplo UTF-8.</p>
 <h3>Guardar el resultado</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> sed 's/stable/testing/g' copia.list &gt; nueva.list</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee copia.list, cambia todas las apariciones de stable por testing y guarda la salida en nueva.list. Conserva el original y reemplaza el destino si existe.</p>
 </div>
 <p class="nota">El original sigue intacto; la salida se guarda en otro fichero.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> sed -i.bak 's/stable/testing/g' copia.list</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Modifica copia.list directamente, sustituyendo stable por testing, y guarda su versión anterior en copia.list.bak gracias a -i.bak.</p>
 </div>
 <p class="nota">Modifica <code>copia.list</code> y crea <code>copia.list.bak</code>. <code>-i</code> sin sufijo modifica sin copia.</p>
 <div class="caja pel"><b>Dos trampas de sed</b><p><code>sed '2p'</code> imprime todo y repite la línea 2; para mostrar solo esa línea usa <code>sed -n '2p'</code>. No redirijas sobre el fichero que estás leyendo: <code>sed … fichero &gt; fichero</code> lo vacía antes de leerlo. Usa otro destino o <code>-i.bak</code>.</p></div>
@@ -2179,6 +2578,25 @@ Pie</pre>
 <section class="comando tx examen3" id="sort">
   <h2>sort <small>ordena líneas</small><span class="chip">texto</span></h2>
   <p class="uso">sort [-n] [-r] [-k campo] [-t sep] [fichero]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de SORT" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de SORT</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>sort fichero</code></td><td>Ordenar líneas por el texto completo, según la configuración regional.</td></tr>
+<tr><td><code>-n</code></td><td>Orden numérico: 2 va antes que 10.</td></tr>
+<tr><td><code>-r</code></td><td>Invertir el orden.</td></tr>
+<tr><td><code>-t :</code></td><td>Usar dos puntos como separador de campos.</td></tr>
+<tr><td><code>-k 2,2</code></td><td>Usar solo el segundo campo como clave.</td></tr>
+<tr><td><code>-k 2</code></td><td>Usar desde el segundo campo hasta el final de la línea.</td></tr>
+<tr><td><code>-k 2,2 -k 3,3</code></td><td>Ordenar primero por el campo 2 y desempatar con el campo 3.</td></tr>
+<tr><td><code>-u</code></td><td>Dejar una línea por clave equivalente al ordenar.</td></tr>
+<tr><td><code>-f</code></td><td>Ignorar diferencias entre mayúsculas y minúsculas al comparar.</td></tr>
+<tr><td><code>-b</code></td><td>Ignorar blancos iniciales al establecer las claves.</td></tr>
+<tr><td><code>-o resultado.txt</code></td><td>Guardar el resultado en ese archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-n</code> numérico. <code>-r</code> inverso (Z→A).</li>
     <li><code>-k 2,2</code> ordena solo por el campo 2; <code>-k 2</code> usa desde el campo 2 hasta el final. <code>-t :</code> cambia el separador.</li>
@@ -2188,18 +2606,21 @@ Pie</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">sort</span> &gt; <span class="k">persona</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ordena las sesiones de who por el principio de cada línea, donde está el nombre de usuario, y guarda el resultado en persona reemplazando su contenido.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ps</span> | <span class="k">sort</span> <span class="f">-n</span></pre>
 <pre class="sal">    PID TTY          TIME CMD
    2143 pts/0    00:00:00 bash
    2201 pts/0    00:00:00 ps</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ordena numéricamente la salida de ps por el principio de la línea, donde está el PID. La cabecera también se ordena; no es una clasificación por consumo de CPU.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">sort</span> <span class="f">-t</span> : <span class="f">-k</span> 3 <span class="f">-n</span> /etc/passwd</pre>
 <pre class="sal">root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Divide /etc/passwd por dos puntos y ordena numéricamente empezando en el tercer campo, el UID. Para limitar la clave solo a ese campo se usa -k 3,3.</p>
   </div>
 </section>
 
@@ -2214,14 +2635,17 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">echo</span> "alias ll='ls <span class="f">-l'"</span> &gt;&gt; ~/.bashrc</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Añade al final de ~/.bashrc un alias ll para ls -l. &gt;&gt; conserva lo que ya había; el atajo no se activa en esta shell hasta recargar el archivo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">source</span> ~/.bashrc</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ejecuta ~/.bashrc en la shell actual para cargar sus alias, variables y funciones sin cerrar la terminal.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ll</span> fich1</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 6 nov 11 10:12 fich1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Usa el alias ll para mostrar fich1 con formato detallado, equivalente a ls -l fich1.</p>
   </div>
 </section>
 
@@ -2232,30 +2656,53 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <pre class="cmd"><span class="d">$</span> split -b 1M -d audio.mp3 audio.parte-
 <span class="d">$</span> cat audio.parte-* &gt; audio-reconstruido.mp3</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Divide audio.mp3 en partes de hasta 1 MiB con sufijos numéricos. El segundo comando las concatena en orden para reconstruir audio-reconstruido.mp3; es una división de bytes, no de pistas de audio.</p>
 </div>
 <p class="nota">El destino queda fuera del patrón de partes. El orden de concatenación debe ser el de los sufijos.</p>
 </section>
 
-<section class="comando re" id="ssh">
+<section class="comando re examen3" id="ssh">
   <h2>ssh · ssh-agent · ssh-add <small>sesión remota y autenticación por clave</small><span class="chip">red</span></h2>
 <p class="uso">ssh [-p puerto] [-i clave_privada] [-t] usuario@servidor ['comando']</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de SSH" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de SSH</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>ssh usuario@servidor</code></td><td>Abrir una sesión remota.</td></tr>
+<tr><td><code>-p 2222</code></td><td>Conectar al puerto indicado; en ssh es p minúscula.</td></tr>
+<tr><td><code>-i ~/.ssh/clave</code></td><td>Elegir la clave privada para autenticarse.</td></tr>
+<tr><td><code>-t</code></td><td>Solicitar una terminal remota para programas interactivos.</td></tr>
+<tr><td><code>ssh usuario@servidor &#x27;comando&#x27;</code></td><td>Ejecutar el comando en el servidor y devolver su salida.</td></tr>
+<tr><td><code>ssh-keygen -t ed25519 -f ruta</code></td><td>Crear una pareja de claves privada y pública en la ruta indicada.</td></tr>
+<tr><td><code>ssh-copy-id -i ruta.pub usuario@servidor</code></td><td>Instalar la clave pública en la cuenta remota.</td></tr>
+<tr><td><code>ssh-add ruta</code></td><td>Cargar la clave privada en el agente ya iniciado.</td></tr>
+<tr><td><code>ssh-add -l</code></td><td>Listar las huellas de las claves cargadas en el agente.</td></tr>
+<tr><td><code>exit</code></td><td>Cerrar la shell remota y regresar a la terminal local.</td></tr>
+</tbody>
+</table>
+</div>
 <ul class="flags"><li><code>-p</code> puerto (minúscula; scp usa <code>-P</code>). <code>-i</code> selecciona la clave privada. <code>-t</code> asigna terminal para un editor, sudo interactivo o tmux.</li><li>Las comillas simples mantienen <code>$variables</code>, tuberías y regex para que los interprete la shell remota. Sin comando se abre una sesión; con comando se ejecuta y se cierra.</li><li>Los alias de <code>~/.bashrc</code> requieren normalmente una shell interactiva: <code>bash -ic</code>. Para consultar un historial guardado, lee <code>~/.bash_history</code>.</li></ul>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ssh -i ~/.ssh/examen_ed25519 usuario@servidor</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre una sesión remota como usuario usando la clave privada indicada por -i.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ssh usuario@servidor 'grep -E "^[^#[:space:]]+[[:blank:]]+80/tcp([[:blank:]]|$)" /etc/services' </pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ejecuta en el servidor una búsqueda del puerto exacto 80/tcp en /etc/services y devuelve las líneas encontradas.</p>
 </div>
 <p class="nota">El grep se ejecuta en el servidor; redirigir <code>&gt; servicios.txt</code> fuera de las comillas guardaría su salida en la máquina local.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ssh -t usuario@servidor "bash -ic 'alias'"</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Solicita una terminal remota con -t y ejecuta Bash de forma interactiva para consultar sus alias.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ssh usuario@servidor 'cat ~/.bash_history'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el historial que ya está guardado en ~/.bash_history del servidor. Puede faltar lo que otras sesiones aún no hayan escrito.</p>
 </div>
 <p class="nota">El historial todavía no guardado de otras shells puede no aparecer.</p>
 <h3>Claves y agente SSH</h3>
@@ -2263,6 +2710,7 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <pre class="cmd"><span class="d">$</span> ssh-keygen -t ed25519 -f ~/.ssh/examen_ed25519
 <span class="d">$</span> ssh-copy-id -i ~/.ssh/examen_ed25519.pub usuario@servidor</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Genera una pareja de claves Ed25519 y copia la clave pública al servidor. La privada se queda en tu equipo.</p>
 </div>
 <p class="nota">Genera una pareja nueva y copia la <strong>pública</strong> al servidor. La privada queda en el cliente.</p>
 <div class="ej">
@@ -2270,6 +2718,7 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <span class="d">$</span> ssh-add ~/.ssh/examen_ed25519
 <span class="d">$</span> ssh-add -l</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Inicia un agente, carga la clave privada y lista las huellas cargadas. El agente permite usar esa clave sin volver a desbloquearla en cada conexión.</p>
 </div>
 <p class="nota">Si ya hay agente, basta con <code>ssh-add</code>. El agente conserva la clave desbloqueada durante su vida; no memoriza la contraseña del usuario remoto.</p>
 <p class="nota">En el servidor, <code>/etc/ssh/sshd_config</code> controla <code>PubkeyAuthentication</code> y <code>PasswordAuthentication</code>; no es el fichero del cliente <code>ssh_config</code>. Para revisar una configuración editada: <code>sudo sshd -t</code>. Las claves autorizadas del usuario están en <code>~/.ssh/authorized_keys</code>.</p>
@@ -2297,6 +2746,7 @@ Acceso: (0644/-rw-r--r--)  Uid: ( 1000/usuario)   Gid: ( 1000/usuario)
 Acceso:       2026-11-11 10:12:00.000000000 +0100
 Modificación: 2026-11-11 10:12:00.000000000 +0100
 Cambio:       2026-11-11 10:12:00.000000000 +0100</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los metadatos de fich1: tamaño, inodo, permisos, propietario y fechas. No muestra el contenido del archivo.</p>
   </div>
 </section>
 
@@ -2310,6 +2760,7 @@ Cambio:       2026-11-11 10:12:00.000000000 +0100</pre>
 <pre class="sal">tercero
 segundo
 primero</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Genera tres líneas y las muestra de abajo arriba: tercero, segundo y primero. Invierte el orden de las líneas, no sus letras.</p>
 </div>
 </section>
 
@@ -2328,6 +2779,7 @@ Y1.txt
 Y2.txt
 Z1.txt
 Z2.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista la carpeta actual y muestra solo las cinco últimas líneas de ese listado. No significa «los cinco archivos modificados más recientemente».</p>
   </div>
 </section>
 
@@ -2350,27 +2802,32 @@ Z2.txt</pre>
 archivos/documento1.txt
 archivos/documento2.odt
 archivos/documento3.pdf</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Agrupa archivos/ y su contenido en comprimido.tar, sin compresión. -c crea, -v muestra las entradas y -f indica el nombre del contenedor.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-czvf</span> copia.tar.gz documentos/   <span class="c"># esta vez con gzip</span></pre>
 <pre class="sal">documentos/
 documentos/documento1.txt
 documentos/documento2.odt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Agrupa documentos/ y comprime el resultado con gzip en copia.tar.gz. La z es la que añade compresión.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-tvf</span> comprimido.tar              <span class="c"># ¿qué hay dentro?</span></pre>
 <pre class="sal">drwxr-xr-x usuario/usuario   0 2026-11-11 10:12 documentos/
 -rw-r--r-- usuario/usuario  42 2026-11-11 10:12 documentos/documento1.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las entradas y sus detalles dentro de comprimido.tar sin extraerlas. -t consulta el índice del contenedor.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-tzvf</span> copia.tar.gz               <span class="c"># listar, con detalles</span></pre>
 <pre class="sal">drwxr-xr-x usuario/usuario   0 2026-11-11 10:12 documentos/
 -rw-r--r-- usuario/usuario  42 2026-11-11 10:12 documentos/documento1.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lista con detalles el contenido de copia.tar.gz sin extraerlo. -z indica que el contenedor usa gzip.</p>
   </div>
   <h3>Extraer (todo, un fichero o varios)</h3>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">mkdir</span> descompresion</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea descompresion, la carpeta que se usará como destino de las extracciones siguientes.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-xvf</span> comprimido.tar <span class="f">-C</span> descompresion/</pre>
@@ -2378,28 +2835,34 @@ documentos/documento2.odt</pre>
 archivos/documento1.txt
 archivos/documento2.odt
 archivos/documento3.pdf</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae comprimido.tar dentro de descompresion/. -C cambia la carpeta de destino y esa carpeta debe existir.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-xzvf</span> copia.tar.gz <span class="f">-C</span> descompresion/ documentos/documento1.txt documentos/documento2.odt</pre>
 <pre class="sal">documentos/documento1.txt
 documentos/documento2.odt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae solo los dos archivos indicados de copia.tar.gz dentro de descompresion/. Sus nombres deben coincidir con las rutas guardadas en el contenedor.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-xzvf</span> copia.tar.gz <span class="f">-C</span> descompresion/ documentos/   <span class="c"># un directorio completo</span></pre>
 <pre class="sal">documentos/</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae documentos/ y todo su contenido desde copia.tar.gz al directorio descompresion/.</p>
   </div>
   <h3>Añadir y excluir</h3>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-rvf</span> comprimido.tar archivos/nuevo_archivo.txt</pre>
 <pre class="sal">archivos/nuevo_archivo.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Añade nuevo_archivo.txt al contenedor comprimido.tar existente. -r añade entradas y se usa aquí sobre un .tar sin comprimir.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> --exclude='archivos/documento3.pdf' <span class="f">-cvf</span> sin_pdf.tar archivos/</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea sin_pdf.tar con archivos/, excluyendo la ruta archivos/documento3.pdf. Los demás archivos siguen entrando en el contenedor.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">gunzip</span> copia.tar.gz &amp;&amp; <span class="k">tar</span> <span class="f">-rvf</span> copia.tar nuevo.txt &amp;&amp; <span class="k">gzip</span> copia.tar</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descomprime copia.tar.gz, añade nuevo.txt al .tar y vuelve a comprimirlo. Cada &amp;&amp; continúa solo si el paso anterior termina correctamente.</p>
   </div>
   <h3>Extensiones según la compresión</h3>
   <table>
@@ -2424,14 +2887,17 @@ documentos/documento2.odt</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> | <span class="k">tee</span> lista.txt</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 6 nov 11 10:12 fich1
 drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir1</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el listado detallado en pantalla y al mismo tiempo lo guarda en lista.txt. Sin -a, tee reemplaza el contenido del archivo.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> /etc <span class="f">-type</span> f | <span class="k">tee</span> ficheros.txt | <span class="k">wc</span> <span class="f">-l</span></pre>
 <pre class="sal">3481</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos bajo /etc, guarda sus rutas en ficheros.txt y cuenta esas mismas rutas. tee copia la salida al archivo y deja pasar los datos a wc.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">tee</span> <span class="f">-a</span> persona</pre>
 <pre class="sal">usuario tty1 2026-11-11 09:10</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las sesiones conectadas y añade esa lista al final de persona. -a conserva el contenido anterior del archivo.</p>
   </div>
 </section>
 
@@ -2448,20 +2914,42 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir1</pre>
 real    0m0.003s
 user    0m0.001s
 sys     0m0.002s</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ejecuta who y muestra cuánto ha tardado, además de su salida. real es el tiempo transcurrido; user y sys son tiempos de CPU.</p>
   </div>
 <div class="ej">
-<pre class="cmd"><span class="d">$</span> <span class="k">time</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" | <span class="k">xargs</span> <span class="f">-I</span> {} rm <span class="f">-f</span></pre>
+<pre class="cmd"><span class="d">$</span> <span class="k">time</span> <span class="k">find</span> . <span class="f">-type</span> f <span class="f">-name</span> "*.jpg" | <span class="k">xargs</span> <span class="f">-I</span> {} rm <span class="f">-f</span> {}</pre>
 <pre class="sal">real    0m0.012s</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca archivos .jpg, los borra uno por uno y mide la ejecución de la tubería. -I sustituye {} por cada ruta; el borrado es real y esta versión con saltos de línea no sirve para nombres que contengan saltos de línea.</p>
   </div>
 </section>
 
-<section class="comando sh" id="tmux">
+<section class="comando sh examen3" id="tmux">
   <h2>tmux <small>mantener y recuperar la terminal del examen</small><span class="chip">shell</span></h2>
 <p class="lede">Mantiene terminales y procesos en el servidor aunque te desconectes. Conéctate por SSH y crea o recupera una sesión tmux.</p>
 <p class="uso">tmux new -s nombre · tmux ls · tmux attach -t nombre</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TMUX" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TMUX</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>tmux new -s examen</code></td><td>Crear y abrir una sesión llamada examen.</td></tr>
+<tr><td><code>tmux ls</code></td><td>Listar las sesiones disponibles en esa máquina.</td></tr>
+<tr><td><code>tmux attach -t examen</code></td><td>Volver a una sesión existente llamada examen.</td></tr>
+<tr><td><code>Ctrl+B, después d</code></td><td>Desconectarse sin cerrar la sesión ni sus procesos.</td></tr>
+<tr><td><code>Ctrl+B, después %</code></td><td>Dividir el espacio en paneles izquierdo y derecho.</td></tr>
+<tr><td><code>Ctrl+B, después &quot;</code></td><td>Dividir el espacio en paneles superior e inferior.</td></tr>
+<tr><td><code>Ctrl+B, después flecha</code></td><td>Cambiar de panel.</td></tr>
+<tr><td><code>Ctrl+B, después z</code></td><td>Ampliar el panel actual o restaurar la división.</td></tr>
+<tr><td><code>Ctrl+B, después c</code></td><td>Crear una ventana nueva dentro de la sesión.</td></tr>
+<tr><td><code>Ctrl+B, después n o p</code></td><td>Cambiar a la ventana siguiente o anterior.</td></tr>
+<tr><td><code>exit</code></td><td>Cerrar la shell del panel; al cerrar el último panel termina la sesión.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> tmux new -s examen</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea y abre una sesión llamada examen en la máquina donde ejecutas tmux. Para dejarla funcionando, pulsa Ctrl+B, suelta y pulsa d; podrás recuperarla con tmux attach -t examen.</p>
 </div>
 <p class="nota">Para listar: <code>tmux ls</code>. Para volver: <code>tmux attach -t examen</code>.</p>
 <div class="tabla-scroll" role="region" aria-label="Atajos de tmux" tabindex="0">
@@ -2497,38 +2985,47 @@ sys     0m0.002s</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> fich1 vacio</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea fich1 y vacio si no existen; si ya existen, actualiza sus fechas sin borrar su contenido. Los archivos nuevos nacen vacíos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span> vacio</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 vacio</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta tamaño y permisos de vacio. Si se acaba de crear con touch, tendrá cero bytes.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-d</span> "21:08" fich1; <span class="k">stat</span> fich1 | <span class="k">grep</span> Modificación</pre>
 <pre class="sal">Modificación: 2026-11-11 21:08:00.000000000 +0100</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Fija la fecha de acceso y modificación de fich1 a las 21:08 del día que interpreta date y después consulta su modificación. No cambia el contenido.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-t</span> 202611112108 fich2</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Fija el acceso y la modificación de fich2 al 11 de noviembre de 2026 a las 21:08. -t recibe año, mes, día, hora y minuto.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-r</span> fichero_referencia fich1 fich2</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Copia las fechas de acceso y modificación de fichero_referencia a fich1 y fich2. No copia su contenido.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-am</span> enlace_fich1     <span class="c"># las dos marcas, del fichero apuntado</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Actualiza acceso y modificación del archivo al que apunta enlace_fich1. Sin -h se sigue el enlace simbólico.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> <span class="f">-h</span> enlace_fich1      <span class="c"># solo la marca del enlace</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Actualiza las fechas del propio enlace simbólico, en lugar de las del archivo al que apunta. -h evita seguirlo.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">touch</span> -- <span class="f">-i</span>          <span class="c"># crea un fichero llamado -i</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Crea o actualiza un archivo llamado literalmente -i. -- termina las opciones para que ese nombre no se interprete como una opción de touch.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">ls</span> <span class="f">-l</span></pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 -i</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los detalles de las entradas visibles de la carpeta actual para comprobar tamaños, fechas y permisos tras los ejemplos.</p>
   </div>
 </section>
 
@@ -2539,14 +3036,17 @@ sys     0m0.002s</pre>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'En un    lugar' | tr -s ' '</pre>
 <pre class="sal">En un lugar</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Reduce cada grupo de espacios consecutivos a uno. -s comprime repeticiones del carácter indicado; conserva las palabras y el salto final.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'hola 123' | tr -d '[:digit:]'</pre>
 <pre class="sal">hola </pre>
+<p class="explicacion"><strong>Qué hace:</strong> Elimina todos los dígitos del texto. -d borra los caracteres de la clase [:digit:], dejando hola y el espacio que la seguía.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'ana:asir' | tr '[:lower:]' '[:upper:]'</pre>
 <pre class="sal">ANA:ASIR</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Transforma las letras minúsculas en mayúsculas. Los dos puntos se conservan, por lo que muestra ANA:ASIR.</p>
 </div>
 <p class="nota">Para convertir texto con tildes, consulta <code>sed 's/.*/\U&amp;/'</code>; GNU tr tiene limitaciones con caracteres multibyte.</p>
 </section>
@@ -2570,6 +3070,7 @@ sys     0m0.002s</pre>
         └── dir312
 
 7 directories, 0 files</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra la estructura de prueba y sus subcarpetas como un árbol. Permite ver de un vistazo dónde está cada archivo.</p>
   </div>
 </section>
 
@@ -2584,14 +3085,17 @@ sys     0m0.002s</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">type</span> cd pwd</pre>
 <pre class="sal">cd es una orden interna del interprete
 pwd es una orden interna del interprete</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Indica qué ejecutaría la shell al escribir cd y pwd. En Bash normalmente ambos son comandos internos.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">type</span> ls</pre>
 <pre class="sal">ls es /bin/ls</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Indica qué representa ls en esta shell: puede ser un alias, una función o un ejecutable localizado en el PATH.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">alias</span> nano='nano -l'; type nano</pre>
 <pre class="sal">nano es `nano -l'</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Define nano como alias de nano -l y después muestra esa definición con type. Permite comprobar que el alias se ha cargado.</p>
   </div>
 </section>
 
@@ -2618,11 +3122,13 @@ pwd es una orden interna del interprete</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 022; <span class="k">mkdir</span> dira; <span class="k">touch</span> uno; <span class="k">ls</span> <span class="f">-l</span> uno; <span class="k">ls</span> <span class="f">-ld</span> dira</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 uno
 drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Fija la umask en 022, crea una carpeta y un archivo y comprueba sus permisos: normalmente 755 para dira y 644 para uno. Solo afecta a nuevas creaciones, no a archivos ya existentes.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 033; <span class="k">mkdir</span> dirb; <span class="k">touch</span> dos; <span class="k">ls</span> <span class="f">-ld</span> dirb; <span class="k">ls</span> <span class="f">-l</span> dos</pre>
 <pre class="sal">drwxr--r-- 2 usuario usuario 4096 nov 11 10:12 dirb
 -rw-r--r-- 1 usuario usuario 0 nov 11 10:12 dos</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Con umask 033, una carpeta nueva queda normalmente en 744 y un archivo nuevo en 644. La máscara quita bits; no es una resta decimal y no añade ejecución a los archivos.</p>
   </div>
 </section>
 
@@ -2634,10 +3140,12 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
 <pre class="cmd"><span class="d">$</span> printf '%s\n' ana luis ana | sort | uniq -c</pre>
 <pre class="sal">      2 ana
       1 luis</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Ordena los nombres para juntar los repetidos y después cuenta cada grupo. Así obtiene dos apariciones de ana y una de luis.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> cut -d: -f4 /etc/passwd | sort -n | uniq</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae el GID de cada cuenta de /etc/passwd, ordena los números y elimina repeticiones consecutivas. El resultado es una lista de grupos principales distintos por su identificador.</p>
 </div>
 <p class="nota">Lista GID distintos. Para frecuencia: <code>… | uniq -c | sort -nr</code>.</p>
 </section>
@@ -2652,14 +3160,17 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">whoami</span></pre>
 <pre class="sal">usuario</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra el nombre del usuario efectivo que ejecuta el comando. Puede diferir del usuario que inició la sesión si has cambiado de identidad.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">users</span></pre>
 <pre class="sal">usuario rafa</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra los nombres asociados a las sesiones conectadas. Un mismo usuario puede aparecer varias veces si tiene varias sesiones.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">users</span> | <span class="k">wc</span> <span class="f">-w</span></pre>
 <pre class="sal">2</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta los nombres que devuelve users, separados por espacios. Cuenta sesiones representadas en esa salida, no personas distintas.</p>
   </div>
 </section>
 
@@ -2675,20 +3186,24 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> fichero.txt</pre>
 <pre class="sal">47 fichero.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta los saltos de línea de fichero.txt y muestra el número junto al nombre del archivo. Una última línea sin salto final no suma en -l.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-l</span> &lt; <span class="k">fichero.txt</span>        <span class="c"># redirigido, sin el nombre</span></pre>
 <pre class="sal">47</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta los saltos de línea leyendo fichero.txt por la entrada estándar. Al no recibir una ruta como argumento, wc muestra solo el número.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cut</span> <span class="f">-d</span> : <span class="f">-f</span> 1 /etc/passwd | <span class="k">wc</span> <span class="f">-l</span></pre>
 <pre class="sal">47</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae el nombre de cada cuenta de /etc/passwd y cuenta sus líneas. Incluye cuentas del sistema, no solo usuarios conectados.</p>
   </div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">wc</span> <span class="f">-w</span> &lt;&lt;FIN
 uno dos tres
 FIN</pre>
 <pre class="sal">3</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Cuenta las palabras del texto entre los dos FIN: uno, dos y tres. Las marcas FIN delimitan la entrada y no forman parte del texto contado.</p>
   </div>
 </section>
 
@@ -2702,10 +3217,12 @@ FIN</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">which</span> gzip</pre>
 <pre class="sal">/bin/gzip</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca gzip en las carpetas del PATH y muestra la ruta del ejecutable encontrado. Para comprobar también alias y funciones, usa type.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">whereis</span> wc</pre>
 <pre class="sal">wc: /usr/bin/wc /usr/share/man/man1/wc.1.gz</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca ubicaciones conocidas del ejecutable, fuentes y manual de wc. Puede devolver varias rutas, no solo el ejecutable del PATH.</p>
   </div>
 </section>
 
@@ -2721,10 +3238,12 @@ FIN</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">who</span></pre>
 <pre class="sal">rafa     tty2   2026-11-11 10:01
 usuario  tty1   2026-11-11 09:10</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra las sesiones conectadas con su usuario, terminal y momento de inicio. Una persona con varias terminales puede ocupar varias líneas.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">who</span> | <span class="k">grep</span> usuario</pre>
 <pre class="sal">usuario  tty1   2026-11-11 09:10</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Filtra la lista de sesiones y muestra las líneas que contienen usuario en cualquier posición. No exige que sea exactamente el primer campo.</p>
   </div>
 </section>
 
@@ -2748,14 +3267,17 @@ FIN</pre>
 <pre class="sal">a b
 c d
 e</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee a, b, c, d y e y ejecuta echo con grupos de hasta dos argumentos. Produce tres líneas: a b, c d y e.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cat</span> lista.txt | <span class="k">xargs</span> <span class="f">-I</span> {} cp {} backup/</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee cada línea de lista.txt y copia esa ruta a backup/. -I {} sustituye el marcador por la línea completa; la carpeta de destino debe existir.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">find</span> . <span class="f">-name</span> "*.jpg" <span class="f">-print0</span> | <span class="k">xargs</span> -0 rm <span class="f">-f</span></pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca nombres acabados en .jpg y los pasa a rm usando separadores nulos. -print0 y -0 conservan espacios y saltos de línea de los nombres; -f borra sin preguntar.</p>
   </div>
 </section>
 
@@ -2770,16 +3292,19 @@ e</pre>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">xz</span> <span class="f">-k</span> documento.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprime documento.txt en documento.txt.xz y conserva el original gracias a -k.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">unxz</span> documento.txt.xz</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Descomprime documento.txt.xz y elimina el .xz si termina bien. Si documento.txt ya existe, normalmente se niega a sobrescribirlo sin -f.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">tar</span> <span class="f">-cJvf</span> copia.tar.xz documentos/</pre>
 <pre class="sal">documentos/
 documentos/documento1.txt
 documentos/documento2.odt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Agrupa documentos/ y comprime con xz en copia.tar.xz. -J selecciona xz, -c crea, -v muestra las entradas y -f indica el destino.</p>
   </div>
 </section>
 
@@ -2796,10 +3321,12 @@ documentos/documento2.odt</pre>
 <pre class="cmd"><span class="d">$</span> <span class="k">zip</span> <span class="f">-r</span> comprimido.zip carpeta/</pre>
 <pre class="sal">adding: carpeta/ (stored 0%)
 adding: carpeta/documento.txt (deflated 62%)</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Comprime carpeta/ y todas sus subcarpetas en comprimido.zip. -r incluye su contenido de forma recursiva.</p>
   </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">unzip</span> comprimido.zip <span class="f">-d</span> descompresion/</pre>
 <pre class="sal">inflating: descompresion/carpeta/documento.txt</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae comprimido.zip en descompresion/, creando la carpeta si hace falta. Si un archivo de destino ya existe, unzip puede preguntar antes de sobrescribirlo.</p>
   </div>
 </section>
 
@@ -2832,11 +3359,13 @@ adding: carpeta/documento.txt (deflated 62%)</pre>
 <pre class="sal">http 80/tcp
 socks 1080/tcp
 http-alt 8080/tcp</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca la subcadena 80/tcp, por lo que coinciden también 1080/tcp y 8080/tcp. -n evita imprimir otras líneas y p muestra las que contienen ese texto.</p>
 </div>
 <p class="nota">Es lo que muestra la captura: <code>/80\/tcp/</code> busca una subcadena. La barra se escapa por ser delimitador de sed; no limita el número de puerto.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'http 80/tcp' 'socks 1080/tcp' 'http-alt 8080/tcp' | sed -En '/^[^#[:space:]]+[[:blank:]]+80\/tcp([[:blank:]]|$)/p'</pre>
 <pre class="sal">http 80/tcp</pre>
+<p class="explicacion"><strong>Qué hace:</strong> Conserva solo la fila cuyo segundo campo es exactamente 80/tcp. El patrón delimita el nombre del servicio, los blancos y el final del campo para excluir 1080 y 8080.</p>
 </div>
 <p class="nota">En el sistema, sustituye el <code>printf … |</code> por el fichero <code>/etc/services</code> al final de sed. El patrón fija el segundo campo completo y excluye comentarios.</p>
 <div class="ej">
@@ -2844,83 +3373,98 @@ http-alt 8080/tcp</pre>
 <span class="d">$</span> sed -n '/80/p' /etc/services
 <span class="d">$</span> awk '/80/ {print}' /etc/services</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Las tres alternativas muestran líneas que contienen 80 en cualquier parte de /etc/services. grep, sed y awk hacen aquí el mismo filtro; también pueden coincidir comentarios u otros puertos.</p>
 </div>
 <p class="nota">Para «contiene la cadena 80», grep es lo más directo. También valen <code>grep -e '80'</code>, <code>grep -F '80'</code> y <code>grep '80' &lt; /etc/services</code>. Puede aparecer en un puerto o en un comentario: eso sí cumple «contiene».</p>
 <h3>2. «Únicamente el puerto 389», en BRE, ERE, sed y awk</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -E '^[^#[:space:]]+[[:blank:]]+389/(tcp|udp)([[:blank:]]|$)' /etc/services</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca registros de /etc/services con puerto 389 y protocolo tcp o udp. Exige separación de campos para no aceptar 1389 y descarta comentarios al principio de línea.</p>
 </div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep '^[^#[:space:]][^[:space:]]*[[:blank:]][[:blank:]]*389/\(tcp\|udp\)\([[:blank:]]\|$\)' /etc/services</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Hace la misma búsqueda del puerto 389 usando regex básica de GNU grep. Las barras activan los grupos y la alternativa que en ERE se escriben sin escapar.</p>
 </div>
 <p class="nota">La misma búsqueda en BRE de GNU grep: cambia grupos y alternancia; los corchetes y <code>*</code> siguen igual.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> sed -En '/^[^#[:space:]]+[[:blank:]]+389\/(tcp|udp)([[:blank:]]|$)/p' /etc/services
 <span class="d">$</span> awk '$1 !~ /^#/ &amp;&amp; $2 ~ /^389\/(tcp|udp)$/ {print}' /etc/services</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Son dos alternativas para listar servicios del puerto 389: sed comprueba la estructura de la línea y awk comprueba directamente el campo 2. Ambas admiten tcp o udp y excluyen comentarios.</p>
 </div>
 <p class="nota">Ambos protocolos; para solo TCP usa <code>389/tcp</code>. Con awk, comparar el campo 2 resulta más claro que reconstruirlo con una regex de la línea completa.</p>
 <h3>3. «Solo Description del paquete tar»</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> apt show tar 2&gt;/dev/null | sed -n '/^Description\(-[^:]*\)\?:/p'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta el paquete tar y muestra solo la línea que empieza por Description: o Description-idioma:. 2&gt;/dev/null oculta los avisos de apt.</p>
 </div>
 <p class="nota">Muestra solo la línea de cabecera y su texto inicial, también si el nombre del campo aparece como <code>Description-es:</code>.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> apt show tar 2&gt;/dev/null | sed -n '/^Description\(-[^:]*\)\?:/p; /^Description\(-[^:]*\)\?:/,/^[^ ]/{ /^ /p; }'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Muestra la cabecera Description y sus líneas de continuación, que empiezan por un espacio. Permite leer la descripción completa sin incluir el siguiente campo de apt.</p>
 </div>
 <p class="nota">Incluye también las líneas de continuación de la descripción, que empiezan por un espacio. No supone que Description sea el último campo.</p>
 <h3>4. «Nombre del paquete man y si está instalado», BRE y ERE</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> apt list --installed man-db 2&gt;/dev/null | grep '^man-db/'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Consulta los paquetes instalados y conserva la fila de man-db si está instalado. Es el paquete que proporciona el comando man en Debian.</p>
 </div>
 <p class="nota">En Debian el paquete que proporciona <code>man</code> es <code>man-db</code>. Si está instalado aparece su fila; la etiqueta de instalación depende del idioma.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> apt list --installed man-db 2&gt;/dev/null | grep '^man-db/.*\[.*\]$'
 <span class="d">$</span> apt list --installed man-db 2&gt;/dev/null | grep -E '^man-db/.*\[.+\]$'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Dos alternativas, BRE y ERE, para mostrar la fila instalada de man-db que termina con una etiqueta entre corchetes. apt filtra los instalados; grep comprueba el formato de la fila.</p>
 </div>
 <p class="nota">Dos formas, BRE y ERE. La selección de instalados la hace apt, sin depender de la traducción de «installed». Para solo el nombre: añade <code>| cut -d/ -f1</code>.</p>
 <h3>5. «Información de la opción -c de man tar»</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> MANWIDTH=80 man tar | col -b | grep -A 3 -- '^[[:blank:]]*-c, --create'</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Abre el manual de tar con ancho 80, limpia sus retrocesos de formato y muestra la entrada -c, --create junto con tres líneas posteriores. No crea ningún contenedor.</p>
 </div>
 <p class="nota"><code>col -b</code> quita los retrocesos de formato del manual; <code>-A 3</code> añade contexto (ajústalo al ancho y a tu manual). El patrón anclado evita otras menciones a <code>-c</code>.</p>
 <h3>6. «Todos los ficheros CSV del sistema»</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> find / -type f -iname '*.csv' 2&gt;/dev/null</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca en todo el sistema archivos normales acabados en .csv o .CSV, entre otras combinaciones de mayúsculas. Oculta los errores de acceso y muestra las rutas que puede recorrer.</p>
 </div>
 <p class="nota"><code>-iname</code> admite también <code>.CSV</code>; <code>-name</code> distingue mayúsculas. Las comillas impiden que Bash expanda el comodín antes de find. Se buscan ficheros accesibles; los errores de permiso quedan ocultos.</p>
 <h3>7. Cinco propuestas para practicar la búsqueda del tesoro</h3>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -Ev '^[[:space:]]*(#|$)' config.txt | less</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Quita comentarios y líneas en blanco de config.txt y abre el resultado en less. Permite leer solo la configuración activa por páginas.</p>
 </div>
 <p class="nota">Leer únicamente configuración activa, sin comentarios ni blancos.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> ip a | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Extrae de ip a las cadenas con forma de IPv4 y las ordena sin duplicados. Puede incluir direcciones de broadcast; el patrón no valida que los octetos sean menores que 256.</p>
 </div>
 <p class="nota">Lista sin duplicados de todas las coincidencias con formato IPv4; también puede incluir broadcast.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> awk -F: '$7 ~ /bash$/ {print $1}' /etc/passwd | sort</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Lee /etc/passwd por campos, muestra los usuarios cuya shell termina en bash y ordena sus nombres alfabéticamente.</p>
 </div>
 <p class="nota">Usuarios cuya shell acaba en bash, ordenados.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> sed -E 's/([[:alnum:]_.%+-]+)@([[:alnum:].-]+)/[oculto]@\2/g' contactos.txt</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Sustituye la parte anterior a @ de correos sencillos por [oculto] y conserva el dominio mediante \2. Muestra el texto transformado sin modificar contactos.txt.</p>
 </div>
 <p class="nota">Oculta la parte local de emails sencillos, conservando el dominio; muestra una copia transformada en pantalla.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> grep -rnlE --include='*.txt' -- 'ERROR|FATAL' ./pistas</pre>
 <pre class="sal vacio"></pre>
+<p class="explicacion"><strong>Qué hace:</strong> Busca ERROR o FATAL en archivos .txt de ./pistas y sus subcarpetas. -l muestra solo los nombres de los archivos coincidentes; con -l, -n no añade números de línea.</p>
 </div>
 <p class="nota">Encuentra qué ficheros de texto contienen alguna de esas dos marcas, sin volcar su contenido.</p>
 </section>
