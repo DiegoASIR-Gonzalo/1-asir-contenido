@@ -472,6 +472,25 @@ const GRUPOS = [
         exp:'<h3>Ejecutar un comando por SSH</h3><p>Podremos ejecutar un comando si usamos comillas despues de la dirección IP.</p>' },
       { cast:"cast/tema2/ssh/sshcomando2.cast",
         exp:'<h3>Sin pseudo-terminal</h3><p>Podemos usar un comando sin pseudo-terminal con el parametro <code>-t<code>.</p>' },
-    ]}
+    ]},
+    { nombre:"sed", resumen:"Editor de texto", diapositivas:[
+      { cast:"cast/tema2/sed/sed1.cast",
+        exp:'<h3>Editor de texto SED</h3><p>El comando <code>sed</code> es un editor de texto no interactivo que procesa datos línea por línea desde un archivo o la entrada estándar.</p><p>Normalmente se suele emplear con expresiones regulares.</p>' },
+      { cast:"cast/tema2/sed/sed2.cast",
+        exp:'<h3>Borrando líneas</h3><p>Podemos borrar líneas de un fichero con el parametro <code>d</code> dentro de la expresión regular que vayamos a poner.</p><p>Si ponemos un digito antes del parametro podremos eliminar una línea que queramos (o las que queramos)...</p>',
+        mini:{ boton:"Formas de borrar líneas", titulo:"Formas de eliminación",
+               cast:'cast/tema2/sed/lineas/sedlin1.cast',
+               exp:'<h3>Expresiones regulares</h3><p>Con expresiones regulares podremos eliminar líneas de diferentes tipos, como las que se muestran en pantalla.</p>' } },
+      { cast:"cast/tema2/sed/sed3.cast",
+        exp:'<h3>Imprimir resultado del SED</h3><p>Podemos imprimir en pantalla el resultado de un comando <code>sed</code> con el mini parametro de <code>p</code>.</p>'
+        mini:{ boton:"Formas de imprimir líneas", titulo:"Formas de imprimir",
+               cast:'cast/tema2/sed/lineas/sedlin2.cast',
+               exp:'<h3>Expresiones regulares</h3><p>Con expresiones regulares podremos imprimir líneas tambien.</p>' } },
+      { cast:"cast/tema2/sed/sed4.cast",
+        exp:'<h3>Sustituir líneas</h3><p>Podemos sustituir cualquier parte de un documento con <code>s</code> y tambien líneas enteras.</p><p>Se tiene que seguir una sintaxis especifica en donde primero va la parte antigua, y despues la parte nueva a reemplazar.</p>' 
+        mini:{ boton:"Más formas de sustitución", titulo:"Formas de sustituir",
+               cast:'cast/tema2/sed/lineas/sedlin3.cast',
+               exp:'<h3>Expresiones regulares</h3><p>Con expresiones regulares podremos sustituir líneas tambien.</p>' } },
+    ]},        
   ]}
 ];
