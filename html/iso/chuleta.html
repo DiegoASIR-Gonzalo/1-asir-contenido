@@ -162,7 +162,7 @@
   }
   /* Comandos incluidos en el repaso del examen del 25 de noviembre. */
   .comando.examen3 h2,.comando.examen3 h2 code{color:#a32020}
-  .indice a.examen3{color:#a32020}
+  .indice a.examen3,.repaso a.examen3{color:#a32020}
   .indice a.examen3.activa{background:#a32020;color:#fff}
   .leyenda-examen{margin:6px 0 10px;color:#a32020;font-size:14px;font-weight:700}
 </style>
@@ -176,18 +176,18 @@
   </div>
 </header>
 <nav class="indice" aria-label="Índice de comandos">
-  <a href="#s-tema3">tema 3</a><a href="#s-regex">regex</a><a href="#s-recetas">ejercicios</a><span class="grupo">·</span>
+  <a href="#s-tema3">tema 3</a><a class="examen3" href="#s-regex">regex</a><a href="#s-recetas">ejercicios</a><span class="grupo">·</span>
   <a href="#s-shell">shell</a><a href="#s-comod">comodines</a><a href="#s-redir">redirecciones</a><span class="grupo">·</span>
-  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a class="examen3" href="#asciinema">asciinema</a><a class="examen3" href="#awk">awk</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a class="examen3" href="#egrep">egrep</a><a href="#file">file</a><a href="#find">find</a><a href="#foremost">foremost</a><a class="examen3" href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#join">join</a><a class="examen3" href="#less">less</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#nl">nl</a><a href="#od">od</a><a href="#paste">paste</a><a href="#printf">printf</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a class="examen3" href="#rename">rename</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a class="examen3" href="#sed">sed</a><a href="#sort">sort</a><a href="#source">source</a><a href="#split">split</a><a class="examen3" href="#ssh">ssh</a><a href="#stat">stat</a><a href="#tac">tac</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a class="examen3" href="#tmux">tmux</a><a href="#touch">touch</a><a href="#tr">tr</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#uniq">uniq</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-func">funciones</a><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
+  <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#asciinema">asciinema</a><a href="#awk">awk</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a class="examen3" href="#egrep">egrep</a><a href="#file">file</a><a class="examen3" href="#find">find</a><a href="#foremost">foremost</a><a class="examen3" href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#join">join</a><a class="examen3" href="#less">less / more</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#nl">nl</a><a href="#od">od</a><a href="#paste">paste</a><a href="#printf">printf</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a class="examen3" href="#rename">rename</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a class="examen3" href="#sed">sed</a><a class="examen3" href="#sort">sort</a><a href="#source">source</a><a href="#split">split</a><a href="#ssh">ssh</a><a href="#stat">stat</a><a href="#tac">tac</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a href="#tmux">tmux</a><a href="#touch">touch</a><a href="#tr">tr</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#uniq">uniq</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-func">funciones</a><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
 </nav>
 <main>
 
 <section class="comando tx" id="s-tema3">
   <h2>Repaso del tema 3 <small>filtros, expresiones regulares y sesión remota</small><span class="chip">texto</span></h2>
 <p class="lede">Comandos Básicos II y prácticas de clase: busca el verbo del enunciado y salta al ejemplo. Las salidas de sistema son orientativas; los ejemplos con <code>printf</code> se pueden reproducir tal cual.</p>
-<p class="leyenda-examen">En rojo: asciinema, less, grep, egrep, sed, awk/print, rename, SSH y tmux (examen del 25/11/2026).</p>
+<p class="leyenda-examen">En rojo: sed, less, more, sort, grep, egrep, find, rename y expresiones regulares.</p>
 <nav class="repaso" aria-label="Repaso del tema 3">
-  <a href="#s-regex">BRE · ERE · PCRE</a><a class="examen3" href="#grep">grep</a><a class="examen3" href="#egrep">egrep</a><a href="#s-regex-red">IP · MAC · correo</a><a class="examen3" href="#sed">sed</a><a class="examen3" href="#awk">awk / print</a><a class="examen3" href="#less">less</a><a class="examen3" href="#rename">rename</a><a class="examen3" href="#ssh">SSH</a><a class="examen3" href="#tmux">tmux</a><a href="#s-recetas">Ejercicios resueltos</a>
+  <a class="examen3" href="#s-regex">BRE · ERE · PCRE</a><a class="examen3" href="#grep">grep</a><a class="examen3" href="#egrep">egrep</a><a href="#s-regex-red">IP · MAC · correo</a><a class="examen3" href="#sed">sed</a><a href="#awk">awk / print</a><a class="examen3" href="#less">less / more</a><a class="examen3" href="#rename">rename</a><a href="#ssh">SSH</a><a href="#tmux">tmux</a><a href="#s-recetas">Ejercicios resueltos</a>
 </nav>
 <ul class="flags">
   <li><strong>Filtrar líneas:</strong> <code>grep</code>. <strong>Extraer solo coincidencias:</strong> <code>grep -o</code>. <strong>Transformar texto:</strong> <code>sed</code>. <strong>Comparar campos:</strong> <code>awk</code>.</li>
@@ -302,7 +302,7 @@
   </div>
 </section>
 
-<section class="comando tx" id="s-regex">
+<section class="comando tx examen3" id="s-regex">
   <h2>Expresiones regulares <small>BRE, ERE, PCRE y patrones de clase</small><span class="chip">texto</span></h2>
 <p class="lede">Una expresión regular busca <strong>contenido</strong>. El comodín de la shell selecciona <strong>nombres de ficheros</strong>: en <code>grep 'a.*' *.txt</code>, Bash expande <code>*.txt</code> y grep interpreta <code>a.*</code>.</p>
 <div class="tabla-scroll" role="region" aria-label="Elegir motor de expresiones regulares" tabindex="0">
@@ -673,7 +673,7 @@ EOF</pre>
   </div>
 </section>
 
-<section class="comando sh examen3" id="asciinema">
+<section class="comando sh" id="asciinema">
   <h2>asciinema <small>grabar y reproducir sesiones de terminal</small><span class="chip">shell</span></h2>
   <p class="uso">asciinema rec sesion.cast · asciinema play sesion.cast</p>
   <p class="lede">Guarda la salida de la terminal y sus tiempos en un fichero <code>.cast</code>, como las grabaciones de clase.</p>
@@ -704,7 +704,7 @@ EOF</pre>
   <p class="nota">Ayuda: <code>asciinema rec --help</code> y <code>asciinema play --help</code>. <a href="https://docs.asciinema.org/manual/cli/quick-start/">Guía oficial</a> · <a href="https://docs.asciinema.org/manual/cli/shortcuts/">Atajos del reproductor de terminal</a>.</p>
 </section>
 
-<section class="comando tx examen3" id="awk">
+<section class="comando tx" id="awk">
   <h2>awk / print <small>seleccionar registros y trabajar con campos</small><span class="chip">texto</span></h2>
 <p class="lede">Lee registros (normalmente líneas) y campos. Usa ERE en <code>/patrón/</code>; <code>print</code> es una acción de awk, no un comando de Bash.</p>
 <p class="uso">awk [-F 'separador'] 'condición {acción}' [fichero…]</p>
@@ -1163,7 +1163,7 @@ aviso: memoria</pre>
   </div>
 </section>
 
-<section class="comando bu" id="find">
+<section class="comando bu examen3" id="find">
   <h2>find <small>busca ficheros y directorios</small><span class="chip">búsqueda</span></h2>
   <p class="lede">El buscador del sistema: recorre un árbol de carpetas filtrando por tipo, nombre, tamaño, tiempos, permisos o inodo, y con cada resultado ejecuta lo que pidas.</p>
   <p class="uso">find ruta [criterios] [-a|-o|-not] [acciones: -print -ls -exec -ok]</p>
@@ -1392,7 +1392,7 @@ aviso: memoria</pre>
 <pre class="sal vacio"></pre>
 </div>
 <p class="nota"><code>criterios.txt</code>: un patrón por línea, por ejemplo IPv4 y MAC del apartado de <a href="#s-regex-red">recetas de clase</a>. No pongas líneas vacías: un patrón vacío coincide en todas las líneas (y <code>-o</code> omite coincidencias vacías).</p>
-<p class="nota">Más ejemplos aplicados a <code>/etc/services</code>, <code>apt</code> y <code>man tar</code> en <a href="#s-recetas">Ejercicios resueltos</a>. Para distinguir sintaxis consulta la <a href="#s-regex">tabla BRE/ERE</a>.</p>
+<p class="nota">Más ejemplos aplicados a <code>/etc/services</code>, <code>apt</code> y <code>man tar</code> en <a href="#s-recetas">Ejercicios resueltos</a>. Para distinguir sintaxis consulta la <a class="examen3" href="#s-regex">tabla BRE/ERE</a>.</p>
 </section>
 
 <section class="comando co" id="gzip">
@@ -2176,7 +2176,7 @@ Pie</pre>
 <div class="caja pel"><b>Dos trampas de sed</b><p><code>sed '2p'</code> imprime todo y repite la línea 2; para mostrar solo esa línea usa <code>sed -n '2p'</code>. No redirijas sobre el fichero que estás leyendo: <code>sed … fichero &gt; fichero</code> lo vacía antes de leerlo. Usa otro destino o <code>-i.bak</code>.</p></div>
 </section>
 
-<section class="comando tx" id="sort">
+<section class="comando tx examen3" id="sort">
   <h2>sort <small>ordena líneas</small><span class="chip">texto</span></h2>
   <p class="uso">sort [-n] [-r] [-k campo] [-t sep] [fichero]</p>
   <ul class="flags">
@@ -2236,7 +2236,7 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <p class="nota">El destino queda fuera del patrón de partes. El orden de concatenación debe ser el de los sufijos.</p>
 </section>
 
-<section class="comando re examen3" id="ssh">
+<section class="comando re" id="ssh">
   <h2>ssh · ssh-agent · ssh-add <small>sesión remota y autenticación por clave</small><span class="chip">red</span></h2>
 <p class="uso">ssh [-p puerto] [-i clave_privada] [-t] usuario@servidor ['comando']</p>
 <ul class="flags"><li><code>-p</code> puerto (minúscula; scp usa <code>-P</code>). <code>-i</code> selecciona la clave privada. <code>-t</code> asigna terminal para un editor, sudo interactivo o tmux.</li><li>Las comillas simples mantienen <code>$variables</code>, tuberías y regex para que los interprete la shell remota. Sin comando se abre una sesión; con comando se ejecuta y se cierra.</li><li>Los alias de <code>~/.bashrc</code> requieren normalmente una shell interactiva: <code>bash -ic</code>. Para consultar un historial guardado, lee <code>~/.bash_history</code>.</li></ul>
@@ -2455,7 +2455,7 @@ sys     0m0.002s</pre>
   </div>
 </section>
 
-<section class="comando sh examen3" id="tmux">
+<section class="comando sh" id="tmux">
   <h2>tmux <small>mantener y recuperar la terminal del examen</small><span class="chip">shell</span></h2>
 <p class="lede">Mantiene terminales y procesos en el servidor aunque te desconectes. Conéctate por SSH y crea o recupera una sesión tmux.</p>
 <p class="uso">tmux new -s nombre · tmux ls · tmux attach -t nombre</p>
