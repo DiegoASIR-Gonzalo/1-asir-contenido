@@ -2003,6 +2003,8 @@ function formatearFecha(d, fmt){
       case 'S': return p(d.getSeconds());
       case 'B': return MESES_LARGOS[d.getMonth()];
       case 'A': return DIAS_LARGOS[d.getDay()];
+      case 'u': return String(d.getDay() || 7);
+      case 'j': return String(Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 1)) / 86400000) + 1).padStart(3, '0');
       case '%': return '%';
       default: return m;
     }
@@ -2908,8 +2910,21 @@ function cmd_uniq(e, args, stdin){
 }
 function cmd_less(e, args, stdin){
   try {
-    if (args.some(a => a.startsWith('-') && a !== '-')) throw new Error('opciones no soportadas; lectura textual sin sesión interactiva');
-    return exito(fuentesFiltro(e, args, stdin).map(f => f.texto).join(''));
+    let numerar = false, busqueda = null, finOpciones = false;
+    const archivos = [];
+    for (const arg of args){
+      if (!finOpciones && arg === '--'){ finOpciones = true; continue; }
+      if (!finOpciones && arg === '-N'){ numerar = true; continue; }
+      if (!finOpciones && arg.startsWith('+/')){ busqueda = regexPosix(arg.slice(2), true, false); continue; }
+      if (!finOpciones && arg.startsWith('-') && arg !== '-') throw new Error('opción no soportada: ' + arg);
+      archivos.push(arg);
+    }
+    return exito(fuentesFiltro(e, archivos, stdin).map(f => {
+      const lineas = lineasFiltro(f.texto);
+      const inicio = busqueda ? lineas.findIndex(l => busqueda.test(l.texto)) : 0;
+      if (inicio < 0) throw new Error('patrón no encontrado');
+      return lineas.slice(inicio).map((l, i) => (numerar ? String(inicio + i + 1).padStart(6) + ' ' : '') + l.texto + l.fin).join('');
+    }).join(''));
   } catch (err){ return errorFiltro('less', err); }
 }
 function cmd_tee(e, args, stdin){
@@ -3082,13 +3097,13 @@ function cmd_tail(e, args, stdin){
   return exito(ls.slice(-n).join('\n'));
 }
 function cmd_sort(e, args, stdin){
-  let rev = false, numeric = false, campo = -1, delimitador = null, finOpciones = false;
+  let rev = false, numeric = false, unico = false, campo = -1, delimitador = null, finOpciones = false;
   const files = [];
   for (let i = 0; i < args.length; i++){
     const a = args[i];
     if (!finOpciones && a === '--'){ finOpciones = true; continue; }
-    if (!finOpciones && a === '-r'){ rev = true; continue; }
-    if (!finOpciones && a === '-n'){ numeric = true; continue; }
+    if (!finOpciones && /^-[nru]+$/.test(a)){ rev = rev || a.includes('r'); numeric = numeric || a.includes('n'); unico = unico || a.includes('u'); continue; }
+    if (!finOpciones && a === '--unique'){ unico = true; continue; }
     if (!finOpciones && a === '-k'){
       if (i + 1 >= args.length || !/^\d+$/.test(args[i + 1])) return fallo('sort: falta un campo válido después de -k');
       campo = Math.max(0, Number(args[++i]) - 1);
@@ -3114,7 +3129,7 @@ function cmd_sort(e, args, stdin){
     return m ? Number(m[1]) : NaN;
   };
   const ls = texto.split('\n').filter((x, i, a) => x !== '' || i < a.length - 1);
-  ls.sort((a, b) => {
+  const comparar = (a, b) => {
     const aa = clave(a), bb = clave(b);
     if (numeric){
       const na = numero(aa), nb = numero(bb);
@@ -3123,20 +3138,24 @@ function cmd_sort(e, args, stdin){
       if (Number.isFinite(nb)) return 1;
     }
     return aa.localeCompare(bb, 'es');
-  });
-  if (rev) ls.reverse();
-  return exito(ls.join('\n'));
+  };
+  ls.sort(comparar);
+  const resultado = unico ? ls.filter((linea, i) => i === 0 || comparar(ls[i - 1], linea) !== 0) : ls;
+  if (rev) resultado.reverse();
+  return exito(resultado.join('\n'));
 }
 function cmd_cut(e, args, stdin){
   let delimitador = '\t', campos = [];
   for (let i = 0; i < args.length; i++){
-    if (args[i] === '-d'){
-      if (i + 1 >= args.length) return fallo('cut: falta el delimitador después de -d');
-      delimitador = args[++i];
+    if (args[i] === '-d' || args[i].startsWith('-d') && args[i].length > 2){
+      if (args[i] === '-d' && i + 1 >= args.length) return fallo('cut: falta el delimitador después de -d');
+      delimitador = args[i] === '-d' ? args[++i] : args[i].slice(2);
+      if (delimitador.length !== 1) return fallo('cut: el delimitador debe ser un carácter');
     }
-    else if (args[i] === '-f'){
-      if (i + 1 >= args.length || !/^\d+(?:,\d+)*$/.test(args[i + 1])) return fallo('cut: falta un campo válido después de -f');
-      campos = String(args[++i]).split(',').map(Number);
+    else if (args[i] === '-f' || args[i].startsWith('-f') && args[i].length > 2){
+      const valor = args[i] === '-f' ? args[++i] : args[i].slice(2);
+      if (!/^\d+(?:,\d+)*$/.test(valor || '')) return fallo('cut: falta un campo válido después de -f');
+      campos = valor.split(',').map(Number);
     }
   }
   const raw = args.find((a, i) => !a.startsWith('-') && args[i - 1] !== '-d' && args[i - 1] !== '-f');
@@ -3470,7 +3489,7 @@ function tokenizar(linea){
       if (ch === comilla) comilla = null;
       else if (ch === '\\' && comilla === '"' && i + 1 < linea.length){
         const sig = linea[i + 1];
-        actual += ('ntb\\'.includes(sig)) ? '\\' + sig : sig;
+        if (sig !== '\n') actual += ['\\', '"', '$', '`', '\u0002'].includes(sig) ? sig : '\\' + sig;
         i++;
       }
       else actual += ch;

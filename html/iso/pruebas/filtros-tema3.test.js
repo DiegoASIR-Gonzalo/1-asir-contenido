@@ -74,6 +74,32 @@ test('los operadores entre comillas son argumentos y no separan órdenes', () =>
   assert.equal(salida(e,"awk -F ';' 'NR >= 2 {print $1,$2}' tabla"),'ana 7\n');
 });
 
+test('las comillas dobles conservan las barras de una expresión regular',()=>{
+  const e=estado({'~/correos':'ana@aula.es\nusuario@servidor\nsoporte@centro.org\n'});
+  assert.equal(salida(e,'grep -E "^[[:alnum:]_.-]+@[[:alnum:]]+\\.[[:alpha:]]{2,4}$" correos'),'ana@aula.es\nsoporte@centro.org');
+});
+
+test('less admite numeración y búsquedas iniciales conservando el fichero',()=>{
+  const e=estado({'~/guia':'Inicio\nReferencia CAPITULO-2\nCAPITULO-2: fin\nDetalle\n'});
+  assert.equal(salida(e,'less -N guia'),'     1 Inicio\n     2 Referencia CAPITULO-2\n     3 CAPITULO-2: fin\n     4 Detalle\n');
+  assert.equal(salida(e,"less '+/^CAPITULO-2:' guia"),'CAPITULO-2: fin\nDetalle\n');
+  assert.equal(e.fs['/home/usuario/guia'].contenido,'Inicio\nReferencia CAPITULO-2\nCAPITULO-2: fin\nDetalle\n');
+});
+
+test('date calcula días ISO y ordinales también en años bisiestos',()=>{
+  const e=estado({});
+  assert.equal(salida(e,'date -d "2028-02-29" +%u'),'2');
+  assert.equal(salida(e,'date -d "2028-02-29" +%j'),'060');
+  assert.equal(salida(e,'date -d "2028-12-31" +%j'),'366');
+  assert.equal(salida(e,'date -d "2027-03-01" +%j'),'060');
+});
+
+test('sort -u elimina duplicados en las tuberías con cut compacto',()=>{
+  const e=estado({'~/avisos':'pc01:ERROR:aula2\npc02:ERROR:aula1\npc03:ERROR:aula2\n'});
+  assert.equal(salida(e,'cut -d: -f3 avisos | sort -u'),'aula1\naula2');
+  assert.equal(salida(e,'cut -d: -f3 avisos | sort -ru'),'aula2\naula1');
+});
+
 test('el aprendizaje reconoce grupos de opciones y alias largos sin leer el patrón como flags',()=>{
   const fijo={aprendizaje:{comando:'grep',opciones:['-F']}};
   assert.equal(ctx.comprobarAprendizaje(fijo,"grep -Fi 'ruta.v1' p").ok,true);
