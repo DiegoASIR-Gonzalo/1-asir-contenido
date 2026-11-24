@@ -27,7 +27,7 @@
   .indice .grupo{color:#a4939e;font-weight:800;font-size:11px;margin:0 2px}
   main{max-width:940px;margin:0 auto;padding:10px 20px 60px}
   /* ---- categorías: color por familia ---- */
-  section.comando{border-bottom:1px solid var(--linea);border-left:4px solid var(--cat,var(--linea));padding:14px 0 18px 16px;scroll-margin-top:96px;counter-reset:ej}
+  section.comando{border-bottom:1px solid var(--linea);border-left:4px solid var(--cat,var(--linea));padding:14px 0 18px 16px;counter-reset:ej}
   .sh{--cat:#7a3d9a}.fi{--cat:#2e7d4f}.tx{--cat:#b0713a}.ti{--cat:#a66a00}
   .bu{--cat:#c34113}.pr{--cat:#345ca8}.co{--cat:#0d7a72}.ap{--cat:#a83a72}
   .re{--cat:#0b5cad}
@@ -145,17 +145,15 @@
   pre{overflow-x:auto}
   code{overflow-wrap:anywhere}
   .uso{overflow-x:auto}
-  .ej{scroll-margin-top:145px}
   .ej .cmd{padding-right:100px}
-  h3[id]{scroll-margin-top:145px}
-  section.comando{scroll-margin-top:145px}
+  section.comando,.ej,h3[id],.rey-bloque{scroll-margin-top:calc(var(--alto-indice,133px) + 12px)}
   @media (hover:none){.copiar{opacity:1}}
   @media (max-width:640px){
     .indice{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;padding:8px}
     .indice a,.indice .grupo{flex-shrink:0}
     main{padding-right:12px;padding-left:12px}
     section.comando{padding-left:10px}
-    section.comando,.ej,h3[id]{scroll-margin-top:60px}
+    html{--alto-indice:48px}
   }
   @media print{
     .repaso{display:none}
@@ -169,6 +167,42 @@
   .indice a.examen3,.repaso a.examen3{color:#a32020}
   .indice a.examen3.activa{background:#a32020;color:#fff}
   .leyenda-examen{margin:6px 0 10px;color:#a32020;font-size:14px;font-weight:700}
+  /* ---- repaso final del examen ---- */
+  .rey{--cat:#8a5616;margin-top:28px}
+  .indice a.acceso-rey{color:#6b4210;background:#f5e8d2}
+  .indice a.acceso-rey.activa{color:#fff;background:#764a15}
+  .rey-portada,.rey-bloque{padding:12px 14px;border:1px solid var(--linea);border-radius:10px;background:#fffdf8}
+  .rey-portada{background:#f9edda}
+  .rey-portada .nota{margin-top:0}
+  .rey-mapa,.rey-campos{display:grid;gap:6px;padding:0;margin:6px 0 0}
+  .rey-mapa{list-style:none;grid-template-columns:repeat(auto-fit,minmax(min(100%,128px),1fr))}
+  .rey-mapa a{display:block;height:100%;padding:5px 8px;border:1px solid #ddc5a3;border-radius:7px;background:#fffdf8;color:var(--tinta);text-decoration:none;font-size:13px}
+  .rey-mapa strong{display:block;color:#764a15;font:700 13px/1.4 "Ubuntu Mono","DejaVu Sans Mono",monospace}
+  .rey-nav{display:flex;flex-wrap:wrap;gap:5px 8px;margin:10px 0}
+  .rey-nav a{padding:4px 8px;border:1px solid var(--linea);border-radius:6px;background:#fffdf8;color:var(--vino);font-size:13px;text-decoration:none}
+  .rey-mapa a:hover,.rey-nav a:hover{background:#f3e9f8}
+  .rey a:focus-visible,.rey .copiar:focus-visible{outline:2px solid var(--vino);outline-offset:2px}
+  .rey-bloque{margin:0 0 12px;border-top:3px solid #bc8b4a}
+  .rey-bloque h3{margin:0 0 7px;font-size:17px}
+  .rey-bloque h4{margin:10px 0 4px;font-size:14px;color:#764a15;break-after:avoid}
+  .rey-tablas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:10px;align-items:start}
+  .rey-ejemplos,.rey-claves,.rey dd{margin:0}
+  .rey-ejemplos>div{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:4px 12px;align-items:center;padding:4px 0;border-top:1px solid var(--linea);break-inside:avoid}
+  .rey-ejemplos dt{display:flex;gap:8px;align-items:center;min-width:0}
+  .rey-ejemplos code{min-width:0;padding:0;background:none;white-space:pre-wrap;line-height:1.45}
+  .rey-ejemplos dd{font-size:13.5px;line-height:1.4;overflow-wrap:anywhere}
+  .rey-ejemplos dd strong{color:var(--vino)}
+  .rey-ejemplos .copiar{position:static;flex:none;margin-left:auto;min-height:26px;color:var(--vino);opacity:1}
+  .rey-ejemplos .copiar.hecho{color:#1e7a42}
+  .rey-claves{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,148px),1fr));gap:5px;margin:8px 0}
+  .rey-claves>div,.rey-campos li{padding:4px 7px;border:1px solid var(--linea);border-radius:6px;background:var(--caja);font-size:13px;break-inside:avoid}
+  .rey-claves code{padding:0;background:none;font-weight:700}
+  .rey-campos{grid-template-columns:repeat(auto-fit,minmax(min(100%,115px),1fr));list-style-position:inside;margin-bottom:10px}
+  @media (max-width:640px){
+    .rey-portada,.rey-bloque{padding:9px}
+    .rey-ejemplos>div{grid-template-columns:minmax(0,1fr);gap:1px}
+  }
+  @media print{.rey-nav{display:none}.rey-ejemplos>div{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -180,6 +214,7 @@
   </div>
 </header>
 <nav class="indice" aria-label="Índice de comandos">
+  <a class="acceso-rey" href="#s-rey-examen">👑 Rey del examen 25</a><span class="grupo">·</span>
   <a href="#s-tema3">tema 3</a><a class="examen3" href="#s-regex">regex</a><a href="#s-recetas">ejercicios</a><span class="grupo">·</span>
   <a href="#s-shell">shell</a><a href="#s-comod">comodines</a><a href="#s-redir">redirecciones</a><span class="grupo">·</span>
   <a href="#7z">7z</a><a href="#alias">alias</a><a href="#apt">apt</a><a href="#asciinema">asciinema</a><a class="examen3" href="#awk">awk</a><a href="#basename">basename</a><a href="#bzip2">bzip2</a><a href="#cal">cal</a><a href="#cat">cat</a><a href="#cd">cd</a><a href="#chmod">chmod</a><a href="#compress">compress</a><a href="#cp">cp</a><a class="examen3" href="#cut">cut</a><a href="#date">date</a><a href="#df">df</a><a href="#dirname">dirname</a><a href="#du">du</a><a href="#echo">echo</a><a class="examen3" href="#egrep">egrep</a><a href="#file">file</a><a class="examen3" href="#find">find</a><a href="#foremost">foremost</a><a class="examen3" href="#grep">grep</a><a href="#gzip">gzip</a><a href="#head">head</a><a href="#history">history</a><a href="#htop">htop</a><a href="#hwclock">hwclock</a><a href="#id">id</a><a href="#join">join</a><a class="examen3" href="#less">less / more</a><a href="#ln">ln</a><a href="#locate">locate</a><a href="#lsof">lsof</a><a href="#ls">ls</a><a href="#md5sum">md5sum</a><a href="#mkdir">mkdir</a><a href="#mkfifo">mkfifo</a><a href="#mv">mv</a><a href="#ncal">ncal</a><a href="#nano">nano</a><a href="#nl">nl</a><a href="#od">od</a><a href="#paste">paste</a><a href="#printf">printf</a><a href="#ps">ps</a><a href="#pwd">pwd</a><a href="#rar">rar</a><a href="#readlink">readlink</a><a class="examen3" href="#rename">rename</a><a href="#rm">rm</a><a href="#rmdir">rmdir</a><a href="#scp">scp</a><a class="examen3" href="#sed">sed</a><a class="examen3" href="#sort">sort</a><a href="#source">source</a><a href="#split">split</a><a class="examen3" href="#ssh">ssh</a><a href="#stat">stat</a><a href="#tac">tac</a><a href="#tail">tail</a><a href="#tar">tar</a><a href="#tee">tee</a><a href="#time">time</a><a class="examen3" href="#tmux">tmux</a><a href="#touch">touch</a><a href="#tr">tr</a><a href="#tree">tree</a><a href="#type">type</a><a href="#umask">umask</a><a href="#uniq">uniq</a><a href="#users">users</a><a href="#wc">wc</a><a href="#which">which</a><a href="#who">who</a><a href="#xargs">xargs</a><a href="#xz">xz</a><a href="#zip">zip</a><span class="grupo">·</span><a href="#s-func">funciones</a><a href="#s-atajos">atajos</a><a href="#s-frases">frases de examen</a>
@@ -229,6 +264,21 @@
 
 <section class="comando sh" id="s-shell">
   <h2>La shell <small>sintaxis: variables, cadenas y bucles</small><span class="chip">shell</span></h2>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de Bash" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de Bash</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>var=valor</code></td><td>Guarda un valor en una variable. Escribe el igual sin espacios.</td></tr>
+<tr><td><code>&quot;$var&quot; · &#39;$var&#39;</code></td><td>Comillas dobles expanden la variable. Las simples conservan el texto literal.</td></tr>
+<tr><td><code>$(comando)</code></td><td>Inserta la salida de un comando.</td></tr>
+<tr><td><code>cmd1 ; cmd2</code></td><td>Intenta ejecutar ambos comandos en orden.</td></tr>
+<tr><td><code>cmd1 &amp;&amp; cmd2</code></td><td>Ejecuta el segundo si el primero termina bien.</td></tr>
+<tr><td><code>cmd1 || cmd2</code></td><td>Ejecuta el segundo si el primero falla.</td></tr>
+<tr><td><code>for i in lista; do …; done</code></td><td>Repite los comandos para cada elemento de la lista.</td></tr>
+</tbody>
+</table>
+</div>
   <p class="lede">La shell es la intérprete: lee lo que escribes, expande variables y comodines, y lanza los comandos. Todo lo demás de esta página son herramientas que ella pone en marcha.</p>
   <ul class="flags">
     <li><code>var=valor</code> asigna; <code>$var</code> la usa (<mark class="oro">sin espacios alrededor de <code>=</code></mark>).</li>
@@ -279,6 +329,19 @@
 
 <section class="comando sh" id="s-comod">
   <h2>Comodines <small>nombres que casan con patrones</small><span class="chip">shell</span></h2>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de comodines" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de comodines</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>*.txt</code></td><td>Nombres que terminan en .txt.</td></tr>
+<tr><td><code>fich?.txt</code></td><td>Un carácter entre fich y .txt.</td></tr>
+<tr><td><code>[1-4] · [!ab]</code></td><td>Un carácter del rango 1 a 4 o uno distinto de a y b, respectivamente.</td></tr>
+<tr><td><code>{A..D} · {a,b}{1,2}</code></td><td>Genera listas sin consultar los archivos existentes.</td></tr>
+<tr><td><code>shopt -s extglob</code></td><td>Activa los patrones extendidos de Bash, como @(uno|otro).</td></tr>
+</tbody>
+</table>
+</div>
   <p class="lede">La shell reescribe los patrones en la lista de ficheros que casan antes de ejecutar nada: por eso un solo rm puede borrar veinte ficheros.</p>
   <ul class="flags">
     <li><code>*</code> cualquier cosa (0, 1 o muchos caracteres) · <code>?</code> exactamente un carácter.</li>
@@ -503,6 +566,20 @@ BC:24:11:BB:6A:A6</pre>
 
 <section class="comando sh" id="s-redir">
   <h2>Redirecciones y tuberías <small>adónde va la salida</small><span class="chip">shell</span></h2>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de redirecciones" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de redirecciones</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>cmd1 | cmd2</code></td><td>Pasa la salida normal del primero al segundo.</td></tr>
+<tr><td><code>&gt; fichero · &gt;&gt; fichero</code></td><td>Sobrescribe o añade al final, respectivamente.</td></tr>
+<tr><td><code>&lt; fichero · &lt;&lt;FIN</code></td><td>Lee de un archivo o de un bloque hasta la marca FIN.</td></tr>
+<tr><td><code>2&gt; errores.txt · 2&gt;&gt; errores.txt</code></td><td>Guarda o añade solo los errores.</td></tr>
+<tr><td><code>&gt; salida.txt 2&gt;&amp;1 · &amp;&gt; salida.txt</code></td><td>Guarda juntos salida normal y errores.</td></tr>
+<tr><td><code>2&gt;/dev/null</code></td><td>Descarta los errores.</td></tr>
+</tbody>
+</table>
+</div>
   <p class="lede">Cada comando tiene dos canales de salida — el normal (1) y el de errores (2) — y uno de entrada (0). Las redirecciones deciden a dónde va cada uno.</p>
   <ul class="flags">
     <li><code>&gt;</code> salida a fichero (sobrescribe). <code>&gt;&gt;</code> añade al final.</li>
@@ -586,6 +663,18 @@ EOF</pre>
 <section class="comando co" id="7z">
   <h2>7z <small>empaqueta y comprime (7-Zip)</small><span class="chip">compresión</span></h2>
   <p class="uso">7z [a|x] [-oCARPETA] fichero.7z [archivos…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de 7Z" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de 7Z</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>7z a copia.7z archivos/</code></td><td>Crea el paquete o añade archivos a uno existente.</td></tr>
+<tr><td><code>7z l copia.7z</code></td><td>Lista el contenido.</td></tr>
+<tr><td><code>7z t copia.7z</code></td><td>Comprueba que el paquete se puede leer correctamente.</td></tr>
+<tr><td><code>7z x copia.7z -osalida/</code></td><td>Extrae conservando las rutas. La carpeta va pegada a -o.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>a</code> añadir (comprimir). <code>x</code> extraer conservando la estructura de carpetas.</li>
     <li><code>-oCARPETA</code> carpeta de destino al extraer (<strong>pegada</strong> a la -o, sin espacio).</li>
@@ -608,6 +697,18 @@ Everything is Ok (1 file)</pre>
 <section class="comando sh" id="alias">
   <h2>alias / unalias <small>apodos para comandos</small><span class="chip">shell</span></h2>
   <p class="uso">alias [nombre='comando'] · unalias nombre · unalias -a</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de ALIAS" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de ALIAS</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>alias</code></td><td>Lista los alias de esta shell.</td></tr>
+<tr><td><code>alias ll=&#39;ls -lah&#39;</code></td><td>Define un atajo. Escribe el igual sin espacios.</td></tr>
+<tr><td><code>unalias ll · unalias -a</code></td><td>Elimina un alias o todos los de esta shell.</td></tr>
+<tr><td><code>source ~/.bashrc</code></td><td>Carga los alias que has guardado en la configuración de Bash.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Sin argumentos lista los alias actuales.</li>
     <li><code>unalias nombre</code> borra uno; <code>unalias -a</code> borra todos.</li>
@@ -648,6 +749,18 @@ Everything is Ok (1 file)</pre>
 <section class="comando sh" id="s-func">
   <h2>Funciones en .bashrc <small>mini-comandos hechos por ti</small><span class="chip">shell</span></h2>
   <p class="uso">nombre() { comandos; } · source ~/.bashrc · type nombre · declare -F · unset -f nombre</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de funciones" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de funciones</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>nombre() { comandos; }</code></td><td>Define un grupo de comandos que ejecutarás con nombre.</td></tr>
+<tr><td><code>&quot;$1&quot; · &quot;$@&quot;</code></td><td>Primer argumento o todos los argumentos, conservando espacios.</td></tr>
+<tr><td><code>type nombre · declare -F</code></td><td>Muestra la definición de uno o lista las funciones cargadas.</td></tr>
+<tr><td><code>unset -f nombre</code></td><td>Elimina una función de esta shell.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Una función junta varios comandos bajo un nombre. Viva en <code>~/.bashrc</code> = <strong>persistente</strong> (se lee al abrir cada terminal); si la escribes a mano en la terminal, se olvida al cerrarla.</li>
     <li><code>source ~/.bashrc</code> la carga al momento sin cerrar la terminal.</li>
@@ -701,6 +814,23 @@ mkcd ()
 <section class="comando ap" id="apt">
   <h2>apt <small>paquetes: instalar, actualizar, limpiar</small><span class="chip">paquetes</span></h2>
   <p class="uso">apt update · apt install [-y] paquete · apt remove paquete · apt search texto · apt policy paquete · apt-get clean</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de APT" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de APT</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>sudo apt update</code></td><td>Actualiza el índice de paquetes disponibles.</td></tr>
+<tr><td><code>sudo apt upgrade</code></td><td>Instala las actualizaciones disponibles.</td></tr>
+<tr><td><code>sudo apt install paquete · sudo apt remove paquete</code></td><td>Instala o desinstala un paquete.</td></tr>
+<tr><td><code>apt search texto</code></td><td>Busca paquetes por nombre y descripción.</td></tr>
+<tr><td><code>apt show paquete · apt-cache show paquete</code></td><td>Consulta los datos y la descripción de un paquete.</td></tr>
+<tr><td><code>apt policy paquete</code></td><td>Muestra la versión instalada, la candidata y sus orígenes.</td></tr>
+<tr><td><code>apt list --installed · dpkg -l</code></td><td>Consulta el estado de los paquetes locales.</td></tr>
+<tr><td><code>dpkg -L paquete</code></td><td>Lista las rutas instaladas por ese paquete.</td></tr>
+<tr><td><code>sudo apt-get clean</code></td><td>Vacía la caché de paquetes descargados.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>apt update</code> actualiza el índice de los repositorios (no instala nada). <code>apt upgrade</code> instala lo nuevo.</li>
     <li><code>apt install -y ncal</code> instala sin preguntar. <code>apt remove</code> desinstala. <code>apt search cadena</code> busca paquetes.</li>
@@ -759,6 +889,19 @@ EOF</pre>
 <section class="comando sh" id="asciinema">
   <h2>asciinema <small>grabar y reproducir sesiones de terminal</small><span class="chip">shell</span></h2>
   <p class="uso">asciinema rec sesion.cast · asciinema play sesion.cast</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de ASCIINEMA" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de ASCIINEMA</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>asciinema rec sesion.cast</code></td><td>Guarda una grabación de la terminal. Termina con exit o Ctrl+D.</td></tr>
+<tr><td><code>rec -t &#39;Título&#39; -i 2</code></td><td>Añade un título y limita las pausas de la grabación.</td></tr>
+<tr><td><code>asciinema play -s 2 sesion.cast</code></td><td>Reproduce al doble de velocidad.</td></tr>
+<tr><td><code>play -i 1</code></td><td>Limita las pausas de reproducción a un segundo.</td></tr>
+<tr><td><code>asciinema cat sesion.cast</code></td><td>Vuelca la salida grabada.</td></tr>
+</tbody>
+</table>
+</div>
   <p class="lede">Guarda la salida de la terminal y sus tiempos en un fichero <code>.cast</code>, como las grabaciones de clase.</p>
   <ul class="flags">
     <li><code>rec fichero.cast</code> inicia una grabación local. Termínala con <code>exit</code> o <kbd>Ctrl</kbd>+<kbd>D</kbd> en la shell grabada.</li>
@@ -849,6 +992,17 @@ luis /bin/sh</pre>
 <section class="comando fi" id="basename">
   <h2>basename <small>quita las carpetas a una ruta</small><span class="chip">ficheros</span></h2>
   <p class="uso">basename ruta [sufijo]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de BASENAME" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de BASENAME</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>basename /home/user/fichero.txt</code></td><td>Extrae fichero.txt de la ruta.</td></tr>
+<tr><td><code>basename /home/user/fichero.txt .txt</code></td><td>Extrae fichero y quita el sufijo .txt.</td></tr>
+<tr><td><code>basename -a ruta1 ruta2</code></td><td>Obtiene el nombre final de cada ruta.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Con <strong>sufijo</strong> (2.º argumento), además recorta esa terminación: útil para quedarte con el nombre sin extensión.</li>
   </ul>
@@ -869,6 +1023,18 @@ luis /bin/sh</pre>
 <section class="comando co" id="bzip2">
   <h2>bzip2 / bunzip2 <small>comprime ficheros de uno en uno · .bz2</small><span class="chip">compresión</span></h2>
   <p class="uso">bzip2 [opciones] fichero · bunzip2 fichero.bz2</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de BZIP2" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de BZIP2</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>bzip2 fichero</code></td><td>Comprime el archivo en formato .bz2.</td></tr>
+<tr><td><code>-k</code></td><td>Conserva la entrada original.</td></tr>
+<tr><td><code>-1 · -9</code></td><td>Bloques de compresión de 100 kB o 900 kB, respectivamente.</td></tr>
+<tr><td><code>bunzip2 fichero.bz2 · bzip2 -d fichero.bz2</code></td><td>Descomprime el archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Solo ficheros individuales (para carpetas, usa tar).</li>
     <li><code>-k</code> conserva el fichero original al comprimir.</li>
@@ -898,6 +1064,17 @@ luis /bin/sh</pre>
 <section class="comando ti" id="cal">
   <h2>cal <small>calendario del mes</small><span class="chip">tiempo</span></h2>
   <p class="uso">cal [mes año] · cal -3</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de CAL" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de CAL</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>cal</code></td><td>Muestra el calendario del mes actual.</td></tr>
+<tr><td><code>cal 10 2026</code></td><td>Muestra el calendario de octubre de 2026.</td></tr>
+<tr><td><code>cal -3</code></td><td>Muestra el mes anterior, el actual y el siguiente.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Sin opciones: mes actual.</li>
     <li><code>cal 12 1970</code> diciembre de 1970.</li>
@@ -920,6 +1097,18 @@ lu ma mi ju vi sá do
 <section class="comando fi" id="cat">
   <h2>cat <small>muestra o une ficheros</small><span class="chip">ficheros</span></h2>
   <p class="uso">cat [opciones] fichero…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de CAT" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de CAT</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>cat fichero</code></td><td>Muestra el contenido del archivo.</td></tr>
+<tr><td><code>cat fichero1 fichero2</code></td><td>Concatena ambos archivos en el orden indicado.</td></tr>
+<tr><td><code>-n · -b</code></td><td>Numera todas las líneas o solo las que tienen contenido.</td></tr>
+<tr><td><code>-A</code></td><td>Hace visibles marcas como los tabuladores y los finales de línea.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Varios ficheros: los pega en orden.</li>
     <li><code>-n</code> numera las líneas.</li>
@@ -946,6 +1135,18 @@ lu ma mi ju vi sá do
 <section class="comando fi" id="cd">
   <h2>cd <small>cambia de carpeta</small><span class="chip">ficheros</span></h2>
   <p class="uso">cd [ruta]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de CD" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de CD</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>cd ruta</code></td><td>Cambia el directorio de trabajo.</td></tr>
+<tr><td><code>cd ..</code></td><td>Sube a la carpeta padre.</td></tr>
+<tr><td><code>cd · cd ~</code></td><td>Va a tu carpeta personal.</td></tr>
+<tr><td><code>cd -</code></td><td>Regresa a la carpeta anterior y muestra la ruta.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>cd ..</code> sube una carpeta. <code>cd</code> o <code>cd ~</code> va a tu home (<code>$HOME</code>).</li>
     <li><code>cd -</code> vuelve a la carpeta anterior.</li>
@@ -976,6 +1177,20 @@ lu ma mi ju vi sá do
 <section class="comando fi" id="chmod">
   <h2>chmod <small>cambia permisos</small><span class="chip">ficheros</span></h2>
   <p class="uso">chmod [-R] modo fichero…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de CHMOD" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de CHMOD</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>chmod 644 fichero</code></td><td>El dueño lee y escribe. El grupo y los demás pueden leer.</td></tr>
+<tr><td><code>chmod 755 carpeta</code></td><td>El dueño lee, escribe y entra. Los demás leen y entran.</td></tr>
+<tr><td><code>u · g · o · a</code></td><td>Dueño, grupo, otros o todos.</td></tr>
+<tr><td><code>+ · - · =</code></td><td>Añadir, quitar o fijar permisos.</td></tr>
+<tr><td><code>r=4 · w=2 · x=1</code></td><td>Bits de lectura, escritura y ejecución o paso.</td></tr>
+<tr><td><code>chmod -R modo carpeta</code></td><td>Aplica el modo también al contenido.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Simbólico: <code>quién</code> (<code>u</code> dueño, <code>g</code> grupo, <code>o</code> otros, <code>a</code> todos) + <code>+-=</code> + <code>rwx</code>. Ejemplos: <code>a-w</code>, <code>u+w</code>, <code>u=rwx,go=rx</code>.</li>
     <li>Octal: 3 cifras, cada una suma 4 (lectura) + 2 (escritura) + 1 (ejecución). <code>744</code> = <code>rwxr--r--</code>.</li>
@@ -1035,6 +1250,17 @@ lu ma mi ju vi sá do
 <section class="comando co" id="compress">
   <h2>compress / uncompress <small>compresor antiguo de UNIX · .Z</small><span class="chip">compresión</span></h2>
   <p class="uso">compress fichero · uncompress fichero.Z</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de COMPRESS" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de COMPRESS</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>compress fichero</code></td><td>Comprime un archivo en formato .Z.</td></tr>
+<tr><td><code>uncompress fichero.Z</code></td><td>Recupera el archivo original.</td></tr>
+<tr><td><code>zcat fichero.Z</code></td><td>Envía el contenido descomprimido a la salida estándar.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Solo ficheros individuales. Hoy casi no se usa.</li>
     <li>En tar: opción <code>-Z</code> → <code>.tar.Z</code>.</li>
@@ -1054,6 +1280,20 @@ lu ma mi ju vi sá do
 <section class="comando fi" id="cp">
   <h2>cp <small>copia ficheros</small><span class="chip">ficheros</span></h2>
   <p class="uso">cp [-r] [-i] [-a] [-p] [-f] [-u] origen… destino</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de CP" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de CP</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>cp origen destino</code></td><td>Copia un archivo. Si el destino es una carpeta, copia dentro.</td></tr>
+<tr><td><code>-r</code></td><td>Copia una carpeta y su contenido.</td></tr>
+<tr><td><code>-a</code></td><td>Conserva atributos y enlaces en una copia recursiva.</td></tr>
+<tr><td><code>-p</code></td><td>Conserva permisos, dueño y fechas cuando es posible.</td></tr>
+<tr><td><code>-i</code></td><td>Pide confirmación antes de sobrescribir.</td></tr>
+<tr><td><code>-u</code></td><td>Copia si el destino falta o su fecha de modificación es más antigua.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-r</code> copia carpetas enteras (recursivo). No conserva atributos; sí conserva enlaces simbólicos.</li>
     <li><code>-a</code> recursivo <strong>conservando atributos</strong> (permisos, fechas, dueño) y enlaces.</li>
@@ -1112,7 +1352,7 @@ lu ma mi ju vi sá do
 <tr><td><code>-f 1-3</code></td><td>Mostrar del primer campo al tercero, ambos incluidos.</td></tr>
 <tr><td><code>-f -3</code></td><td>Mostrar desde el primer campo hasta el tercero.</td></tr>
 <tr><td><code>-f 3-</code></td><td>Mostrar desde el tercer campo hasta el final.</td></tr>
-<tr><td><code>-c 1-5,10-15</code></td><td>Seleccionar posiciones de caracteres, sin dividir en campos.</td></tr>
+<tr><td><code>-c 1-5,10-15</code></td><td>Seleccionar posiciones sin dividir en campos. GNU cut 9.7 de Debian 13 cuenta bytes también con -c.</td></tr>
 <tr><td><code>-b 1-5</code></td><td>Seleccionar los primeros cinco bytes; un carácter con tilde puede ocupar varios bytes.</td></tr>
 <tr><td><code>-s</code></td><td>Con <code>-f</code>, omitir las líneas que no tienen el separador.</td></tr>
 <tr><td><code>--complement</code></td><td>Mostrar lo que queda fuera de la selección.</td></tr>
@@ -1152,6 +1392,19 @@ usuario:/bin/bash</pre>
 <section class="comando ti" id="date">
   <h2>date <small>fecha y hora</small><span class="chip">tiempo</span></h2>
   <p class="uso">date [+formato] · date -d fecha</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de DATE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de DATE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>date</code></td><td>Muestra la fecha y hora del sistema.</td></tr>
+<tr><td><code>date +%F · date +%T</code></td><td>Muestra año-mes-día u hora:minutos:segundos.</td></tr>
+<tr><td><code>date +%d%m%y</code></td><td>Muestra día, mes y año de dos cifras sin separadores.</td></tr>
+<tr><td><code>date +%A · date +%B</code></td><td>Nombre del día o del mes según el idioma.</td></tr>
+<tr><td><code>date -d &#39;next friday&#39;</code></td><td>Calcula y muestra la fecha del próximo viernes.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>+%F</code> 2026-11-11 · <code>+%Y</code> año · <code>+%m</code> mes · <code>+%d</code> día · <code>+%d%m%y</code> 111126</li>
     <li><code>+%H</code>·<code>+%M</code>·<code>+%S</code> hora, minutos, segundos</li>
@@ -1193,6 +1446,18 @@ usuario:/bin/bash</pre>
 <section class="comando pr" id="df">
   <h2>df <small>espacio libre de los discos</small><span class="chip">procesos</span></h2>
   <p class="uso">df [-h] [ruta]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de DF" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de DF</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>df -h</code></td><td>Resume el espacio total, usado y libre en unidades legibles.</td></tr>
+<tr><td><code>df -h /home</code></td><td>Consulta el sistema de archivos que contiene /home.</td></tr>
+<tr><td><code>df -T</code></td><td>Incluye el tipo de sistema de archivos.</td></tr>
+<tr><td><code>df -i</code></td><td>Muestra cuántos inodos están usados y cuántos quedan.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-h</code> human-readable: tamaños legibles (K, M, G). El mismo significado que en <code>ls -h</code>.</li>
     <li>Sin opciones, en bloques de 1K.</li>
@@ -1210,6 +1475,17 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
 <section class="comando fi" id="dirname">
   <h2>dirname <small>quita el nombre de fichero a una ruta</small><span class="chip">ficheros</span></h2>
   <p class="uso">dirname ruta</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de DIRNAME" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de DIRNAME</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>dirname /home/user/fichero.txt</code></td><td>Quita el último componente y devuelve /home/user.</td></tr>
+<tr><td><code>dirname fichero.txt</code></td><td>Devuelve . cuando el nombre carece de carpeta.</td></tr>
+<tr><td><code>dirname ruta1 ruta2</code></td><td>Obtiene la carpeta de cada ruta.</td></tr>
+</tbody>
+</table>
+</div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">dirname</span> /home/usuario/fichero1.txt</pre>
 <pre class="sal">/home/usuario</pre>
@@ -1220,6 +1496,18 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
 <section class="comando fi" id="du">
   <h2>du <small>cuánto ocupa cada carpeta</small><span class="chip">ficheros</span></h2>
   <p class="uso">du [-h] [-s] [-a] [ruta]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de DU" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de DU</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>du -h carpeta</code></td><td>Muestra el espacio en disco de las carpetas en unidades legibles.</td></tr>
+<tr><td><code>du -sh carpeta</code></td><td>Muestra solo el total para esa carpeta.</td></tr>
+<tr><td><code>du -ah carpeta</code></td><td>Incluye el espacio de cada archivo.</td></tr>
+<tr><td><code>du -h --max-depth=1 carpeta</code></td><td>Desglosa hasta un nivel de subcarpetas.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-h</code> legible (K, M, G).</li>
     <li><code>-s</code> solo el total, sin desglosar.</li>
@@ -1245,6 +1533,18 @@ tmpfs            2,0G       0  2,0G   0% /dev/shm</pre>
 <section class="comando sh" id="echo">
   <h2>echo <small>escribe texto</small><span class="chip">shell</span></h2>
   <p class="uso">echo [-e] [-n] texto</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de ECHO" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de ECHO</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>echo &#39;hola&#39;</code></td><td>Muestra el texto y termina con un salto de línea.</td></tr>
+<tr><td><code>echo -n &#39;hola&#39;</code></td><td>Escribe sin el salto final.</td></tr>
+<tr><td><code>echo -e &#39;uno\ndos&#39;</code></td><td>Interpreta secuencias como \n y \t en Bash.</td></tr>
+<tr><td><code>echo &#39;hola&#39; &gt;&gt; fichero</code></td><td>Añade una línea al final del archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-e</code> interpreta <code>\n</code> (salto de línea) y <code>\t</code> (tabulador).</li>
     <li><code>-n</code> sin salto de línea final.</li>
@@ -1335,6 +1635,18 @@ aviso: memoria</pre>
 <section class="comando fi" id="file">
   <h2>file <small>de qué tipo es un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">file fichero…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de FILE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de FILE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>file fichero</code></td><td>Identifica el tipo de archivo mirando sus datos.</td></tr>
+<tr><td><code>file -b fichero</code></td><td>Muestra el tipo sin anteponer el nombre.</td></tr>
+<tr><td><code>file --mime-type fichero</code></td><td>Muestra el tipo MIME, como text/plain.</td></tr>
+<tr><td><code>file -L enlace</code></td><td>Examina el destino del enlace simbólico.</td></tr>
+</tbody>
+</table>
+</div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">file</span> /home/usuario/.bashrc /dev/ttys0 /bin/ls</pre>
 <pre class="sal">/home/usuario/.bashrc: ASCII text
@@ -1537,6 +1849,17 @@ aviso: memoria</pre>
 <section class="comando ap" id="foremost">
   <h2>foremost <small>recupera ficheros borrados</small><span class="chip">paquetes</span></h2>
   <p class="uso">foremost [-o carpeta_salida] imagen.dd</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de FOREMOST" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de FOREMOST</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>foremost -o recuperado imagen.dd</code></td><td>Busca archivos recuperables en la imagen y los guarda en esa carpeta.</td></tr>
+<tr><td><code>-t jpg,pdf</code></td><td>Busca solo los formatos indicados.</td></tr>
+<tr><td><code>-v</code></td><td>Muestra más detalles durante el análisis.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Es la respuesta del temario a «<code>rm</code> no tiene papelera»: busca <strong>firmas</strong> de formatos (jpg, pdf, odt…) dentro de una imagen de disco y recupera lo que no esté sobrescrito.</li>
     <li>Se instala aparte: <code>apt install foremost</code>. Funciona sobre una imagen, no sobre el disco en marcha.</li>
@@ -1644,6 +1967,19 @@ aviso: memoria</pre>
 <section class="comando co" id="gzip">
   <h2>gzip / gunzip <small>comprime ficheros de uno en uno · .gz</small><span class="chip">compresión</span></h2>
   <p class="uso">gzip [opciones] fichero · gunzip fichero.gz</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de GZIP" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de GZIP</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>gzip fichero</code></td><td>Comprime en formato .gz.</td></tr>
+<tr><td><code>gzip -k fichero</code></td><td>Comprime conservando el archivo original.</td></tr>
+<tr><td><code>gzip -t fichero.gz</code></td><td>Comprueba la integridad del comprimido.</td></tr>
+<tr><td><code>gunzip fichero.gz · gzip -d fichero.gz</code></td><td>Descomprime el archivo.</td></tr>
+<tr><td><code>gzip -dc fichero.gz</code></td><td>Envía el contenido descomprimido a la salida estándar.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Solo ficheros individuales. Para carpetas: <code>tar -czvf</code>.</li>
     <li><code>-k</code> conserva el original. <code>-d</code> descomprimir (igual que <code>gunzip</code>).</li>
@@ -1679,6 +2015,18 @@ documentos/documento2.odt</pre>
 <section class="comando fi" id="head">
   <h2>head <small>el principio de un fichero</small><span class="chip">texto</span></h2>
   <p class="uso">head [-n N] [fichero]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de HEAD" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de HEAD</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>head fichero</code></td><td>Muestra las primeras diez líneas.</td></tr>
+<tr><td><code>head -n 5 fichero</code></td><td>Muestra las primeras cinco líneas.</td></tr>
+<tr><td><code>head -c 20 fichero</code></td><td>Muestra los primeros veinte bytes.</td></tr>
+<tr><td><code>head -n -5 fichero</code></td><td>Muestra todo salvo las cinco últimas líneas.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Por defecto las primeras 10 líneas.</li>
     <li><code>-n 3</code> exactamente 3.</li>
@@ -1706,20 +2054,26 @@ C1.txt</pre>
   <h2>history <small>el historial, y cómo pedirle cosas</small><span class="chip">shell</span></h2>
   <p class="lede">Todo lo que escribes queda apuntado; bash puede repetir, rebuscar y retocar esos comandos sin volverlos a teclear.</p>
   <p class="uso">history [N] · history -c · !! · !n · !texto · !$ · ^viejo^nuevo^</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de HISTORY" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de HISTORY</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>history 10</code></td><td>Muestra las diez entradas más recientes.</td></tr>
+<tr><td><code>history -c</code></td><td>Vacía el historial de la shell actual.</td></tr>
+<tr><td><code>!!</code></td><td>Repite el comando anterior.</td></tr>
+<tr><td><code>!42 · !-2</code></td><td>Repite la entrada 42 o la de hace dos comandos.</td></tr>
+<tr><td><code>!texto · !?texto?</code></td><td>Repite el último comando que empieza por texto o que lo contiene.</td></tr>
+<tr><td><code>!$ · Alt+.</code></td><td>Recupera el último argumento del comando anterior.</td></tr>
+<tr><td><code>^txt^log^</code></td><td>Repite el comando anterior cambiando la primera aparición de txt por log.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>history 10</code> solo los últimos 10. <code>history -c</code> lo borra de esta sesión.</li>
     <li>Se guarda en <code>~/.bash_history</code>; la variable <code>$HISTFILE</code> dice dónde.</li>
     <li><kbd>↑</kbd><kbd>↓</kbd> recorren el historial; <kbd>Ctrl</kbd>+<kbd>R</kbd> busca hacia atrás mientras escribes.</li>
   </ul>
-  <table>
-    <tr><th>escribes</th><th>bash ejecuta</th></tr>
-    <tr><td><code>!!</code></td><td>el comando anterior entero</td></tr>
-    <tr><td><code>!42</code> / <code>!-2</code></td><td>el comando n.º 42 de history / el de hace 2</td></tr>
-    <tr><td><code>!ls</code></td><td>el último que <em>empezó</em> por «ls»</td></tr>
-    <tr><td><code>!?motd?</code></td><td>el último que <em>contuvo</em> «motd»</td></tr>
-    <tr><td><code>!$</code></td><td>el último argumento del comando anterior (igual que <kbd>Alt</kbd>+<kbd>.</kbd>)</td></tr>
-    <tr><td><code>^txt^log^</code></td><td>repite el anterior cambiando la 1.ª aparición de «txt» por «log»</td></tr>
-  </table>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">history</span> 3</pre>
 <pre class="sal">  11  ls -l
@@ -1773,6 +2127,19 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <section class="comando pr" id="htop">
   <h2>htop <small>monitor de procesos interactivo</small><span class="chip">procesos</span></h2>
   <p class="uso">htop</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de HTOP" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de HTOP</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>htop</code></td><td>Abre el monitor interactivo de procesos.</td></tr>
+<tr><td><code>F3</code></td><td>Busca por texto.</td></tr>
+<tr><td><code>F6</code></td><td>Cambia la columna de ordenación.</td></tr>
+<tr><td><code>F9</code></td><td>Abre el menú para enviar una señal al proceso seleccionado.</td></tr>
+<tr><td><code>F10 · q</code></td><td>Sale del visor.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Vigila CPU y RAM por proceso con colores y barras; navegable con flechas.</li>
     <li>Teclas: <kbd>F3</kbd> buscar · <kbd>F9</kbd> matar proceso · <kbd>F10</kbd>/<kbd>q</kbd> salir.</li>
@@ -1797,6 +2164,17 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <section class="comando ti" id="hwclock">
   <h2>hwclock <small>reloj de la BIOS</small><span class="chip">tiempo</span></h2>
   <p class="uso">hwclock [-r | -w]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de HWCLOCK" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de HWCLOCK</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>hwclock -r</code></td><td>Consulta el reloj de hardware.</td></tr>
+<tr><td><code>hwclock -w</code></td><td>Copia la hora del sistema al reloj de hardware.</td></tr>
+<tr><td><code>hwclock -s</code></td><td>Copia la hora del reloj de hardware al sistema.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Sin opciones o <code>-r</code>/<code>--show</code>: muestra la hora del hardware.</li>
     <li><code>-w</code>/<code>--systohc</code>: escribe la hora del sistema en la BIOS.</li>
@@ -1813,6 +2191,18 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <section class="comando pr" id="id">
   <h2>id <small>UID y <span class="term">GID</span> de un usuario</small><span class="chip">procesos</span></h2>
   <p class="uso">id [usuario]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de ID" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de ID</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>id usuario</code></td><td>Muestra los identificadores y grupos de esa cuenta.</td></tr>
+<tr><td><code>id -u</code></td><td>Muestra el UID numérico.</td></tr>
+<tr><td><code>id -g</code></td><td>Muestra el GID del grupo principal.</td></tr>
+<tr><td><code>id -G · id -Gn</code></td><td>Lista los identificadores o nombres de todos sus grupos.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Muestra UID (identificador de usuario) y GID (de grupo) y los grupos a los que pertenece.</li>
     <li>Útil para <code>find -user 1000</code>: <code>id</code> te dice qué UID es el tuyo.</li>
@@ -1835,6 +2225,18 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <section class="comando tx" id="join">
   <h2>join <small>unir ficheros por un campo común</small><span class="chip">texto</span></h2>
 <p class="uso">join [-t ':'] [-1 N] [-2 N] fichero1 fichero2</p><p>Los dos ficheros deben estar ordenados por la clave con el mismo separador y criterio. <code>-1</code>/<code>-2</code> eligen los campos; <code>-a 1</code> conserva también líneas sin pareja del primer fichero. Las claves duplicadas generan todas las combinaciones correspondientes.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de JOIN" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de JOIN</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>join fichero1 fichero2</code></td><td>Une filas por su primer campo. Ambos archivos deben estar ordenados por la clave.</td></tr>
+<tr><td><code>-t &#39;:&#39;</code></td><td>Elige los dos puntos como separador.</td></tr>
+<tr><td><code>-1 2 · -2 3</code></td><td>Usa el campo 2 del primer archivo y el campo 3 del segundo.</td></tr>
+<tr><td><code>-a 1</code></td><td>Incluye también las filas sin pareja del primer archivo.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> join -t: -1 1 -2 1 usuarios-ordenados.txt grupos-ordenados.txt</pre>
 <pre class="sal vacio"></pre>
@@ -1889,6 +2291,18 @@ E: No se pudo abrir el archivo de bloqueo - ¿root?</pre>
 <section class="comando fi" id="ln">
   <h2>ln <small>enlaces duros y simbólicos</small><span class="chip">ficheros</span></h2>
   <p class="uso">ln [-s] destino nombre_enlace</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de LN" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de LN</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>ln fichero enlace</code></td><td>Crea otro nombre para el mismo inodo.</td></tr>
+<tr><td><code>ln -s destino enlace</code></td><td>Crea un enlace que guarda una ruta.</td></tr>
+<tr><td><code>ln -s ../destino carpeta/enlace</code></td><td>Interpreta la ruta relativa desde la carpeta que contiene el enlace.</td></tr>
+<tr><td><code>ls -li</code></td><td>Comprueba qué nombres comparten inodo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Sin <code>-s</code>: enlace <strong>duro</strong>, otro nombre para el mismo contenido e inodo. Si borras el original, el enlace sigue funcionando. Solo en la misma partición.</li>
     <li><code>-s</code>: enlace <strong>simbólico</strong>, un fichero especial que guarda la ruta. Si borras el original, queda roto.</li>
@@ -1933,6 +2347,19 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
 <section class="comando bu" id="locate">
   <h2>locate / updatedb <small>busca por nombre en la base de datos</small><span class="chip">búsqueda</span></h2>
   <p class="uso">locate [-c] [-i] [--regex re] patrón · updatedb</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de LOCATE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de LOCATE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>locate texto</code></td><td>Busca rutas en el índice del sistema.</td></tr>
+<tr><td><code>locate -i texto</code></td><td>Ignora mayúsculas y minúsculas.</td></tr>
+<tr><td><code>locate -c &#39;*.mp3&#39;</code></td><td>Cuenta las coincidencias.</td></tr>
+<tr><td><code>locate --regex &#39;bin/wc$&#39;</code></td><td>Busca por expresión regular.</td></tr>
+<tr><td><code>sudo updatedb</code></td><td>Actualiza el índice con los cambios recientes.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Mucho más rápido que find: consulta una base de datos de ficheros, no el disco.</li>
     <li><code>updatedb</code> regenera el índice (lo nuevo no aparece sin ello).</li>
@@ -1971,6 +2398,17 @@ lrwxrwxrwx 1 usuario usuario 4 nov 11 10:12 enlacedir1 -&gt; dir1</pre>
 <section class="comando pr" id="lsof">
   <h2>lsof <small>ficheros abiertos por los procesos</small><span class="chip">procesos</span></h2>
   <p class="uso">lsof [-a] [-p PID] [-d fd] [fichero]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de LSOF" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de LSOF</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>lsof fichero</code></td><td>Indica qué procesos tienen abierto el archivo.</td></tr>
+<tr><td><code>lsof -p 4565</code></td><td>Muestra los recursos abiertos por ese proceso.</td></tr>
+<tr><td><code>lsof -a -p 4565 -d 5</code></td><td>Muestra el descriptor 5 de ese proceso. -a exige que se cumplan ambos filtros.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Lista <strong>todo fichero abierto</strong>: ficheros normales, tuberías, sockets y /dev.</li>
     <li><code>lsof /var/log/syslog</code> quién tiene abierto ese fichero · <code>lsof -p 4565</code> todo lo que tiene abierto ese proceso.</li>
@@ -1987,6 +2425,20 @@ bash    4565 usuario   5u  FIFO   0,12      0t0 12345 tuberia</pre>
 <section class="comando fi" id="ls">
   <h2>ls <small>lista el contenido</small><span class="chip">ficheros</span></h2>
   <p class="uso">ls [-l] [-a] [-R] [-d] [-h] [-i] [-r] [-t] [-S] [ruta…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de LS" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de LS</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>-l · -lh</code></td><td>Listado detallado. Con h, tamaños fáciles de leer.</td></tr>
+<tr><td><code>-a · -A</code></td><td>Incluye ocultos. Con -A se omiten las entradas punto y doble punto.</td></tr>
+<tr><td><code>-d */ · -R</code></td><td>Muestra solo las entradas de directorios o recorre subcarpetas, respectivamente.</td></tr>
+<tr><td><code>-i</code></td><td>Muestra los números de inodo.</td></tr>
+<tr><td><code>-t · -S</code></td><td>Ordena por fecha de modificación o por tamaño.</td></tr>
+<tr><td><code>-r</code></td><td>Invierte el orden del listado.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags cols">
     <li><code>-l</code> formato largo: tipo+permisos, enlaces, dueño, grupo, tamaño, fecha, nombre.</li>
     <li><code>-a</code> incluye los ocultos (los que empiezan por <code>.</code>). <code>-A</code> casi igual, sin <code>.</code> ni <code>..</code>.</li>
@@ -2046,8 +2498,19 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
 <section class="comando fi" id="md5sum">
   <h2>md5sum <small>huella digital de un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">md5sum fichero…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de MD5SUM" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de MD5SUM</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>md5sum fichero</code></td><td>Calcula la huella MD5 del contenido.</td></tr>
+<tr><td><code>md5sum fichero1 fichero2</code></td><td>Muestra las dos huellas para compararlas.</td></tr>
+<tr><td><code>md5sum -c sumas.md5</code></td><td>Verifica los archivos con una lista de huellas guardada.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
-    <li>Calcula el resumen MD5: si dos ficheros tienen el mismo md5, su contenido es idéntico.</li>
+    <li>Calcula la huella MD5. Si dos huellas difieren, los archivos tienen contenido distinto.</li>
     <li><code>md5sum *</code> de todos los ficheros de la carpeta.</li>
     <li>Se usa para verificar descargas o detectar duplicados.</li>
   </ul>
@@ -2062,6 +2525,17 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
 <section class="comando fi" id="mkdir">
   <h2>mkdir <small>crea carpetas</small><span class="chip">ficheros</span></h2>
   <p class="uso">mkdir [-p] [-m modo] carpeta…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de MKDIR" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de MKDIR</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>mkdir carpeta</code></td><td>Crea un directorio.</td></tr>
+<tr><td><code>mkdir -p a/b/c</code></td><td>Crea también las carpetas padre que falten.</td></tr>
+<tr><td><code>mkdir -m 700 carpeta</code></td><td>Crea la carpeta con acceso solo para su dueño.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-p</code> crea las carpetas padre si faltan (rutas anidadas de golpe) y no protesta si ya existen.</li>
     <li><code>-m 700</code> crea con esos permisos directamente.</li>
@@ -2086,6 +2560,17 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
 <section class="comando fi" id="mkfifo">
   <h2>mkfifo <small>crea una tubería con nombre</small><span class="chip">ficheros</span></h2>
   <p class="uso">mkfifo [-m modo] nombre…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de MKFIFO" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de MKFIFO</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>mkfifo tuberia</code></td><td>Crea una tubería con nombre.</td></tr>
+<tr><td><code>mkfifo -m 600 tuberia</code></td><td>Crea la tubería con lectura y escritura para su dueño.</td></tr>
+<tr><td><code>echo hola &gt; tuberia · cat tuberia</code></td><td>Escribe y lee desde dos terminales. Cada lado espera al otro.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Es un fichero especial (<code>p</code> en <code>ls -l</code>) por el que pasan datos de un proceso a otro.</li>
     <li>Escribes con <code>&gt;</code> y lees con <code>cat</code>; al leerlo se vacía.</li>
@@ -2115,6 +2600,18 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
 <section class="comando fi" id="mv">
   <h2>mv <small>mueve o renombra</small><span class="chip">ficheros</span></h2>
   <p class="uso">mv [-i] [-u] origen… destino</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de MV" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de MV</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>mv antes después</code></td><td>Cambia el nombre si después no es una carpeta.</td></tr>
+<tr><td><code>mv fichero carpeta/</code></td><td>Mueve el archivo al directorio indicado.</td></tr>
+<tr><td><code>-i</code></td><td>Pide confirmación antes de sobrescribir.</td></tr>
+<tr><td><code>-u</code></td><td>Mueve si el destino falta o su fecha de modificación es más antigua.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-i</code> pregunta antes de sobrescribir. <code>-u</code> solo si el origen es más nuevo.</li>
     <li>Mover a la misma carpeta = renombrar.</li>
@@ -2142,6 +2639,17 @@ crw--w---- 1 root tty  4,1 nov 11 09:00 /dev/tty1</pre>
 <section class="comando ti" id="ncal">
   <h2>ncal <small>calendario en vertical, con semanas</small><span class="chip">tiempo</span></h2>
   <p class="uso">ncal [mes año] · ncal -w</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de NCAL" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de NCAL</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>ncal</code></td><td>Muestra el mes actual en el formato de ncal.</td></tr>
+<tr><td><code>ncal -w</code></td><td>Añade el número de semana.</td></tr>
+<tr><td><code>ncal 10 2026</code></td><td>Muestra octubre de 2026.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-w</code> muestra también el número de la semana.</li>
     <li><code>ncal 10 2026</code> octubre de 2026.</li>
@@ -2164,6 +2672,18 @@ do  4 11 18 25
 <section class="comando fi" id="nano">
   <h2>nano <small>editor de texto de la terminal</small><span class="chip">ficheros</span></h2>
   <p class="uso">nano [-l] fichero</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de NANO" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de NANO</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>nano fichero</code></td><td>Abre el archivo para editarlo.</td></tr>
+<tr><td><code>nano -l fichero</code></td><td>Muestra los números de línea.</td></tr>
+<tr><td><code>Ctrl+O · Ctrl+X</code></td><td>Guarda o sale del editor, respectivamente.</td></tr>
+<tr><td><code>Ctrl+W</code></td><td>Busca texto dentro del archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>nano fichero</code> lo abre (lo crea al guardar si no existía).</li>
     <li><code>-l</code> muestra números de línea (el alias típico de los apuntes: <code>alias nano='nano -l'</code>).</li>
@@ -2185,6 +2705,17 @@ do  4 11 18 25
 <section class="comando tx" id="nl">
   <h2>nl <small>numerar líneas</small><span class="chip">texto</span></h2>
 <p class="uso">nl [-b a|-b t] fichero</p><p><code>-b a</code> numera todas; <code>-b t</code> solo las no vacías (por defecto). También <code>cat -n</code> numera todas.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de NL" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de NL</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>nl fichero · nl -b t fichero</code></td><td>Numera solo las líneas no vacías del cuerpo del texto.</td></tr>
+<tr><td><code>nl -b a fichero</code></td><td>Numera todas las líneas del cuerpo.</td></tr>
+<tr><td><code>nl -v 10 fichero</code></td><td>Empieza a numerar desde diez.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> nl -b a texto.txt</pre>
 <pre class="sal vacio"></pre>
@@ -2197,6 +2728,17 @@ do  4 11 18 25
 <section class="comando tx" id="od">
   <h2>od <small>ver bytes y caracteres invisibles</small><span class="chip">texto</span></h2>
 <p class="uso">od -c fichero · od -An -tx1 fichero</p><p><code>-c</code> muestra caracteres y escapes; <code>-tx1</code> bytes hexadecimales; <code>-An</code> oculta las direcciones. <code>cat -A</code> marca tabuladores con <code>^I</code> y finales de línea con <code>$</code>.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de OD" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de OD</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>od -c fichero</code></td><td>Muestra los bytes como caracteres o secuencias de escape.</td></tr>
+<tr><td><code>od -x fichero</code></td><td>Muestra palabras de dos bytes en hexadecimal.</td></tr>
+<tr><td><code>od -An -tx1 fichero</code></td><td>Muestra bytes hexadecimales sin direcciones.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf 'a\tb\n' | cat -A</pre>
 <pre class="sal">a^Ib$</pre>
@@ -2209,6 +2751,17 @@ do  4 11 18 25
 <section class="comando tx" id="paste">
   <h2>paste <small>pegar líneas en columnas</small><span class="chip">texto</span></h2>
 <p class="uso">paste [-d 'separadores'] [-s] fichero1 [fichero2…]</p><p>Une por posición de línea, sin buscar claves. Separador por defecto: tabulador. <code>-d</code> cambia separadores; <code>-s</code> pone las líneas de cada fichero en una sola fila.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de PASTE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de PASTE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>paste fichero1 fichero2</code></td><td>Une las líneas correspondientes con tabuladores.</td></tr>
+<tr><td><code>paste -d &#39;:&#39; fichero1 fichero2</code></td><td>Une las columnas usando dos puntos.</td></tr>
+<tr><td><code>paste -s fichero</code></td><td>Pega las líneas del archivo en una sola fila.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> paste -d ';' nombres.txt notas.txt</pre>
 <pre class="sal vacio"></pre>
@@ -2220,6 +2773,18 @@ do  4 11 18 25
 <section class="comando tx" id="printf">
   <h2>printf <small>imprimir con formato</small><span class="chip">texto</span></h2>
 <p class="uso">printf 'formato' argumentos…</p><p><code>%s</code> cadena, <code>%d</code> entero, <code>\n</code> salto de línea, <code>\t</code> tabulador. No añade un salto final si no se pide. Para texto variable: <code>printf '%s\n' "$texto"</code>.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de PRINTF" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de PRINTF</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>printf &#39;%s\n&#39; texto</code></td><td>Imprime texto y un salto de línea.</td></tr>
+<tr><td><code>%s · %d</code></td><td>Inserta una cadena o un número entero.</td></tr>
+<tr><td><code>\n · \t</code></td><td>Escribe un salto de línea o un tabulador.</td></tr>
+<tr><td><code>printf &#39;%s\n&#39; &quot;$texto&quot;</code></td><td>Imprime el valor sin interpretarlo como formato.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf 'Usuario: %s\tNota: %d\n' Ana 8</pre>
 <pre class="sal">Usuario: Ana	Nota: 8</pre>
@@ -2230,8 +2795,20 @@ do  4 11 18 25
 <section class="comando pr" id="ps">
   <h2>ps <small>procesos en marcha</small><span class="chip">procesos</span></h2>
   <p class="uso">ps [opciones]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de PS" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de PS</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>ps</code></td><td>Lista los procesos del usuario en la misma terminal.</td></tr>
+<tr><td><code>ps aux</code></td><td>Lista todos los procesos con usuario, PID y consumo de CPU y memoria.</td></tr>
+<tr><td><code>ps -ef</code></td><td>Lista todos los procesos en formato completo de estilo Unix.</td></tr>
+<tr><td><code>ps -p 4565</code></td><td>Selecciona un PID concreto.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
-    <li><code>aux</code> todos los procesos del sistema con detalle (usuario, PID, %CPU, %MEM, comando). La forma larga es <code>ps --aux</code>.</li>
+    <li><code>ps aux</code> muestra todos los procesos con detalle (usuario, PID, %CPU, %MEM y comando). Escribe <code>aux</code> sin guion.</li>
     <li>Sin opciones: solo los procesos de tu terminal (PID y comando).</li>
     <li><code>ps aux | grep gimp</code> busca un proceso concreto (el PID sale en la 2.ª columna).</li>
   </ul>
@@ -2254,6 +2831,17 @@ root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
 <section class="comando fi" id="pwd">
   <h2>pwd <small>en qué carpeta estás</small><span class="chip">ficheros</span></h2>
   <p class="uso">pwd</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de PWD" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de PWD</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>pwd</code></td><td>Muestra la ruta del directorio de trabajo.</td></tr>
+<tr><td><code>pwd -L</code></td><td>Conserva los nombres de los enlaces de la ruta lógica.</td></tr>
+<tr><td><code>pwd -P</code></td><td>Resuelve los enlaces y muestra la ruta física.</td></tr>
+</tbody>
+</table>
+</div>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">cd</span> prueba/dir3; <span class="k">pwd</span></pre>
 <pre class="sal">/home/usuario/prueba/dir3</pre>
@@ -2271,6 +2859,18 @@ root     2  0.0  0.0      0     0 ?    S    09:00  0:00 [kthreadd]</pre>
 <section class="comando co" id="rar">
   <h2>rar / unrar <small>formato RAR</small><span class="chip">compresión</span></h2>
   <p class="uso">rar a fichero.rar [archivos…] · unrar x fichero.rar</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de RAR" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de RAR</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>rar a copia.rar fichero</code></td><td>Añade el archivo a copia.rar o crea el paquete.</td></tr>
+<tr><td><code>rar a -r copia.rar carpeta/</code></td><td>Añade una carpeta y recorre sus subcarpetas.</td></tr>
+<tr><td><code>unrar l copia.rar</code></td><td>Lista las entradas sin extraerlas.</td></tr>
+<tr><td><code>unrar x copia.rar</code></td><td>Extrae conservando las rutas internas.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>a</code> comprimir. <code>x</code> extraer manteniendo estructura.</li>
     <li>Instalar <code>rar</code> arrastra <code>unrar</code> automáticamente.</li>
@@ -2292,6 +2892,17 @@ Add  documentos/documento1.txt  OK</pre>
 <section class="comando fi" id="readlink">
   <h2>readlink <small>a dónde apunta un enlace</small><span class="chip">ficheros</span></h2>
   <p class="uso">readlink [-f] enlace</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de READLINK" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de READLINK</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>readlink enlace</code></td><td>Muestra el destino literal guardado en el enlace.</td></tr>
+<tr><td><code>readlink -f enlace</code></td><td>Muestra la ruta absoluta con los enlaces resueltos si existen los componentes intermedios.</td></tr>
+<tr><td><code>readlink -e enlace</code></td><td>Exige que todos los componentes del destino existan.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Sin opciones: la ruta guardada en el enlace.</li>
     <li><code>-f</code> la ruta completa y resuelta desde la raíz.</li>
@@ -2352,6 +2963,19 @@ Add  documentos/documento1.txt  OK</pre>
 <section class="comando fi" id="rm">
   <h2>rm <small>borra ficheros</small><span class="chip">ficheros</span></h2>
   <p class="uso">rm [-r] [-i] [-f] fichero…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de RM" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de RM</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>rm fichero</code></td><td>Elimina el archivo directamente.</td></tr>
+<tr><td><code>rm -i fichero</code></td><td>Pregunta antes de eliminar cada archivo.</td></tr>
+<tr><td><code>rm -r carpeta</code></td><td>Elimina la carpeta y su contenido.</td></tr>
+<tr><td><code>rm -f fichero</code></td><td>Omite confirmaciones e ignora archivos inexistentes.</td></tr>
+<tr><td><code>rm -- -fichero</code></td><td>Interpreta -fichero como nombre de archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-r</code> borra carpetas con todo su contenido (la única forma de borrar estructuras; <code>rmdir</code> no puede).</li>
     <li><code>-i</code> pregunta uno a uno. <code>-f</code> sin preguntar.</li>
@@ -2386,8 +3010,19 @@ Add  documentos/documento1.txt  OK</pre>
 <section class="comando fi" id="rmdir">
   <h2>rmdir <small>borra carpetas, solo si están vacías</small><span class="chip">ficheros</span></h2>
   <p class="uso">rmdir [-p] carpeta…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de RMDIR" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de RMDIR</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>rmdir carpeta</code></td><td>Elimina un directorio vacío.</td></tr>
+<tr><td><code>rmdir -p a/b/c</code></td><td>Intenta eliminar c, luego b y luego a si cada uno queda vacío.</td></tr>
+<tr><td><code>rmdir -v carpeta</code></td><td>Indica qué directorio intenta quitar.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
-    <li>No suprime estructuras: la carpeta no puede tener ni ficheros ni directorios dentro (aunque los subdirectorios estén vacíos, usa <code>-p</code>).</li>
+    <li>La carpeta debe estar vacía. Con <code>-p</code>, indica la ruta hasta la carpeta más profunda para quitar también los padres que queden vacíos.</li>
     <li>Para borrar estructuras completas: <code>rm -r</code>.</li>
   </ul>
   <div class="ej">
@@ -2407,6 +3042,19 @@ Add  documentos/documento1.txt  OK</pre>
 <section class="comando re" id="scp">
   <h2>scp <small>copia entre máquinas por SSH</small><span class="chip">red</span></h2>
   <p class="uso">scp [-r] [-P puerto] [-i clave] origen destino</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de SCP" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de SCP</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>scp fichero usuario@servidor:ruta</code></td><td>Sube un archivo al equipo remoto.</td></tr>
+<tr><td><code>scp usuario@servidor:ruta .</code></td><td>Descarga a la carpeta local actual.</td></tr>
+<tr><td><code>-r</code></td><td>Incluye el contenido de las subcarpetas.</td></tr>
+<tr><td><code>-P 2222 · -p</code></td><td>Elige el puerto con P mayúscula o conserva fechas y permisos con p minúscula.</td></tr>
+<tr><td><code>-i clave</code></td><td>Usa esa clave privada para autenticarte.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Origen y destino son <code>[usuario@]máquina:ruta</code>; sin <code>máquina:</code>, el lado es local.</li>
     <li><code>-r</code> recursivo: carpetas enteras (igual que <code>cp</code>).</li>
@@ -2627,6 +3275,17 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <section class="comando sh" id="source">
   <h2>source / . <small>ejecuta un guion en esta shell</small><span class="chip">shell</span></h2>
   <p class="uso">source guion.sh</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de SOURCE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de SOURCE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>source guion.sh</code></td><td>Ejecuta el guion dentro de la shell actual.</td></tr>
+<tr><td><code>. ./guion.sh</code></td><td>Forma abreviada con punto seguido de espacio.</td></tr>
+<tr><td><code>source ~/.bashrc</code></td><td>Recarga la configuración de Bash en la terminal abierta.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>A diferencia de <code>bash guion.sh</code>, los cambios (variables, alias, <code>cd</code>) quedan en la terminal actual.</li>
     <li>Equivalente: <code>. guion.sh</code> (punto y espacio).</li>
@@ -2652,6 +3311,18 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <section class="comando tx" id="split">
   <h2>split <small>dividir ficheros y reconstruirlos</small><span class="chip">texto</span></h2>
 <p class="uso">split [-l líneas | -b tamaño] [-d] fichero prefijo</p><p><code>-l 100</code> cien líneas por parte; <code>-b 1M</code> partes de 1 MiB; <code>-d</code> sufijos numéricos. La última parte puede ser menor.</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de SPLIT" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de SPLIT</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>split -l 100 fichero parte-</code></td><td>Divide en partes de hasta cien líneas.</td></tr>
+<tr><td><code>split -b 1M fichero parte-</code></td><td>Divide en partes de hasta un MiB.</td></tr>
+<tr><td><code>-d</code></td><td>Usa sufijos numéricos.</td></tr>
+<tr><td><code>cat parte-* &gt; reunido</code></td><td>Concatena las partes en orden para reconstruir el archivo.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> split -b 1M -d audio.mp3 audio.parte-
 <span class="d">$</span> cat audio.parte-* &gt; audio-reconstruido.mp3</pre>
@@ -2727,6 +3398,18 @@ bin:x:2:2:bin:/bin:/usr/sbin/nologin</pre>
 <section class="comando fi" id="stat">
   <h2>stat <small>ficha completa de un fichero</small><span class="chip">ficheros</span></h2>
   <p class="uso">stat fichero</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de STAT" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de STAT</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>stat fichero</code></td><td>Muestra tamaño, permisos, dueño, inodo y fechas.</td></tr>
+<tr><td><code>stat -c &#39;%a %s %n&#39; fichero</code></td><td>Muestra permisos en octal, tamaño en bytes y nombre.</td></tr>
+<tr><td><code>stat -L enlace</code></td><td>Consulta los metadatos del destino del enlace.</td></tr>
+<tr><td><code>stat -f ruta</code></td><td>Muestra datos del sistema de archivos que contiene esa ruta.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Tamaño, inodo, número de enlaces duros, permisos en octal, dueño y las tres marcas de tiempo:</li>
     <li><code>touch</code> actualiza atime y mtime a la hora actual; cambiar atime o mtime implica cambiar ctime.</li>
@@ -2755,6 +3438,17 @@ Cambio:       2026-11-11 10:12:00.000000000 +0100</pre>
 <section class="comando tx" id="tac">
   <h2>tac <small>mostrar líneas en orden inverso</small><span class="chip">texto</span></h2>
 <p class="uso">tac [fichero…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TAC" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TAC</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>tac fichero</code></td><td>Muestra las líneas del final al principio.</td></tr>
+<tr><td><code>tac fichero1 fichero2</code></td><td>Invierte las líneas de cada archivo por separado.</td></tr>
+<tr><td><code>tac -s separador fichero</code></td><td>Invierte registros delimitados por el separador indicado.</td></tr>
+</tbody>
+</table>
+</div>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' primero segundo tercero | tac</pre>
 <pre class="sal">tercero
@@ -2767,6 +3461,19 @@ primero</pre>
 <section class="comando fi" id="tail">
   <h2>tail <small>el final de un fichero</small><span class="chip">texto</span></h2>
   <p class="uso">tail [-n N] [-f] [fichero]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TAIL" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TAIL</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>tail fichero</code></td><td>Muestra las diez últimas líneas.</td></tr>
+<tr><td><code>tail -n 5 fichero</code></td><td>Muestra las cinco últimas líneas.</td></tr>
+<tr><td><code>tail -n +5 fichero</code></td><td>Muestra desde la quinta línea, incluida, hasta el final.</td></tr>
+<tr><td><code>tail -f fichero</code></td><td>Muestra los cambios a medida que se añaden al archivo.</td></tr>
+<tr><td><code>tail -F fichero</code></td><td>Sigue el nombre y reintenta abrirlo si el archivo se recrea.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Por defecto las últimas 10 líneas.</li>
     <li><code>-n 5</code> exactamente las 5 últimas.</li>
@@ -2787,6 +3494,21 @@ Z2.txt</pre>
   <h2>tar <small>empaqueta y comprime carpetas enteras</small><span class="chip">compresión</span></h2>
   <p class="lede">Empaqueta (muchos ficheros en uno) y, si quieres, comprime ese paquete con el compresor que elijas.</p>
   <p class="uso">tar [-c|-t|-x] [-v] [-f fichero] [-z|-j|-J|-Z] [-C carpeta] [-r] [--exclude=patrón] [archivos…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TAR" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TAR</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>tar -cvf copia.tar carpeta/</code></td><td>Empaqueta la carpeta sin compresión.</td></tr>
+<tr><td><code>tar -czvf copia.tar.gz carpeta/</code></td><td>Empaqueta y comprime con gzip.</td></tr>
+<tr><td><code>tar -tvf copia.tar</code></td><td>Lista el contenido sin extraerlo.</td></tr>
+<tr><td><code>tar -xvf copia.tar -C destino/</code></td><td>Extrae en una carpeta de destino ya creada.</td></tr>
+<tr><td><code>-z · -j · -J · -Z</code></td><td>Selecciona gzip, bzip2, xz o compress.</td></tr>
+<tr><td><code>tar -rvf copia.tar fichero</code></td><td>Añade el archivo a un .tar sin comprimir.</td></tr>
+<tr><td><code>--exclude=&#39;*.pdf&#39;</code></td><td>Excluye rutas que coincidan con el patrón al empaquetar.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags cols">
     <li><code>-c</code> crear · <code>-t</code> listar contenido sin extraer · <code>-x</code> extraer.</li>
     <li><code>-v</code> verboso (muestra lo que procesa) · <code>-f</code> nombre del fichero tar.</li>
@@ -2880,6 +3602,17 @@ documentos/documento2.odt</pre>
 <section class="comando sh" id="tee">
   <h2>tee <small>pantalla y fichero a la vez</small><span class="chip">shell</span></h2>
   <p class="uso">comando | tee [-a] fichero</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TEE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TEE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>comando | tee salida.txt</code></td><td>Muestra la salida y la guarda en el archivo.</td></tr>
+<tr><td><code>comando | tee -a salida.txt</code></td><td>Muestra la salida y la añade al final.</td></tr>
+<tr><td><code>comando | tee salida.txt | wc -l</code></td><td>Guarda la salida y también la pasa a otro comando.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-a</code> añade al final en vez de sobrescribir.</li>
   </ul>
@@ -2904,6 +3637,18 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dir1</pre>
 <section class="comando ti" id="time">
   <h2>time <small>cuánto tarda un comando</small><span class="chip">tiempo</span></h2>
   <p class="uso">time comando</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TIME" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TIME</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>time comando</code></td><td>Mide la duración del comando y el tiempo de CPU.</td></tr>
+<tr><td><code>time cmd1 | cmd2</code></td><td>En Bash mide la tubería completa.</td></tr>
+<tr><td><code>real · user · sys</code></td><td>Tiempo transcurrido, CPU en modo usuario y CPU en el núcleo.</td></tr>
+<tr><td><code>time -p comando</code></td><td>Muestra los tiempos en el formato POSIX.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Saca por pantalla los tiempos del comando que va detrás: real, user y sys.</li>
     <li>Útil para comparar: <code>-exec … {} \;</code> frente a <code>| xargs -I {} …</code>.</li>
@@ -2973,6 +3718,20 @@ sys     0m0.002s</pre>
 <section class="comando ti" id="touch">
   <h2>touch <small>crea ficheros vacíos o cambia sus marcas de tiempo</small><span class="chip">tiempo</span></h2>
   <p class="uso">touch [-a] [-m] [-d fecha] [-t hora] [-r ref] [-h] fichero…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TOUCH" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TOUCH</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>touch fichero</code></td><td>Crea el archivo si falta o actualiza sus fechas.</td></tr>
+<tr><td><code>-a · -m</code></td><td>Cambia solo la fecha de acceso o la de modificación.</td></tr>
+<tr><td><code>-d &#39;2026-11-25 09:30&#39;</code></td><td>Usa la fecha y hora indicadas.</td></tr>
+<tr><td><code>-t 202611250930</code></td><td>Fija esa misma fecha en formato compacto.</td></tr>
+<tr><td><code>-r referencia</code></td><td>Usa las fechas de acceso y modificación de otro archivo.</td></tr>
+<tr><td><code>-h</code></td><td>Actúa sobre el propio enlace simbólico.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags cols">
     <li>Sin opciones: crea el fichero si no existe y, si existe, pone <strong>acceso y modificación</strong> a la hora actual.</li>
     <li><code>-a</code> (<code>--time=atime</code>) cambia solo la hora de <strong>acceso</strong> · <code>-m</code> (<code>--time=mtime</code>) solo la de <strong>modificación</strong> · <code>-am</code> las dos.</li>
@@ -3032,6 +3791,18 @@ sys     0m0.002s</pre>
 <section class="comando tx" id="tr">
   <h2>tr <small>traducir, borrar y comprimir caracteres</small><span class="chip">texto</span></h2>
 <p class="uso">tr [-d] [-s] [-c] conjunto1 [conjunto2] &lt; fichero</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TR" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TR</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>tr &#39;a-z&#39; &#39;A-Z&#39; &lt; fichero</code></td><td>Convierte letras ASCII a mayúsculas.</td></tr>
+<tr><td><code>tr -d &#39;[:digit:]&#39; &lt; fichero</code></td><td>Elimina dígitos.</td></tr>
+<tr><td><code>tr -s &#39; &#39; &lt; fichero</code></td><td>Reduce los espacios consecutivos a uno.</td></tr>
+<tr><td><code>tr -cd &#39;0-9\n&#39; &lt; fichero</code></td><td>Conserva dígitos y saltos de línea al borrar el complemento.</td></tr>
+</tbody>
+</table>
+</div>
 <p>Traduce <strong>caracteres</strong>, no palabras ni regex. Lee de la entrada estándar: no acepta un nombre de fichero como argumento de entrada. <code>-s</code> comprime repeticiones de caracteres del conjunto; <code>-d</code> elimina; <code>-c</code> complementa el conjunto.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' 'En un    lugar' | tr -s ' '</pre>
@@ -3054,6 +3825,18 @@ sys     0m0.002s</pre>
 <section class="comando fi" id="tree">
   <h2>tree <small>el árbol de carpetas dibujado</small><span class="chip">ficheros</span></h2>
   <p class="uso">tree [-a] [-L nivel] [ruta]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TREE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TREE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>tree carpeta</code></td><td>Dibuja la estructura de archivos y carpetas.</td></tr>
+<tr><td><code>tree -L 2 carpeta</code></td><td>Muestra hasta dos niveles.</td></tr>
+<tr><td><code>tree -a carpeta</code></td><td>Incluye las entradas ocultas.</td></tr>
+<tr><td><code>tree -d carpeta</code></td><td>Muestra solo los directorios.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-L 2</code> solo hasta 2 niveles. <code>-a</code> incluye ocultos.</li>
   </ul>
@@ -3077,6 +3860,18 @@ sys     0m0.002s</pre>
 <section class="comando sh" id="type">
   <h2>type <small>qué es un comando</small><span class="chip">shell</span></h2>
   <p class="uso">type comando…</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de TYPE" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de TYPE</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>type comando</code></td><td>Indica si el nombre corresponde a un alias, función, comando interno o ejecutable.</td></tr>
+<tr><td><code>type -a comando</code></td><td>Muestra todas las definiciones y rutas coincidentes.</td></tr>
+<tr><td><code>type -t comando</code></td><td>Muestra la categoría, como alias, builtin o file.</td></tr>
+<tr><td><code>type -P comando</code></td><td>Busca el ejecutable en el PATH de Bash.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Te dice si es <strong>interno</strong> del shell, un <strong>alias</strong> o un <strong>programa</strong> con su ruta.</li>
     <li>Funciona con funciones: <code>type nombre_función</code>.</li>
@@ -3104,6 +3899,19 @@ pwd es una orden interna del interprete</pre>
 <section class="comando fi" id="umask">
   <h2>umask <small>permisos por defecto</small><span class="chip">ficheros</span></h2>
   <p class="uso">umask [máscara]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de UMASK" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de UMASK</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>umask</code></td><td>Muestra la máscara actual en octal.</td></tr>
+<tr><td><code>umask -S</code></td><td>Muestra en simbólico los permisos que deja pasar la máscara.</td></tr>
+<tr><td><code>umask 022</code></td><td>Archivos 644 (rw-r--r--) y carpetas 755 (rwxr-xr-x).</td></tr>
+<tr><td><code>umask 033</code></td><td>Archivos 644 (rw-r--r--) y carpetas 744 (rwxr--r--).</td></tr>
+<tr><td><code>umask 077</code></td><td>Archivos 600 (rw-------) y carpetas 700 (rwx------).</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Sin opciones muestra la máscara actual (normalmente <code>022</code>).</li>
     <li>Los ficheros nuevos parten de <code>666</code> y las carpetas de <code>777</code>; la máscara se les <strong>resta por bits</strong>.</li>
@@ -3112,12 +3920,6 @@ pwd es una orden interna del interprete</pre>
     <b>💡 truco de examen</b>
     <p>Los ficheros <mark class="oro">parten de <code>666</code> (sin ejecución)</mark>, por eso <code>umask 033</code> da ficheros <code>644</code> y <em>no</em> <code>633</code>. Caras típicas: <code>022</code> → 644/755 y <code>077</code> → 600/700.</p>
   </div>
-  <table>
-    <tr><th>umask</th><th>ficheros (666−)</th><th>carpetas (777−)</th></tr>
-    <tr><td><code>022</code></td><td><code>644</code> rw-r--r--</td><td><code>755</code> rwxr-xr-x</td></tr>
-    <tr><td><code>033</code></td><td><code>644</code> rw-r--r--</td><td><code>744</code> rwxr--r--</td></tr>
-    <tr><td><code>077</code></td><td><code>600</code> rw-------</td><td><code>700</code> rwx------</td></tr>
-  </table>
   <div class="ej">
 <pre class="cmd"><span class="d">$</span> <span class="k">umask</span> 022; <span class="k">mkdir</span> dira; <span class="k">touch</span> uno; <span class="k">ls</span> <span class="f">-l</span> uno; <span class="k">ls</span> <span class="f">-ld</span> dira</pre>
 <pre class="sal">-rw-r--r-- 1 usuario usuario 0 nov 11 10:12 uno
@@ -3135,6 +3937,19 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
 <section class="comando tx" id="uniq">
   <h2>uniq <small>quitar y contar líneas repetidas</small><span class="chip">texto</span></h2>
 <p class="uso">uniq [-c] [-d] [-u] [fichero]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de UNIQ" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de UNIQ</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>uniq fichero</code></td><td>Reduce cada grupo de líneas iguales consecutivas a una.</td></tr>
+<tr><td><code>uniq -c fichero</code></td><td>Muestra cuántas veces aparece cada línea en su grupo.</td></tr>
+<tr><td><code>uniq -d fichero</code></td><td>Muestra una línea por cada grupo repetido.</td></tr>
+<tr><td><code>uniq -u fichero</code></td><td>Muestra las líneas que aparecen una sola vez en su grupo.</td></tr>
+<tr><td><code>sort fichero | uniq -c</code></td><td>Agrupa todas las líneas iguales antes de contar.</td></tr>
+</tbody>
+</table>
+</div>
 <p>Detecta repeticiones <strong>consecutivas</strong>. Ordena antes para agrupar todas: <code>sort fichero | uniq</code>. <code>-c</code> cuenta; <code>-d</code> muestra los repetidos; <code>-u</code> los que aparecen una sola vez.</p>
 <div class="ej">
 <pre class="cmd"><span class="d">$</span> printf '%s\n' ana luis ana | sort | uniq -c</pre>
@@ -3153,6 +3968,17 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
 <section class="comando pr" id="users">
   <h2>users / whoami <small>¿quién está conectado?</small><span class="chip">procesos</span></h2>
   <p class="uso">users · whoami</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de USERS y WHOAMI" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de USERS y WHOAMI</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>users</code></td><td>Muestra un nombre por sesión conectada.</td></tr>
+<tr><td><code>whoami</code></td><td>Muestra tu nombre de usuario efectivo.</td></tr>
+<tr><td><code>users | wc -w</code></td><td>Cuenta los nombres de sesión. Una persona puede tener varias sesiones.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>whoami</code> tu usuario. <code>users</code> solo los nombres de los conectados.</li>
     <li><code>users | wc -w</code> cuenta cuántos hay conectados.</li>
@@ -3179,6 +4005,20 @@ drwxr-xr-x 2 usuario usuario 4096 nov 11 10:12 dira</pre>
 <section class="comando tx" id="wc">
   <h2>wc <small>cuenta líneas, palabras y bytes</small><span class="chip">texto</span></h2>
   <p class="uso">wc [-l] [-w] [-c] [fichero…]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de WC" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de WC</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>wc -l fichero</code></td><td>Cuenta saltos de línea.</td></tr>
+<tr><td><code>wc -w fichero</code></td><td>Cuenta palabras.</td></tr>
+<tr><td><code>wc -c fichero</code></td><td>Cuenta bytes.</td></tr>
+<tr><td><code>wc -m fichero</code></td><td>Cuenta caracteres según la configuración regional.</td></tr>
+<tr><td><code>wc -L fichero</code></td><td>Mide el ancho en pantalla de la línea más larga.</td></tr>
+<tr><td><code>wc -l &lt; fichero</code></td><td>Muestra la cuenta sin el nombre del archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-l</code> líneas · <code>-w</code> palabras · <code>-c</code> bytes.</li>
     <li>Sin opciones da las tres cifras; con fichero repite el nombre al final, redirigido no.</li>
@@ -3210,6 +4050,18 @@ FIN</pre>
 <section class="comando bu" id="which">
   <h2>which / whereis <small>dónde está el comando</small><span class="chip">búsqueda</span></h2>
   <p class="uso">which comando · whereis [-b|-m|-s] nombre</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de WHICH y WHEREIS" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de WHICH y WHEREIS</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>which comando</code></td><td>Busca la ruta del ejecutable en el PATH.</td></tr>
+<tr><td><code>whereis -b comando</code></td><td>Busca binarios en rutas conocidas.</td></tr>
+<tr><td><code>whereis -m comando</code></td><td>Busca los manuales asociados.</td></tr>
+<tr><td><code>whereis -s comando</code></td><td>Busca archivos de código fuente.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>which</code> la ruta del ejecutable.</li>
     <li><code>whereis</code> ejecutables (<code>-b</code>), entradas del manual (<code>-m</code>) y fuentes (<code>-s</code>).</li>
@@ -3229,6 +4081,18 @@ FIN</pre>
 <section class="comando pr" id="who">
   <h2>who <small>usuarios conectados y su terminal</small><span class="chip">procesos</span></h2>
   <p class="uso">who</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de WHO" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de WHO</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>who</code></td><td>Muestra usuario, terminal y hora de cada sesión conectada.</td></tr>
+<tr><td><code>who am i</code></td><td>Muestra la sesión vinculada a la terminal actual si figura en el registro.</td></tr>
+<tr><td><code>who -q</code></td><td>Resume los nombres de las sesiones y su número.</td></tr>
+<tr><td><code>who | sort</code></td><td>Ordena las sesiones por el texto inicial de cada línea, donde aparece el usuario.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Una línea por sesión: usuario, terminal (tty) y hora de conexión.</li>
     <li><code>who | sort</code> ordena por usuario (el principio de la línea), no por la hora de conexión; por hora sería <code>who | sort -k 3</code>.</li>
@@ -3252,6 +4116,20 @@ usuario  tty1   2026-11-11 09:10</pre>
 <section class="comando sh" id="xargs">
   <h2>xargs <small>convierte la entrada en argumentos</small><span class="chip">shell</span></h2>
   <p class="uso">comando | xargs [-0] [-n N] [-I {} ] [-P N] comando</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de XARGS" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de XARGS</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>comando | xargs otro</code></td><td>Convierte la entrada en argumentos para otro.</td></tr>
+<tr><td><code>-0</code></td><td>Separa por byte nulo. Combina con find -print0 para conservar los nombres completos.</td></tr>
+<tr><td><code>-n 2</code></td><td>Pasa como máximo dos argumentos por ejecución.</td></tr>
+<tr><td><code>-I {}</code></td><td>Sustituye el marcador {} por cada línea de entrada.</td></tr>
+<tr><td><code>-P 4</code></td><td>Ejecuta hasta cuatro procesos en paralelo.</td></tr>
+<tr><td><code>-r</code></td><td>En GNU xargs, evita ejecutar el comando si la entrada está vacía.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags cols">
     <li><code>-0</code> entrada separada por byte nulo (pareja de <code>find -print0</code>).</li>
     <li><code>-n 2</code> pasa como máximo 2 argumentos por llamada al comando.</li>
@@ -3284,6 +4162,18 @@ e</pre>
 <section class="comando co" id="xz">
   <h2>xz / unxz <small>compresión máxima · .xz</small><span class="chip">compresión</span></h2>
   <p class="uso">xz [opciones] fichero · unxz fichero.xz</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de XZ" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de XZ</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>xz fichero</code></td><td>Comprime en formato .xz.</td></tr>
+<tr><td><code>xz -k fichero</code></td><td>Comprime conservando el original.</td></tr>
+<tr><td><code>xz -t fichero.xz</code></td><td>Comprueba la integridad del comprimido.</td></tr>
+<tr><td><code>xz -d fichero.xz · unxz fichero.xz</code></td><td>Descomprime el archivo.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li>Solo ficheros individuales. Ratio altísimo, pero lento.</li>
     <li><code>-k</code> conserva el original. <code>-d</code> descomprimir. <code>-0</code>…<code>-9</code> nivel.</li>
@@ -3313,6 +4203,18 @@ documentos/documento2.odt</pre>
 <section class="comando co" id="zip">
   <h2>zip / unzip <small>comprime ficheros y carpetas</small><span class="chip">compresión</span></h2>
   <p class="uso">zip [-r] fichero.zip [archivos…] · unzip fichero.zip [-d carpeta]</p>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de ZIP" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de ZIP</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>zip copia.zip fichero</code></td><td>Crea el paquete o añade el archivo.</td></tr>
+<tr><td><code>zip -r copia.zip carpeta/</code></td><td>Incluye la carpeta y sus subcarpetas.</td></tr>
+<tr><td><code>unzip -l copia.zip</code></td><td>Lista el contenido del paquete.</td></tr>
+<tr><td><code>unzip copia.zip -d salida/</code></td><td>Extrae en la carpeta de destino.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><code>-r</code> recursivo: carpetas y subcarpetas enteras (a diferencia de gzip/bzip2/xz).</li>
     <li><code>unzip -d carpeta</code> extrae dentro de esa carpeta.</li>
@@ -3334,6 +4236,20 @@ adding: carpeta/documento.txt (deflated 62%)</pre>
 
 <section class="comando sh" id="s-atajos">
   <h2>Atajos de teclado <small>en cualquier Linux</small><span class="chip">shell</span></h2>
+<div class="tabla-scroll" role="region" aria-label="Chuleta de atajos de Bash" tabindex="0">
+<table class="chuleta-resumen">
+<caption>Chuleta de atajos de Bash</caption>
+<thead><tr><th scope="col">Opción</th><th scope="col">Función</th></tr></thead>
+<tbody>
+<tr><td><code>Tab · Tab dos veces</code></td><td>Completa el texto o muestra las coincidencias.</td></tr>
+<tr><td><code>Ctrl+R · ↑ · ↓</code></td><td>Busca en el historial o recorre los comandos anteriores.</td></tr>
+<tr><td><code>Ctrl+A · Ctrl+E</code></td><td>Mueve el cursor al principio o al final de la línea.</td></tr>
+<tr><td><code>Ctrl+U · Ctrl+W</code></td><td>Borra hasta el principio o borra la palabra anterior.</td></tr>
+<tr><td><code>Ctrl+C · Ctrl+L</code></td><td>Interrumpe el proceso en primer plano o limpia la pantalla.</td></tr>
+<tr><td><code>Alt+.</code></td><td>Inserta el último argumento del comando anterior.</td></tr>
+</tbody>
+</table>
+</div>
   <ul class="flags">
     <li><kbd>Tab</kbd> completa nombres y comandos (doble Tab lista opciones).</li>
     <li><kbd>↑</kbd> <kbd>↓</kbd> recorren el historial.</li>
@@ -3594,6 +4510,647 @@ http-alt 8080/tcp</pre>
   </table>
 </section>
 
+
+<section class="comando rey" id="s-rey-examen">
+  <div class="rey-portada">
+    <h2>👑 EL REY DEL EXAMEN 25</h2>
+    <p class="nota">20 preguntas · 60 minutos</p>
+    <h3>Recordatorio de emergencia</h3>
+    <ul class="rey-mapa">
+      <li><a href="#rey-grep">Buscar líneas <strong>GREP</strong></a></li>
+      <li><a href="#rey-grep">Extraer coincidencias <strong>GREP -o</strong></a></li>
+      <li><a href="#rey-sed">Sustituir contenido <strong>SED</strong></a></li>
+      <li><a href="#rey-sed">Eliminar líneas <strong>SED d</strong></a></li>
+      <li><a href="#rey-awk">Columnas y condiciones <strong>AWK</strong></a></li>
+      <li><a href="#rey-cut">Extraer columnas <strong>CUT</strong></a></li>
+      <li><a href="#rey-find">Buscar archivos <strong>FIND</strong></a></li>
+      <li><a href="#rey-rename">Renombrar archivos <strong>RENAME</strong></a></li>
+      <li><a href="#rey-sort">Ordenar <strong>SORT</strong></a></li>
+      <li><a href="#rey-uniq">Eliminar duplicados <strong>SORT + UNIQ</strong></a></li>
+      <li><a href="#rey-tr">Sustituir caracteres <strong>TR</strong></a></li>
+      <li><a href="#rey-secundarios">Contar líneas <strong>WC -l</strong></a></li>
+      <li><a href="#rey-apt">Consultar manuales <strong>MAN / LESS</strong></a></li>
+      <li><a href="#rey-redirecciones">Guardar y mostrar <strong>TEE</strong></a></li>
+      <li><a href="#rey-redirecciones">Encadenar comandos <strong>Tubería</strong></a></li>
+    </ul>
+  </div>
+  <nav class="rey-nav" aria-label="Índice de El Rey del Examen 25">
+    <a href="#rey-regex">1 · Regex</a>
+    <a href="#rey-grep">2 · GREP / EGREP</a>
+    <a href="#rey-sed">3 · SED</a>
+    <a href="#rey-rename">4 · RENAME</a>
+    <a href="#rey-awk">5 · AWK</a>
+    <a href="#rey-find">6 · FIND</a>
+    <a href="#rey-cut">7 · CUT</a>
+    <a href="#rey-sort">8 · SORT</a>
+    <a href="#rey-uniq">9 · UNIQ</a>
+    <a href="#rey-tr">10 · TR</a>
+    <a href="#rey-visores">11 · LESS / MORE</a>
+    <a href="#rey-secundarios">12 · Secundarios</a>
+    <a href="#rey-redirecciones">13 · Tuberías</a>
+    <a href="#rey-apt">14 · APT / MAN / ALIAS</a>
+    <a href="#rey-ejercicios">15 · Ejercicios</a>
+  </nav>
+
+<section class="rey-bloque" id="rey-regex" aria-labelledby="rey-regex-titulo">
+<h3 id="rey-regex-titulo">1. Expresiones regulares</h3>
+<div class="rey-tablas">
+<div class="tabla-scroll" role="region" aria-label="Sintaxis de regex" tabindex="0">
+<table>
+<caption>Sintaxis de regex</caption>
+<thead><tr><th scope="col">Sintaxis</th><th scope="col">Significado</th></tr></thead>
+<tbody>
+<tr><td><code>^</code></td><td>Inicio de línea.</td></tr>
+<tr><td><code>$</code></td><td>Final de línea.</td></tr>
+<tr><td><code>.</code></td><td>Un carácter cualquiera de la línea.</td></tr>
+<tr><td><code>.*</code></td><td>Cero o más caracteres.</td></tr>
+<tr><td><code>\.</code></td><td>Punto literal.</td></tr>
+<tr><td><code>[abc]</code></td><td>Un carácter de la lista.</td></tr>
+<tr><td><code>[^abc]</code></td><td>Un carácter distinto de a, b y c.</td></tr>
+<tr><td><code>[0-9]</code></td><td>Un dígito del 0 al 9.</td></tr>
+<tr><td><code>[a-zA-Z]</code></td><td>Una letra de los rangos a–z o A–Z.</td></tr>
+<tr><td><code>*</code></td><td>Cero o más repeticiones del elemento anterior.</td></tr>
+<tr><td><code>+</code></td><td>Una o más repeticiones.</td></tr>
+<tr><td><code>?</code></td><td>Cero o una repetición.</td></tr>
+<tr><td><code>{3}</code></td><td>Exactamente tres repeticiones.</td></tr>
+<tr><td><code>{2,5}</code></td><td>Entre dos y cinco repeticiones.</td></tr>
+<tr><td><code>{3,}</code></td><td>Tres repeticiones como mínimo.</td></tr>
+<tr><td><code>(abc)</code></td><td>Agrupa abc en ERE.</td></tr>
+<tr><td><code>a|b</code></td><td>Alternativa entre a y b.</td></tr>
+<tr><td><code>^$</code></td><td>Línea completamente vacía.</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<div class="tabla-scroll" role="region" aria-label="Clases POSIX" tabindex="0">
+<table>
+<caption>Clases POSIX</caption>
+<thead><tr><th scope="col">Clase</th><th scope="col">Significado</th></tr></thead>
+<tbody>
+<tr><td><code>[[:digit:]]</code></td><td>Dígitos.</td></tr>
+<tr><td><code>[[:alpha:]]</code></td><td>Letras.</td></tr>
+<tr><td><code>[[:alnum:]]</code></td><td>Letras y números.</td></tr>
+<tr><td><code>[[:upper:]]</code></td><td>Mayúsculas.</td></tr>
+<tr><td><code>[[:lower:]]</code></td><td>Minúsculas.</td></tr>
+<tr><td><code>[[:space:]]</code></td><td>Caracteres en blanco.</td></tr>
+<tr><td><code>[[:blank:]]</code></td><td>Espacios y tabuladores.</td></tr>
+<tr><td><code>[[:xdigit:]]</code></td><td>Dígitos hexadecimales.</td></tr>
+<tr><td><code>[[:punct:]]</code></td><td>Puntuación.</td></tr>
+<tr><td><code>[[:print:]]</code></td><td>Caracteres imprimibles.</td></tr>
+<tr><td><code>[[:graph:]]</code></td><td>Imprimibles sin espacios.</td></tr>
+<tr><td><code>[[:cntrl:]]</code></td><td>Caracteres de control.</td></tr>
+</tbody>
+</table>
+</div>
+<p class="nota"><strong>BRE</strong> con <code>grep</code> o <code>sed</code>. En GNU escribe <code>\+ \? \{3\} \(abc\) \|</code>.</p>
+<p class="nota"><strong>ERE</strong> con <code>grep -E</code>, <code>egrep</code>, <code>sed -E</code> o <code>awk</code>. Escribe <code>+ ? {3} () |</code> directamente.</p>
+<p class="nota"><strong>Clases</strong> · <code>[[:digit:]]</code> en grep, sed y awk. <code>[:digit:]</code> en tr.</p>
+</div>
+</div>
+<h4>Patrones para copiar</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep -E &#39;^[0-9]{8}[A-Z]$&#39; fichero</code></dt><dd><strong>DNI</strong> · Formato de DNI de ocho dígitos y una letra mayúscula. No calcula la letra.</dd></div>
+<div><dt><code>grep -E &#39;^[A-Z]{2}-[0-9]{4}$&#39; fichero</code></dt><dd><strong>Código AB-1234</strong> · Dos mayúsculas, un guion y cuatro dígitos.</dd></div>
+<div><dt><code>grep -E &#39;^[0-9]{4}[BCDFGHJKLMNPRSTVWXYZ]{3}$&#39; fichero</code></dt><dd><strong>Matrícula española</strong> · Cuatro dígitos y tres consonantes del formato español.</dd></div>
+<div><dt><code>grep -Eo &#39;([0-9]{1,3}\.){3}[0-9]{1,3}&#39; fichero</code></dt><dd><strong>IPv4 (formato, sin validar rango)</strong> · Extrae IPv4 por su forma. Admite octetos fuera de 0 a 255.</dd></div>
+<div><dt><code>grep -Eo &#39;([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}&#39; fichero</code></dt><dd><strong>MAC</strong> · Extrae seis pares hexadecimales separados por dos puntos.</dd></div>
+<div><dt><code>grep -Eoi &#39;[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}&#39; fichero</code></dt><dd><strong>Correo electrónico</strong> · Extrae correos de formato habitual sin distinguir mayúsculas.</dd></div>
+<div><dt><code>grep -E &#39;^[a-z0-9]+@(gmail|hotmail|outlook)\.com$&#39; fichero</code></dt><dd><strong>Correos Gmail, Hotmail y Outlook</strong> · Filtra esos tres dominios .com y un usuario de letras minúsculas o números.</dd></div>
+<div><dt><code>grep -Eo &#39;https?://[^[:space:]]+&#39; fichero</code></dt><dd><strong>URL</strong> · Extrae direcciones HTTP/HTTPS hasta un carácter en blanco.</dd></div>
+<div><dt><code>grep &#39;^$&#39; fichero</code></dt><dd><strong>Líneas vacías</strong> · Muestra líneas sin ningún carácter.</dd></div>
+<div><dt><code>grep &#39;^[[:space:]]*$&#39; fichero</code></dt><dd><strong>Líneas vacías o con espacios</strong> · Muestra líneas vacías o formadas solo por blancos.</dd></div>
+<div><dt><code>grep -v &#39;^[[:blank:]]*#&#39; fichero</code></dt><dd><strong>Excluir comentarios</strong> · Oculta las líneas cuyo primer carácter no blanco es #.</dd></div>
+<div><dt><code>grep -Eo &#39;[[:digit:]]+&#39; fichero</code></dt><dd><strong>Extraer números</strong> · Extrae grupos de uno o más dígitos.</dd></div>
+<div><dt><code>grep &#39;^[[:lower:]]&#39; fichero</code></dt><dd><strong>Empieza por minúscula</strong> · Muestra líneas que empiezan por una letra minúscula.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-grep" aria-labelledby="rey-grep-titulo">
+<h3 id="rey-grep-titulo">2. GREP / EGREP</h3>
+<dl class="rey-ejemplos">
+<div><dt><code>grep &#39;texto&#39; fichero</code></dt><dd>Busca líneas que contienen el patrón en BRE.</dd></div>
+<div><dt><code>grep -E &#39;regex&#39; fichero</code></dt><dd>Usa una expresión regular extendida.</dd></div>
+<div><dt><code>egrep &#39;regex&#39; fichero</code></dt><dd>Equivale a grep -E. Es la forma antigua.</dd></div>
+<div><dt><code>grep -v &#39;texto&#39; fichero</code></dt><dd>Invierte el filtro y muestra las líneas que quedan fuera.</dd></div>
+<div><dt><code>grep -i &#39;texto&#39; fichero</code></dt><dd>Ignora mayúsculas y minúsculas.</dd></div>
+<div><dt><code>grep -c &#39;texto&#39; fichero</code></dt><dd>Cuenta líneas coincidentes.</dd></div>
+<div><dt><code>grep -o &#39;texto&#39; fichero</code></dt><dd>Extrae cada coincidencia en su propia línea.</dd></div>
+<div><dt><code>grep -n &#39;texto&#39; fichero</code></dt><dd>Añade el número de línea.</dd></div>
+<div><dt><code>grep -w &#39;texto&#39; fichero</code></dt><dd>Coincide con una palabra completa.</dd></div>
+<div><dt><code>grep -x &#39;texto&#39; fichero</code></dt><dd>Exige que coincida la línea completa.</dd></div>
+<div><dt><code>grep -r &#39;texto&#39; carpeta</code></dt><dd>Busca en la carpeta y sus subcarpetas.</dd></div>
+<div><dt><code>grep -rl &#39;texto&#39; carpeta</code></dt><dd>Devuelve solo los nombres de los archivos con coincidencias.</dd></div>
+<div><dt><code>grep -F &#39;texto&#39; fichero</code></dt><dd>Busca texto literal sin interpretar la regex.</dd></div>
+<div><dt><code>grep -q &#39;texto&#39; fichero</code></dt><dd>Busca en silencio y deja el resultado en el código de salida.</dd></div>
+<div><dt><code>grep -f patrones.txt fichero</code></dt><dd>Lee un patrón por línea de patrones.txt.</dd></div>
+<div><dt><code>grep -e &#39;uno&#39; -e &#39;otro&#39; fichero</code></dt><dd>Acepta cualquiera de los dos patrones.</dd></div>
+<div><dt><code>grep -E &#39;uno|otro&#39; fichero</code></dt><dd>Acepta uno u otro con una alternativa ERE.</dd></div>
+<div><dt><code>grep &#39;uno&#39; fichero | grep &#39;otro&#39;</code></dt><dd>Exige los dos patrones en la misma línea.</dd></div>
+<div><dt><code>grep -A5 &#39;texto&#39; fichero</code></dt><dd>Muestra la coincidencia y cinco líneas posteriores.</dd></div>
+<div><dt><code>grep -B5 &#39;texto&#39; fichero</code></dt><dd>Muestra la coincidencia y cinco líneas anteriores.</dd></div>
+<div><dt><code>grep -C5 &#39;texto&#39; fichero</code></dt><dd>Muestra la coincidencia y cinco líneas a cada lado.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-sed" aria-labelledby="rey-sed-titulo">
+<h3 id="rey-sed-titulo">3. SED</h3>
+<p class="uso">sed 's/BUSCAR/SUSTITUIR/g' fichero</p>
+<dl class="rey-claves">
+<div><dt><code>p</code></dt><dd>Mostrar líneas.</dd></div>
+<div><dt><code>d</code></dt><dd>Quitar líneas de la salida.</dd></div>
+<div><dt><code>s</code></dt><dd>Sustituir texto.</dd></div>
+<div><dt><code>g en s</code></dt><dd>Todas las coincidencias de cada línea.</dd></div>
+<div><dt><code>i en s</code></dt><dd>Ignorar mayúsculas.</dd></div>
+<div><dt><code>a</code></dt><dd>Añadir después.</dd></div>
+<div><dt><code>i</code></dt><dd>Insertar antes.</dd></div>
+<div><dt><code>c</code></dt><dd>Reemplazar la línea completa.</dd></div>
+<div><dt><code>r</code></dt><dd>Leer e insertar otro archivo.</dd></div>
+<div><dt><code>w</code></dt><dd>Escribir en otro archivo.</dd></div>
+<div><dt><code>=</code></dt><dd>Mostrar número de línea.</dd></div>
+<div><dt><code>!</code></dt><dd>Negar la selección.</dd></div>
+<div><dt><code>&amp;</code></dt><dd>Coincidencia completa.</dd></div>
+<div><dt><code>\1 · \2</code></dt><dd>Grupos capturados.</dd></div>
+<div><dt><code>-n</code></dt><dd>Desactivar impresión automática.</dd></div>
+<div><dt><code>-E</code></dt><dd>Activar regex extendida.</dd></div>
+<div><dt><code>-e</code></dt><dd>Añadir una acción. Se puede repetir.</dd></div>
+<div><dt><code>-i</code></dt><dd>Modificar el archivo original.</dd></div>
+</dl>
+<h4>Mostrar líneas</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed -n &#39;/texto/p&#39; fichero</code></dt><dd>Muestra las líneas que contienen texto.</dd></div>
+<div><dt><code>sed -n &#39;/texto/!p&#39; fichero</code></dt><dd>Muestra las líneas que quedan fuera de ese patrón.</dd></div>
+<div><dt><code>sed -n &#39;3p&#39; fichero</code></dt><dd>Muestra solo la tercera línea.</dd></div>
+<div><dt><code>sed -n &#39;2,5p&#39; fichero</code></dt><dd>Muestra desde la línea 2 hasta la 5.</dd></div>
+<div><dt><code>sed -n &#39;1,5p&#39; fichero</code></dt><dd>Muestra las primeras cinco líneas.</dd></div>
+<div><dt><code>sed -n &#39;$p&#39; fichero</code></dt><dd>Muestra la última línea.</dd></div>
+<div><dt><code>sed -n &#39;/inicio/,/fin/p&#39; fichero</code></dt><dd>Muestra del patrón inicio al patrón fin, incluidos ambos.</dd></div>
+</dl>
+<h4>Eliminar líneas</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed &#39;/texto/d&#39; fichero</code></dt><dd>Quita de la salida las líneas que contienen texto.</dd></div>
+<div><dt><code>sed &#39;/texto/!d&#39; fichero</code></dt><dd>Conserva solo las líneas que contienen texto.</dd></div>
+<div><dt><code>sed &#39;1d&#39; fichero</code></dt><dd>Quita la primera línea.</dd></div>
+<div><dt><code>sed &#39;$d&#39; fichero</code></dt><dd>Quita la última línea.</dd></div>
+<div><dt><code>sed &#39;2,5d&#39; fichero</code></dt><dd>Quita las líneas 2 a 5.</dd></div>
+<div><dt><code>sed &#39;/^$/d&#39; fichero</code></dt><dd>Quita las líneas completamente vacías.</dd></div>
+<div><dt><code>sed &#39;/^[[:blank:]]*#/d&#39; fichero</code></dt><dd>Quita comentarios aunque haya blancos delante.</dd></div>
+</dl>
+<h4>Sustituir contenido</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed &#39;s/viejo/nuevo/&#39; fichero</code></dt><dd>Sustituye la primera coincidencia de cada línea.</dd></div>
+<div><dt><code>sed &#39;s/viejo/nuevo/g&#39; fichero</code></dt><dd>Sustituye todas las coincidencias de cada línea.</dd></div>
+<div><dt><code>sed &#39;s/viejo/nuevo/gi&#39; fichero</code></dt><dd>Sustituye todas sin distinguir mayúsculas.</dd></div>
+<div><dt><code>sed &#39;s/viejo//g&#39; fichero</code></dt><dd>Elimina cada aparición de viejo.</dd></div>
+<div><dt><code>sed -E &#39;s/[0-9]+/X/g&#39; fichero</code></dt><dd>Convierte cada grupo de dígitos en una X.</dd></div>
+<div><dt><code>sed &#39;/patron/s/viejo/nuevo/g&#39; fichero</code></dt><dd>Sustituye solo en líneas que coinciden con patron.</dd></div>
+<div><dt><code>sed &#39;2,5s/viejo/nuevo/g&#39; fichero</code></dt><dd>Sustituye solo entre las líneas 2 y 5.</dd></div>
+</dl>
+<h4>Manipular contenido</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed &#39;s/^/PREFIJO_/&#39; fichero</code></dt><dd>Añade un prefijo a cada línea.</dd></div>
+<div><dt><code>sed &#39;s/$/_SUFIJO/&#39; fichero</code></dt><dd>Añade un sufijo a cada línea.</dd></div>
+<div><dt><code>sed &#39;s/:.*//&#39; fichero</code></dt><dd>Conserva el texto que precede al primer dos puntos.</dd></div>
+<div><dt><code>sed &#39;s/.*://&#39; fichero</code></dt><dd>Conserva el texto que sigue al último dos puntos.</dd></div>
+<div><dt><code>sed &#39;s|.*/||&#39; fichero</code></dt><dd>Quita la parte anterior a la última barra, incluida la barra.</dd></div>
+<div><dt><code>sed &#39;s/[[:alpha:]]//g&#39; fichero</code></dt><dd>Elimina todas las letras.</dd></div>
+<div><dt><code>sed &#39;s/[[:digit:]]//g&#39; fichero</code></dt><dd>Elimina todos los dígitos.</dd></div>
+<div><dt><code>sed &#39;s/.*/\U&amp;/&#39; fichero</code></dt><dd>Convierte la línea a mayúsculas con GNU sed.</dd></div>
+<div><dt><code>sed &#39;s/.*/\L&amp;/&#39; fichero</code></dt><dd>Convierte la línea a minúsculas con GNU sed.</dd></div>
+<div><dt><code>sed &#39;s/[0-9]/[&amp;]/g&#39; fichero</code></dt><dd>Rodea cada dígito con corchetes usando &amp;.</dd></div>
+<div><dt><code>sed -E &#39;s/^([^:]+):([^:]+)$/\2:\1/&#39; fichero</code></dt><dd>Intercambia dos campos no vacíos separados por dos puntos.</dd></div>
+</dl>
+<h4>SED avanzado</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed -n &#39;/texto/=&#39; fichero</code></dt><dd>Muestra los números de las líneas que contienen texto.</dd></div>
+<div><dt><code>sed &#39;3a\Hola&#39; fichero</code></dt><dd>Añade Hola después de la línea 3.</dd></div>
+<div><dt><code>sed &#39;3i\Hola&#39; fichero</code></dt><dd>Inserta Hola antes de la línea 3.</dd></div>
+<div><dt><code>sed &#39;3c\Hola&#39; fichero</code></dt><dd>Sustituye toda la línea 3 por Hola.</dd></div>
+<div><dt><code>sed &#39;/patron/a\Hola&#39; fichero</code></dt><dd>Añade Hola después de cada línea que cumple el patrón.</dd></div>
+<div><dt><code>sed &#39;/patron/i\Hola&#39; fichero</code></dt><dd>Inserta Hola antes de cada línea que cumple el patrón.</dd></div>
+<div><dt><code>sed &#39;/patron/c\Hola&#39; fichero</code></dt><dd>Sustituye cada línea que cumple el patrón por Hola.</dd></div>
+<div><dt><code>sed &#39;3r otro.txt&#39; fichero</code></dt><dd>Inserta el contenido de otro.txt después de la tercera línea.</dd></div>
+<div><dt><code>sed -n &#39;/texto/w salida.txt&#39; fichero</code></dt><dd>Escribe las líneas coincidentes en salida.txt.</dd></div>
+<div><dt><code>sed -e &#39;1d&#39; -e &#39;$d&#39; fichero</code></dt><dd>Quita la primera y la última línea con dos opciones -e.</dd></div>
+<div><dt><code>sed &#39;1d;$d&#39; fichero</code></dt><dd>Quita la primera y la última línea con un solo guion de sed.</dd></div>
+</dl>
+<h4>Modificar archivo</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed -i &#39;s/viejo/nuevo/g&#39; fichero</code></dt><dd>Guarda la sustitución en el archivo original.</dd></div>
+<div><dt><code>sed -i.bak &#39;s/viejo/nuevo/g&#39; fichero</code></dt><dd>Guarda los cambios y conserva el original en fichero.bak.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-rename" aria-labelledby="rey-rename-titulo">
+<h3 id="rey-rename-titulo">4. RENAME (Perl, Debian)</h3>
+<p class="nota"><strong>Simula primero con <code>-n</code></strong>. <code>-v</code> aplica y muestra cambios. <code>s</code> sustituye patrones y <code>y</code> traduce caracteres uno a uno. Bash expande <code>*.txt</code> como comodín de nombres.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>rename -n &#39;s/viejo/nuevo/&#39; *.txt</code></dt><dd>Simula sustituir viejo por nuevo en los nombres .txt.</dd></div>
+<div><dt><code>rename -v &#39;s/viejo/nuevo/&#39; *.txt</code></dt><dd>Aplica el cambio y muestra cada nombre modificado.</dd></div>
+<div><dt><code>rename &#39;s/\.jpg$/.png/&#39; *.jpg</code></dt><dd>Cambia la extensión a .png. El formato del contenido sigue siendo JPEG.</dd></div>
+<div><dt><code>rename &#39;s/^/2026_/&#39; *.txt</code></dt><dd>Añade 2026_ delante de cada nombre que coincide con el glob.</dd></div>
+<div><dt><code>rename &#39;s/$/_backup/&#39; *.txt</code></dt><dd>Añade _backup después de la extensión.</dd></div>
+<div><dt><code>rename &#39;s/\.txt$/_backup.txt/&#39; *.txt</code></dt><dd>Añade _backup antes de .txt.</dd></div>
+<div><dt><code>rename &#39;s/[0-9]//g&#39; *.txt</code></dt><dd>Elimina todos los dígitos de los nombres.</dd></div>
+<div><dt><code>rename &#39;s/ /_/g&#39; *.txt</code></dt><dd>Cambia cada espacio por un guion bajo.</dd></div>
+<div><dt><code>rename &#39;s/ +/_/g&#39; *.txt</code></dt><dd>Cambia cada grupo de espacios por un solo guion bajo.</dd></div>
+<div><dt><code>rename &#39;y/A-Z/a-z/&#39; *.txt</code></dt><dd>Pasa las letras A–Z a minúsculas.</dd></div>
+<div><dt><code>rename &#39;y/a-z/A-Z/&#39; *.txt</code></dt><dd>Pasa las letras a–z a mayúsculas, incluida la extensión.</dd></div>
+<div><dt><code>rename &#39;s/^IMG_/FOTO_/&#39; *.jpg</code></dt><dd>Cambia IMG_ por FOTO_ al inicio de cada nombre.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-awk" aria-labelledby="rey-awk-titulo">
+<h3 id="rey-awk-titulo">5. AWK</h3>
+<p class="uso">awk -F 'SEPARADOR' 'CONDICION {print CAMPO}' fichero</p>
+<dl class="rey-claves">
+<div><dt><code>$0</code></dt><dd>Línea completa.</dd></div>
+<div><dt><code>$1 · $2 · $3</code></dt><dd>Campos.</dd></div>
+<div><dt><code>$NF</code></dt><dd>Último campo.</dd></div>
+<div><dt><code>NF</code></dt><dd>Número de campos.</dd></div>
+<div><dt><code>NR</code></dt><dd>Número de línea leída.</dd></div>
+<div><dt><code>~ · !~</code></dt><dd>Coincide o queda fuera de la regex.</dd></div>
+<div><dt><code>== · !=</code></dt><dd>Igual o distinto.</dd></div>
+<div><dt><code>&amp;&amp; · ||</code></dt><dd>AND u OR.</dd></div>
+<div><dt><code>BEGIN</code></dt><dd>Antes de leer.</dd></div>
+<div><dt><code>END</code></dt><dd>Al terminar de leer.</dd></div>
+</dl>
+<h4>Campos de <code>/etc/passwd</code></h4>
+<ol class="rey-campos"><li>Usuario</li><li>Contraseña (marcador)</li><li>UID</li><li>GID</li><li>Descripción</li><li>Directorio personal</li><li>Shell</li></ol>
+<dl class="rey-ejemplos">
+<div><dt><code>awk &#39;{print}&#39; fichero</code></dt><dd>Imprime cada línea entera.</dd></div>
+<div><dt><code>awk &#39;{print $0}&#39; fichero</code></dt><dd>Imprime cada línea entera con $0 explícito.</dd></div>
+<div><dt><code>awk &#39;{print $1}&#39; fichero</code></dt><dd>Muestra el primer campo.</dd></div>
+<div><dt><code>awk &#39;{print $1,$3}&#39; fichero</code></dt><dd>Muestra los campos primero y tercero.</dd></div>
+<div><dt><code>awk &#39;{print $NF}&#39; fichero</code></dt><dd>Muestra el último campo de cada línea.</dd></div>
+<div><dt><code>awk &#39;{print NF}&#39; fichero</code></dt><dd>Muestra cuántos campos tiene cada línea.</dd></div>
+<div><dt><code>awk &#39;{print NR,$0}&#39; fichero</code></dt><dd>Muestra cada línea precedida de su número.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;{print $1,$3}&#39; fichero</code></dt><dd>Separa por dos puntos y muestra los campos 1 y 3.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$3 &gt;= 1000 {print $1}&#39; fichero</code></dt><dd>Muestra nombres cuyo UID es 1000 o superior.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$3 &lt; 1000 {print $1}&#39; fichero</code></dt><dd>Muestra nombres cuyo UID es inferior a 1000.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$1 == &quot;root&quot; {print}&#39; fichero</code></dt><dd>Muestra la fila que tiene root en el primer campo.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$1 != &quot;root&quot; {print}&#39; fichero</code></dt><dd>Muestra las filas cuyo primer campo es distinto de root.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$7 ~ /bash$/ {print $1}&#39; fichero</code></dt><dd>Muestra nombres con una shell que termina en bash.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$7 !~ /nologin$/ {print $1}&#39; fichero</code></dt><dd>Muestra nombres con una shell que no termina en nologin.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$7 ~ /bash$/ || $7 ~ /sh$/ {print $1}&#39; fichero</code></dt><dd>Muestra nombres con shell terminada en bash o sh. El segundo sufijo incluye el primero.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$3 &gt;= 1000 &amp;&amp; $3 &lt;= 60000 {print $1}&#39; fichero</code></dt><dd>Muestra nombres con UID entre 1000 y 60000, incluidos ambos.</dd></div>
+<div><dt><code>awk &#39;NR &lt;= 5&#39; fichero</code></dt><dd>Muestra las cinco primeras líneas.</dd></div>
+<div><dt><code>awk &#39;NR &gt;= 10 &amp;&amp; NR &lt;= 15&#39; fichero</code></dt><dd>Muestra las líneas 10 a 15, incluidos ambos extremos.</dd></div>
+<div><dt><code>awk &#39;NR == 3&#39; fichero</code></dt><dd>Muestra la tercera línea.</dd></div>
+<div><dt><code>awk &#39;/texto/&#39; fichero</code></dt><dd>Muestra las líneas que contienen texto.</dd></div>
+<div><dt><code>awk &#39;!/texto/&#39; fichero</code></dt><dd>Muestra las líneas que quedan fuera de ese patrón.</dd></div>
+<div><dt><code>awk &#39;END {print NR}&#39; fichero</code></dt><dd>Cuenta los registros leídos.</dd></div>
+<div><dt><code>awk &#39;{suma += $2} END {print suma}&#39; fichero</code></dt><dd>Suma los valores del segundo campo y muestra el total al final.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-find" aria-labelledby="rey-find-titulo">
+<h3 id="rey-find-titulo">6. FIND</h3>
+<dl class="rey-claves">
+<div><dt><code>. · / · ~</code></dt><dd>Carpeta actual, raíz o carpeta personal.</dd></div>
+<div><dt><code>-name · -iname</code></dt><dd>Distingue mayúsculas o las ignora.</dd></div>
+<div><dt><code>-o · !</code></dt><dd>OR y NOT.</dd></div>
+<div><dt><code>Criterios seguidos</code></dt><dd>AND implícito.</dd></div>
+<div><dt><code>{}</code></dt><dd>Ruta encontrada.</dd></div>
+<div><dt><code>\; · +</code></dt><dd>Ejecuta por ruta o agrupa argumentos.</dd></div>
+<div><dt><code>-maxdepth · -mindepth</code></dt><dd>Profundidad máxima o mínima.</dd></div>
+<div><dt><code>-mtime</code></dt><dd>Periodos completos de 24 horas.</dd></div>
+</dl>
+<p class="nota">Para menos de 10 MiB exactos usa <code>-size -10485760c</code>. <code>-size -10M</code> redondea antes de comparar.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>find . -name &#39;*.txt&#39;</code></dt><dd>Busca nombres que terminan en .txt.</dd></div>
+<div><dt><code>find . -iname &#39;*.txt&#39;</code></dt><dd>Busca extensión .txt sin distinguir mayúsculas.</dd></div>
+<div><dt><code>find . -type f</code></dt><dd>Muestra solo archivos normales.</dd></div>
+<div><dt><code>find . -type d</code></dt><dd>Muestra solo directorios.</dd></div>
+<div><dt><code>find . -type l</code></dt><dd>Muestra solo enlaces simbólicos.</dd></div>
+<div><dt><code>find . -type f -empty</code></dt><dd>Muestra archivos de cero bytes.</dd></div>
+<div><dt><code>find . -type d -empty</code></dt><dd>Muestra directorios vacíos.</dd></div>
+<div><dt><code>find . -size +10M</code></dt><dd>Busca tamaños por encima de 10 MiB.</dd></div>
+<div><dt><code>find . -size -10M</code></dt><dd>Busca tamaños de hasta 9 MiB por el redondeo de -size.</dd></div>
+<div><dt><code>find . -mtime -7</code></dt><dd>Busca los modificados en los últimos siete días.</dd></div>
+<div><dt><code>find . -mtime +7</code></dt><dd>Busca modificaciones de ocho días completos o más.</dd></div>
+<div><dt><code>find . -mmin -60</code></dt><dd>Busca los modificados hace menos de sesenta minutos.</dd></div>
+<div><dt><code>find . -user usuario</code></dt><dd>Filtra por propietario.</dd></div>
+<div><dt><code>find . -group grupo</code></dt><dd>Filtra por grupo.</dd></div>
+<div><dt><code>find . -perm 644</code></dt><dd>Exige permisos exactamente 644.</dd></div>
+<div><dt><code>find . -perm -644</code></dt><dd>Exige todos los bits de 644 y admite permisos adicionales.</dd></div>
+<div><dt><code>find . -maxdepth 1</code></dt><dd>Muestra la ruta inicial y sus hijos directos.</dd></div>
+<div><dt><code>find . -mindepth 1</code></dt><dd>Omite la ruta inicial y muestra los niveles inferiores.</dd></div>
+<div><dt><code>find . -maxdepth 1 -mindepth 1 -type d</code></dt><dd>Muestra solo las subcarpetas directas de la actual.</dd></div>
+<div><dt><code>find . -newer fichero</code></dt><dd>Busca los modificados después del archivo de referencia.</dd></div>
+<div><dt><code>find . -inum 1234</code></dt><dd>Filtra por número de inodo.</dd></div>
+<div><dt><code>find . ! -name &#39;*.txt&#39;</code></dt><dd>Excluye los nombres que terminan en .txt.</dd></div>
+<div><dt><code>find . -type f -empty ! -name &#39;*.txt&#39;</code></dt><dd>Busca archivos vacíos con extensión distinta de .txt.</dd></div>
+<div><dt><code>find . -type f \( -name &#39;*.jpg&#39; -o -name &#39;*.png&#39; \)</code></dt><dd>Busca archivos .jpg o .png agrupando ambos nombres.</dd></div>
+<div><dt><code>find . -type f -exec ls -l {} \;</code></dt><dd>Ejecuta ls -l una vez por archivo.</dd></div>
+<div><dt><code>find . -type f -exec ls -l {} +</code></dt><dd>Agrupa varias rutas en cada llamada a ls -l.</dd></div>
+<div><dt><code>find . -type f -ok ls -l {} \;</code></dt><dd>Pide confirmación antes de ejecutar ls -l con cada archivo.</dd></div>
+<div><dt><code>find / -type f -name &#39;*.csv&#39; 2&gt;/dev/null</code></dt><dd>Busca .csv desde la raíz y descarta los errores.</dd></div>
+<div><dt><code>find . -type f -name &#39;*.txt&#39; | wc -l</code></dt><dd>Cuenta las rutas impresas de archivos .txt.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-cut" aria-labelledby="rey-cut-titulo">
+<h3 id="rey-cut-titulo">7. CUT</h3>
+<dl class="rey-claves">
+<div><dt><code>-d · -f · -c</code></dt><dd>Delimitador, campos o posiciones de caracteres.</dd></div>
+<div><dt><code>3- · -3</code></dt><dd>Desde la tercera posición o hasta ella.</dd></div>
+<div><dt><code>2,5 · 2-5</code></dt><dd>Segunda y quinta o el intervalo completo.</dd></div>
+</dl>
+<p class="nota">En GNU cut 9.7 de Debian 13, <code>-c</code> también cuenta bytes. Con texto ASCII las posiciones coinciden con los caracteres.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>cut -d &#39;:&#39; -f1 fichero</code></dt><dd>Separa por dos puntos y muestra el primer campo.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f1,7 fichero</code></dt><dd>Muestra los campos primero y séptimo.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f2-5 fichero</code></dt><dd>Muestra desde el segundo campo hasta el quinto.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f3- fichero</code></dt><dd>Muestra desde el tercer campo hasta el final.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f-3 fichero</code></dt><dd>Muestra desde el primero hasta el tercero.</dd></div>
+<div><dt><code>cut -c1-3 fichero</code></dt><dd>Muestra las tres primeras posiciones de cada línea.</dd></div>
+<div><dt><code>cut -c1,5 fichero</code></dt><dd>Muestra solo las posiciones primera y quinta.</dd></div>
+<div><dt><code>cut -c5- fichero</code></dt><dd>Muestra a partir de la quinta posición.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f1 /etc/passwd</code></dt><dd>Extrae los nombres de cuenta.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f1,7 /etc/passwd</code></dt><dd>Extrae el nombre y la shell de cada cuenta.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-sort" aria-labelledby="rey-sort-titulo">
+<h3 id="rey-sort-titulo">8. SORT</h3>
+<dl class="rey-claves">
+<div><dt><code>-k2,2</code></dt><dd>Solo campo 2.</dd></div>
+<div><dt><code>-k2,3</code></dt><dd>Desde campo 2 hasta campo 3 incluido.</dd></div>
+<div><dt><code>-k2</code></dt><dd>Desde campo 2 hasta el final.</dd></div>
+<div><dt><code>-k2,2n · -k2,2nr</code></dt><dd>Campo 2 numérico ascendente o descendente.</dd></div>
+<div><dt><code>-k2,2n -k3,3nr</code></dt><dd>Campo 2 ascendente. Los empates se resuelven por campo 3 descendente.</dd></div>
+<div><dt><code>-k2.3,2.5r</code></dt><dd>Caracteres 3 a 5 del segundo campo en orden inverso.</dd></div>
+<div><dt><code>-t &#39;:&#39;</code></dt><dd>Dos puntos como separador.</dd></div>
+</dl>
+<p class="nota">Orden alfabético <code>10</code>, <code>2</code>. Con <code>-n</code>, <code>2</code>, <code>10</code>.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>sort fichero</code></dt><dd>Ordena por el texto completo de cada línea.</dd></div>
+<div><dt><code>sort -n fichero</code></dt><dd>Ordena por valor numérico al comienzo de la línea.</dd></div>
+<div><dt><code>sort -r fichero</code></dt><dd>Invierte el orden de comparación.</dd></div>
+<div><dt><code>sort -nr fichero</code></dt><dd>Ordena por número de mayor a menor.</dd></div>
+<div><dt><code>sort -f fichero</code></dt><dd>Ignora mayúsculas y minúsculas al comparar.</dd></div>
+<div><dt><code>sort -b fichero</code></dt><dd>Ignora los blancos iniciales al establecer las claves.</dd></div>
+<div><dt><code>sort -d fichero</code></dt><dd>Compara letras, números y blancos en orden de diccionario.</dd></div>
+<div><dt><code>sort -u fichero</code></dt><dd>Deja una línea por clave equivalente.</dd></div>
+<div><dt><code>sort -t &#39;:&#39; -k2,2 fichero</code></dt><dd>Ordena por el segundo campo como texto.</dd></div>
+<div><dt><code>sort -t &#39;:&#39; -k2,2n fichero</code></dt><dd>Ordena por el segundo campo como número ascendente.</dd></div>
+<div><dt><code>sort -t &#39;:&#39; -k3,3nr fichero</code></dt><dd>Ordena por el tercer campo como número descendente.</dd></div>
+<div><dt><code>sort -t &#39;:&#39; -k2,2n -k3,3nr fichero</code></dt><dd>Primero campo 2 ascendente, luego campo 3 descendente.</dd></div>
+<div><dt><code>sort -t &#39;:&#39; -k3,3nr -k2,2n fichero</code></dt><dd>Primero campo 3 descendente, luego campo 2 ascendente.</dd></div>
+<div><dt><code>sort -t &#39;:&#39; -k3,3n /etc/passwd</code></dt><dd>Ordena las filas de /etc/passwd por UID ascendente.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-uniq" aria-labelledby="rey-uniq-titulo">
+<h3 id="rey-uniq-titulo">9. UNIQ</h3>
+<p class="nota"><strong>Solo agrupa iguales consecutivas.</strong> Ordena antes de contar o quitar todas las repeticiones.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>uniq fichero</code></dt><dd>Reduce cada bloque de líneas iguales consecutivas a una.</dd></div>
+<div><dt><code>sort fichero | uniq</code></dt><dd>Agrupa y elimina las líneas duplicadas.</dd></div>
+<div><dt><code>sort fichero | uniq -c</code></dt><dd>Cuenta las apariciones de cada línea.</dd></div>
+<div><dt><code>sort fichero | uniq -d</code></dt><dd>Muestra solo las líneas que aparecen varias veces.</dd></div>
+<div><dt><code>sort fichero | uniq -u</code></dt><dd>Muestra solo las líneas que aparecen una vez.</dd></div>
+<div><dt><code>sort fichero | uniq -c | sort -nr</code></dt><dd>Ordena los recuentos de mayor a menor.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f2 alumnos.txt | sort -n | uniq</code></dt><dd>Extrae el segundo campo y lista los valores distintos.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f2 alumnos.txt | sort -n | uniq -c</code></dt><dd>Extrae el segundo campo y cuenta cada valor.</dd></div>
+<div><dt><code>cut -d &#39;:&#39; -f7 /etc/passwd | sort | uniq -c</code></dt><dd>Cuenta cuántas cuentas usan cada shell.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-tr" aria-labelledby="rey-tr-titulo">
+<h3 id="rey-tr-titulo">10. TR</h3>
+<dl class="rey-claves">
+<div><dt><code>-d · -s · -c</code></dt><dd>Borra, comprime repeticiones o toma el complemento.</dd></div>
+<div><dt><code>&lt; fichero · |</code></dt><dd>Alimenta a tr por la entrada estándar.</dd></div>
+<div><dt><code>[:digit:] · [[:digit:]]</code></dt><dd>La primera forma es para tr. La segunda es para las regex de grep.</dd></div>
+</dl>
+<p class="nota">Para convertir texto con tildes en UTF-8, usa <a href="#rey-sed">la conversión con GNU sed</a>. GNU tr funciona de forma fiable con caracteres de un solo byte.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>tr &#39;a-z&#39; &#39;A-Z&#39; &lt; fichero</code></dt><dd>Pasa las letras ASCII a mayúsculas.</dd></div>
+<div><dt><code>tr &#39;A-Z&#39; &#39;a-z&#39; &lt; fichero</code></dt><dd>Pasa las letras ASCII a minúsculas.</dd></div>
+<div><dt><code>tr &#39;[:lower:]&#39; &#39;[:upper:]&#39; &lt; fichero</code></dt><dd>Convierte minúsculas a mayúsculas con la clase POSIX.</dd></div>
+<div><dt><code>tr &#39;[:upper:]&#39; &#39;[:lower:]&#39; &lt; fichero</code></dt><dd>Convierte mayúsculas a minúsculas con la clase POSIX.</dd></div>
+<div><dt><code>tr &#39;:&#39; &#39; &#39; &lt; fichero</code></dt><dd>Cambia cada dos puntos por un espacio.</dd></div>
+<div><dt><code>tr &#39;aeiou&#39; &#39;*&#39; &lt; fichero</code></dt><dd>Cambia cada vocal minúscula de la lista por un asterisco.</dd></div>
+<div><dt><code>tr -d &#39;0-9&#39; &lt; fichero</code></dt><dd>Borra los dígitos del 0 al 9.</dd></div>
+<div><dt><code>tr -d &#39;[:digit:]&#39; &lt; fichero</code></dt><dd>Borra los dígitos de la clase POSIX.</dd></div>
+<div><dt><code>tr -d &#39;[:alpha:]&#39; &lt; fichero</code></dt><dd>Borra los caracteres reconocidos como letras.</dd></div>
+<div><dt><code>tr -d &#39;\n&#39; &lt; fichero</code></dt><dd>Borra los saltos de línea.</dd></div>
+<div><dt><code>tr -s &#39; &#39; &lt; fichero</code></dt><dd>Reduce cada grupo de espacios consecutivos a uno.</dd></div>
+<div><dt><code>tr -s &#39;[:blank:]&#39; &lt; fichero</code></dt><dd>Reduce las repeticiones de espacios o de tabuladores.</dd></div>
+<div><dt><code>tr &#39;[:space:]&#39; &#39;\t&#39; &lt; fichero</code></dt><dd>Cambia cada blanco, incluidos los saltos de línea, por un tabulador.</dd></div>
+<div><dt><code>tr -cd &#39;0-9\n&#39; &lt; fichero</code></dt><dd>Conserva solamente dígitos y saltos de línea.</dd></div>
+<div><dt><code>cat fichero | tr &#39;a-z&#39; &#39;A-Z&#39;</code></dt><dd>Envía el archivo por una tubería y convierte las letras ASCII a mayúsculas.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-visores" aria-labelledby="rey-visores-titulo">
+<h3 id="rey-visores-titulo">11. LESS / MORE</h3>
+<dl class="rey-ejemplos">
+<div><dt><code>less fichero</code></dt><dd>Abre el archivo para navegar por su contenido.</dd></div>
+<div><dt><code>less -N fichero</code></dt><dd>Abre el archivo con números de línea.</dd></div>
+<div><dt><code>less -S fichero</code></dt><dd>Mantiene la línea larga en una fila para recorrerla con las flechas.</dd></div>
+<div><dt><code>more fichero</code></dt><dd>Abre el archivo para leerlo por páginas.</dd></div>
+</dl>
+<div class="tabla-scroll" role="region" aria-label="Teclas dentro del visor" tabindex="0">
+<table>
+<caption>Teclas dentro del visor</caption>
+<thead><tr><th scope="col">Tecla</th><th scope="col">Acción</th></tr></thead>
+<tbody>
+<tr><td><code>/texto · ?texto</code></td><td>Busca hacia delante o hacia atrás en less.</td></tr>
+<tr><td><code>n · N</code></td><td>Repite en el mismo sentido o al contrario en less.</td></tr>
+<tr><td><code>g · G</code></td><td>Salta al principio o al final en less.</td></tr>
+<tr><td><code>Espacio · b</code></td><td>Página siguiente o anterior. Con more, b al leer un archivo.</td></tr>
+<tr><td><code>Enter</code></td><td>Avanza una línea.</td></tr>
+<tr><td><code>q</code></td><td>Sale del visor.</td></tr>
+<tr><td><code>v</code></td><td>Abre el editor configurado desde less.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="rey-bloque" id="rey-secundarios" aria-labelledby="rey-secundarios-titulo">
+<h3 id="rey-secundarios-titulo">12. Comandos secundarios</h3>
+<dl class="rey-ejemplos">
+<div><dt><code>head -n 5 fichero</code></dt><dd>Muestra las cinco primeras líneas.</dd></div>
+<div><dt><code>tail -n 5 fichero</code></dt><dd>Muestra las cinco últimas líneas.</dd></div>
+<div><dt><code>tail -n +5 fichero</code></dt><dd>Muestra desde la quinta línea en adelante.</dd></div>
+<div><dt><code>tail -f fichero</code></dt><dd>Muestra las líneas a medida que se añaden.</dd></div>
+<div><dt><code>wc -l fichero</code></dt><dd>Cuenta los saltos de línea.</dd></div>
+<div><dt><code>wc -w fichero</code></dt><dd>Cuenta las palabras.</dd></div>
+<div><dt><code>wc -c fichero</code></dt><dd>Cuenta los bytes.</dd></div>
+<div><dt><code>wc -m fichero</code></dt><dd>Cuenta los caracteres.</dd></div>
+<div><dt><code>wc -L fichero</code></dt><dd>Mide el ancho de la línea más larga.</dd></div>
+<div><dt><code>cat fichero</code></dt><dd>Muestra el archivo.</dd></div>
+<div><dt><code>cat -n fichero</code></dt><dd>Muestra y numera todas las líneas.</dd></div>
+<div><dt><code>cat -b fichero</code></dt><dd>Numera solo las líneas con contenido.</dd></div>
+<div><dt><code>tac fichero</code></dt><dd>Invierte el orden de las líneas.</dd></div>
+<div><dt><code>nl fichero</code></dt><dd>Numera las líneas no vacías del cuerpo.</dd></div>
+<div><dt><code>od -c fichero</code></dt><dd>Muestra bytes como caracteres y escapes.</dd></div>
+<div><dt><code>od -x fichero</code></dt><dd>Muestra palabras de dos bytes en hexadecimal.</dd></div>
+<div><dt><code>paste fichero1 fichero2</code></dt><dd>Junta líneas correspondientes con un tabulador.</dd></div>
+<div><dt><code>paste -d &#39;:&#39; fichero1 fichero2</code></dt><dd>Junta líneas correspondientes con dos puntos.</dd></div>
+<div><dt><code>join fichero1 fichero2</code></dt><dd>Une filas por su primer campo. Ordena antes ambos archivos por esa clave.</dd></div>
+<div><dt><code>split -l 100 fichero</code></dt><dd>Divide el archivo en partes de cien líneas como máximo.</dd></div>
+<div><dt><code>split -b 1M fichero</code></dt><dd>Divide el archivo en partes de un MiB como máximo.</dd></div>
+<div><dt><code>basename /home/user/fichero.txt</code></dt><dd>Devuelve fichero.txt.</dd></div>
+<div><dt><code>dirname /home/user/fichero.txt</code></dt><dd>Devuelve /home/user.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-redirecciones" aria-labelledby="rey-redirecciones-titulo">
+<h3 id="rey-redirecciones-titulo">13. Tuberías y redirecciones</h3>
+<p class="nota"><code>/dev/null</code> descarta lo que le envíes. Con <code>find -print0</code> y <code>xargs -0</code> se conservan también tabuladores y saltos de línea en los nombres.</p>
+<dl class="rey-ejemplos">
+<div><dt><code>comando1 | comando2</code></dt><dd>Conecta la salida normal del primero con la entrada del segundo.</dd></div>
+<div><dt><code>comando &gt; fichero</code></dt><dd>Guarda la salida y sobrescribe el archivo.</dd></div>
+<div><dt><code>comando &gt;&gt; fichero</code></dt><dd>Añade la salida al final del archivo.</dd></div>
+<div><dt><code>comando &lt; fichero</code></dt><dd>Lee del archivo por la entrada estándar.</dd></div>
+<div><dt><code>comando 2&gt; errores.txt</code></dt><dd>Guarda solo los errores y sobrescribe su archivo.</dd></div>
+<div><dt><code>comando 2&gt;/dev/null</code></dt><dd>Descarta solo los errores.</dd></div>
+<div><dt><code>comando &gt; salida.txt 2&gt;&amp;1</code></dt><dd>Guarda juntos salida y errores. El orden de las dos redirecciones importa.</dd></div>
+<div><dt><code>comando &amp;&gt; salida.txt</code></dt><dd>Guarda juntos salida y errores con la abreviatura de Bash.</dd></div>
+<div><dt><code>comando | tee fichero</code></dt><dd>Muestra y guarda al mismo tiempo.</dd></div>
+<div><dt><code>comando | tee -a fichero</code></dt><dd>Muestra y añade al final.</dd></div>
+<div><dt><code>comando | xargs comando2</code></dt><dd>Lee la entrada y la convierte en argumentos del segundo comando.</dd></div>
+<div><dt><code>find . -print0 | xargs -0 ls -ld</code></dt><dd>Pasa rutas separadas por NUL y conserva los nombres con espacios.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-apt" aria-labelledby="rey-apt-titulo">
+<h3 id="rey-apt-titulo">14. APT, MAN y ALIAS</h3>
+<dl class="rey-ejemplos">
+<div><dt><code>apt search paquete</code></dt><dd>Busca paquetes por nombre o descripción.</dd></div>
+<div><dt><code>apt show paquete</code></dt><dd>Muestra la ficha y la descripción del paquete.</dd></div>
+<div><dt><code>apt list --installed</code></dt><dd>Lista solo los paquetes instalados.</dd></div>
+<div><dt><code>apt-cache show paquete</code></dt><dd>Consulta los datos del paquete en la caché de APT.</dd></div>
+<div><dt><code>dpkg -l</code></dt><dd>Muestra una tabla con el estado de los paquetes. ii indica instalado.</dd></div>
+<div><dt><code>dpkg -l | grep paquete</code></dt><dd>Filtra las filas por el texto paquete.</dd></div>
+<div><dt><code>dpkg -L paquete</code></dt><dd>Lista las rutas de los archivos instalados por el paquete.</dd></div>
+<div><dt><code>man comando</code></dt><dd>Abre el manual del comando.</dd></div>
+<div><dt><code>man -k palabra</code></dt><dd>Busca la palabra en los nombres y las descripciones de los manuales.</dd></div>
+<div><dt><code>man -w comando</code></dt><dd>Muestra la ruta del manual si lo encuentra.</dd></div>
+<div><dt><code>man 5 passwd</code></dt><dd>Abre la sección 5 sobre el formato de /etc/passwd.</dd></div>
+<div><dt><code>comando --help</code></dt><dd>Muestra la ayuda breve si el comando admite esa opción.</dd></div>
+<div><dt><code>alias</code></dt><dd>Lista los alias de esta shell.</dd></div>
+<div><dt><code>alias ll=&#39;ls -lah&#39;</code></dt><dd>Crea el atajo ll para un listado detallado con ocultos y tamaños legibles.</dd></div>
+<div><dt><code>unalias ll</code></dt><dd>Elimina el alias ll.</dd></div>
+<div><dt><code>type comando</code></dt><dd>Indica si es un alias, una función, un integrado o un ejecutable.</dd></div>
+<div><dt><code>which comando</code></dt><dd>Muestra la ruta del ejecutable encontrado en el PATH.</dd></div>
+</dl>
+</section>
+
+<section class="rey-bloque" id="rey-ejercicios" aria-labelledby="rey-ejercicios-titulo">
+<h3 id="rey-ejercicios-titulo">15. Ejercicios típicos del profesor resueltos</h3>
+<h4>Líneas que contienen la cadena 80</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep &#39;80&#39; /etc/services</code></dt><dd>Muestra las líneas con 80 en cualquier posición.</dd></div>
+<div><dt><code>grep -E &#39;80&#39; /etc/services</code></dt><dd>Muestra las mismas líneas con regex extendida.</dd></div>
+<div><dt><code>grep -F &#39;80&#39; /etc/services</code></dt><dd>Busca la cadena literal 80.</dd></div>
+<div><dt><code>sed -n &#39;/80/p&#39; /etc/services</code></dt><dd>Imprime solo las líneas que contienen 80.</dd></div>
+<div><dt><code>sed &#39;/80/!d&#39; /etc/services</code></dt><dd>Elimina de la salida las líneas que quedan fuera.</dd></div>
+<div><dt><code>awk &#39;/80/&#39; /etc/services</code></dt><dd>Imprime implícitamente las líneas que cumplen el patrón.</dd></div>
+</dl>
+<h4>Puerto exacto 389</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep -E &#39;^[^#[:space:]]+[[:blank:]]+389/(tcp|udp)([[:blank:]]|$)&#39; /etc/services</code></dt><dd>Selecciona el puerto 389 con TCP o UDP completos y excluye comentarios.</dd></div>
+<div><dt><code>sed -En &#39;/^[^#[:space:]]+[[:blank:]]+389\/(tcp|udp)([[:blank:]]|$)/p&#39; /etc/services</code></dt><dd>Mismo filtro con sed -En y el comando p.</dd></div>
+<div><dt><code>awk &#39;$1 !~ /^#/ &amp;&amp; $2 ~ /^389\/(tcp|udp)$/&#39; /etc/services</code></dt><dd>Comprueba el campo puerto/protocolo y descarta comentarios.</dd></div>
+</dl>
+<h4>Mostrar descripción del paquete tar</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>apt show tar | sed -n &#39;/^Description:/,$p&#39;</code></dt><dd>Muestra desde Description hasta el final de la ficha.</dd></div>
+</dl>
+<h4>Mostrar únicamente nombre del paquete</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>apt show tar | grep &#39;^Package:&#39;</code></dt><dd>Muestra la línea Package: con su valor.</dd></div>
+<div><dt><code>apt show tar | sed -n &#39;/^Package:/p&#39;</code></dt><dd>Muestra esa misma línea mediante sed.</dd></div>
+<div><dt><code>apt show tar | sed -n &#39;s/^Package: //p&#39;</code></dt><dd>Quita la etiqueta y muestra solo el nombre.</dd></div>
+</dl>
+<h4>Buscar nombre de paquete y descripción (BRE y ERE)</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>apt show tar | grep &#39;^\(Package\|Description\):&#39;</code></dt><dd>Selecciona las cabeceras con grupos y alternancia en BRE.</dd></div>
+<div><dt><code>apt show tar | grep -E &#39;^(Package|Description):&#39;</code></dt><dd>Selecciona las cabeceras con ERE.</dd></div>
+<div><dt><code>apt show tar | sed -n &#39;/^\(Package\|Description\):/p&#39;</code></dt><dd>Imprime esas cabeceras con sed y BRE.</dd></div>
+<div><dt><code>apt show tar | sed -En &#39;/^(Package|Description):/p&#39;</code></dt><dd>Imprime esas cabeceras con sed y ERE.</dd></div>
+</dl>
+<h4>Comprobar existencia del manual</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>man -w tar</code></dt><dd>Muestra en qué ruta está la página man de tar.</dd></div>
+<div><dt><code>dpkg -L tar | grep &#39;/man/&#39;</code></dt><dd>Busca los manuales entre los archivos del paquete tar.</dd></div>
+</dl>
+<h4>Mostrar información de la opción -c de tar</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>MANWIDTH=120 man tar | grep -A5 -E &#39;^[[:blank:]]*-c([,[:blank:]]|$)&#39;</code></dt><dd>Muestra la opción -c de tar junto con cinco líneas de contexto posterior.</dd></div>
+</dl>
+<h4>Buscar todos los CSV del sistema</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>find / -type f -name &#39;*.csv&#39; 2&gt;/dev/null</code></dt><dd>Busca archivos .csv accesibles y silencia errores de permisos.</dd></div>
+</dl>
+<h4>Mostrar alias definidos en bashrc</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep -E &#39;^[[:blank:]]*alias[[:blank:]]+&#39; ~/.bashrc</code></dt><dd>Busca definiciones de alias, con o sin indentación.</dd></div>
+</dl>
+<h4>Extraer direcciones IPv4</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>ip a | grep -Eo &#39;([0-9]{1,3}\.){3}[0-9]{1,3}&#39;</code></dt><dd>Extrae cadenas con forma de IPv4.</dd></div>
+</dl>
+<h4>Extraer direcciones MAC</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>ip a | grep -Eo &#39;([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}&#39;</code></dt><dd>Extrae direcciones MAC de seis pares hexadecimales.</dd></div>
+</dl>
+<h4>Usuarios con UID mayor o igual que 1000</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>awk -F &#39;:&#39; &#39;$3 &gt;= 1000 {print $1}&#39; /etc/passwd</code></dt><dd>Muestra los nombres de las cuentas con UID 1000 o superior.</dd></div>
+</dl>
+<h4>Usuarios con bash</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep &#39;/bin/bash$&#39; /etc/passwd</code></dt><dd>Muestra las filas cuya ruta de shell termina en /bin/bash.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;$7 ~ /bash$/ {print $1}&#39; /etc/passwd</code></dt><dd>Muestra los nombres cuya shell termina en bash.</dd></div>
+</dl>
+<h4>Extraer nombre de usuarios con tres comandos distintos</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>cut -d &#39;:&#39; -f1 /etc/passwd</code></dt><dd>Extrae el primer campo con cut.</dd></div>
+<div><dt><code>sed &#39;s/:.*//&#39; /etc/passwd</code></dt><dd>Borra desde los primeros dos puntos hasta el final.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;{print $1}&#39; /etc/passwd</code></dt><dd>Separa por dos puntos e imprime el primer campo.</dd></div>
+</dl>
+<h4>Extraer último campo</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed &#39;s/.*://&#39; /etc/passwd</code></dt><dd>Borra todo hasta los últimos dos puntos, incluidos estos.</dd></div>
+<div><dt><code>awk -F &#39;:&#39; &#39;{print $NF}&#39; /etc/passwd</code></dt><dd>Imprime el último campo separado por dos puntos.</dd></div>
+</dl>
+<h4>Ordenar usuarios por UID</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sort -t &#39;:&#39; -k3,3n /etc/passwd</code></dt><dd>Ordena por el tercer campo numérico, el UID.</dd></div>
+</dl>
+<h4>Mostrar shells sin repetir</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>cut -d &#39;:&#39; -f7 /etc/passwd | sort | uniq</code></dt><dd>Lista las shells distintas.</dd></div>
+</dl>
+<h4>Contar usuarios por shell</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>cut -d &#39;:&#39; -f7 /etc/passwd | sort | uniq -c</code></dt><dd>Agrupa las cuentas por shell y cuenta los grupos.</dd></div>
+</dl>
+<h4>Extraer solamente números</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep -Eo &#39;[[:digit:]]+&#39; fichero</code></dt><dd>Extrae las secuencias de dígitos.</dd></div>
+</dl>
+<h4>Eliminar todas las letras</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>sed &#39;s/[[:alpha:]]//g&#39; fichero</code></dt><dd>Elimina todas las letras.</dd></div>
+</dl>
+<h4>Convertir a mayúsculas</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>tr &#39;[:lower:]&#39; &#39;[:upper:]&#39; &lt; fichero</code></dt><dd>Pasa minúsculas a mayúsculas en texto ASCII.</dd></div>
+</dl>
+<h4>Mostrar líneas que comienzan por minúscula</h4>
+<dl class="rey-ejemplos">
+<div><dt><code>grep &#39;^[[:lower:]]&#39; fichero</code></dt><dd>Muestra líneas cuyo primer carácter es una minúscula.</dd></div>
+</dl>
+<p class="nota">Si el campo de descripción se muestra traducido, ejecuta <code>LC_ALL=C apt show tar</code> para obtener <code>Description:</code>.</p>
+</section>
+</section>
+
 </main>
 
 <button class="btn-subir" id="btn-subir" type="button" title="Volver arriba" aria-label="Volver arriba">↑</button>
@@ -3756,30 +5313,32 @@ http-alt 8080/tcp</pre>
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, fallback);
     else fallback();
   }
-  document.querySelectorAll('.ej').forEach(function(ej){
+  document.querySelectorAll('.ej, .rey-ejemplos dt').forEach(function(ej){
+    var rapido = ej.matches('dt');
+    var cmd = ej.querySelector(rapido ? 'code' : '.cmd');
+    if (!cmd) return;
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'copiar'; b.textContent = '⧉ copiar';
-    b.setAttribute('aria-label', 'Copiar el comando del ejemplo');
+    b.setAttribute('aria-label', rapido ? 'Copiar ' + cmd.textContent : 'Copiar el comando del ejemplo');
     ej.appendChild(b);
     b.addEventListener('click', function(){
-      var cmd = ej.querySelector('.cmd');
-      if (!cmd) return;
-      var texto = cmd.innerText.split('\n').filter(function(l){ return l.trim(); })
+      var texto = rapido ? cmd.textContent : cmd.innerText.split('\n').filter(function(l){ return l.trim(); })
         .map(function(l){ return l.replace(/^\$\s?/, '').replace(/\s+#.*$/, ''); }).join('\n');
       copiar(texto, b);
     });
   });
 
   /* ---- scrollspy + botón subir ---- */
+  var barraIndice = document.querySelector('.indice');
   var enlaces = {};
-  document.querySelectorAll('.indice a').forEach(function(a){
+  barraIndice.querySelectorAll('a').forEach(function(a){
     enlaces[a.getAttribute('href').slice(1)] = a;
   });
   var secciones = Array.prototype.slice.call(document.querySelectorAll('section.comando'));
   var marcando = false;
   function marcaActiva(){
     marcando = false;
-    var tope = 140;               // banda bajo el índice pegajoso
+    var tope = barraIndice.offsetHeight + 24;
     var act = secciones[0];
     for (var i = 0; i < secciones.length; i++){
       if (secciones[i].getBoundingClientRect().top <= tope) act = secciones[i];
@@ -3787,7 +5346,7 @@ http-alt 8080/tcp</pre>
     }
     var a = enlaces[act.id];
     if (a && !a.classList.contains('activa')){
-      document.querySelectorAll('.indice a.activa').forEach(function(x){ x.classList.remove('activa'); });
+      barraIndice.querySelectorAll('a.activa').forEach(function(x){ x.classList.remove('activa'); });
       a.classList.add('activa');
     }
   }
@@ -3796,7 +5355,12 @@ http-alt 8080/tcp</pre>
     marcando = true;
     setTimeout(function(){ marcando = false; marcaActiva(); }, 60);
   }, { passive: true });
-  marcaActiva();
+  function medirIndice(){
+    document.documentElement.style.setProperty('--alto-indice', barraIndice.offsetHeight + 'px');
+    marcaActiva();
+  }
+  medirIndice();
+  new ResizeObserver(medirIndice).observe(barraIndice);
   if (btnSubir){
     window.addEventListener('scroll', function(){
       btnSubir.classList.toggle('ver', window.scrollY > 500);
