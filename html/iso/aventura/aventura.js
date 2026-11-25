@@ -12,7 +12,7 @@
        ronda monta su propio mundo virtual y lo tira al terminar.
 
    El contenido se elige entre aventura-datos.js (primer examen) y
-   aventura-tema3.js (La ruta de las señales), con guardados independientes.
+   aventura-tema3.js (Atlas Boreal), con guardados independientes.
    Se engancha a la barra superior como un botón más y se carga después
    del script principal, igual que duelo.js.
 
@@ -28,8 +28,9 @@
   const EXAMENES = [
     { id:'basicos', clave:'aventura-v1', titulo:'Examen del 12 de noviembre', subtitulo:'Comandos Básicos I',
       resumen:'Orientarte, organizar ficheros y dominar la shell.', datos:window.AVENTURA },
-    { id:'tema3', clave:'aventura-tema3-v1', titulo:'Examen del 25 de noviembre', subtitulo:'Tema 3 · La ruta de las señales',
-      resumen:'Una expedición de filtros, expresiones regulares y misiones de terminal.', datos:window.AVENTURA_TEMA3 }
+    { id:'tema3', clave:'aventura-tema3-v' + (window.AVENTURA_TEMA3?.version || 1),
+      titulo:'Examen del 25 de noviembre', subtitulo:'Tema 3 · ' + (window.AVENTURA_TEMA3?.titulo || 'Aventura'),
+      resumen:'Prácticas cortas de terminal y un simulacro de 20 preguntas.', datos:window.AVENTURA_TEMA3 }
   ].filter(examen => examen.datos && Array.isArray(examen.datos.mundos) && examen.datos.mundos.length);
   if (!EXAMENES.length) {
     console.warn('Aventura: no se encuentra window.AVENTURA (¿falta aventura-datos.js?).');
@@ -124,7 +125,18 @@
         g.ronda = 0;
         g.pantalla = Math.max(0, Number(g.pantalla) || 0);
       }
-      g.rondasHechas = Math.min(def.rondas.length, Math.max(0, Number(g.rondasHechas) || 0));
+      g.rondasHechas = Math.min(def.rondas.length, Math.max(0, Math.floor(Number(g.rondasHechas) || 0)));
+      if (DATOS.simulacro) {
+        const tieneParadas = Array.isArray(g.paradas);
+        g.paradas = tieneParadas
+          ? [...new Set(g.paradas.filter(r => Number.isInteger(r) && r >= 0 && r < def.rondas.length))]
+          : Array.from({ length:g.rondasHechas }, (_, r) => r);
+        g.rondasHechas = g.paradas.length;
+        if (!tieneParadas && g.paradas.includes(Number(g.ronda)) && !g.snapshot) {
+          g.ronda = def.rondas.findIndex((_, r) => !g.paradas.includes(r));
+          if (g.ronda < 0) g.ronda = 0;
+        }
+      }
       g.ronda = Math.min(def.rondas.length - 1, Math.max(0, Number(g.ronda) || 0));
       g.pantalla = Math.max(0, Number(g.pantalla) || 0);
       if (g.snapshot && typeof g.snapshot !== 'object') g.snapshot = null;
@@ -189,10 +201,16 @@
     return def ? Math.min(def.rondas.length, Math.max(0, Number(progresoDe(id).rondasHechas) || 0)) : 0;
   };
   const estaHecha = id => !!TODOS[id] && rondasHechas(id) >= TODOS[id].rondas.length;
+  const paradasHechas = id => new Set(progresoDe(id).paradas || []);
+  function paradaPendiente(def) {
+    const progreso = progresoDe(def.id), hechas = paradasHechas(def.id);
+    if (Number.isInteger(progreso.ronda) && !hechas.has(progreso.ronda)) return progreso.ronda;
+    return def.rondas.findIndex((_, r) => !hechas.has(r));
+  }
   const mundoHecho = i => mundoDe(i).lecciones.every(l => estaHecha(l.id));
   const modoRey = () => !!av.modoRey;
-  const mundoAbierto = i => modoRey() || i === 0 || mundoHecho(i - 1);
-  const leccionAbierta = (i, j) => modoRey() || (mundoAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id)));
+  const mundoAbierto = i => !!DATOS.simulacro || modoRey() || i === 0 || mundoHecho(i - 1);
+  const leccionAbierta = (i, j) => !!DATOS.simulacro || modoRey() || (mundoAbierto(i) && (estaHecha(leccionDe(i, j).id) || j === 0 || estaHecha(leccionDe(i, j - 1).id)));
   // Sin contar el Modo rey: sirve para marcar cuál sería el siguiente nodo/ronda
   // de verdad. Así el mapa sigue teniendo un solo "Ahora" y el resto se ve en amarillo.
   const mundoBaseAbierto = i => i === 0 || mundoHecho(i - 1);
@@ -347,6 +365,9 @@
   let respuesta = '';             // lo escrito en la terminal, para no perderlo al repintar
   let montada = null;             // clave de la pantalla que ya está en el DOM
   let retoActual = null;          // examen de mundo en curso: { i, def, aciertos }
+  let simulacro = null;
+  let relojSimulacro = 0;
+  let distritoBoreal = { i: 0, j: 0, tramo: 0 };
 
   function abrir() {
     raiz.hidden = false;
@@ -357,6 +378,7 @@
   }
 
   function cerrar() {
+    guardarSimulacroAbierto();
     flushEntrada();
     cerrarSesionTiempo();
     raiz.hidden = true;
@@ -396,14 +418,17 @@
     pintarCabecera();
     if (vista.tipo === 'examenes') return pintarExamenes();
     if (vista.tipo === 'mapa') return pintarMapa();
+    if (vista.tipo === 'distrito') return pintarDistrito();
     if (vista.tipo === 'stats') return pintarStats();
     if (vista.tipo === 'glosario') return pintarGlosario();
     if (vista.tipo === 'cierre') return pintarCierre();
+    if (vista.tipo === 'resultado-simulacro') return pintarResultadoSimulacro();
     return pintarLeccion();
   }
 
   /* Cada examen conserva su propia clave; el primero sigue leyendo el progreso antiguo. */
   function elegirExamen() {
+    guardarSimulacroAbierto();
     flushEntrada();
     guardarPunto();
     cerrarSesionTiempo();
@@ -428,7 +453,7 @@
     vista = { tipo:'mapa' };
     inicioSesion = Date.now();
     pintar();
-    byId('av-seguir').focus();
+    byId(DATOS.simulacro ? 'av-atlas-titulo' : 'av-seguir').focus();
   }
 
   function pintarExamenes() {
@@ -441,18 +466,21 @@
         let guardado = {};
         try { guardado = JSON.parse(localStorage.getItem(examen.clave) || '{}') || {}; } catch (e) {}
         const nodos = examen.datos.mundos.flatMap(m => m.lecciones);
-        const completas = nodos.filter(l => {
+        const completas = nodos.reduce((total, l) => {
           const progreso = (guardado.lecciones || {})[l.id] || {};
-          return progreso.hecha || Number(progreso.rondasHechas) >= l.rondas.length;
-        }).length;
+          if (examen.datos.simulacro) return total + Math.min(l.rondas.length, Math.max(0, Number(progreso.rondasHechas) || 0));
+          return total + (progreso.hecha || Number(progreso.rondasHechas) >= l.rondas.length ? 1 : 0);
+        }, 0);
+        const total = examen.datos.simulacro ? nodos.reduce((s, l) => s + l.rondas.length, 0) : nodos.length;
         return '<button class="av-examen av-examen--' + examen.id + '" type="button" data-examen="' + examen.id + '">' +
           (examen.id === 'tema3'
-            ? '<img class="av-examen-paisaje" src="aventura/tema3-mapa.svg" alt="" width="780" height="280">'
+            ? '<img class="av-examen-paisaje" src="aventura/boreal-mapa.webp" alt="" width="780" height="280">'
             : '<span class="av-examen-antiguo" aria-hidden="true">' + PINGUINO + ICO.brujula + ICO.carpeta + ICO.llave + '</span>') +
           '<span class="av-examen-contenido"><strong>' + escapar(examen.titulo) + '</strong>' +
             '<span class="av-examen-subtitulo">' + escapar(examen.subtitulo) + '</span>' +
             '<span class="av-examen-resumen">' + escapar(examen.resumen) + '</span>' +
-            '<span class="av-examen-progreso">' + completas + ' / ' + nodos.length + ' misiones completadas</span>' +
+            '<span class="av-examen-progreso">' + completas + ' / ' + total +
+              (examen.datos.simulacro ? ' paradas completadas' : ' misiones completadas') + '</span>' +
             '<span class="av-examen-entrar">' + (completas ? 'Continuar aventura' : 'Entrar en la aventura') + ' →</span>' +
           '</span></button>';
       }).join('') + '</div></section>';
@@ -463,33 +491,91 @@
   }
 
   /* ---- Pantalla: mapa de mundos ---- */
+  function mapaBoreal(completadas) {
+    return window.BOREAL_ATLAS.mapa({
+      mundos: DATOS.mundos, titulo: DATOS.titulo, region: distritoBoreal.i, total: totalRondas,
+      completadas, cuenta: rondasHechas, enCurso: simulacro && !simulacro.terminado, esc: escapar
+    });
+  }
+
+  function abrirDistrito(i, j) {
+    const pendiente = paradaPendiente(leccionDe(i, j));
+    distritoBoreal = { i, j, tramo: Math.floor(Math.max(0, pendiente) / 9) };
+    vista = { tipo: 'distrito' };
+    pintar();
+    byId('av-distrito-titulo').focus();
+  }
+
+  function pintarDistrito() {
+    const { i, j, tramo } = distritoBoreal;
+    const def = leccionDe(i, j), siguiente = paradaPendiente(def);
+    pie.hidden = true;
+    pie.innerHTML = '';
+    cuerpo.innerHTML = window.BOREAL_ATLAS.distrito({
+      def, region: i, tramo, hechas: paradasHechas(def.id), siguiente, esc: escapar
+    });
+    cuerpo.scrollTop = 0;
+    byId('av-volver-atlas').onclick = () => {
+      irAlMapa();
+      byId('av-atlas-titulo').focus();
+    };
+    byId('av-distrito-continuar').onclick = () => abrirLeccion(i, j, { ronda: Math.max(0, siguiente) });
+    cuerpo.querySelectorAll('[data-tramo]').forEach(b => {
+      b.onclick = () => {
+        distritoBoreal.tramo = Number(b.dataset.tramo);
+        pintarDistrito();
+        cuerpo.querySelector('[data-tramo="' + distritoBoreal.tramo + '"]').focus();
+      };
+    });
+    cuerpo.querySelectorAll('[data-parada]').forEach(b => {
+      b.onclick = () => abrirLeccion(i, j, { ronda: Number(b.dataset.parada) });
+    });
+  }
+
+  function pintarCierreBoreal() {
+    const { i, j, def, repaso, ronda } = lec;
+    const siguiente = paradaPendiente(def);
+    const completadas = rondasHechas(def.id);
+    cuerpo.innerHTML = '<article class="av-tarjeta av-tarjeta--fin av-nueva">' +
+      '<div class="av-fin-reto" aria-hidden="true">' + (siguiente < 0 ? ICO.trofeo : ICO.check) + '</div>' +
+      '<p class="av-kicker">' + (repaso ? 'Parada repasada' : siguiente < 0 ? 'Ruta completada' : 'Parada superada') + '</p>' +
+      '<h2 class="av-titulo">' + escapar(ronda.titulo) + '</h2><p class="av-fin-ronda">' +
+      completadas + ' de ' + def.rondas.length + ' paradas de <code>' + escapar(def.comando) + '</code>.</p></article>';
+    pie.hidden = false;
+    pie.innerHTML = '<div class="av-pie-int"><button class="av-btn av-btn--fantasma" type="button" id="av-mapa">← Ruta</button>' +
+      '<button class="av-btn av-btn--principal" type="button" id="av-sig">' +
+      (siguiente < 0 || repaso ? 'Volver a la ruta' : 'Siguiente parada') + '</button></div>';
+    byId('av-mapa').onclick = irAlMapa;
+    byId('av-sig').onclick = () => siguiente < 0 || repaso ? irAlMapa() : abrirLeccion(i, j, { ronda: siguiente });
+    byId('av-sig').focus();
+    cuerpo.scrollTop = 0;
+    decir('Parada superada. ' + completadas + ' de ' + def.rondas.length + '.');
+  }
+
   function pintarMapa() {
     montada = null;
     pie.hidden = true;
     pie.innerHTML = '';
-    const sig = siguientePendiente();
+    const sig = DATOS.simulacro ? null : siguientePendiente();
     const nHechas = hechas();
     const rHechas = rondasTotalesHechas();
     const retosHechos = DATOS.mundos.filter(m => av.retos[m.id] && av.retos[m.id].hecho).length;
 
-    let html =
+    let html = DATOS.simulacro ? mapaBoreal(rHechas) :
       '<div class="av-mapa' + (modoRey() ? ' av-mapa--rey' : '') + '">' +
         '<section class="av-hero">' +
           '<div class="av-hero-cab">' +
             '<span class="av-hero-mascota" aria-hidden="true">' + PINGUINO + '</span>' +
             '<div>' +
               '<p class="av-kicker">' + escapar(examenActual.titulo) + ' · 1.º ASIR</p>' +
-              '<h2 class="av-hero-titulo">' + (DATOS.practicaSinEjemplo ? escapar(DATOS.titulo) : (sig ? 'Tu aventura de Linux' : (retosHechos < DATOS.mundos.length ? 'Ahora, los retos' : '¡Aventura terminada!'))) + '</h2>' +
+              '<h2 class="av-hero-titulo">' + (sig ? 'Tu aventura de Linux' : (retosHechos < DATOS.mundos.length ? 'Ahora, los retos' : '¡Aventura terminada!')) + '</h2>' +
             '</div>' +
           '</div>' +
-          (DATOS.practicaSinEjemplo ? '<div class="av-atlas"><img src="aventura/tema3-mapa.svg" alt="Mapa de cuatro estaciones conectadas por una ruta de señales" width="780" height="280"></div>' : '') +
-          '<p class="av-hero-texto">' + (DATOS.practicaSinEjemplo
-            ? 'La red ha perdido su señal. Recupera sus fragmentos en cuatro estaciones: busca pistas, transforma los datos y prepara el enlace final. Cada misión te enseña una herramienta y después te pide aplicarla a un caso distinto. Tú escribes los comandos; las pistas te ayudan a razonar.'
-            : (sig
+          '<p class="av-hero-texto">' + (sig
             ? 'Cada comando es un nodo con varias rondas. La primera te lo explica y las siguientes te lo hacen practicar con variantes, cada vez un poco más difícil. El anillo se llena ronda a ronda. Sin prisa y sin castigos: si te atascas, pide ayuda.'
             : (retosHechos < DATOS.mundos.length
               ? 'Has completado todos los nodos. Cada mundo tiene un reto final que mezcla lo aprendido, con menos pistas. No resta puntos: solo comprueba si de verdad te lo sabes.'
-              : 'Has completado todos los nodos y todos los retos. Puedes repetir cualquiera cuando quieras: no se borra nada.'))) + '</p>' +
+              : 'Has completado todos los nodos y todos los retos. Puedes repetir cualquiera cuando quieras: no se borra nada.')) + '</p>' +
           (modoRey()
             ? '<p class="av-rey-aviso">' + ICO.corona + '<span><b>Modo rey activo.</b> Puedes abrir cualquier mundo, nodo, ronda o reto sin desbloquearlo. En este modo no se ganan puntos, pero sí se guarda lo que completes.</span></p>'
             : '') +
@@ -511,7 +597,7 @@
         '</section>' +
         '<ol class="av-camino">';
 
-    DATOS.mundos.forEach((m, i) => {
+    if (!DATOS.simulacro) DATOS.mundos.forEach((m, i) => {
       const abierto = mundoAbierto(i);
       const listos = m.lecciones.filter(l => estaHecha(l.id)).length;
       const estado = !abierto ? 'bloqueado' : (listos === m.lecciones.length ? 'hecho' : 'actual');
@@ -604,17 +690,17 @@
       '</li>';
     });
 
-    html += '</ol>' +
+    html += (DATOS.simulacro ? '' : '</ol>') +
       '<div class="av-mapa-pie">' +
         '<button class="av-enlace" type="button" id="av-exportar">' + ICO.descargar + ' Exportar progreso</button>' +
         '<span class="av-pie-sep" aria-hidden="true">·</span>' +
         '<button class="av-enlace" type="button" id="av-importar">' + ICO.subir + ' Importar</button>' +
         '<span class="av-pie-sep" aria-hidden="true">·</span>' +
         '<button class="av-enlace" type="button" id="av-reiniciar">Reiniciar el progreso de este examen</button>' +
-        '<span class="av-pie-sep" aria-hidden="true">·</span>' +
+        (DATOS.simulacro ? '' : '<span class="av-pie-sep" aria-hidden="true">·</span>' +
         '<button class="av-enlace av-enlace--rey" type="button" id="av-modo-rey" aria-pressed="' + modoRey() + '">' +
           ICO.corona + ' ' + (modoRey() ? 'Salir del Modo rey' : 'Modo rey') +
-        '</button>' +
+        '</button>') +
       '</div>' +
       '<p class="av-pie-nota" id="av-pie-nota" hidden></p>' +
       '<input type="file" id="av-archivo" accept="application/json,.json" hidden>' +
@@ -644,7 +730,19 @@
       pintar();
       decir('Progreso de la aventura borrado.');
     };
-    byId('av-modo-rey').onclick = () => {
+    if (DATOS.simulacro) {
+      byId('av-simulacro').onclick = abrirSimulacro;
+      cuerpo.querySelectorAll('[data-region]').forEach(b => {
+        b.onclick = () => {
+          distritoBoreal.i = Number(b.dataset.region);
+          pintarMapa();
+          cuerpo.querySelector('[data-region="' + distritoBoreal.i + '"]').focus();
+        };
+      });
+      cuerpo.querySelectorAll('[data-distrito]').forEach(b => {
+        b.onclick = () => abrirDistrito(distritoBoreal.i, Number(b.dataset.distrito));
+      });
+    } else byId('av-modo-rey').onclick = () => {
       av.modoRey = !modoRey();
       guardar();
       pintar();
@@ -716,7 +814,7 @@
           tarjeta(ICO.estrella, av.xp || 0, 'puntos', 'Se ganan con cada ronda y reto.') +
           tarjeta(ICO.libro, nHechas + ' / ' + totalLecciones, 'nodos completados', 'Cada comando es un nodo.') +
           tarjeta(ICO.check, rHechas + ' / ' + totalRondas, 'rondas superadas', 'Las rondas se llenan una a una.') +
-          tarjeta(ICO.trofeo, retos + ' / ' + DATOS.mundos.length, 'retos superados', 'Un reto por mundo.') +
+          (DATOS.simulacro ? '' : tarjeta(ICO.trofeo, retos + ' / ' + DATOS.mundos.length, 'retos superados', 'Un reto por mundo.')) +
           tarjeta(ICO.grafico, precision + '%', 'aciertos al enviar', st.aciertos + ' de ' + st.intentos + ' comandos enviados.') +
           tarjeta(ICO.bombilla, primer + '%', 'a la primera', st.primerAcierto + ' de ' + st.primerIntento + ' primeros intentos.') +
           tarjeta(ICO.check, tests + '%', 'tests acertados', st.testsOk + ' de ' + st.tests + ' preguntas contestadas.') +
@@ -872,8 +970,93 @@
   }
 
   /* ---- Abrir un nodo o una ronda concreta ---- */
+  function guardarSimulacroAbierto() {
+    if (!lec?.simulacro || !simulacro || simulacro.terminado) return;
+    simulacro.intento = lec;
+    simulacro.entrada = respuesta;
+    clearTimeout(relojSimulacro);
+  }
+
+  function abrirSimulacro() {
+    if (!DATOS.simulacro) return;
+    if (!simulacro || simulacro.terminado) {
+      simulacro = {
+        limite: Date.now() + 60 * 60 * 1000,
+        def: { id: 'boreal-simulacro', titulo: 'Simulacro de examen', rondas: DATOS.simulacro },
+        respuestas: [], intento: null, entrada: '', terminado: false
+      };
+    }
+    if (simulacro.intento) {
+      lec = simulacro.intento;
+      respuesta = simulacro.entrada;
+      vista = { tipo: 'leccion' };
+      montada = null;
+      pintar();
+    } else {
+      abrirNodo(simulacro.def, 0, null, { examen: true, simulacro: true, ronda: simulacro.respuestas.length });
+    }
+    actualizarRelojSimulacro();
+  }
+
+  function actualizarRelojSimulacro() {
+    clearTimeout(relojSimulacro);
+    if (!lec?.simulacro || simulacro.terminado) return;
+    const segundos = Math.max(0, Math.ceil((simulacro.limite - Date.now()) / 1000));
+    if (!segundos) return entregarSimulacro(true);
+    byId('av-reloj').textContent = dos(Math.floor(segundos / 60)) + ':' + dos(segundos % 60);
+    relojSimulacro = setTimeout(actualizarRelojSimulacro, 250);
+  }
+
+  function siguientePregunta() {
+    if (Date.now() >= simulacro.limite) return entregarSimulacro(true);
+    if (lec.rondaIdx + 1 === simulacro.def.rondas.length) return entregarSimulacro(false);
+    simulacro.respuestas.push(lec.acierto);
+    simulacro.intento = null;
+    abrirNodo(simulacro.def, 0, null, { examen: true, simulacro: true, ronda: simulacro.respuestas.length });
+    actualizarRelojSimulacro();
+  }
+
+  function entregarSimulacro(agotado) {
+    clearTimeout(relojSimulacro);
+    simulacro.respuestas.push(lec.acierto);
+    simulacro.terminado = true;
+    simulacro.agotado = agotado;
+    simulacro.intento = null;
+    lec = null;
+    vista = { tipo: 'resultado-simulacro' };
+    pintar();
+  }
+
+  function pintarResultadoSimulacro() {
+    const total = simulacro.def.rondas.length;
+    const aciertos = simulacro.respuestas.filter(Boolean).length;
+    pie.hidden = true;
+    pie.innerHTML = '';
+    cuerpo.innerHTML = '<section class="av-panel">' +
+      '<button class="av-enlace av-volver" type="button" id="av-volver">← Volver al mapa</button>' +
+      '<p class="av-kicker">' + (simulacro.agotado ? 'Tiempo agotado' : 'Simulacro entregado') + '</p>' +
+      '<h2 class="av-titulo">' + aciertos + ' de ' + total + ' resueltas</h2>' +
+      '<p>Abre una pregunta para revisar una forma de resolverla.</p>' +
+      '<ol class="av-correccion">' + simulacro.def.rondas.map((r, i) => {
+        const p = r.pantallas[0];
+        return '<li><details><summary>' + escapar(r.titulo) + ' · ' +
+          (simulacro.respuestas[i] ? 'Correcta' : 'Pendiente') + '</summary>' +
+          '<p>' + p.pide + '</p><pre>' + [].concat(p.ejemplo).map(escapar).join('\n') + '</pre>' +
+          '<p>' + escapar(p.explica) + '</p></details></li>';
+      }).join('') + '</ol></section>';
+    cuerpo.scrollTop = 0;
+    byId('av-volver').onclick = irAlMapa;
+    byId('av-volver').focus();
+  }
+
   function abrirLeccion(i, j, opciones) {
-    abrirNodo(leccionDe(i, j), i, j, opciones);
+    const def = leccionDe(i, j);
+    if (DATOS.simulacro) {
+      const ronda = opciones?.ronda ?? Math.max(0, paradaPendiente(def));
+      distritoBoreal = { i, j, tramo: Math.floor(ronda / 9) };
+      opciones = { ...opciones, ronda, repaso: paradasHechas(def.id).has(ronda) };
+    }
+    abrirNodo(def, i, j, opciones);
   }
 
   function abrirNodo(def, i, j, opciones) {
@@ -888,13 +1071,15 @@
       ? Math.min(total - 1, Math.max(0, Number(opciones.ronda) || 0))
       : (repaso ? 0 : Math.min(total - 1, Math.max(0, Number(g.ronda) || 0)));
     const ronda = def.rondas[rondaIdx];
+    const puedeRetomar = !esExamen && !repaso && (!forzada || DATOS.simulacro) && Number(g.ronda) === rondaIdx;
     const pantalla = (opciones && opciones.pantalla != null)
       ? Math.min(ronda.pantallas.length - 1, Math.max(0, Number(opciones.pantalla) || 0))
-      : (repaso ? 0 : Math.min(ronda.pantallas.length - 1, Math.max(0, Number(g.pantalla) || 0)));
+      : (repaso || (DATOS.simulacro && !puedeRetomar) ? 0 : Math.min(ronda.pantallas.length - 1, Math.max(0, Number(g.pantalla) || 0)));
 
     lec = {
       i: i, j: j, def: def, rondaIdx: rondaIdx, ronda: ronda, repaso: repaso,
       examen: esExamen,
+      simulacro: !!opciones?.simulacro,
       baseHechas: completado ? total : rondasHechas(def.id),
       estado: crearEstado({ inicio: Object.assign({}, def.inicio || {}, ronda.inicio || {}) }),
       pantalla: pantalla,
@@ -920,7 +1105,7 @@
     }
 
     // Reanudar exactamente donde se quedó: estado, terminal y respuesta.
-    const mismaPantalla = !esExamen && !repaso && !forzada && Number(g.ronda) === rondaIdx && Number(g.pantalla) === pantalla;
+    const mismaPantalla = puedeRetomar && Number(g.pantalla) === pantalla;
     const snap = mismaPantalla && g.snapshot ? g.snapshot : null;
     if (snap) {
       if (snap.estado) lec.estado = clonar(snap.estado);
@@ -938,6 +1123,7 @@
       lec.intentos = Number(snap.intentos) || 0;
       lec.testFallos = Number(snap.testFallos) || 0;
       lec.histHTML = '';
+      lec.estadoInicial = snap.estadoInicial || null;
       respuesta = g.entrada != null ? String(g.entrada) : (snap.entrada != null ? String(snap.entrada) : '');
     } else {
       respuesta = mismaPantalla && g.entrada ? String(g.entrada) : '';
@@ -945,6 +1131,7 @@
 
     montada = null;
     vista = { tipo: 'leccion' };
+    if (DATOS.simulacro) guardarPunto();
     pintar();
   }
 
@@ -1085,6 +1272,46 @@
     return out;
   }
 
+  function resultadoPractica(p) {
+    const inicial = lec.estadoInicial, final = clonar(inicial);
+    const salida = quitarHtml(ejecutarEn(final, p.ejemplo)).trimEnd();
+    const ruta = path => escapar(rutaVisible(path));
+    const cambios = [];
+    for (const [path, item] of Object.entries(final.fs)) {
+      const antes = inicial.fs[path];
+      if (JSON.stringify(item) === JSON.stringify(antes)) continue;
+      const nombre = '<code>' + ruta(path) + '</code>';
+      const tipo = item.tipo === 'dir' ? 'Carpeta' : item.tipo === 'link' ? 'Enlace' : 'Archivo';
+      let detalle = tipo + ' ' + nombre;
+      if (item.destino) detalle += ' → <code>' + ruta(item.destino) + '</code>';
+      if (item.modo && item.modo !== antes?.modo) detalle += ' · permisos <code>' + escapar(item.modo) + '</code>';
+      if (item.tipo === 'file' && item.contenido !== antes?.contenido)
+        detalle += item.contenido ? '<pre>' + escapar(item.contenido) + '</pre>' : ' · vacío';
+      const marcas = Object.entries(p.meta.marcas || {}).find(([raw]) => rutaAbs(raw, final.cwd) === path)?.[1];
+      for (const [campo, instante] of Object.entries(marcas || {}))
+        detalle += ' · ' + (campo === 'atime' ? 'acceso' : 'modificación') + ' ' + escapar(new Date(instante).toLocaleString('es-ES'));
+      cambios.push(detalle);
+    }
+    for (const path of Object.keys(inicial.fs))
+      if (!final.fs[path]) cambios.push('Ya no existe <code>' + ruta(path) + '</code>');
+    if (inicial.cwd !== final.cwd) cambios.push('Carpeta actual <code>' + ruta(final.cwd) + '</code>');
+    if (inicial.umask !== final.umask) cambios.push('Umask <code>' + escapar(final.umask) + '</code>');
+    const tmux = final.tmux;
+    if (p.meta.tmux && tmux) {
+      cambios.push(tmux.activa ? 'Sesión conectada <code>' + escapar(tmux.activa) + '</code>' : 'Ninguna sesión conectada');
+      for (const sesion of tmux.detalle || []) {
+        const ventanas = sesion.ventanas.map((v, i) => escapar(v.nombre) + ' (' + v.paneles +
+          (v.paneles === 1 ? ' panel' : ' paneles' + (v.division ? ' en ' + escapar(v.division) : '')) +
+          (sesion.actual === i ? ', seleccionada' : '') + ')');
+        cambios.push('Sesión <code>' + escapar(sesion.nombre) + '</code> · ' + ventanas.join(', '));
+      }
+    }
+    return '<h3 id="av-resultado-titulo">Resultado esperado</h3>' +
+      (salida ? '<p>Salida en la terminal</p><pre>' + escapar(salida) + '</pre>' : '') +
+      (cambios.length ? '<p>Cómo queda el entorno</p><ul><li>' + cambios.join('</li><li>') + '</li></ul>' : '') +
+      (!salida && !cambios.length ? '<p>La terminal vuelve al indicador sin imprimir texto.</p>' : '');
+  }
+
   /* ---- Bloque de ejemplo (teoría) ---- */
   function bloqueEjemplo(cmds, estado) {
     const e = clonar(estado);
@@ -1103,6 +1330,12 @@
   }
 
   const chipMundo = () => {
+    if (lec.simulacro) return '<span class="av-chip">Pregunta ' + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length + '</span>' +
+      '<span class="av-reloj" id="av-reloj" role="timer" aria-label="Tiempo restante"></span>';
+    if (DATOS.simulacro) return '<span class="av-chip">' + escapar(lec.def.comando) + '</span>' +
+      '<span class="av-chip av-chip--ronda">' + window.BOREAL_ATLAS.tramos[Math.floor(lec.rondaIdx / 9)] + '</span>' +
+      '<span class="av-chip av-chip--suave">Parada ' + (lec.rondaIdx + 1) + ' de ' + lec.def.rondas.length + '</span>' +
+      (lec.repaso ? '<span class="av-chip av-chip--repaso">Repaso</span>' : '');
     const mundo = mundoDe(lec.i);
     return '<span class="av-chip">' + iconoMundo(mundo) + ' Mundo ' + (lec.i + 1) + ' · ' + escapar(mundo.titulo) + '</span>' +
       '<span class="av-chip av-chip--suave">' + escapar(lec.def.titulo) + '</span>' +
@@ -1111,6 +1344,22 @@
       (lec.repaso ? '<span class="av-chip av-chip--repaso">Repaso</span>' : '') +
       (modoRey() ? '<span class="av-chip av-chip--rey">' + ICO.corona + ' Modo rey</span>' : '');
   };
+
+  function materialPractica(p) {
+    if (!DATOS.simulacro) return '';
+    let material = (p.datos || []).map(nombre => {
+      const archivo = lec.estadoInicial.fs[rutaAbs('~/' + nombre, lec.estadoInicial.cwd)];
+      return archivo ? '<details class="av-material" open><summary>Contenido de ' + escapar(nombre) +
+        '</summary><pre>' + escapar(archivo.contenido) + '</pre></details>' : '';
+    }).join('');
+    const guia = lec.ronda.pantallas.find(paso => paso.tipo === 'teoria');
+    if (!lec.simulacro && p.guia)
+      material += '<details class="av-material"><summary>Cuaderno de campo</summary>' + p.guia + '</details>';
+    else if (!lec.simulacro && guia)
+      material += '<details class="av-material"><summary>Repasar la explicación</summary>' + guia.html +
+        (guia.ejemplo ? bloqueEjemplo(guia.ejemplo, crearEstado({ inicio: lec.ronda.inicio })) : '') + '</details>';
+    return material;
+  }
 
   /* ---- Pantalla: lección ---- */
   function clavePantalla() {
@@ -1185,14 +1434,14 @@
     }
 
     if (p.tipo === 'practica') {
-      lec.estadoInicial = clonar(lec.estado);
+      if (!lec.estadoInicial) lec.estadoInicial = clonar(lec.estado);
       const ej = [].concat(p.ejemplo).map(escapar).join(' ; ');
       cuerpo.innerHTML =
         '<article class="av-tarjeta av-nueva">' +
           '<div class="av-tarjeta-cab">' + chipMundo() + '</div>' +
           '<h2 class="av-titulo">' + p.titulo + '</h2>' +
           '<p class="av-pide">' + p.pide + '</p>' +
-          (lec.examen || DATOS.practicaSinEjemplo
+          (DATOS.simulacro ? materialPractica(p) : lec.examen || DATOS.practicaSinEjemplo
             ? '<p class="av-reto-nota">' + ICO.trofeo + ' Reto: sin ejemplo. Usa lo que has aprendido; si te atascas, pide una pista.</p>'
             : '<p class="av-hazlo"><span>Escribe esto</span><code>' + ej + '</code></p>') +
           '<div class="av-term">' +
@@ -1205,6 +1454,7 @@
             '</div>' +
           '</div>' +
           '<div id="av-feedback"></div>' +
+          (lec.simulacro ? '' : '<section id="av-resultado" class="av-material av-resultado" aria-labelledby="av-resultado-titulo" tabindex="-1" hidden></section>') +
         '</article>';
       montarPie('practica');
       const inp = byId('av-in');
@@ -1305,7 +1555,7 @@
       let fb = '';
       if (lec.acierto) {
         fb += '<div class="av-msg av-msg--ok"><span class="av-msg-icono" aria-hidden="true">' + ICO.check + '</span>' +
-          '<div><b>¡Eso es!</b> ' + (p.explica || 'Muy bien.') + '</div></div>';
+          '<div><b>¡Eso es!</b> ' + (lec.simulacro ? 'Pregunta resuelta.' : (p.explica || 'Muy bien.')) + '</div></div>';
       } else if (lec.aviso) {
         fb += '<div class="av-msg ' + (lec.paso ? 'av-msg--paso' : 'av-msg--mal') + '"><span class="av-msg-icono" aria-hidden="true">' +
           (lec.paso ? 'i' : '!') + '</span><div>' + lec.aviso + '</div></div>';
@@ -1326,9 +1576,18 @@
       }
 
       const ayuda = byId('av-ayuda-btn');
-      if (ayuda) ayuda.hidden = !!lec.acierto;
+      if (!lec.simulacro) {
+        const agotadas = lec.ayuda >= cantidadPistas(p);
+        const boton = byId('av-resultado-btn');
+        ayuda.hidden = lec.acierto || agotadas;
+        boton.hidden = lec.acierto || !agotadas;
+        if (boton.hidden) cerrarResultado();
+      }
       const sig = byId('av-sig');
-      if (sig) sig.disabled = !lec.acierto;
+      if (sig) {
+        sig.disabled = !lec.simulacro && !lec.acierto;
+        if (lec.simulacro) sig.textContent = lec.acierto ? 'Siguiente pregunta' : 'Pasar pregunta';
+      }
       return;
     }
 
@@ -1366,25 +1625,32 @@
     pie.innerHTML =
       '<div class="av-pie-int">' +
         '<div class="av-pie-izq">' +
-          '<button class="av-btn av-btn--fantasma" type="button" id="av-mapa" title="Volver al mapa">← Mapa</button>' +
-          (tipo === 'practica' || tipo === 'teclas' ? '<button class="av-btn av-btn--ayuda" type="button" id="av-ayuda-btn">' + ICO.bombilla + ' Ayuda</button>' : '') +
+          '<button class="av-btn av-btn--fantasma" type="button" id="av-mapa" title="Volver">' + (DATOS.simulacro && !lec.examen ? '← Ruta' : '← Mapa') + '</button>' +
+          (lec.simulacro ? '<button class="av-btn av-btn--fantasma" type="button" id="av-entregar">Entregar</button>'
+            : tipo === 'practica' || tipo === 'teclas' ? '<button class="av-btn av-btn--ayuda" type="button" id="av-ayuda-btn">' + ICO.bombilla + (DATOS.simulacro ? ' Pista' : ' Ayuda') + '</button>' : '') +
+          (!lec.simulacro && tipo === 'practica' ? '<button class="av-btn av-btn--ayuda" type="button" id="av-resultado-btn" aria-controls="av-resultado" aria-expanded="false" hidden>Ver resultado</button>' : '') +
         '</div>' +
-        '<button class="av-btn av-btn--principal av-btn--sig" type="button" id="av-sig">Continuar</button>' +
+        '<button class="av-btn av-btn--principal av-btn--sig" type="button" id="av-sig">' + (lec.simulacro ? 'Pasar pregunta' : 'Continuar') + '</button>' +
       '</div>';
     byId('av-mapa').onclick = irAlMapa;
-    if (tipo === 'practica' || tipo === 'teclas') byId('av-ayuda-btn').onclick = pedirAyuda;
+    if (lec.simulacro) byId('av-entregar').onclick = () => entregarSimulacro(Date.now() >= simulacro.limite);
+    else if (tipo === 'practica' || tipo === 'teclas') byId('av-ayuda-btn').onclick = pedirAyuda;
+    if (!lec.simulacro && tipo === 'practica') byId('av-resultado-btn').onclick = alternarResultado;
     byId('av-sig').onclick = avanzar;
-    if (tipo !== 'teoria') byId('av-sig').disabled = true;
+    if (tipo !== 'teoria') byId('av-sig').disabled = !lec.simulacro;
   }
 
   function irAlMapa() {
+    const volverAlDistrito = DATOS.simulacro && lec && !lec.examen;
+    guardarSimulacroAbierto();
     flushEntrada();
     guardarPunto();
-    vista = { tipo: 'mapa' };
+    vista = { tipo: volverAlDistrito ? 'distrito' : 'mapa' };
     lec = null;
     respuesta = '';
     montada = null;
     pintar();
+    if (volverAlDistrito) byId('av-distrito-titulo').focus();
   }
 
   /* ---- Terminal de la práctica ---- */
@@ -1457,6 +1723,7 @@
   function enviar() {
     const inp = byId('av-in');
     if (!inp) return;
+    if (lec.simulacro && Date.now() >= simulacro.limite) return entregarSimulacro(true);
     const p = lec.ronda.pantallas[lec.pantalla];
     let crudo = inp.value;
     let linea = crudo.trim();
@@ -1491,7 +1758,8 @@
     const candidato = clonar(lec.estado);
     const tokens = tokenizar(linea);
     const fabricaSalida = DATOS.practicaSinEjemplo && tokens.some((token, i) =>
-      [';', '&&', '||'].includes(token) || (token === '|' && ['echo', 'printf'].includes(tokens[i + 1])));
+      (!p.meta.directorios && [';', '&&', '||'].includes(token)) ||
+      (token === '|' && ['echo', 'printf'].includes(tokens[i + 1])));
     const r = fabricaSalida
       ? { out:'', err:'Resuelve la misión con un comando o una tubería que trabaje con los datos del fichero, sin fabricar la respuesta.', code:1 }
       : ejecutarEntrada(candidato, linea);
@@ -1506,7 +1774,7 @@
     const v = aprendizaje.ok ? comprobarMeta(candidato, p.meta, salida) : { ok:false, motivo:aprendizaje.mensaje };
     let vale = v;
     let bien = v.ok && (r.code === 0 || !!p.toleraError);
-    if (!bien && aprendizaje.ok && p.meta.salida == null && lec.salidaAcum) {
+    if (!bien && aprendizaje.ok && p.meta.salida == null && !p.meta.lineas && lec.salidaAcum) {
       const vAcum = comprobarMeta(candidato, p.meta, lec.salidaAcum + salida);
       if (vAcum.ok && (r.code === 0 || !!p.toleraError)) { bien = true; vale = vAcum; }
     }
@@ -1520,10 +1788,10 @@
       respuesta = '';
       cuenta('aciertos');
       if (lec.intentos === 1 && lec.ayuda === 0) cuenta('primerAcierto');
-      const gana = lec.ayuda > 0 ? 6 : 10;
-      const puntos = lec.repaso ? 0 : sumarXp(gana);
+      const gana = !DATOS.simulacro && lec.ayuda > 0 ? 6 : 10;
+      const puntos = lec.repaso || lec.simulacro ? 0 : sumarXp(gana);
       lec.xp += puntos;
-      celebrar(puntos, false);
+      if (!lec.simulacro) celebrar(puntos, false);
       decir('¡Correcto!');
     } else {
       const ejecutado = r.code === 0 || !!p.toleraError;
@@ -1534,16 +1802,18 @@
         lec.salidaAcum += salida ? (salida.endsWith('\n') ? salida : salida + '\n') : '';
         respuesta = '';
         lec.paso = true;
-        lec.aviso = '<b>Ese comando se ha ejecutado</b>, pero todavía no es el objetivo. ' +
-          (vale.motivo || 'Todavía falta completar lo que pide este ejercicio.');
+        lec.aviso = lec.simulacro ? 'La pregunta sigue pendiente. Puedes probar otro comando o pasar a la siguiente.'
+          : '<b>Ese comando se ha ejecutado</b>, pero todavía no es el objetivo. ' +
+            (vale.motivo || 'Todavía falta completar lo que pide este ejercicio.');
       } else {
         respuesta = crudo;   // si el comando falla, se deja escrito para corregirlo
         lec.paso = false;
-        lec.aviso = lec.examen
+        lec.aviso = lec.simulacro ? 'El comando ha dado un error. Revisa el mensaje de la terminal.'
+          : lec.examen
           ? '<b>Todavía no.</b> ' + (vale.motivo || 'Ese comando no cumple el objetivo.') +
             (lec.ayuda ? '' : ' Pulsa <b>Ayuda</b> si necesitas una pista.')
-          : (p.error || ('Casi: ' + (vale.motivo || 'eso no es lo que pide esta pantalla.') +
-            ' <b>Mira el ejemplo de arriba y prueba otra vez.</b>'));
+          : (p.error || (DATOS.simulacro ? '<b>Revisa el mensaje de la terminal.</b> Puedes abrir la explicación o pedir una pista.'
+            : 'Casi: ' + (vale.motivo || 'eso no es lo que pide esta pantalla.') + ' <b>Mira el ejemplo de arriba y prueba otra vez.</b>'));
       }
       decir('Todavía no. ' + limpiar(lec.aviso));
     }
@@ -1665,8 +1935,31 @@
     pintar();
   }
 
+  const pistasDe = p => p.pistas?.length ? p.pistas : [].concat(p.pista || 'Revisa el objetivo y la teoría de esta misión.');
+  const cantidadPistas = p => DATOS.practicaSinEjemplo ? pistasDe(p).length : (lec.examen ? 1 : 2);
+
+  function cerrarResultado() {
+    const boton = byId('av-resultado-btn');
+    byId('av-resultado').hidden = true;
+    boton.textContent = 'Ver resultado';
+    boton.setAttribute('aria-expanded', 'false');
+  }
+
+  function alternarResultado() {
+    const boton = byId('av-resultado-btn'), panel = byId('av-resultado');
+    if (boton.hidden) return;
+    if (!panel.hidden) return cerrarResultado();
+    panel.innerHTML = resultadoPractica(lec.ronda.pantallas[lec.pantalla]);
+    panel.hidden = false;
+    boton.textContent = 'Ocultar resultado';
+    boton.setAttribute('aria-expanded', 'true');
+    panel.focus({ preventScroll: true });
+    panel.scrollIntoView?.({ block: 'nearest' });
+  }
+
   function pedirAyuda() {
     const p = lec.ronda.pantallas[lec.pantalla];
+    if (lec.simulacro) return;
     if (p.tipo === 'teclas') {
       lec.ayuda = 1;
       lec.ayudaTexto = p.pista || ('El atajo es ' + comboTexto(p.combo) + '.');
@@ -1675,17 +1968,11 @@
       if (zona) zona.focus();
       return;
     }
+    if (lec.ayuda >= cantidadPistas(p)) return;
     if (DATOS.practicaSinEjemplo) {
-      const pistas = p.pistas || [].concat(p.pista || 'Revisa el objetivo y la teoría de esta misión.');
-      if (lec.ayuda < pistas.length) {
-        lec.ayudaTexto = '<b>' + (lec.ayuda + 1) + '/' + pistas.length + '.</b> ' + pistas[lec.ayuda];
-        lec.ayuda++;
-      } else if (lec.examen) {
-        lec.ayudaTexto = 'Ya has consultado las pistas. Repasa la lección y aplica la idea al reto.';
-      } else {
-        lec.ayudaTexto = '<b>Una solución razonada:</b> <code>' + escapar([].concat(p.ejemplo).join('; ')) + '</code>' +
-          (p.explica ? '<br>' + p.explica : '') + '<br>Escríbela y comprueba qué selecciona o cambia antes de seguir.';
-      }
+      const pistas = pistasDe(p);
+      lec.ayudaTexto = '<b>' + (lec.ayuda + 1) + '/' + pistas.length + '.</b> ' + pistas[lec.ayuda];
+      lec.ayuda++;
     } else if (lec.ayuda === 0) {
       lec.ayuda = 1;
       lec.ayudaTexto = p.pista || ('Fíjate en el ejemplo de arriba: <code>' + escapar([].concat(p.ejemplo).join(' ; ')) + '</code>');
@@ -1702,6 +1989,12 @@
     }
     if (!lec.repaso) cuenta('ayudas');
     pintar();
+    guardarPunto();
+    byId('av-feedback')?.scrollIntoView?.({ block: 'nearest' });
+    if (lec.ayuda >= cantidadPistas(p)) {
+      byId('av-resultado-btn').focus();
+      return;
+    }
     const inp = byId('av-in');
     if (inp) {
       inp.focus();
@@ -1762,6 +2055,7 @@
     if (p && p.tipo !== 'teoria') {
       datos.snapshot = {
         estado: lec.estado,
+        estadoInicial: lec.estadoInicial,
         acierto: lec.acierto,
         hist: lec.hist,
         mem: lec.mem,
@@ -1785,6 +2079,7 @@
   }
 
   function avanzar() {
+    if (lec.simulacro) return siguientePregunta();
     if (lec.pantalla + 1 >= lec.ronda.pantallas.length) return cerrarRonda();
     lec.pantalla++;
     lec.acierto = false; lec.elegida = null; lec.ayuda = 0; lec.ayudaTexto = '';
@@ -1831,12 +2126,17 @@
       return;
     }
 
-    const nuevas = lec.repaso ? lec.baseHechas : Math.max(lec.baseHechas, lec.rondaIdx + 1);
+    const hechas = DATOS.simulacro ? paradasHechas(def.id) : null;
+    if (hechas && !lec.repaso) hechas.add(lec.rondaIdx);
+    const nuevas = hechas ? hechas.size : (lec.repaso ? lec.baseHechas : Math.max(lec.baseHechas, lec.rondaIdx + 1));
+    const siguiente = hechas ? def.rondas.findIndex((_, r) => r > lec.rondaIdx && !hechas.has(r)) : -1;
+    const primera = hechas ? def.rondas.findIndex((_, r) => !hechas.has(r)) : -1;
 
     if (!lec.repaso) {
       av.lecciones[def.id] = Object.assign({}, progresoDe(def.id), {
         rondasHechas: nuevas,
-        ronda: ultima ? total - 1 : lec.rondaIdx + 1,
+        ...(hechas ? { paradas: [...hechas] } : {}),
+        ronda: hechas ? Math.max(0, siguiente < 0 ? primera : siguiente) : (ultima ? total - 1 : lec.rondaIdx + 1),
         pantalla: 0,
         snapshot: null,
         entrada: ''
@@ -1847,17 +2147,18 @@
     if (!lec.repaso) gana += 10;                       // ronda terminada
     if (!lec.repaso && nuevas >= total) gana += 30;    // nodo dominado
     lec.xp += sumarXp(gana);
-    if (!lec.repaso && ultima) tocarRacha();
+    if (!lec.repaso && (hechas || ultima)) tocarRacha();
     guardar();
 
     celebrar(0, !lec.repaso && ultima && !sinMovimiento);
     montada = null;
-    vista = { tipo: 'cierre', fin: ultima ? 'nodo' : 'ronda' };
+    vista = { tipo: 'cierre', fin: (hechas ? nuevas >= total : ultima) ? 'nodo' : 'ronda' };
     pintar();
   }
 
   /* ---- Pantalla: fin de ronda o de nodo ---- */
   function pintarCierre() {
+    if (DATOS.simulacro && !lec.examen) return pintarCierreBoreal();
     const def = lec.def;
     const mundo = mundoDe(lec.i);
     const total = def.rondas.length;
@@ -1902,7 +2203,8 @@
           '<span class="av-dato">' + ICO.libro + ' <b>' + hechas() + '</b> / ' + totalLecciones + ' nodos</span>' +
           (esReto ? '<span class="av-dato">' + ICO.trofeo + ' <b>' + DATOS.mundos.filter(m => av.retos[m.id] && av.retos[m.id].hecho).length + '</b> / ' + DATOS.mundos.length + ' retos</span>' : '') +
         '</div>' +
-        (finMundo && !todas ? '<p class="av-fin-mundo">Has terminado <b>Mundo ' + (lec.i + 1) + ' · ' + mundo.titulo + '</b>. Se ha abierto el siguiente.</p>' : '') +
+        (finMundo && !todas ? '<p class="av-fin-mundo">Has terminado <b>Mundo ' + (lec.i + 1) + ' · ' + mundo.titulo + '</b>.' +
+          (DATOS.simulacro ? '' : ' Se ha abierto el siguiente.') + '</p>' : '') +
         (esReto ? '<p class="av-fin-mundo">Insignia conseguida: <b>Reto de ' + escapar(mundo.titulo) + '</b>.</p>' : '') +
         (!lec.repaso && !lec.examen && !esReto && todas ? '<p class="av-fin-mundo">Has terminado <b>toda la aventura</b>. Vuelve al mapa cuando quieras a repasar.</p>' : '') +
       '</article>';
