@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escritorio Linux · Desglose de expresiones regulares</title>
+<meta name="theme-color" content="#300a24">
+<style>
+  /* ============ COLORES (mismos que linux-terminal.html) ============ */
+  :root{
+    --escritorio-1:#2c001e; --escritorio-2:#5e2750;
+    --barra:#1a1a1a;
+    --ventana:#2e2c33; --lateral:#38353f;
+    --acento:#c34113;
+    --term:#300a24; --term-txt:#eeeeec;
+    --usuario:#8ae234; --ruta:#729fcf; --marca:#fce94f;
+    --carpeta:#729fcf; --exec:#8ae234;
+    --kw:#ad7fa8; --str:#e9b96e; --com:#888a85;
+    --marca:#fce94f; --cian:#34e2e2; --naranja:#fcaf3e; --rojo:#ef2929;
+    --papel:#f6f5f4; --papel-txt:#241f31;
+    box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  html,body{min-height:100%}
+  body{font:15px/1.5 Ubuntu,Cantarell,"Segoe UI",system-ui,sans-serif;color:#fff;
+    background:var(--fondo-img,none) center/cover no-repeat fixed,linear-gradient(135deg,var(--escritorio-1),var(--escritorio-2)) fixed;
+    display:flex;flex-direction:column}
+  :focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+
+  /* Barra superior tipo GNOME */
+  .barra{position:relative;z-index:2;background:var(--barra);height:30px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;font-size:13px}
+  .barra #reloj{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .barra b{font-weight:500}
+
+  /* Ventana */
+  .ventana{position:relative;z-index:1;margin:18px auto;width:min(900px,calc(100% - 24px));display:flex;flex-direction:column;
+    background:var(--ventana);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+  .titulo{height:42px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;padding:0 48px;text-align:center}
+
+  /* Terminal */
+  .terminal{background:var(--term);color:var(--term-txt);padding:16px 18px;font:15px/1.55 "Ubuntu Mono","DejaVu Sans Mono",Menlo,Consolas,monospace}
+  .u{color:var(--usuario);font-weight:700}.r{color:var(--ruta);font-weight:700}
+  .c{color:var(--com)}
+  .modos{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+  .modo{position:relative;font:12px/1.5 Ubuntu,Cantarell,"Segoe UI",system-ui,sans-serif;color:color-mix(in srgb,var(--term-txt) 75%,transparent);background:color-mix(in srgb,var(--term-txt) 8%,transparent);border:1px solid color-mix(in srgb,var(--term-txt) 18%,transparent);border-radius:999px;padding:3px 12px;cursor:pointer;transition:background .2s ease,color .2s ease}
+  .modo input{position:absolute;opacity:0;pointer-events:none}
+  .modo:hover{background:color-mix(in srgb,var(--term-txt) 16%,transparent);color:var(--term-txt)}
+  .modo:has(input:checked){background:var(--acento);border-color:var(--acento);color:#fff}
+  .modo:has(input:focus-visible){outline:2px solid var(--marca);outline-offset:2px}
+  #note{font-size:14px;margin-bottom:12px}
+  .prompt{word-break:break-word}
+  .re-fila{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .re-fila b{color:var(--marca)}
+  .re{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--term-txt);background:color-mix(in srgb,var(--term-txt) 8%,var(--term));border:1px solid color-mix(in srgb,var(--term-txt) 25%,transparent);border-radius:8px;padding:8px 12px;caret-color:var(--usuario)}
+  .re::placeholder{color:var(--com)}
+  .ex{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;font-size:13px}
+  .ex button{font:inherit;font-size:13px;font-weight:700;color:var(--term-txt);background:color-mix(in srgb,var(--term-txt) 12%,transparent);border:1px solid color-mix(in srgb,var(--term-txt) 25%,transparent);padding:5px 12px;border-radius:8px;cursor:pointer}
+  .ex button:hover{color:#fff;background:var(--acento);border-color:var(--acento)}
+  .salida{margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--term-txt) 20%,transparent);min-height:44px;white-space:pre-wrap;word-break:break-all;font-size:17px;line-height:1.9}
+  .cursor{display:inline-block;width:.6em;height:1.1em;background:var(--term-txt);vertical-align:text-bottom;animation:parpadeo 1s steps(1) infinite}
+  @keyframes parpadeo{50%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){.cursor{animation:none}.modo{transition:none}}
+
+  /* Colores por tipo de pieza (como el resaltado de la terminal) */
+  .t-anchor{--tc:var(--marca)}.t-lit{--tc:var(--term-txt)}.t-esc{--tc:var(--str)}.t-any,.t-cls{--tc:var(--cian)}
+  .t-set{--tc:var(--ruta)}.t-quant{--tc:var(--usuario)}.t-open,.t-close,.t-back{--tc:var(--kw)}
+  .t-alt{--tc:var(--naranja)}.t-err{--tc:var(--rojo)}
+  .pz{color:var(--tc,var(--term-txt));font-weight:700;background:color-mix(in srgb,var(--term-txt) 8%,transparent);border-radius:3px;padding:1px 2px;margin:0 1px}
+  .pz.t-back{text-decoration:underline dotted;text-underline-offset:4px}
+  .pz.t-err{text-decoration:underline wavy;text-underline-offset:4px}
+  .pz.hl{outline:2px solid var(--marca);outline-offset:1px}
+
+  /* Explicación */
+  .explicacion{background:var(--papel);color:var(--papel-txt);padding:18px 24px}
+  .explicacion h3{font-size:18px;margin-bottom:6px}
+  .explicacion p{margin-bottom:8px}
+  .fila{display:grid;grid-template-columns:minmax(64px,auto) 1fr;gap:14px;align-items:start;padding:8px 10px;margin-left:calc(var(--d)*20px);border-left:2px solid transparent;border-radius:8px;list-style:none}
+  .fila.nest{border-left-color:#c0bfbc}
+  .fila.hl{background:color-mix(in srgb,var(--acento) 14%,transparent)}
+  .fila-cod{justify-self:start;font:700 14px "Ubuntu Mono","DejaVu Sans Mono",monospace;background:var(--term);color:var(--tc,var(--term-txt));padding:1px 8px;border-radius:4px;white-space:pre}
+  .fila b{font-weight:700}
+  .tag{margin-left:8px;font-size:12px;color:#5e5c64;border:1px solid #c0bfbc;border-radius:999px;padding:0 8px}
+  .fila p{margin:2px 0 0}
+  @media (max-width:480px){.fila{grid-template-columns:1fr;gap:4px}.explicacion{padding:16px}}
+
+  /* Lienzo de los fondos animados: fijo, encima del degradado y debajo de la interfaz */
+  #fondo-anim{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+  #fondo-anim[hidden]{display:none}
+  /* Aviso flotante (fondo cambiado, progreso borrado, imagen no guardada…) */
+  .aviso{position:fixed;left:50%;bottom:22px;z-index:40;transform:translate(-50%,10px);max-width:calc(100% - 32px);
+    background:#241f31;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:9px 18px;font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+  .aviso.visible{opacity:1;transform:translate(-50%,0)}
+  /* Botón cuadriculado y panel de personalización */
+  .ventana{position:relative;z-index:1;transition:opacity .25s ease,transform .25s ease}
+  /* "Ver el escritorio": la ventana desaparece y deja ver el fondo de pantalla */
+  .ventana.minimizada{opacity:0;transform:scale(.97);pointer-events:none}
+  .ajustes-btn{position:absolute;left:10px;top:6px;width:30px;height:30px;display:grid;place-items:center;background:#4a4752;color:#fff;border:0;border-radius:8px;cursor:pointer}
+  .ajustes-btn:hover,.ajustes-btn[aria-expanded="true"]{background:var(--acento)}
+  .ajustes{position:absolute;left:10px;top:46px;z-index:5;width:min(290px,calc(100% - 20px));max-height:calc(100% - 56px);overflow:auto;
+    background:#3d3a45;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.5);font-size:14px}
+  .ajustes h2{font-size:15px;margin-bottom:10px}
+  .ajustes .fila{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .ajustes select,.ajustes .reset{font:inherit;background:#2e2c33;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 8px}
+  .ajustes input[type=color]{width:42px;height:26px;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:6px;background:none;cursor:pointer}
+  .ajustes .vel{display:block}
+  .ajustes .vel input{width:100%}
+  .ajustes .vel small{color:#c0bfbc}
+  .ajustes .reset{margin-top:6px;cursor:pointer}
+  .ajustes .reset:hover{background:var(--acento);border-color:var(--acento)}
+  .ajustes .fila .reset{margin:0;flex:1}
+  .ajustes h3{font-size:13px;margin:12px 0 6px;color:#c0bfbc}
+  .ajustes .fila{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .ajustes .fila .reset{margin:0;flex:1}
+  .ajustes .vel{display:block}
+  .ajustes .vel input{width:100%}
+  .ajustes .vel small{color:#c0bfbc}
+  .barra-btn{font:inherit;font-weight:500;color:#fff;text-decoration:none;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;display:inline-flex;align-items:center;cursor:pointer;transition:background .2s ease}
+  .barra-btn:hover{background:rgba(255,255,255,.14)}
+</style>
+</head>
+<body>
+<canvas id="fondo-anim" aria-hidden="true" hidden></canvas>
+<div class="barra"><a class="barra-btn" href="linux-terminal.html">Volver</a><span id="reloj"></span><span>ES</span></div>
+<div class="ventana">
+  <button class="ajustes-btn" id="btn-ajustes" aria-label="Personalizar terminal" aria-expanded="false" aria-controls="panel-ajustes">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <rect x="1" y="1" width="4" height="4" rx="1"/><rect x="6" y="1" width="4" height="4" rx="1"/><rect x="11" y="1" width="4" height="4" rx="1"/>
+        <rect x="1" y="6" width="4" height="4" rx="1"/><rect x="6" y="6" width="4" height="4" rx="1"/><rect x="11" y="6" width="4" height="4" rx="1"/>
+        <rect x="1" y="11" width="4" height="4" rx="1"/><rect x="6" y="11" width="4" height="4" rx="1"/><rect x="11" y="11" width="4" height="4" rx="1"/>
+      </svg>
+    </button>
+  <div class="ajustes" id="panel-ajustes" hidden>
+    <h2>Personalizar terminal</h2>
+    <label class="fila">Tema <select id="tema"></select></label>
+    <div id="colores"></div>
+    <label class="fila vel">Tiempo de escritura: <span id="vel-txt"></span>
+      <input type="range" id="vel" min="0" max="120" step="4">
+      <small>0 = el comando aparece de golpe</small>
+    </label>
+    <h3>Fondo de pantalla</h3>
+    <label class="fila">Animado <select id="fondo-anim-sel"></select></label>
+    <div class="fila">
+      <button class="reset" id="fondo-elegir" type="button">Elegir imagen…</button>
+      <button class="reset" id="fondo-quitar" type="button">Quitar</button>
+    </div>
+    <input type="file" id="fondo-archivo" accept="image/*" hidden>
+    <button class="reset" id="restablecer">Restablecer todo</button>
+  </div>
+  <div class="titulo">usuario@asir: ~/regex</div>
+  <section class="terminal">
+    <div class="modos" role="radiogroup" aria-label="Tipo de expresión regular">
+      <label class="modo"><input type="radio" name="m" value="bre" checked>BRE · básica</label>
+      <label class="modo"><input type="radio" name="m" value="ere">ERE · extendida</label>
+    </div>
+    <div class="c" id="note"></div>
+    <div class="prompt"><span class="u">usuario@asir</span>:<span class="r">~</span>$ grep<span id="flag"></span></div>
+    <div class="re-fila"><b>'</b><input id="re" class="re" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Expresión regular" placeholder="^[a-z]+@(gmail|hotmail)\.com$"><b>'</b></div>
+    <div class="ex"><span class="c"># prueba con:</span>
+      <button type="button" data-m="ere" data-re="^[a-z0-9._-]+@[a-z]+\.(com|es)$">correo (ERE)</button>
+      <button type="button" data-m="bre" data-re="^\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}$">IP (BRE)</button>
+      <button type="button" data-m="ere" data-re="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$">fecha (ERE)</button>
+    </div>
+    <div class="salida" id="map" aria-hidden="true"></div>
+  </section>
+  <section class="explicacion" id="out" aria-live="polite"></section>
+</div>
+
+<div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+<script src="personalizacion.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vis = s => s.replace(/ /g, '␣');
+const GNU = 'extensión GNU';
+const KIND = {anchor:'Ancla',lit:'Literal',esc:'Literal escapado',any:'Cualquier carácter',set:'Conjunto de caracteres',quant:'Cuantificador',open:'Abre grupo',close:'Cierra grupo',alt:'Alternancia',back:'Retrovisión',cls:'Clase abreviada',err:'Problema'};
+const CLS = {alpha:'letras',digit:'dígitos',alnum:'letras y dígitos',upper:'mayúsculas',lower:'minúsculas',space:'espacios en blanco',blank:'espacio o tabulador',punct:'signos de puntuación',xdigit:'dígitos hexadecimales',cntrl:'caracteres de control',print:'caracteres imprimibles',graph:'caracteres visibles (sin espacio)'};
+const ESC = {
+  w:['cls','Un carácter de palabra: letra, dígito o guion bajo'],
+  W:['cls','Un carácter que NO es de palabra'],
+  s:['cls','Un espacio en blanco (espacio, tabulador, salto de línea…)'],
+  S:['cls','Un carácter que NO es espacio en blanco'],
+  b:['anchor','Límite de palabra: el punto entre un carácter de palabra y uno que no lo es'],
+  B:['anchor','Posición que NO es límite de palabra'],
+  '<':['anchor','Inicio de palabra'],
+  '>':['anchor','Fin de palabra'],
+  '`':['anchor','Inicio del texto completo'],
+  "'":['anchor','Fin del texto completo']
+};
+const NOTES = {
+  bre:'Básica (grep, sed): + ? | ( ) { } son literales. Para darles función se escriben con barra: \\+ \\? \\| \\( \\) \\{ \\}. Las tres primeras son extensión GNU.',
+  ere:'Extendida (grep -E, sed -E, awk): + ? | ( ) { } ya tienen función especial. Con barra delante pasan a ser literales.'
+};
+
+function parse(src, ere){
+  const T = [], stack = [];
+  let i = 0, depth = 0, groups = 0;
+  const add = (type, text, desc, o = {}) => T.push({type, text, desc, depth, ...o});
+  const prev = () => T[T.length - 1];
+  const atStart = () => { const p = prev(); return !p || p.type === 'open' || p.type === 'alt'; };
+  const atomText = () => { const p = prev(); return p.type === 'close' ? src.slice(p.from, p.end) : p.text; };
+  const quant = (text, what, tag) => add('quant', text, `Repite «${vis(atomText())}» ${what}`, {tag});
+  const lit = (text, desc) => add('esc', text, desc);
+  const open = text => { groups++; add('open', text, `Abre el grupo de captura nº ${groups}: agrupa lo que sigue para tratarlo como una unidad y poder repetirlo o reutilizarlo con \\${groups}`); stack.push({n:groups, start:i}); depth++; };
+  const close = text => {
+    if (!stack.length) return add('err', text, 'Cierra un grupo que nunca se abrió: falta el paréntesis de apertura');
+    depth--; const o = stack.pop();
+    add('close', text, `Cierra el grupo nº ${o.n}`, {from:o.start, end:i + text.length});
+  };
+  const alt = (text, tag) => add('alt', text, 'Alternancia («o»): coincide con lo que hay a su izquierda o con lo que hay a su derecha, dentro del mismo grupo', {tag});
+  const interval = (text, m, tag) => {
+    const lo = m[1], comma = m[2] !== undefined, hi = m[3];
+    let w;
+    if (!comma) w = `exactamente ${lo} veces`;
+    else if (lo && hi) w = `entre ${lo} y ${hi} veces`;
+    else if (lo) w = `${lo} o más veces`;
+    else w = `como máximo ${hi} veces`;
+    quant(text, w, tag);
+  };
+
+  while (i < src.length){
+    const c = src[i], d = src[i + 1], rest = src.slice(i);
+    let m, len = 1;
+
+    if (c === '\\'){
+      len = 2;
+      if (d === undefined){ add('err', '\\', 'Una barra invertida al final no escapa nada'); }
+      else if (!ere && d === '(') open('\\(');
+      else if (!ere && d === ')') close('\\)');
+      else if (!ere && d === '|') alt('\\|', GNU);
+      else if (!ere && d === '+') { if (atStart()) lit('\\+', 'Al principio no hay nada que repetir'); else quant('\\+', 'una o más veces', GNU); }
+      else if (!ere && d === '?') { if (atStart()) lit('\\?', 'Al principio no hay nada que repetir'); else quant('\\?', 'cero o una vez (es opcional)', GNU); }
+      else if (!ere && d === '{'){
+        m = rest.match(/^\\\{(\d*)(,(\d*))?\\\}/);
+        if (m && (m[1] || m[2])){ len = m[0].length; interval(m[0], m); }
+        else add('err', '\\{', 'Intervalo mal formado: se espera \\{n\\}, \\{n,\\}, \\{n,m\\} o \\{,m\\}');
+      }
+      else if (/[1-9]/.test(d)){
+        if (+d <= groups) add('back', '\\' + d, `Retrovisión: debe repetir exactamente el texto que capturó el grupo nº ${d}`);
+        else add('err', '\\' + d, `Referencia al grupo nº ${d}, pero hasta aquí solo hay ${groups}`);
+      }
+      else if (ESC[d]) add(ESC[d][0], '\\' + d, ESC[d][1], {tag:GNU});
+      else if (/[.\[\]*^$\\+?(){}|\/-]/.test(d)) lit('\\' + d, `Carácter «${d}» literal: la barra le quita su significado especial`);
+      else lit('\\' + d, `Barra delante de «${d}»: en POSIX no tiene significado definido, se toma como «${d}» literal`);
+    }
+    else if (c === '['){
+      m = rest.match(/^\[\^?\]?(?:\[:[a-z]+:\]|\[\.[^\]]+\.\]|\[=[^\]]+=\]|[^\]])*\]/);
+      if (!m){ add('err', '[', 'Conjunto sin cerrar: falta el corchete de cierre «]»'); len = rest.length; }
+      else {
+        len = m[0].length;
+        let body = m[0].slice(1, -1), neg = false;
+        if (body[0] === '^'){ neg = true; body = body.slice(1); }
+        const parts = [], singles = [];
+        for (const it of body.matchAll(/\[:([a-z]+):\]|\[\.(.+?)\.\]|\[=(.+?)=\]|(.)-(.)|(.)/gs)){
+          if (it[1]) parts.push(`${CLS[it[1]] || it[1]} ([:${it[1]}:])`);
+          else if (it[2] || it[3]) singles.push(it[2] || it[3]);
+          else if (it[4]) parts.push(`de «${it[4]}» a «${it[5]}»`);
+          else singles.push(it[6]);
+        }
+        if (singles.length) parts.push(`los caracteres «${vis(singles.join(''))}»`);
+        let desc = `${neg ? 'Un carácter que NO sea' : 'Un único carácter de'}: ${parts.join('; ')}`;
+        if (body.includes('\\')) desc += '. Dentro de [ ] la barra invertida es un carácter normal';
+        add('set', m[0], desc);
+      }
+    }
+    else if (c === '.') add('any', '.', 'Cualquier carácter único (normalmente excepto el salto de línea)');
+    else if (c === '*'){ if (atStart()) lit('*', 'Al principio no hay nada que repetir, así que se toma como «*» literal'); else quant('*', 'cero o más veces'); }
+    else if (c === '^'){
+      if (ere || atStart()) add('anchor', '^', 'Inicio de línea: lo que sigue debe estar al comienzo');
+      else add('esc', '^', 'En BRE, «^» solo es ancla al principio de la expresión o de un grupo; aquí es un «^» literal');
+    }
+    else if (c === '$'){
+      const nx = rest.slice(1);
+      if (ere || !nx || nx.startsWith('\\)') || nx.startsWith('\\|')) add('anchor', '$', 'Fin de línea: lo anterior debe estar al final');
+      else add('esc', '$', 'En BRE, «$» solo es ancla al final de la expresión o de un grupo; aquí es un «$» literal');
+    }
+    else if (ere && c === '(') open('(');
+    else if (ere && c === ')') close(')');
+    else if (ere && c === '|') alt('|');
+    else if (ere && c === '+'){ if (atStart()) lit('+', 'Al principio no hay nada que repetir, así que se toma como «+» literal'); else quant('+', 'una o más veces'); }
+    else if (ere && c === '?'){ if (atStart()) lit('?', 'Al principio no hay nada que repetir, así que se toma como «?» literal'); else quant('?', 'cero o una vez (es opcional)'); }
+    else if (ere && c === '{'){
+      m = rest.match(/^\{(\d*)(,(\d*))?\}/);
+      if (m && (m[1] || m[2]) && !atStart()){ len = m[0].length; interval(m[0], m); }
+      else lit('{', 'Llave que no forma un intervalo válido: se toma como «{» literal');
+    }
+    else if (!ere && /[+?|(){}]/.test(c)) lit(c, `«${c}» literal: en BRE no es especial (para darle función se escribe «\\${c}»)`);
+    else add('lit', c, '', {plain:true});
+    i += len;
+  }
+  if (stack.length) T.push({type:'err', text:'', depth:0, desc:`Faltan ${stack.length} paréntesis de cierre para los grupos abiertos`});
+  return T;
+}
+
+function litTok(run){
+  const s = run.map(x => x.text).join('');
+  return {type:'lit', text:s, depth:run[0].depth,
+    desc: run.length > 1 ? `Texto literal «${vis(s)}»: debe aparecer tal cual, en ese orden` : `Carácter literal «${vis(s)}»`};
+}
+function merge(T){
+  const out = [];
+  for (let k = 0; k < T.length; k++){
+    const t = T[k];
+    if (!t.plain){ out.push(t); continue; }
+    const run = [t];
+    while (T[k + 1] && T[k + 1].plain && T[k + 1].depth === t.depth) run.push(T[++k]);
+    let last = null;
+    if (T[k + 1] && T[k + 1].type === 'quant' && run.length > 1) last = run.pop();
+    out.push(litTok(run));
+    if (last) out.push(litTok([last]));
+  }
+  return out;
+}
+
+function render(){
+  const src = $('#re').value, ere = $('input[name=m]:checked').value === 'ere';
+  $('#note').textContent = '# ' + NOTES[ere ? 'ere' : 'bre'];
+  $('#flag').textContent = ere ? ' -E' : '';
+  const map = $('#map'), out = $('#out');
+  if (!src){
+    map.innerHTML = '<span class="c"># aquí aparecerá tu expresión coloreada</span> <span class="cursor"></span>';
+    out.innerHTML = '<h3>Desglose</h3><p>Escribe una expresión regular para ver de qué partes se compone y qué hace cada una.</p>';
+    return;
+  }
+  const T = merge(parse(src, ere));
+  const label = t => esc(vis(t.text) || '⚠');
+  map.innerHTML = T.map((t, i) => `<span class="pz t-${t.type}" data-i="${i}">${label(t)}</span>`).join('');
+  out.innerHTML = '<h3>Desglose</h3><ol>' + T.map((t, i) => `<li class="fila${t.depth ? ' nest' : ''}" data-i="${i}" style="--d:${t.depth}">
+    <code class="fila-cod t-${t.type}">${label(t)}</code>
+    <div><b>${KIND[t.type]}</b>${t.tag ? `<span class="tag">${t.tag}</span>` : ''}<p>${esc(t.desc)}</p></div></li>`).join('') + '</ol>';
+}
+const reloj = () => { $('#reloj').textContent = new Date().toLocaleString('es-ES', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}); };
+reloj(); setInterval(reloj, 30000);
+
+$('#re').addEventListener('input', render);
+document.querySelectorAll('input[name=m]').forEach(r => r.addEventListener('change', render));
+document.querySelector('.ex').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelector(`input[name=m][value=${b.dataset.m}]`).checked = true;
+  $('#re').value = b.dataset.re; render();
+});
+const hl = (e, on) => {
+  const el = e.target.closest('[data-i]'); if (!el) return;
+  document.querySelectorAll(`[data-i="${el.dataset.i}"]`).forEach(x => x.classList.toggle('hl', on));
+};
+$('.ventana').addEventListener('mouseover', e => hl(e, true));
+$('.ventana').addEventListener('mouseout', e => hl(e, false));
+
+render();
+</script>
+</body>
+</html>
