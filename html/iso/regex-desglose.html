@@ -184,12 +184,14 @@
     </section>
     <section class="builder" id="words" hidden>
       <h2>De una descripción a grep</h2>
-      <label for="description">Describe las partes en orden. Usa comillas dobles para el texto literal.</label>
+      <label for="description">Describe qué quieres buscar, validar o extraer. Pon entre comillas las palabras que deban aparecer tal cual.</label>
       <textarea class="re" rows="2" id="description" placeholder='Línea completa: dos letras mayúsculas, un guion y cuatro dígitos'></textarea>
       <details><summary>Frases admitidas y ejemplos</summary>
         <p>Empieza con «línea completa:», «empieza por», «termina en» o «contiene». Une las partes con una coma, «y» o «seguido de».</p>
         <p>Puedes pedir dígitos, letras, letras mayúsculas o minúsculas, espacios, guiones, puntos o cualquier carácter. Indica la cantidad con un número, «entre 2 y 5», «al menos 2», «uno o más», «cero o más» u «opcional».</p>
-        <div class="ex" id="phrases"><button>Línea completa: dos letras mayúsculas, un guion y cuatro dígitos</button><button>Termina en un punto seguido de "pdf" o "txt"</button><button>Empieza por "ID+" y al menos 2 dígitos</button><button>Empieza por "ASIR" y termina en cuatro dígitos</button><button>Extrae solo los grupos de cifras. Las palabras y unidades deben quedar fuera.</button></div>
+        <p>Elige un ejemplo y cambia sus piezas. Agrupa con paréntesis, usa «o» para alternativas y «opcional» para omitir una pieza o un grupo. Puedes pedir enteros, decimales, identificadores, IPv4, horas HH:MM o fechas DD/MM/AAAA. También reconoce correos electrónicos habituales, DNI y códigos postales españoles. El DNI se comprueba por formato. Las fechas comprueban el formato, el mes y el día de 01 a 31.</p>
+        <p>En los ejercicios de Linux puedes pedir «direcciones MAC» o «seis pares hexadecimales separados por dos puntos». «Líneas vacías» exige cero caracteres y «líneas en blanco» admite espacios y tabuladores. El filtro de puertos interpreta el formato de /etc/services y el de usuarios con bash, el de /etc/passwd.</p>
+        <div class="ex" id="phrases"><button>Línea completa: dos letras mayúsculas, un guion y cuatro dígitos</button><button>Termina en un punto seguido de "pdf" o "txt"</button><button>Empieza por "ID+" y al menos 2 dígitos</button><button>Empieza por "ASIR" y termina en cuatro dígitos</button><button>Extrae solo los grupos de cifras. Las palabras y unidades deben quedar fuera.</button><button>Necesito una regex que termine en .pdf o .odt, sin distinguir mayúsculas y minúsculas</button><button>Valida: ("ES" o "PT"), un guion opcional y entre 4 y 6 cifras</button><button>Líneas que no contengan "ERROR" o "FALLO", sin distinguir mayúsculas y minúsculas</button><button>Extrae números decimales</button><button>Extrae todos los correos electrónicos</button><button>Valida: código postal español</button><button>Extrae direcciones IPv4</button><button>Extrae horas HH:MM</button><button>Extrae las palabras que empiecen por "pre" y terminen en "ar"</button><button>Encuentra todas las líneas que empiecen por "ID", contengan "ERROR" y terminen en "fin"</button><button>Línea completa: dos (una mayúscula y tres cifras), seguido de ("-" y dos cifras) opcional</button><button>Empieza por "/" y al menos un carácter distinto de "/"</button><button>Línea completa: cuatro caracteres del rango de "A" a "F"</button><button>Extrae direcciones MAC</button><button>Obtén las direcciones web</button><button>Excluir comentarios y líneas en blanco</button><button>Mostrar alias comentados en .bashrc</button><button>Servicios del puerto 389 por TCP</button><button>Usuarios que usan bash</button><button>Busca la palabra exacta "tar"</button><button>Extrae dos palabras iguales separadas por un guion</button><button>Líneas que contienen la cadena 80</button></div>
       </details>
       <p id="feedback" role="status"></p>
     </section>
@@ -380,9 +382,9 @@ function merge(T){
 function render(){
   const src = $('#re').value, ere = $('input[name=m]:checked').value === 'ere';
   $('#note').textContent = '# ' + NOTES[ere ? 'ere' : 'bre'];
-  const flags=(ere?' -E':'')+(extractMatches?' -o':'');
+  const flags=(ere?' -E':'')+(ignoreCase?' -i':'')+(invertLines?' -v':'')+(extractMatches?' -o':'');
   $('#flag').textContent=flags;
-  $('#grepOutput').textContent=extractMatches?'grep muestra solo los fragmentos coincidentes.':'grep muestra las líneas que coinciden.';
+  $('#grepOutput').textContent=invertLines?'grep muestra las líneas que no contienen el patrón.':extractMatches?'grep muestra solo los fragmentos coincidentes.':'grep muestra las líneas que coinciden.';
   $('#command').hidden=!src;
   $('#cmd').textContent="grep"+flags+" -e '"+src.replaceAll("'", "'\\''")+"'";
   const map = $('#map'), out = $('#out');
@@ -426,7 +428,7 @@ const pieces = {
   dash:['Guion','-'], dot:['Punto','\\.']
 };
 const blocks = [];
-let view = 'manual', manual = '', extractMatches=false;
+let view = 'manual', manual = '', extractMatches=false, ignoreCase=false, invertLines=false;
 const isERE = () => $('input[name=m]:checked').value === 'ere';
 function quoteLiteral(value, ere){
   const special = ere ? '.^$[*\\+?(){}|' : '.^$[*\\';
@@ -454,66 +456,219 @@ function checkCount(min,max){
   if (!Number.isInteger(min) || min<0 || min>255 || (max!==Infinity && (!Number.isInteger(max) || max>255 || max<min)))
     throw Error('Usa cantidades enteras de 0 a 255 y un máximo igual o mayor que el mínimo.');
 }
-const numbers = {un:1,una:1,uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,cero:0};
-function parseDescription(input){
-  const prefix=/^(?:extrae(?:r)?|extraiga|saca|muestra|devuelve)\s+(?:(?:s[oó]lo|solamente|[úu]nicamente)\s+)?/i;
-  const text=input.trim();
-  if(!prefix.test(text)) return {pattern:describe(text), extract:false};
-  const request=text.replace(prefix,'').replace(/[.!]\s*$/,'').trim();
-  const digits=/^(?:(?:los|las)\s+)?(?:(?:grupos|secuencias|bloques)\s+de\s+)?(?:cifras|d[íi]gitos)(?:\s*[.,;]\s*(?:(?:las\s+)?palabras\s+y\s+(?:las\s+)?unidades\s+deben\s+quedar\s+fuera|(?:sin|excluyendo)\s+palabras\s+(?:ni|y)\s+unidades))?$/i;
-  const pattern=digits.test(request)
-    ? compile([{kind:'digit',min:1,max:Infinity}],'any')
-    : describe(request);
-  return {pattern,extract:true};
-}
-function describe(input){
-  let rest = input.trim(), scope='any';
-  function take(re){
-    const match=rest.match(re);
-    if(match) rest=rest.slice(match[0].length).trimStart();
-    return match;
+const quantities = {cero:0,un:1,una:1,uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,quince:15,veinte:20};
+const amount = '(\\d+|'+Object.keys(quantities).join('|')+')';
+const quantityValue = word => quantities[word] ?? Number(word);
+const quantityRules = [
+  ['(?:cero o mas|cualquier cantidad de)',()=>[0,Infinity]],
+  ['(?:uno|una) o mas',()=>[1,Infinity]],
+  ['(?:opcionalmente|opcional)',()=>[0,1]],
+  ['(?:entre '+amount+' y '+amount+'|de '+amount+' a '+amount+')',m=>[quantityValue(m[1]??m[3]),quantityValue(m[2]??m[4])]],
+  ['(?:al menos|como minimo|un minimo de) '+amount,m=>[quantityValue(m[1]),Infinity]],
+  ['(?:hasta|como maximo|un maximo de) '+amount,m=>[0,quantityValue(m[1])]],
+  ['(?:exactamente )?'+amount,m=>[quantityValue(m[1]),quantityValue(m[1])]]
+].map(([rule,read])=>[new RegExp('^(?:'+rule+')\\b\\s*'),read]);
+
+// Each entry describes a single unit. A compound unit needs grouping when repeated.
+const vocabulary=[
+  [/^(?:letras? mayusculas?|mayusculas?)\b/,'[[:upper:]]'],
+  [/^(?:letras? minusculas?|minusculas?)\b/,'[[:lower:]]'],
+  [/^(?:caracteres alfanumericos|caracter alfanumerico|alfanumericos?|letras? o (?:digitos?|cifras?))\b/,'[[:alnum:]]'],
+  [/^(?:digitos? hexadecimales?|hexadecimales?)\b/,'[[:xdigit:]]'],
+  [/^(?:digitos?|cifras?)\b/,'[[:digit:]]'],
+  [/^letras?\b/,'[[:alpha:]]'],
+  [/^(?:espacios? en blanco|blancos?)\b/,'[[:space:]]'],
+  [/^(?:espacios? o tabulador(?:es)?|blancos? horizontales?)\b/,'[[:blank:]]'],
+  [/^espacios?\b/,' '], [/^tabulador(?:es)?\b/,'\t'],
+  [/^(?:guion(?:es)? baj[oa]s?|subrayados?)\b/,'_'], [/^guion(?:es)?\b/,'-'],
+  [/^puntos?\b/,'\\.'], [/^comas?\b/,','], [/^dos puntos\b/,':'],
+  [/^barras?\b/,'/'], [/^arrobas?\b/,'@'],
+  [/^(?:signos? de puntuacion)\b/,'[[:punct:]]'],
+  [/^(?:cualquier caracter|caracteres|caracter)\b/,'.'],
+  [/^(?:cualquier texto|lo que sea)\b/,'.*',true],
+  [/^(?:palabras?)\b/,'[[:alpha:]]+',true],
+  [/^(?:numeros? enteros? con signo opcional)\b/,'[+-]?[[:digit:]]+',true],
+  [/^(?:numeros? decimales?|decimales?)\b/,'[[:digit:]]+[.,][[:digit:]]+',true],
+  [/^(?:numeros?(?: enteros?)?|enteros?)\b/,'[[:digit:]]+',true],
+  [/^(?:(?:direcciones? |direccion |una direccion )?macs?|direcciones fisicas de red)\b/,'([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}',true],
+  [/^(?:urls?|enlaces? (?:web|https?)|direcciones? web|direccion web)\b/,"https?://[^[:space:]<>\"']+",true],
+  [/^(?:uuid|identificador(?:es)? uuid)\b/,'[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}',true],
+  [/^(?:caracter(?:es)? de control)\b/,'[[:cntrl:]]'],
+  [/^(?:caracter(?:es)? imprimibles? sin espacios?|caracter(?:es)? visibles?)\b/,'[[:graph:]]'],
+  [/^caracter(?:es)? imprimibles?\b/,'[[:print:]]'],
+  [/^(?:correos?(?: electronicos?)?|emails?)\b/,'[[:alnum:]_%+-]+(\\.[[:alnum:]_%+-]+)*@[[:alnum:]]+([.-][[:alnum:]]+)*\\.[[:alpha:]]{2,}',true],
+  [/^codigos? postal(?:es)? (?:de espana|espanol(?:es)?)\b/,'(0[1-9]|[1-4][0-9]|5[0-2])[0-9]{3}',true],
+  [/^dni\b/,'[0-9]{8}[A-Z]',true],
+  [/^(?:caracteres sin espacios|caracter sin espacios)\b/,'[^[:space:]]'],
+  [/^identificador(?:es)?\b/,'[[:alpha:]_][[:alnum:]_]*',true],
+  [/^horas?(?: en formato)? hh:mm\b/,'([01][0-9]|2[0-3]):[0-5][0-9]',true],
+  [/^fechas?(?: en formato)? dd\/mm\/aaaa\b/,'(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}',true],
+  [/^(?:(?:direccion(?:es)?|ips?) ipv4|ipv4)\b/,'((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])',true]
+];
+// Line filters from the Linux exercises. Each rule consumes the whole request.
+function classFilter(request,literals){
+  let text=request.replace(/^(?:por favor[, ]+)?(?:quiero |necesito |me gustaria )?/,'');
+  const repeated=text.match(/^(?:(extraer?|sacar?|obten)|(?:buscar?|detectar?|encuentra)|(?:valida(?:r)?))?\s*:?\s*(?:la |una )?(?:misma palabra dos veces|palabra repetida|dos palabras (?:iguales|identicas)) (?:con |separad[ao]s? por |unidas por )(?:un )?(guion|espacio|blanco|tabulador)$/);
+  if(repeated){
+    const separator={guion:'-',espacio:' ',blanco:'[[:blank:]]',tabulador:'\t'}[repeated[2]];
+    const pair='([[:alpha:]]+)'+separator+String.raw`\1`;
+    const pattern=text.startsWith('valida')?'^'+pair+'$':String.raw`\<`+pair+String.raw`\>`;
+    return {pattern:isERE()?pattern:convertPattern(pattern,true),extract:!!repeated[1]};
   }
-  if(take(/^(?:línea completa|linea completa)\b\s*:?\s*/i)) scope='all';
-  else if(take(/^(?:empieza|comienza) (?:por|con)\b\s*/i)) scope='start';
-  else if(take(/^(?:termina|acaba) (?:en|con)\b\s*/i)) scope='end';
-  else take(/^contiene\b\s*/i);
-  const items=[];
-  const count='(\\d+|'+Object.keys(numbers).join('|')+')';
-  const number = raw => numbers[raw.toLowerCase()] ?? Number(raw);
-  do {
-    let min=1,max=1,m;
-    if(take(/^(?:uno|una) o m[áa]s\s+/i)) max=Infinity;
-    else if(take(/^cero o m[áa]s\s+/i)){min=0;max=Infinity;}
-    else if(take(/^opcional\s+/i)) min=0;
-    else if((m=take(new RegExp('^entre '+count+' y '+count+'\\s+','i')))){min=number(m[1]);max=number(m[2]);}
-    else if((m=take(new RegExp('^al menos '+count+'\\s+','i')))){min=number(m[1]);max=Infinity;}
-    else if((m=take(new RegExp('^'+count+'\\s+','i')))) min=max=number(m[1]);
-    checkCount(min,max);
-    let kind,first,second;
-    if((m=take(/^"([^"\r\n]+)"/u))){
-      kind='literal'; first=m[1];
-      if((m=take(/^o\s+"([^"\r\n]+)"/iu))){kind='alt';second=m[1];}
-    } else {
-      const names=[
-        [/^letras? may[úu]sculas?\b/i,'upper'],[/^letras? min[úu]sculas?\b/i,'lower'],
-        [/^may[úu]sculas?\b/i,'upper'],[/^min[úu]sculas?\b/i,'lower'],[/^letras?\b/i,'alpha'],
-        [/^d[íi]gitos?\b/i,'digit'],[/^espacios?\b/i,'space'],[/^gui[oó]n(?:es)?\b/i,'dash'],
-        [/^puntos?\b/i,'dot'],[/^(?:cualquier car[áa]cter|caracteres|car[áa]cter)\b/i,'any']
-      ];
-      kind=names.find(([re])=>take(re))?.[1];
+  const negative=/^(?:excluy[ea]|excluir|omite|omitir|ignora|ignorar|descarta|descartar|quita|quitar)\s+/;
+  const invert=negative.test(text);
+  text=text.replace(negative,'').replace(/^(?:buscar?|encuentra|encontrar|filtrar?|muestrame|muestra|mostrar|lista|listar|selecciona|seleccionar)\s+/,'')
+    .replace(/^(?:(?:todas?|todos?) )?(?:las |los |el |la )?/,'');
+  const comment='^[[:blank:]]*#',blank='^[[:space:]]*$',empty='^$';
+  const lineTypes={
+    'comentarios':comment,'lineas de comentario':comment,'lineas comentadas':comment,
+    'lineas vacias':empty,'lineas sin ningun caracter':empty,
+    'lineas en blanco':blank,'lineas vacias o con espacios':blank,
+    'lineas vacias o con espacios y tabuladores':blank
+  };
+  let pattern=lineTypes[text];
+  if(typeof pattern!=='string') pattern=null;
+  if(!pattern){
+    const parts=text.split(/ (?:y|o) (?:las |los )?/);
+    if(parts.length===2 && parts.every(p=>Object.hasOwn(lineTypes,p)))
+      pattern=parts.map(p=>lineTypes[p]).join('|');
+  }
+  let m;
+  const aliasRequest=text.replace(/\uE000(\d+)\uE001$/, (token,i)=>literals[i]==='.bashrc'?'.bashrc':token);
+  if((m=aliasRequest.match(/^(?:(?:definiciones|declaraciones) de )?alias(?: (activos|sin comentar|comentados|activos y comentados))?(?: (?:de|en) (?:bashrc|\.bashrc))?$/))){
+    const marker=m[1]==='comentados'?'#[[:blank:]]*':m[1]==='activos y comentados'?'(#[[:blank:]]*)?':'';
+    pattern='^[[:blank:]]*'+marker+'alias[[:blank:]]+';
+  }
+  if((m=text.match(/^(?:servicios? (?:con |del |en el )?)?puerto (?:exacto )?(\d{1,5})(?:\s+(?:por |con |en )?(tcp o udp|tcp|udp))?(?: (?:en|de) \/etc\/services)?$/))){
+    if(Number(m[1])>65535) throw Error('El puerto debe estar entre 0 y 65535.');
+    const protocol=m[2] && m[2]!=='tcp o udp'?m[2]:'(tcp|udp)';
+    pattern='^[[:blank:]]*[^#[:space:]]+[[:blank:]]+'+Number(m[1])+'/'+protocol+'([[:blank:]]|$)';
+  }
+  if(/^(?:usuarios|cuentas)(?: (?:con|que usan|cuya shell es)) (?:bash|\/bin\/bash)$/.test(text))
+    pattern='^[^:]+(:[^:]*){5}:/bin/bash$';
+  if((m=text.match(/^(?:lineas (?:que contienen|con) )?(?:la )?palabra (?:completa|exacta) \uE000(\d+)\uE001$/))){
+    const word=literals[m[1]];
+    if(!/^[\p{L}\p{N}_]+$/u.test(word)) throw Error('Usa una palabra entre comillas, con letras, cifras o guion bajo.');
+    pattern=String.raw`\<`+quoteLiteral(word,true)+String.raw`\>`;
+  }
+  return pattern?{pattern:isERE()?pattern:convertPattern(pattern,true),extract:false,invert}:null;
+}
+
+function parseDescription(input){
+  // Protect original literals before normalizing the Spanish instructions.
+  const literals=[];
+  const protect=value=>'\uE000'+(literals.push(value)-1)+'\uE001';
+  if(/[\uE000\uE001]/.test(input)) throw Error('La descripción contiene un carácter reservado.');
+  let rest=input.trim().replace(/"([^"\n]*)"|“([^”\n]*)”|«([^»\n]*)»|'([^'\n]*)'|(\.[\p{L}\d_-]+)/gu,
+    (_,a,b,c,d,extension)=>protect(a??b??c??d??extension))
+    .replace(/(\b(?:texto|literal|prefijo|sufijo) )([A-Z][A-Z0-9_-]*)\b/g,(_,lead,value)=>lead+protect(value))
+    .normalize('NFD').replace(/\p{M}/gu,'').toLowerCase().replace(/\s+/g,' ').replace(/[.!?]+$/,'').trim();
+  rest=rest.replace(/\b(?:seis|6) pares hexadecimales separados por dos puntos\b/g,'direccion mac')
+    .replace(/\b(?:cuyo primer caracter es|que arrancan? (?:por|con))\b/g,'que empiezan por')
+    .replace(/\b(?:cuyo ultimo caracter es|que finalizan? (?:en|con))\b/g,'que terminan en')
+    .replace(/\b(?:solamente|unicamente) los numeros\b/g,'solo los numeros');
+  const filter=classFilter(rest,literals);
+  if(filter) return filter;
+  function take(re){
+    const m=rest.match(re);
+    if(m) rest=rest.slice(m[0].length).trimStart();
+    return m;
+  }
+  function problem(message){
+    const excerpt=rest.replace(/\uE000(\d+)\uE001/g,(_,i)=>'«'+literals[i]+'»').slice(0,60);
+    throw Error(message+(excerpt?' Cerca de «'+excerpt+'».':''));
+  }
+  take(/^(?:por favor[, ]+)?(?:quiero|necesito|me gustaria)\s+(?:(?:una (?:expresion(?: regular)?|regex) (?:que|para))\s+)?/);
+  take(/^(?:buscar?|localizar?|detectar?|encontrar|encuentra|selecciona(?:r)?|filtra(?:r)?)\s+/);
+  take(/^(?:todas? (?:las?|los?) )(?=lineas que)/);
+  const extract=!!take(/^(?:extrae(?:r)?|extraiga|extraeme|obten(?:er)?|sacar?|aislar?|muestrame|mostrar|muestra|devuelve)\s+(?:(?:solo|solamente|unicamente)\s+)?(?!(?:las )?lineas que\b)/);
+  if(extract) take(/^(?:todos |todas )?(?:los |las )(?!(?:palabras|lineas) que\b)/);
+  take(/^(?:muestra |mostrar |muestrame |devuelve )?(?:las )?lineas que\s+/);
+  const caseNote=rest.match(/(?:[,;]?\s+(?:sin distinguir mayusculas (?:y|de) minusculas|ignorando mayusculas y minusculas))$/);
+  if(caseNote) rest=rest.slice(0,caseNote.index).trim();
+  const wordScope=!!take(/^(?:las )?palabras que\s+/);
+  const invert=!!take(/^no (?:contenga[n]?|contiene[n]?)\s+/);
+  if(invert && extract) problem('Para excluir líneas usa «líneas que no contengan».');
+  let start=false,end=false;
+  if(take(/^(?:linea completa|cadena completa|toda la linea|coincidencia completa|valida(?:r)?(?: el formato)?)(?:\s*:\s*|\s+)/)) start=end=true;
+  else if(take(/^(?:empiez(?:a|an)|empiec(?:e|en)|comienz(?:a|an)|comienc(?:e|en)) (?:por|con)\s+/)) start=true;
+  else if(take(/^(?:termin(?:a|an|e|en)|acab(?:a|an|e|en)) (?:en|con)\s+/)) end=true;
+  else take(/^(?:contiene[n]?|contenga[n]?)\s+/);
+  if(extract && /^(?:(?:los|las) )?(?:(?:grupos|secuencias|bloques|rachas|tiras) de )?(?:cifras|digitos)(?:\s*[,.;]\s*(?:(?:las )?palabras y (?:las )?unidades deben quedar fuera|(?:sin|excluyendo) palabras (?:ni|y) unidades))?$/.test(rest))
+    rest='uno o mas digitos';
+  function readAtom(depth){
+    if(depth>24) problem('Hay demasiados grupos anidados.');
+    let m;
+    if(take(/^\(/)){
+      const pattern=sequence(depth+1);
+      if(!take(/^\)/)) problem('Falta cerrar el grupo con ).');
+      return {pattern:'('+pattern+')'};
     }
-    if(!kind) throw Error(rest?'No reconozco «'+rest.slice(0,45)+'». Revisa las frases admitidas.':'Falta indicar la siguiente pieza.');
-    items.push({kind,first,second,min,max});
-    if(!rest) break;
-    if(scope==='start' && take(/^y\s+(?:termina|acaba) (?:en|con)\s+/i)){
-      items.push({kind:'any',min:0,max:Infinity});
-      scope='all';
-      continue;
+    if((m=take(/^(?:la )?(?:cadena|secuencia literal|cadena literal) (\d+)\b/))) return {pattern:m[1],compound:m[1].length>1};
+    if((m=take(/^(?:(?:la )?cadena(?: literal)? |(?:el )?texto |(?:la )?palabra |(?:el )?(?:prefijo|sufijo) |literal )?\uE000(\d+)\uE001/))){
+      const value=literals[m[1]];
+      if(!value) problem('El texto entre comillas está vacío.');
+      return {pattern:quoteLiteral(value,true),compound:Array.from(value).length>1};
     }
-    if(!take(/^(?:,\s*(?:y\s+)?|y\s+|seguid[oa] de\s+)/i))
-      throw Error('Revisa el enlace entre las piezas en «'+rest.slice(0,45)+'».');
-  } while(true);
-  return compile(items,scope);
+    if((m=take(/^(?:caracter(?:es)? (?:que no sea[n]?|distint[oa]s? de)|excepto)\s+\uE000(\d+)\uE001/))){
+      const chars=Array.from(new Set(literals[m[1]]));
+      if(!chars.length || chars.includes('[')) problem('Para esta exclusión usa una lista no vacía sin corchete de apertura.');
+      return {pattern:'[^'+(chars.includes(']')?']':'')+chars.filter(c=>c!==']'&&c!=='-').join('')+(chars.includes('-')?'-':'')+']'};
+    }
+    if((m=take(/^(?:caracteres del )?rango (?:de |del )?\uE000(\d+)\uE001 (?:a|al) \uE000(\d+)\uE001/))){
+      const lo=literals[m[1]],hi=literals[m[2]];
+      const alphabet=/^[0-9]$/.test(lo)?/^[0-9]$/:/^[A-Z]$/.test(lo)?/^[A-Z]$/:/^[a-z]$/;
+      if(!alphabet.test(lo)||!alphabet.test(hi)||lo>hi) problem('El rango necesita extremos ordenados de la misma clase: A–Z, a–z o 0–9.');
+      return {pattern:'['+lo+'-'+hi+']'};
+    }
+    for(const [rule,pattern,compound] of vocabulary) if(take(rule)) return {pattern,compound};
+    problem('No reconozco esta pieza. Pon el texto literal entre comillas o consulta los ejemplos.');
+  }
+  function term(depth){
+    let bounds;
+    for(const [rule,read] of quantityRules){
+      const m=take(rule);
+      if(m){bounds=read(m);break;}
+    }
+    if(bounds) take(/^de\s+/);
+    const atom=readAtom(depth);
+    if(take(/^opcional(?:es)?\b/)){
+      if(bounds && (bounds[0]!==1||bounds[1]!==1)) problem('Agrupa la secuencia para hacerla opcional.');
+      bounds=[0,1];
+    }
+    if(!bounds) return atom.pattern;
+    const [min,max]=bounds;checkCount(min,max);
+    if(min===1 && max===1) return atom.pattern;
+    const suffix=min===0&&max===1?'?':max===Infinity&&min<=1?(min?'+' : '*'):
+      '{'+min+(max===min?'':','+(max===Infinity?'':max))+'}';
+    return (atom.compound?'('+atom.pattern+')':atom.pattern)+suffix;
+  }
+  function sequence(depth){
+    let pattern='';
+    do{
+      const options=[term(depth)];
+      while(take(/^(?:o bien|o)\s+/)) options.push(term(depth));
+      pattern+=options.length===1?options[0]:'('+options.join('|')+')';
+      if(!rest || rest.startsWith(')')) break;
+      if(!depth && !wordScope && start && !end && take(/^(?:,\s*(?:que |y )?|y (?:que )?)(?:contiene[n]?|contenga[n]?)\s+/)){
+        pattern+='.*';continue;
+      }
+      if(!depth && start && !end && take(/^(?:,\s*)?y (?:termin(?:a|e|an|en)|acab(?:a|e|an|en)) (?:en|con)\s+/)){
+        end=true;pattern+=wordScope?String.raw`\w*`:'.*';continue;
+      }
+      if(!take(/^(?:,\s*(?:(?:y |luego |despues |seguid[oa]s? de ))?|(?:y luego|y despues|seguido de|seguida de|seguidos de|seguidas de|a continuacion|despues|luego|y)\s+)/))
+        problem('Une las piezas con «seguido de», una coma o «y».');
+    }while(true);
+    return pattern;
+  }
+  if(wordScope && (!start && !end || invert)) problem('Para palabras usa «que empiecen por» o «que terminen en».');
+  const beganAtStart=start;
+  const body=sequence(0);
+  const pattern=wordScope
+    ? String.raw`\<`+(beganAtStart?'':String.raw`\w*`)+body+(end?'':String.raw`\w*`)+String.raw`\>`
+    : (start?'^':'')+body+(end?'$':'');
+  if(rest) problem('Sobra un cierre de grupo.');
+  return {pattern:isERE()?pattern:convertPattern(pattern,true),extract,invert,ignoreCase:!!caseNote};
 }
 function convertPattern(source, fromERE){
   const tokens=parse(source,fromERE);
@@ -565,7 +720,7 @@ $('#reverse').onclick=()=>{
 
 function refresh(){
   let result=manual;
-  extractMatches=false;
+  extractMatches=false; ignoreCase=false; invertLines=false;
   if(view==='convert'){
     const target=isERE()?'ERE':'BRE', source=isERE()?'BRE':'ERE';
     $('#direction').textContent=source+' → '+target;
@@ -583,7 +738,13 @@ function refresh(){
       const parsed=input?parseDescription(input):{pattern:'',extract:false};
       result=parsed.pattern;
       extractMatches=parsed.extract;
-      if(extractMatches) $('#feedback').textContent='grep -o imprime cada coincidencia en una línea.';
+      ignoreCase=!!parsed.ignoreCase;
+      invertLines=!!parsed.invert;
+      $('#feedback').textContent=[
+        extractMatches?'grep -o imprime cada coincidencia en una línea.':'',
+        invertLines?'grep -v selecciona las líneas que no contienen el patrón.':'',
+        ignoreCase?'grep -i ignora las diferencias entre mayúsculas y minúsculas.':''
+      ].filter(Boolean).join(' ');
     }
     catch(error){result='';$('#feedback').textContent=error.message;}
   }
