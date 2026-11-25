@@ -165,13 +165,23 @@
     <button data-view="manual" aria-pressed="true">Desglosar</button>
     <button data-view="words" aria-pressed="false">Desde una descripción</button>
     <button data-view="blocks" aria-pressed="false">Por bloques</button>
+    <button data-view="convert" aria-pressed="false">Convertir BRE ↔ ERE</button>
   </nav>
   <section class="terminal">
+    <p id="destination" hidden>Convertir a</p>
     <div class="modos" role="radiogroup" aria-label="Tipo de expresión regular">
       <label class="modo"><input type="radio" name="m" value="bre" checked>BRE · básica</label>
       <label class="modo"><input type="radio" name="m" value="ere">ERE · extendida</label>
     </div>
     <div class="c" id="note"></div>
+    <section class="builder" id="convert" hidden>
+      <h2 id="direction">Convertir expresión</h2>
+      <label for="sourcePattern" id="sourceLabel">Expresión de origen</label>
+      <input class="re" style="width:100%" id="sourcePattern" spellcheck="false" autocapitalize="off" autocomplete="off">
+      <p>Escribe solo el patrón. Los conjuntos como [a-z0-9_], [^/] y [[:xdigit:]] conservan su contenido. Se usa la sintaxis de GNU grep, incluida la alternancia en BRE.</p>
+      <div class="ex"><button id="reverse">Invertir usando el resultado</button></div>
+      <p role="status" id="conversionError"></p>
+    </section>
     <section class="builder" id="words" hidden>
       <h2>De una descripción a grep</h2>
       <label for="description">Describe las partes en orden. Usa comillas dobles para el texto literal.</label>
@@ -289,8 +299,18 @@ function parse(src, ere){
       else lit('\\' + d, `Barra delante de «${d}»: en POSIX no tiene significado definido, se toma como «${d}» literal`);
     }
     else if (c === '['){
-      m = rest.match(/^\[\^?\]?(?:\[:[a-z]+:\]|\[\.[^\]]+\.\]|\[=[^\]]+=\]|[^\]])*\]/);
-      if (!m){ add('err', '[', 'Conjunto sin cerrar: falta el corchete de cierre «]»'); len = rest.length; }
+      let j=1;
+      if(rest[j]==='^') j++;
+      if(rest[j]===']') j++;
+      while(j<rest.length && rest[j]!==']'){
+        if(rest[j]==='[' && [':','.','='].includes(rest[j+1])){
+          const end=rest.indexOf(rest[j+1]+']',j+2);
+          if(end<0){j=rest.length;break;}
+          j=end+2;
+        }else j++;
+      }
+      m=j<rest.length?[rest.slice(0,j+1)]:null;
+      if (!m){ add('err', rest, 'Conjunto sin cerrar o mal formado'); len = rest.length; }
       else {
         len = m[0].length;
         let body = m[0].slice(1, -1), neg = false;
@@ -399,6 +419,8 @@ const pieces = {
   upper:['Mayúscula','[[:upper:]]'], lower:['Minúscula','[[:lower:]]'],
   alnum:['Letra o dígito','[[:alnum:]]'], space:['Espacio literal',' '],
   blank:['Espacio o tabulador','[[:blank:]]'], any:['Cualquier carácter','.'],
+  hex:['Hexadecimal','[[:xdigit:]]'], punct:['Puntuación','[[:punct:]]'],
+  nonSlash:['Carácter distinto de /','[^/]'], ascii:['Letra de A a Z','[A-Z]'],
   dash:['Guion','-'], dot:['Punto','\\.']
 };
 const blocks = [];
@@ -480,8 +502,66 @@ function describe(input){
   } while(true);
   return compile(items,scope);
 }
+function convertPattern(source, fromERE){
+  const tokens=parse(source,fromERE);
+  const closed=new Set(), groups=[];
+  let n=0;
+  return tokens.map((token,i)=>{
+    const {type,text}=token;
+    const prev=tokens[i-1]?.type, next=tokens[i+1]?.type;
+    if(type==='err') throw Error(token.desc);
+    if(type==='set'){
+      for(const match of text.matchAll(/\[:([a-z]+):\]/g))
+        if(!Object.hasOwn(CLS,match[1])) throw Error('Clase POSIX desconocida: '+match[1]);
+      return text;
+    }
+    if(type==='open') groups.push(++n);
+    if(type==='close') closed.add(groups.pop());
+    if(type==='back' && !closed.has(Number(text[1]))) throw Error('La referencia necesita un grupo cerrado.');
+    if(['open','close','alt','quant'].includes(type)){
+      const op=text.replaceAll('\\','');
+      if(op==='*') return '*';
+      if(!fromERE) return op;
+      if(op==='+') return '\\{1,\\}';
+      if(op==='?') return '\\{0,1\\}';
+      if(op.startsWith('{')) return '\\'+op.slice(0,-1)+'\\}';
+      return '\\'+op;
+    }
+    if(type==='anchor' && fromERE && ((text==='^' && prev && !['open','alt'].includes(prev)) ||
+      (text==='$' && next && !['close','alt'].includes(next))))
+      throw Error('Esta ancla está en una posición que cambia de significado en BRE.');
+    if(type==='esc'){
+      const c=text.length===2?text[1]:text;
+      if(text.length===2 && !'.[]*^$\\+?(){}|/-'.includes(c))
+        throw Error('Escape sin equivalencia definida en grep: '+text);
+      if(text.length===2 && !fromERE && '+?'.includes(c))
+        throw Error('Cuantificador sin elemento anterior.');
+      return quoteLiteral(c,!fromERE);
+    }
+    return text;
+  }).join('');
+}
+$('#sourcePattern').oninput=refresh;
+$('#reverse').onclick=()=>{
+  const converted=$('#re').value;
+  if(!converted) return;
+  $('#sourcePattern').value=converted;
+  document.querySelector('input[name=m]:not(:checked)').checked=true;
+  refresh();
+};
+
 function refresh(){
   let result=manual;
+  if(view==='convert'){
+    const target=isERE()?'ERE':'BRE', source=isERE()?'BRE':'ERE';
+    $('#direction').textContent=source+' → '+target;
+    $('#sourceLabel').textContent='Expresión de origen en '+source;
+    $('#sourcePattern').placeholder=isERE()?String.raw`^\(ab\|cd\)[^/]\{2\}$`:'^(ab|cd)[^/]{2}$';
+    $('#conversionError').textContent='';
+    try {result=convertPattern($('#sourcePattern').value,!isERE());}
+    catch(error){result='';$('#conversionError').textContent=error.message;}
+    $('#reverse').disabled=!result;
+  }
   if(view==='words'){
     $('#feedback').textContent='';
     try {result=$('#description').value.trim()?describe($('#description').value):'';}
@@ -493,14 +573,15 @@ function refresh(){
   $('#re').placeholder=view==='manual'?'Ej. ^[[:digit:]]*$':'Aquí aparecerá la expresión generada';
   render();
   if(view!=='manual' && !result){
-    $('#out').innerHTML='<h3>Desglose</h3><p>'+ (view==='words'?'Completa la descripción para ver las piezas.':'Añade una pieza para ver cómo se construye el patrón.')+'</p>';
+    $('#out').innerHTML='<h3>Desglose</h3><p>'+ (view==='convert'?'Introduce un patrón válido para ver su conversión.':view==='words'?'Completa la descripción para ver las piezas.':'Añade una pieza para ver cómo se construye el patrón.')+'</p>';
   }
 }
 function selectView(next){
   if(view==='manual') manual=$('#re').value;
   view=next;
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
-  for(const id of ['words','blocks']) $('#'+id).hidden=id!==view;
+  for(const id of ['words','blocks','convert']) $('#'+id).hidden=id!==view;
+  $('#destination').hidden=view!=='convert';
   $('#examples').hidden=view!=='manual';
   refresh();
 }
