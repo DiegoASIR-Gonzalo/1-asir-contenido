@@ -66,7 +66,8 @@ const CMD_SIM = vm.runInContext('CMD_SIM', ctx);
 /* ---------- 2) Datos ---------- */
 vm.runInContext(fs.readFileSync(DATOS, 'utf8'), ctx);
 const AVENTURA_ANTERIOR = ctx.AVENTURA;
-vm.runInContext(fs.readFileSync(path.join(RAIZ, 'aventura', 'aventura-tema3.js'), 'utf8'), ctx);
+for (const archivo of ['boreal-campamento', 'boreal-busqueda', 'boreal-columnas', 'boreal-taller', 'aventura-tema3'])
+  vm.runInContext(fs.readFileSync(path.join(RAIZ, 'aventura', archivo + '.js'), 'utf8'), ctx);
 const AVENTURA_TEMA3 = ctx.AVENTURA_TEMA3;
 assert(AVENTURA_ANTERIOR && AVENTURA_TEMA3, 'faltan los datos de alguno de los dos exámenes');
 assert(AVENTURA_TEMA3.practicaSinEjemplo, 'el nuevo examen debe plantear retos sin dar la respuesta');
@@ -141,7 +142,9 @@ AVENTURA.mundos.forEach((mundo, mi) => {
       rondas++;
       comprobar(() => assert(ronda.titulo, 'falta título'), suyoR);
       comprobar(() => assert(ronda.resumen, 'falta resumen'), suyoR);
-      comprobar(() => assert(Array.isArray(ronda.pantallas) && ronda.pantallas.length >= 3, 'necesita al menos 3 pantallas'), suyoR);
+      const pantallasMinimas = lec.id.startsWith('boreal-') ? 1 : 3;
+      comprobar(() => assert(Array.isArray(ronda.pantallas) && ronda.pantallas.length >= pantallasMinimas,
+        'necesita al menos ' + pantallasMinimas + ' pantallas'), suyoR);
 
       // El estado avanza igual que en la ronda real: una práctica deja el mundo
       // preparado para la siguiente. Cada ronda empieza de cero.

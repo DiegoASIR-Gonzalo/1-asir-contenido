@@ -48,58 +48,17 @@
 .av-examen--tema3 .av-examen-progreso{color:#b4d9da}
 .av-examen-entrar{display:block;margin-top:4px;padding:11px 14px;border-radius:10px;background:#f0c65a;color:#382800;font-size:14px;font-weight:800;text-align:center}
 
-/* La ruta de las señales: paisaje nocturno y estaciones enlazadas. */
+/* Paleta del examen del 25. */
 .av.av--tema3{--acento:#167b69;--papel:#f3f8f8;--papel-txt:#15353e;--term:#092b38;background:radial-gradient(ellipse at 15% 0,rgba(24,116,118,.42),transparent 55%),linear-gradient(160deg,#061b29,#092d3a 65%,#071a29)}
 .av--tema3 .av-cab{background:rgba(4,22,33,.85);border-color:rgba(145,221,217,.15)}
-.av--tema3 .av-mapa{max-width:880px}
-.av--tema3 .av-hero{background:linear-gradient(145deg,rgba(24,85,95,.65),rgba(7,33,47,.9));border-color:rgba(138,224,212,.25);padding:24px}
-.av--tema3 .av-hero .av-kicker{color:#a9e6da}
-.av--tema3 .av-hero-texto{color:#d6e8ea;max-width:66ch}
-.av-atlas{margin:20px -6px 16px}
-.av-atlas img{display:block;width:100%;height:auto;border-radius:16px;border:1px solid rgba(164,232,228,.12)}
-.av--tema3 .av-camino{gap:38px;padding-left:16px}
-.av--tema3 .av-mundo{position:relative;padding:20px 18px 16px;border-color:#275462;background:linear-gradient(155deg,#103643,#0b2939)}
-.av--tema3 .av-mundo:not(:last-child)::after{content:"";position:absolute;left:30px;top:100%;height:39px;border-left:3px dashed #4e8b8f}
-.av--tema3 .av-mundo[data-estado="actual"]{border-color:#5fbaa9;box-shadow:0 5px 0 #061c2b,0 0 0 1px #225d61}
-.av--tema3 .av-mundo-emoji{background:#174959;border-color:#3a7c82;color:#a0f1db}
-.av--tema3 .av-mundo-txt p{color:#b6d2d8}
-.av--tema3 .av-nodos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;padding:18px 0 24px}
-.av--tema3 .av-nodos::before{left:15%;right:15%;top:63px;bottom:auto;height:55px;border:0;border-top:3px dashed #4b8d92;border-radius:50%}
-.av--tema3 .av-nodo-fila:nth-child(2){padding-top:24px}
-.av--tema3 .av-nodo{position:relative;min-height:178px;height:auto;flex-direction:column;gap:8px;padding:16px 10px;border:1px solid #315964;border-radius:18px;background:#123b49;text-align:center}
-.av--tema3 .av-nodo:hover:not(:disabled){background:#1a4c58;border-color:#8be1ce}
-.av--tema3 .av-nodo--actual{background:linear-gradient(145deg,#1b5d5d,#123d4c);border-color:#80e3c3}
-.av--tema3 .av-nodo--actual .av-nodo-circulo{background:#167b69;border-color:#89e3c1;box-shadow:0 4px 0 #07483e,0 0 0 6px rgba(80,215,176,.12)}
-.av--tema3 .av-nodo--bloqueada{background:#102d3c;border-color:#294b59}
-.av--tema3 .av-nodo--bloqueada .av-nodo-circulo{background:#173746;border-color:#3f6471}
-.av--tema3 .av-nodo-txt{flex:none}
-.av--tema3 .av-nodo-txt small{color:#b4d7da;margin-top:4px}
-.av--tema3 .av-nodo-flecha{display:none}
-.av--tema3 .av-rondas{margin-top:8px;border-radius:12px;background:rgba(0,0,0,.12)}
-.av--tema3 .av-rondas>summary{cursor:pointer;min-height:44px;padding:12px 10px;color:#beece2;font-size:13px;font-weight:700}
-.av--tema3 .av-subnodos{margin:0;padding:4px;border:0}
-.av--tema3 .av-subnodo{flex-wrap:wrap;gap:6px;padding:8px 4px}
-.av--tema3 .av-subnodo-txt small{color:#b9d4d9}
-.av--tema3 .av-subnodo-estado{color:#b4d4dc;font-size:11px}
-.av--tema3 .av-subnodo--actual .av-subnodo-estado{color:#a1efcf}
-.av--tema3 .av-reto{border-color:#497a80;background:#103542}
-.av--tema3 .av-reto-txt small{color:#bdd6dc}
-.av--tema3 .av-mundo[data-estado="bloqueado"] .av-mundo-cab{opacity:.8}
 .av--tema3 .av-enlace{color:#c7dee3}
+.av--tema3 .av-panel .av-volver{color:#28534c}
+.av--tema3 .av-cuerpo{scrollbar-color:#59848a #0a2531}
 @media(max-width:640px){
   .av-examenes{grid-template-columns:1fr}
   .av-eleccion{padding-top:8px}
   .av-examen-antiguo{max-height:140px}
   .av-examen-paisaje{max-height:160px;object-fit:cover}
-  .av--tema3 .av-hero{padding:20px 16px}
-  .av--tema3 .av-camino{padding-left:0}
-  .av--tema3 .av-mundo{padding:16px 12px}
-  .av--tema3 .av-nodos{grid-template-columns:1fr;padding:14px 0}
-  .av--tema3 .av-nodos::before{left:38px;top:22px;bottom:22px;right:auto;width:0;height:auto;border:0;border-left:3px dashed #4b8d92;border-radius:0}
-  .av--tema3 .av-nodo-fila:nth-child(2){padding-top:0}
-  .av--tema3 .av-nodo{flex-direction:row;min-height:100px;padding:14px 12px;text-align:left}
-  .av--tema3 .av-nodo-txt{flex:1}
-  .av--tema3 .av-rondas{margin-left:72px}
 }
 @media(prefers-reduced-motion:reduce){.av-examen{transition:none}.av-examen:hover{transform:none}}
 
@@ -864,4 +823,194 @@ details.av-porque[open] summary::before{content:"−"}
   .av-prog i{transition:none}
   .av-fin-reto{animation:none}
   .av-btn,.av-op,.av-nodo,.av-subnodo{transition:none}
+}
+
+.av-material{margin:7px 0;padding:5px 10px;background:#e0eeed;border-radius:9px;color:#15353e}
+.av-material summary{min-height:35px;padding:4px 0;cursor:pointer;color:#264d54;font-weight:700}
+.av-material pre,.av-correccion pre{
+  margin:0 0 6px;padding:8px 10px;border-radius:7px;background:#0c2935;color:#e7f8f3;
+  white-space:pre-wrap;overflow-wrap:anywhere
+}
+.av-material p{margin:4px 0}
+.av-material .av-ejemplo{margin:9px 0 4px}
+.av-pie .av-btn[hidden]{display:none}
+#av-feedback,.av-resultado{scroll-margin-bottom:96px}
+.av-resultado{margin-top:12px;padding:10px 12px;border:1px solid #a5c7c2}
+.av-resultado h3{margin:0;font-size:16px}
+.av-resultado ul{margin:5px 0 0;padding-left:20px}
+.av-resultado li+li{margin-top:4px}
+.av-reloj{
+  margin-left:auto;padding:3px 10px;border:1px solid #83aaa2;border-radius:8px;
+  background:#102d36;color:#fff3bd;font:700 16px/1.5 monospace;font-variant-numeric:tabular-nums
+}
+.av-correccion{display:grid;gap:6px;margin-top:12px}
+.av-correccion details{padding:6px 12px;border:1px solid #508784;border-radius:8px}
+.av-correccion summary{padding:4px 0;cursor:pointer;color:#264d54;font-weight:700}
+.av-material summary:focus-visible,.av-correccion summary:focus-visible{outline:2px solid #167b69;outline-offset:2px}
+.av-correccion p{margin:5px 0}
+
+/* Atlas Boreal. El mapa regional y el de cada tramo comparten el paisaje,
+   con escalas distintas para dejar sitio a los nombres de las paradas. */
+.av--tema3 .av-atlas-boreal{max-width:1180px;margin:0 auto;--atlas-acento:#8fe1a4}
+.av-atlas-cab{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:0 0 20px}
+.av-atlas-cab h2{color:#f0f7f4;font:700 clamp(36px,5.2vw,68px)/1 Georgia,serif;letter-spacing:-.04em;margin:4px 0 9px}
+.av-atlas-cab h2:focus,.av-cartografia h2:focus{outline:none}
+.av-atlas-cab p,.av-atlas-distritos p,.av-atlas-examen p{margin:0;color:#bacfce}
+.av-atlas-boreal .av-atlas-ceja{
+  display:flex;align-items:center;gap:7px;color:var(--atlas-acento);font-size:11px;font-weight:800;letter-spacing:.145em
+}
+.av-atlas-medidor{min-width:156px;padding:10px 14px;border:1px solid #3b555e;border-radius:12px;background:#091e2d}
+.av-atlas-medidor>span{display:block;color:#adbfbe;font-size:10px;font-weight:800;letter-spacing:.11em}
+.av-atlas-medidor b{display:block;color:#f6f8f3;font-size:27px;line-height:1.18}
+.av-atlas-medidor small{color:#9db6b7;font-size:15px;font-weight:600}
+.av-atlas-medidor progress{
+  display:block;appearance:none;width:100%;height:4px;margin-top:7px;border:0;border-radius:6px;
+  background:#263f4b;accent-color:var(--atlas-acento);overflow:hidden
+}
+.av-atlas-medidor progress::-webkit-progress-bar{background:#263f4b}
+.av-atlas-medidor progress::-webkit-progress-value{background:var(--atlas-acento)}
+.av-atlas-medidor progress::-moz-progress-bar{background:var(--atlas-acento)}
+.av-atlas-tablero{
+  display:grid;grid-template-columns:minmax(0,2.72fr) minmax(235px,1fr);
+  border:1px solid #496169;border-radius:20px;overflow:hidden;
+  box-shadow:0 18px 55px #020d1959;background:#0a1e2e
+}
+.av-atlas-territorio{
+  position:relative;isolation:isolate;min-height:390px;
+  background:linear-gradient(0deg,#030f1f42,transparent 36%),url("boreal-mapa.webp") center/cover,#0f2739
+}
+.av-atlas-territorio::after,.av-cartografia-terreno::after{
+  content:"";position:absolute;inset:9px;border:1px solid #c2dbcb45;border-radius:12px;
+  pointer-events:none;z-index:-1
+}
+.av-atlas-sello{
+  position:absolute;left:22px;top:20px;display:flex;align-items:center;gap:7px;
+  font-size:9px;line-height:1.28;letter-spacing:.16em;color:#d4decf;text-shadow:0 2px 4px #010913;
+}
+.av-atlas-sello svg{width:31px;height:31px;color:#ffe3a0}
+.av-atlas-sello b{font-size:14px;letter-spacing:.2em}
+.av-atlas-punto,.av-cartografia-punto{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);z-index:1}
+.av-atlas-region,.av-cartografia-parada{font:inherit;color:#fff;cursor:pointer}
+.av-atlas-region{
+  display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 11px 4px 5px;border:1px solid #819a99;
+  border-radius:9px;background:#0a1b28ee;box-shadow:0 5px 0 #05121caa,0 6px 15px #010b1ab0;text-align:left
+}
+.av-atlas-region span{
+  display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--atlas-acento);
+  border-radius:6px;color:var(--atlas-acento);font:800 11px/1 monospace
+}
+.av-atlas-region b{font-size:12px;white-space:nowrap}
+.av-atlas-region[aria-pressed=true],.av-atlas-region:hover{border-color:var(--atlas-acento);background:#122b37}
+.av-atlas-region[aria-pressed=true] span{background:var(--atlas-acento);color:#092123}
+.av-atlas-distritos{padding:22px 16px 16px;border-left:1px solid #496169;background:linear-gradient(155deg,#102939,#081c2c)}
+.av-atlas-distritos h3,.av-atlas-examen h3{
+  color:#f1f7f1;font-size:clamp(19px,2vw,25px);line-height:1.2;margin:5px 0
+}
+.av-atlas-distritos>p:not(.av-atlas-ceja){font-size:13px;line-height:1.42}
+.av-atlas-distritos ol,.av-cartografia-terreno ol{list-style:none;margin:14px 0 0;padding:0}
+.av-atlas-distritos li+li{margin-top:7px}
+.av-atlas-distritos li button{
+  display:flex;align-items:center;gap:8px;width:100%;min-height:56px;text-align:left;font:inherit;color:#edf5f2;
+  padding:6px 9px;background:#0b202e;border:1px solid #365360;border-radius:9px;cursor:pointer
+}
+.av-atlas-distritos li button:hover{background:#15333d;border-color:var(--atlas-acento)}
+.av-atlas-distritos li button>span:first-child{min-width:0;flex:1}
+.av-atlas-distritos li button code{color:var(--atlas-acento);font-size:15px}
+.av-atlas-distritos li button small{display:block;color:#b7ccc9;font-size:11px}
+.av-atlas-cuentadistrito{color:#bad0cd;font:700 11px/1 monospace}
+.av-atlas-distritos li svg{color:var(--atlas-acento);width:15px;height:15px;flex:none}
+.av-atlas-examen{
+  margin-top:16px;display:flex;align-items:center;gap:13px;padding:13px 16px;border:1px solid #50646b;
+  border-radius:13px;background:linear-gradient(120deg,#1b3440,#112637)
+}
+.av-atlas-examen .av-atlas-ceja{color:#ffdb8b}
+.av-atlas-examen p{font-size:13px;line-height:1.3}
+.av-atlas-examen>div:nth-child(2){flex:1}
+.av-atlas-examen-ico{display:grid;place-items:center;width:44px;height:44px;border:1px solid #776b48;border-radius:9px;color:#ffe2a3;background:#263744}
+.av-atlas-boreal .av-atlas-cta{
+  background:#ffda8b;border-color:#c1924d;color:#252318;min-height:44px;white-space:normal;text-align:center
+}
+.av-atlas-boreal .av-atlas-cta:hover{background:#ffebae}
+.av-atlas-herramientas{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 0}
+.av-atlas-herramientas button{min-height:44px}
+.av-cartografia-miga{display:flex;align-items:center;gap:16px;margin:0 0 12px;color:#a8c0be;font-size:13px}
+.av-cartografia-miga .av-enlace{padding:8px 0;line-height:1.2;color:#ecf5ed}
+.av-cartografia-tramos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 13px}
+.av-cartografia-tramos button{
+  display:grid;grid-template-columns:auto 1fr;align-items:center;gap:0 8px;padding:8px 9px;min-height:56px;
+  background:#0d2432;color:#e6f2ef;border:1px solid #3f5b62;border-radius:9px;cursor:pointer;font:inherit;text-align:left
+}
+.av-cartografia-tramos button[aria-pressed=true],.av-cartografia-tramos button:hover{background:#183645;border-color:var(--atlas-acento)}
+.av-cartografia-tramos button>span{grid-row:span 2;color:var(--atlas-acento);font:800 15px/1 monospace}
+.av-cartografia-tramos button b{font-size:13px;line-height:1.18}
+.av-cartografia-tramos button small{font-size:11px;color:#afc7c4}
+.av-cartografia-terreno{
+  position:relative;isolation:isolate;min-height:440px;border:1px solid #597678;border-radius:18px;
+  background:linear-gradient(180deg,#07172966,#07172910 45%,#0717296b),
+    url("boreal-mapa.webp") var(--escena)/180% auto,#122738
+}
+.av-cartografia-sector{position:absolute;top:16px;left:18px;color:#fcf2da;text-shadow:0 2px 4px #02101e}
+.av-cartografia-sector span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em}
+.av-cartografia-sector b{display:block;font:700 19px/1.2 Georgia,serif}
+.av-atlas-linea{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.av-atlas-linea polyline{
+  fill:none;stroke:#fff1ac;stroke-width:3;stroke-dasharray:3 7;stroke-linecap:round;stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;filter:drop-shadow(0 2px 2px #0f1923)
+}
+.av-cartografia-terreno ol{margin:0}
+.av-cartografia-punto{transform:translate(-50%,-21px);width:min(24%,230px)}
+.av-cartografia-parada{
+  display:grid;justify-items:center;gap:5px;width:100%;min-height:48px;border:0;background:transparent;text-align:center
+}
+.av-cartografia-num{
+  display:grid;place-items:center;position:relative;width:42px;height:42px;border:2px solid #d4e3d6;
+  border-radius:50%;background:#0c2839;box-shadow:0 3px 0 #020c18bd;color:#f2f8ee;font:800 16px/1 monospace
+}
+.av-cartografia-num svg{position:absolute;right:-5px;bottom:-4px;width:16px;height:16px;background:#a9f4b7;color:#14352e;border-radius:50%}
+.av-cartografia-nombre{
+  max-width:100%;display:block;padding:3px 8px;border:1px solid #627e81;border-radius:6px;
+  background:#071d2bee;color:#edf3eb;font-size:13px;font-weight:700;line-height:1.23;text-wrap:balance
+}
+.av-cartografia-parada.is-next .av-cartografia-num,.av-cartografia-parada:hover .av-cartografia-num{
+  border-color:#fff0bf;background:#ffdb82;color:#392810;box-shadow:0 0 0 4px #ffdc8055,0 5px 0 #735322
+}
+.av-cartografia-parada.is-done .av-cartografia-num{border-color:#b8f6bd;background:#1f4a40}
+.av-cartografia-pie{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px}
+.av-cartografia-pie p{display:flex;align-items:center;gap:7px;margin:0;color:#bad0cd;font-size:12px}
+.av-cartografia-leyenda{width:10px;height:10px;border-radius:50%;background:#ffdb82}
+.av-cartografia-leyenda.is-done{background:#a9f4b7;margin-left:8px}
+.av-atlas-boreal button:focus-visible{outline:3px solid #fff0b7;outline-offset:3px;z-index:2}
+@media(max-width:810px){
+  .av-atlas-tablero{grid-template-columns:1fr}
+  .av-atlas-territorio{min-height:320px;aspect-ratio:2.3}
+  .av-atlas-distritos{border-left:0;border-top:1px solid #496169;padding:13px}
+  .av-atlas-distritos ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:8px;margin-top:10px}
+  .av-atlas-distritos li+li{margin:0}
+  .av-cartografia-terreno{min-height:390px;background-size:210% auto}
+}
+@media(max-width:560px){
+  .av-atlas-cab{align-items:start;flex-wrap:wrap;gap:10px}
+  .av-atlas-cab h2{font-size:39px}
+  .av-atlas-medidor{min-width:135px}
+  .av-atlas-territorio{min-height:260px;aspect-ratio:1.52}
+  .av-atlas-region{gap:4px;max-width:112px;padding:4px;min-height:44px}
+  .av-atlas-region b{white-space:normal;font-size:11px;line-height:1.18}
+  .av-atlas-region span{width:24px;height:24px;flex:none;font-size:9px}
+  .av-atlas-sello{display:none}
+  .av-atlas-examen{flex-wrap:wrap}
+  .av-atlas-examen button{flex:1 1 100%}
+  .av-cartografia-tramos{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .av-cartografia-tramos button{gap:0 4px;padding:5px;min-height:48px}
+  .av-cartografia-tramos button b{font-size:11px}
+  .av-cartografia-tramos button>span{font-size:11px}
+  .av-cartografia-terreno{min-height:0;padding:62px 10px 12px;background-size:auto 100%}
+  .av-cartografia-terreno ol{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .av-atlas-linea{display:none}
+  .av-cartografia-punto{position:static;transform:none;width:auto}
+  .av-cartografia-parada{
+    display:flex;align-items:center;gap:6px;min-height:61px;padding:5px;background:#071f30ee;border:1px solid #627e81;border-radius:8px;text-align:left
+  }
+  .av-cartografia-num{width:33px;height:33px;flex:none;font-size:12px}
+  .av-cartografia-nombre{font-size:11px;background:none;border:0;padding:0;text-wrap:wrap}
+  .av-cartografia-pie{align-items:start;flex-direction:column}
 }
