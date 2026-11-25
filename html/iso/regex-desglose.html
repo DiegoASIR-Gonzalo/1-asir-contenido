@@ -189,7 +189,7 @@
       <details><summary>Frases admitidas y ejemplos</summary>
         <p>Empieza con «línea completa:», «empieza por», «termina en» o «contiene». Une las partes con una coma, «y» o «seguido de».</p>
         <p>Puedes pedir dígitos, letras, letras mayúsculas o minúsculas, espacios, guiones, puntos o cualquier carácter. Indica la cantidad con un número, «entre 2 y 5», «al menos 2», «uno o más», «cero o más» u «opcional».</p>
-        <div class="ex" id="phrases"><button>Línea completa: dos letras mayúsculas, un guion y cuatro dígitos</button><button>Termina en un punto seguido de "pdf" o "txt"</button><button>Empieza por "ID+" y al menos 2 dígitos</button><button>Empieza por "ASIR" y termina en cuatro dígitos</button></div>
+        <div class="ex" id="phrases"><button>Línea completa: dos letras mayúsculas, un guion y cuatro dígitos</button><button>Termina en un punto seguido de "pdf" o "txt"</button><button>Empieza por "ID+" y al menos 2 dígitos</button><button>Empieza por "ASIR" y termina en cuatro dígitos</button><button>Extrae solo los grupos de cifras. Las palabras y unidades deben quedar fuera.</button></div>
       </details>
       <p id="feedback" role="status"></p>
     </section>
@@ -214,7 +214,7 @@
       <button type="button" data-m="bre" data-re="^\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}$">IP (BRE)</button>
       <button type="button" data-m="ere" data-re="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$">fecha (ERE)</button>
     </div>
-    <details id="command"><summary>Probar en la terminal</summary><p>Ejecuta este comando, escribe una línea y pulsa Intro. grep muestra las líneas que coinciden. Pulsa Ctrl+D para terminar.</p><code id="cmd"></code></details>
+    <details id="command"><summary>Probar en la terminal</summary><p>Ejecuta este comando, escribe una línea y pulsa Intro. <span id="grepOutput">grep muestra las líneas que coinciden.</span> Pulsa Ctrl+D para terminar.</p><code id="cmd"></code></details>
     <div class="salida" id="map" aria-hidden="true"></div>
   </section>
   <section class="explicacion" id="out" aria-live="polite"></section>
@@ -380,9 +380,11 @@ function merge(T){
 function render(){
   const src = $('#re').value, ere = $('input[name=m]:checked').value === 'ere';
   $('#note').textContent = '# ' + NOTES[ere ? 'ere' : 'bre'];
-  $('#flag').textContent = ere ? ' -E' : '';
+  const flags=(ere?' -E':'')+(extractMatches?' -o':'');
+  $('#flag').textContent=flags;
+  $('#grepOutput').textContent=extractMatches?'grep muestra solo los fragmentos coincidentes.':'grep muestra las líneas que coinciden.';
   $('#command').hidden=!src;
-  $('#cmd').textContent="grep"+(ere?" -E":"")+" -e '"+src.replaceAll("'", "'\\''")+"'";
+  $('#cmd').textContent="grep"+flags+" -e '"+src.replaceAll("'", "'\\''")+"'";
   const map = $('#map'), out = $('#out');
   if (!src){
     map.innerHTML = '<span class="c"># aquí aparecerá tu expresión coloreada</span> <span class="cursor"></span>';
@@ -424,7 +426,7 @@ const pieces = {
   dash:['Guion','-'], dot:['Punto','\\.']
 };
 const blocks = [];
-let view = 'manual', manual = '';
+let view = 'manual', manual = '', extractMatches=false;
 const isERE = () => $('input[name=m]:checked').value === 'ere';
 function quoteLiteral(value, ere){
   const special = ere ? '.^$[*\\+?(){}|' : '.^$[*\\';
@@ -453,6 +455,17 @@ function checkCount(min,max){
     throw Error('Usa cantidades enteras de 0 a 255 y un máximo igual o mayor que el mínimo.');
 }
 const numbers = {un:1,una:1,uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,cero:0};
+function parseDescription(input){
+  const prefix=/^(?:extrae(?:r)?|extraiga|saca|muestra|devuelve)\s+(?:(?:s[oó]lo|solamente|[úu]nicamente)\s+)?/i;
+  const text=input.trim();
+  if(!prefix.test(text)) return {pattern:describe(text), extract:false};
+  const request=text.replace(prefix,'').replace(/[.!]\s*$/,'').trim();
+  const digits=/^(?:(?:los|las)\s+)?(?:(?:grupos|secuencias|bloques)\s+de\s+)?(?:cifras|d[íi]gitos)(?:\s*[.,;]\s*(?:(?:las\s+)?palabras\s+y\s+(?:las\s+)?unidades\s+deben\s+quedar\s+fuera|(?:sin|excluyendo)\s+palabras\s+(?:ni|y)\s+unidades))?$/i;
+  const pattern=digits.test(request)
+    ? compile([{kind:'digit',min:1,max:Infinity}],'any')
+    : describe(request);
+  return {pattern,extract:true};
+}
 function describe(input){
   let rest = input.trim(), scope='any';
   function take(re){
@@ -552,6 +565,7 @@ $('#reverse').onclick=()=>{
 
 function refresh(){
   let result=manual;
+  extractMatches=false;
   if(view==='convert'){
     const target=isERE()?'ERE':'BRE', source=isERE()?'BRE':'ERE';
     $('#direction').textContent=source+' → '+target;
@@ -564,7 +578,13 @@ function refresh(){
   }
   if(view==='words'){
     $('#feedback').textContent='';
-    try {result=$('#description').value.trim()?describe($('#description').value):'';}
+    try {
+      const input=$('#description').value.trim();
+      const parsed=input?parseDescription(input):{pattern:'',extract:false};
+      result=parsed.pattern;
+      extractMatches=parsed.extract;
+      if(extractMatches) $('#feedback').textContent='grep -o imprime cada coincidencia en una línea.';
+    }
     catch(error){result='';$('#feedback').textContent=error.message;}
   }
   if(view==='blocks') result=compile(blocks,$('#scope').value);
@@ -640,4 +660,3 @@ refresh();
 </script>
 </body>
 </html>
-
