@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Escritorio Linux · Desglose de expresiones regulares</title>
+<title>Taller de expresiones regulares · BRE y ERE</title>
 <meta name="theme-color" content="#300a24">
 <style>
   /* ============ COLORES (mismos que linux-terminal.html) ============ */
@@ -118,6 +118,31 @@
   .ajustes .vel small{color:#c0bfbc}
   .barra-btn{font:inherit;font-weight:500;color:#fff;text-decoration:none;background:none;border:0;border-radius:12px;height:24px;padding:0 12px;display:inline-flex;align-items:center;cursor:pointer;transition:background .2s ease}
   .barra-btn:hover{background:rgba(255,255,255,.14)}
+  [hidden]{display:none!important}
+  .tools{display:flex;gap:3px;padding:0 12px;background:var(--ventana);flex-wrap:wrap}
+  .tools button{font:600 14px/1.4 inherit;font-family:inherit;font-size:14px;color:#ddd;background:none;border:0;border-bottom:3px solid transparent;padding:9px 10px;cursor:pointer}
+  .tools button[aria-pressed=true]{color:white;border-color:#f2956e}
+  .builder{border:1px solid #ffffff38;border-radius:8px;padding:14px;margin:12px 0 18px;background:#ffffff08}
+  .builder h2{font:700 17px/1.5 Ubuntu,system-ui,sans-serif;margin-bottom:8px}
+  .builder label,.builder details,.builder p{font:14px/1.5 Ubuntu,system-ui,sans-serif}
+  .builder textarea{width:100%;display:block;margin:6px 0 10px;resize:vertical}
+  .builder select,.builder input{background:var(--ventana);border:1px solid #ffffff55;border-radius:5px;color:white;padding:6px;font:inherit;max-width:100%}
+  .fields{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin-top:10px}
+  .fields label{display:grid;gap:3px;max-width:100%}
+  .builder summary{cursor:pointer;color:var(--ruta)}
+  .builder details p,.builder p:not(:empty){margin-top:8px}
+  #sequence{padding-left:2em}
+  #sequence li{margin-top:8px;overflow-wrap:anywhere}
+  #sequence button{color:white;background:var(--ventana);border:1px solid #ffffff55;border-radius:4px;cursor:pointer;margin-left:5px}
+  #sequence button:disabled{opacity:.4}
+  #feedback,#blockError{color:var(--marca)}
+  .fila-cod{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+  body[data-theme=grafito]{--term:#17191c;--escritorio-1:#222529;--escritorio-2:#484e56}
+  body[data-theme=oceano]{--term:#08242e;--escritorio-1:#09252e;--escritorio-2:#245965}
+  #command{margin-top:10px;font-size:13px}
+  #command summary{cursor:pointer;color:var(--ruta)}
+  #command p{margin:8px 0}
+  #cmd{display:block;padding:8px 12px;background:#0003;border-radius:6px;overflow-wrap:anywhere;white-space:pre-wrap;user-select:all}
 </style>
 </head>
 <body>
@@ -133,48 +158,66 @@
     </button>
   <div class="ajustes" id="panel-ajustes" hidden>
     <h2>Personalizar terminal</h2>
-    <label class="fila">Tema <select id="tema"></select></label>
-    <div id="colores"></div>
-    <label class="fila vel">Tiempo de escritura: <span id="vel-txt"></span>
-      <input type="range" id="vel" min="0" max="120" step="4">
-      <small>0 = el comando aparece de golpe</small>
-    </label>
-    <h3>Fondo de pantalla</h3>
-    <label class="fila">Animado <select id="fondo-anim-sel"></select></label>
-    <div class="fila">
-      <button class="reset" id="fondo-elegir" type="button">Elegir imagen…</button>
-      <button class="reset" id="fondo-quitar" type="button">Quitar</button>
-    </div>
-    <input type="file" id="fondo-archivo" accept="image/*" hidden>
-    <button class="reset" id="restablecer">Restablecer todo</button>
+    <label class="fila">Tema <select id="tema"><option value="">Ubuntu</option><option value="grafito">Grafito</option><option value="oceano">Océano</option></select></label>
   </div>
   <div class="titulo">usuario@asir: ~/regex</div>
+  <nav class="tools" aria-label="Herramientas">
+    <button data-view="manual" aria-pressed="true">Desglosar</button>
+    <button data-view="words" aria-pressed="false">Desde una descripción</button>
+    <button data-view="blocks" aria-pressed="false">Por bloques</button>
+  </nav>
   <section class="terminal">
     <div class="modos" role="radiogroup" aria-label="Tipo de expresión regular">
       <label class="modo"><input type="radio" name="m" value="bre" checked>BRE · básica</label>
       <label class="modo"><input type="radio" name="m" value="ere">ERE · extendida</label>
     </div>
     <div class="c" id="note"></div>
+    <section class="builder" id="words" hidden>
+      <h2>De una descripción a grep</h2>
+      <label for="description">Describe las partes en orden. Usa comillas dobles para el texto literal.</label>
+      <textarea class="re" rows="2" id="description" placeholder='Línea completa: dos letras mayúsculas, un guion y cuatro dígitos'></textarea>
+      <details><summary>Frases admitidas y ejemplos</summary>
+        <p>Empieza con «línea completa:», «empieza por», «termina en» o «contiene». Une las partes con una coma, «y» o «seguido de».</p>
+        <p>Puedes pedir dígitos, letras, letras mayúsculas o minúsculas, espacios, guiones, puntos o cualquier carácter. Indica la cantidad con un número, «entre 2 y 5», «al menos 2», «uno o más», «cero o más» u «opcional».</p>
+        <div class="ex" id="phrases"><button>Línea completa: dos letras mayúsculas, un guion y cuatro dígitos</button><button>Termina en un punto seguido de "pdf" o "txt"</button><button>Empieza por "ID+" y al menos 2 dígitos</button><button>Empieza por "ASIR" y termina en cuatro dígitos</button></div>
+      </details>
+      <p id="feedback" role="status"></p>
+    </section>
+    <section class="builder" id="blocks" hidden>
+      <h2>Constructor por bloques</h2>
+      <label>Buscar en <select id="scope"><option value="any">cualquier posición</option><option value="all">la línea completa</option><option value="start">el inicio de línea</option><option value="end">el final de línea</option></select></label>
+      <div class="fields">
+        <label>Pieza <select id="kind"></select></label>
+        <label id="literalWrap">Texto literal <input id="literal" placeholder="Ej. ASIR"></label>
+        <label id="otherWrap" hidden>Segunda opción <input id="other" placeholder="Ej. DAW"></label>
+        <label>Repeticiones <select id="repeat"><option value="one">Una vez</option><option value="plus">Una o más</option><option value="star">Cero o más</option><option value="opt">Opcional</option><option value="exact">Exactamente</option><option value="range">Entre dos cantidades</option></select></label>
+        <label id="minWrap" hidden>Cantidad mínima <input id="low" type="number" min="0" max="255" value="2"></label>
+        <label id="maxWrap" hidden>Cantidad máxima <input id="high" type="number" min="0" max="255" value="4"></label>
+      </div>
+      <div class="ex"><button id="add">Añadir bloque</button></div>
+      <p id="blockError" role="status"></p><ol id="sequence"></ol>
+    </section>
     <div class="prompt"><span class="u">usuario@asir</span>:<span class="r">~</span>$ grep<span id="flag"></span></div>
-    <div class="re-fila"><b>'</b><input id="re" class="re" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Expresión regular" placeholder="^[a-z]+@(gmail|hotmail)\.com$"><b>'</b></div>
-    <div class="ex"><span class="c"># prueba con:</span>
+    <div class="re-fila"><b>'</b><input id="re" class="re" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Expresión regular" placeholder="Ej. ^[[:digit:]]*$"><b>'</b></div>
+    <div class="ex" id="examples"><span class="c"># prueba con:</span>
       <button type="button" data-m="ere" data-re="^[a-z0-9._-]+@[a-z]+\.(com|es)$">correo (ERE)</button>
       <button type="button" data-m="bre" data-re="^\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}$">IP (BRE)</button>
       <button type="button" data-m="ere" data-re="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$">fecha (ERE)</button>
     </div>
+    <details id="command"><summary>Probar en la terminal</summary><p>Ejecuta este comando, escribe una línea y pulsa Intro. grep muestra las líneas que coinciden. Pulsa Ctrl+D para terminar.</p><code id="cmd"></code></details>
     <div class="salida" id="map" aria-hidden="true"></div>
   </section>
   <section class="explicacion" id="out" aria-live="polite"></section>
 </div>
 
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
-<script src="personalizacion.js"></script>
+
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const vis = s => s.replace(/ /g, '␣');
 const GNU = 'extensión GNU';
-const KIND = {anchor:'Ancla',lit:'Literal',esc:'Literal escapado',any:'Cualquier carácter',set:'Conjunto de caracteres',quant:'Cuantificador',open:'Abre grupo',close:'Cierra grupo',alt:'Alternancia',back:'Retrovisión',cls:'Clase abreviada',err:'Problema'};
+const KIND = {anchor:'Ancla',lit:'Literal',esc:'Literal escapado',any:'Cualquier carácter',set:'Conjunto de caracteres',quant:'Cuantificador',open:'Abre grupo',close:'Cierra grupo',alt:'Alternancia',back:'Referencia inversa',cls:'Clase abreviada',err:'Problema'};
 const CLS = {alpha:'letras',digit:'dígitos',alnum:'letras y dígitos',upper:'mayúsculas',lower:'minúsculas',space:'espacios en blanco',blank:'espacio o tabulador',punct:'signos de puntuación',xdigit:'dígitos hexadecimales',cntrl:'caracteres de control',print:'caracteres imprimibles',graph:'caracteres visibles (sin espacio)'};
 const ESC = {
   w:['cls','Un carácter de palabra: letra, dígito o guion bajo'],
@@ -200,7 +243,7 @@ function parse(src, ere){
   const prev = () => T[T.length - 1];
   const atStart = () => { const p = prev(); return !p || p.type === 'open' || p.type === 'alt'; };
   const atomText = () => { const p = prev(); return p.type === 'close' ? src.slice(p.from, p.end) : p.text; };
-  const quant = (text, what, tag) => add('quant', text, `Repite «${vis(atomText())}» ${what}`, {tag});
+  const quant = (text, what, tag) => !prev() || ['open','alt','anchor','quant','err'].includes(prev().type) ? add('err', text, 'Se necesita un elemento repetible delante del cuantificador') : add('quant', text, `Repite «${vis(atomText())}» ${what}`, {tag});
   const lit = (text, desc) => add('esc', text, desc);
   const open = text => { groups++; add('open', text, `Abre el grupo de captura nº ${groups}: agrupa lo que sigue para tratarlo como una unidad y poder repetirlo o reutilizarlo con \\${groups}`); stack.push({n:groups, start:i}); depth++; };
   const close = text => {
@@ -211,6 +254,7 @@ function parse(src, ere){
   const alt = (text, tag) => add('alt', text, 'Alternancia («o»): coincide con lo que hay a su izquierda o con lo que hay a su derecha, dentro del mismo grupo', {tag});
   const interval = (text, m, tag) => {
     const lo = m[1], comma = m[2] !== undefined, hi = m[3];
+    if ((!lo && !hi) || (hi && lo && Number(lo) > Number(hi))) return add('err', text, 'Intervalo de repetición inválido');
     let w;
     if (!comma) w = `exactamente ${lo} veces`;
     else if (lo && hi) w = `entre ${lo} y ${hi} veces`;
@@ -237,7 +281,7 @@ function parse(src, ere){
         else add('err', '\\{', 'Intervalo mal formado: se espera \\{n\\}, \\{n,\\}, \\{n,m\\} o \\{,m\\}');
       }
       else if (/[1-9]/.test(d)){
-        if (+d <= groups) add('back', '\\' + d, `Retrovisión: debe repetir exactamente el texto que capturó el grupo nº ${d}`);
+        if (+d <= groups) add('back', '\\' + d, `Referencia inversa: debe repetir exactamente el texto que capturó el grupo nº ${d}`);
         else add('err', '\\' + d, `Referencia al grupo nº ${d}, pero hasta aquí solo hay ${groups}`);
       }
       else if (ESC[d]) add(ESC[d][0], '\\' + d, ESC[d][1], {tag:GNU});
@@ -278,8 +322,8 @@ function parse(src, ere){
     else if (ere && c === '(') open('(');
     else if (ere && c === ')') close(')');
     else if (ere && c === '|') alt('|');
-    else if (ere && c === '+'){ if (atStart()) lit('+', 'Al principio no hay nada que repetir, así que se toma como «+» literal'); else quant('+', 'una o más veces'); }
-    else if (ere && c === '?'){ if (atStart()) lit('?', 'Al principio no hay nada que repetir, así que se toma como «?» literal'); else quant('?', 'cero o una vez (es opcional)'); }
+    else if (ere && c === '+'){ if (atStart()) add('err', '+', 'Falta el elemento que se quiere repetir'); else quant('+', 'una o más veces'); }
+    else if (ere && c === '?'){ if (atStart()) add('err', '?', 'Falta el elemento que se quiere repetir'); else quant('?', 'cero o una vez (es opcional)'); }
     else if (ere && c === '{'){
       m = rest.match(/^\{(\d*)(,(\d*))?\}/);
       if (m && (m[1] || m[2]) && !atStart()){ len = m[0].length; interval(m[0], m); }
@@ -317,6 +361,8 @@ function render(){
   const src = $('#re').value, ere = $('input[name=m]:checked').value === 'ere';
   $('#note').textContent = '# ' + NOTES[ere ? 'ere' : 'bre'];
   $('#flag').textContent = ere ? ' -E' : '';
+  $('#command').hidden=!src;
+  $('#cmd').textContent="grep"+(ere?" -E":"")+" -e '"+src.replaceAll("'", "'\\''")+"'";
   const map = $('#map'), out = $('#out');
   if (!src){
     map.innerHTML = '<span class="c"># aquí aparecerá tu expresión coloreada</span> <span class="cursor"></span>';
@@ -335,7 +381,7 @@ reloj(); setInterval(reloj, 30000);
 
 $('#re').addEventListener('input', render);
 document.querySelectorAll('input[name=m]').forEach(r => r.addEventListener('change', render));
-document.querySelector('.ex').addEventListener('click', e => {
+document.querySelector('#examples').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   document.querySelector(`input[name=m][value=${b.dataset.m}]`).checked = true;
   $('#re').value = b.dataset.re; render();
@@ -347,7 +393,170 @@ const hl = (e, on) => {
 $('.ventana').addEventListener('mouseover', e => hl(e, true));
 $('.ventana').addEventListener('mouseout', e => hl(e, false));
 
-render();
+const pieces = {
+  literal:['Texto literal'], alt:['Una de dos palabras'],
+  digit:['Dígito','[[:digit:]]'], alpha:['Letra','[[:alpha:]]'],
+  upper:['Mayúscula','[[:upper:]]'], lower:['Minúscula','[[:lower:]]'],
+  alnum:['Letra o dígito','[[:alnum:]]'], space:['Espacio literal',' '],
+  blank:['Espacio o tabulador','[[:blank:]]'], any:['Cualquier carácter','.'],
+  dash:['Guion','-'], dot:['Punto','\\.']
+};
+const blocks = [];
+let view = 'manual', manual = '';
+const isERE = () => $('input[name=m]:checked').value === 'ere';
+function quoteLiteral(value, ere){
+  const special = ere ? '.^$[*\\+?(){}|' : '.^$[*\\';
+  return Array.from(value,c => special.includes(c) ? '\\'+c : c).join('');
+}
+function compilePiece(piece, ere){
+  const {kind, first='', second='', min, max} = piece;
+  const group = value => ere ? '('+value+')' : '\\('+value+'\\)';
+  let atom = pieces[kind][1];
+  if (kind === 'literal') atom = quoteLiteral(first,ere);
+  if (kind === 'alt') atom = group(quoteLiteral(first,ere)+(ere?'|':'\\|')+quoteLiteral(second,ere));
+  if (min === 1 && max === 1) return atom;
+  if (kind === 'literal' && Array.from(first).length > 1) atom = group(atom);
+  if (min === 0 && max === Infinity) return atom+'*';
+  if (ere && min === 1 && max === Infinity) return atom+'+';
+  if (ere && min === 0 && max === 1) return atom+'?';
+  const count = min === max ? String(min) : min+','+(max === Infinity?'':max);
+  return atom+(ere?'{':'\\{')+count+(ere?'}':'\\}');
+}
+function compile(items, scope){
+  if (!items.length) return '';
+  return (['start','all'].includes(scope)?'^':'')+items.map(p=>compilePiece(p,isERE())).join('')+(['end','all'].includes(scope)?'$':'');
+}
+function checkCount(min,max){
+  if (!Number.isInteger(min) || min<0 || min>255 || (max!==Infinity && (!Number.isInteger(max) || max>255 || max<min)))
+    throw Error('Usa cantidades enteras de 0 a 255 y un máximo igual o mayor que el mínimo.');
+}
+const numbers = {un:1,una:1,uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,cero:0};
+function describe(input){
+  let rest = input.trim(), scope='any';
+  function take(re){
+    const match=rest.match(re);
+    if(match) rest=rest.slice(match[0].length).trimStart();
+    return match;
+  }
+  if(take(/^(?:línea completa|linea completa)\b\s*:?\s*/i)) scope='all';
+  else if(take(/^(?:empieza|comienza) (?:por|con)\b\s*/i)) scope='start';
+  else if(take(/^(?:termina|acaba) (?:en|con)\b\s*/i)) scope='end';
+  else take(/^contiene\b\s*/i);
+  const items=[];
+  const count='(\\d+|'+Object.keys(numbers).join('|')+')';
+  const number = raw => numbers[raw.toLowerCase()] ?? Number(raw);
+  do {
+    let min=1,max=1,m;
+    if(take(/^(?:uno|una) o m[áa]s\s+/i)) max=Infinity;
+    else if(take(/^cero o m[áa]s\s+/i)){min=0;max=Infinity;}
+    else if(take(/^opcional\s+/i)) min=0;
+    else if((m=take(new RegExp('^entre '+count+' y '+count+'\\s+','i')))){min=number(m[1]);max=number(m[2]);}
+    else if((m=take(new RegExp('^al menos '+count+'\\s+','i')))){min=number(m[1]);max=Infinity;}
+    else if((m=take(new RegExp('^'+count+'\\s+','i')))) min=max=number(m[1]);
+    checkCount(min,max);
+    let kind,first,second;
+    if((m=take(/^"([^"\r\n]+)"/u))){
+      kind='literal'; first=m[1];
+      if((m=take(/^o\s+"([^"\r\n]+)"/iu))){kind='alt';second=m[1];}
+    } else {
+      const names=[
+        [/^letras? may[úu]sculas?\b/i,'upper'],[/^letras? min[úu]sculas?\b/i,'lower'],
+        [/^may[úu]sculas?\b/i,'upper'],[/^min[úu]sculas?\b/i,'lower'],[/^letras?\b/i,'alpha'],
+        [/^d[íi]gitos?\b/i,'digit'],[/^espacios?\b/i,'space'],[/^gui[oó]n(?:es)?\b/i,'dash'],
+        [/^puntos?\b/i,'dot'],[/^(?:cualquier car[áa]cter|caracteres|car[áa]cter)\b/i,'any']
+      ];
+      kind=names.find(([re])=>take(re))?.[1];
+    }
+    if(!kind) throw Error(rest?'No reconozco «'+rest.slice(0,45)+'». Revisa las frases admitidas.':'Falta indicar la siguiente pieza.');
+    items.push({kind,first,second,min,max});
+    if(!rest) break;
+    if(scope==='start' && take(/^y\s+(?:termina|acaba) (?:en|con)\s+/i)){
+      items.push({kind:'any',min:0,max:Infinity});
+      scope='all';
+      continue;
+    }
+    if(!take(/^(?:,\s*(?:y\s+)?|y\s+|seguid[oa] de\s+)/i))
+      throw Error('Revisa el enlace entre las piezas en «'+rest.slice(0,45)+'».');
+  } while(true);
+  return compile(items,scope);
+}
+function refresh(){
+  let result=manual;
+  if(view==='words'){
+    $('#feedback').textContent='';
+    try {result=$('#description').value.trim()?describe($('#description').value):'';}
+    catch(error){result='';$('#feedback').textContent=error.message;}
+  }
+  if(view==='blocks') result=compile(blocks,$('#scope').value);
+  $('#re').value=result;
+  $('#re').readOnly=view!=='manual';
+  $('#re').placeholder=view==='manual'?'Ej. ^[[:digit:]]*$':'Aquí aparecerá la expresión generada';
+  render();
+  if(view!=='manual' && !result){
+    $('#out').innerHTML='<h3>Desglose</h3><p>'+ (view==='words'?'Completa la descripción para ver las piezas.':'Añade una pieza para ver cómo se construye el patrón.')+'</p>';
+  }
+}
+function selectView(next){
+  if(view==='manual') manual=$('#re').value;
+  view=next;
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
+  for(const id of ['words','blocks']) $('#'+id).hidden=id!==view;
+  $('#examples').hidden=view!=='manual';
+  refresh();
+}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>selectView(b.dataset.view));
+$('#description').oninput=refresh;
+$('#phrases').onclick=e=>{if(e.target.matches('button')){$('#description').value=e.target.textContent;refresh();}};
+$('#scope').onchange=refresh;
+document.querySelectorAll('input[name=m]').forEach(r=>r.addEventListener('change',()=>{if(view==='manual') manual=$('#re').value;refresh();}));
+Object.entries(pieces).forEach(([key,[label]])=>$('#kind').add(new Option(label,key)));
+function fields(){
+  const k=$('#kind').value,r=$('#repeat').value;
+  $('#literalWrap').hidden=!['literal','alt'].includes(k);
+  $('#otherWrap').hidden=k!=='alt';
+  $('#minWrap').hidden=!['exact','range'].includes(r);
+  $('#maxWrap').hidden=r!=='range';
+}
+$('#kind').onchange=$('#repeat').onchange=fields;
+fields();
+function showBlocks(){
+  $('#sequence').replaceChildren();
+  blocks.forEach((p,i)=>{
+    const li=document.createElement('li');
+    const code=document.createElement('code');
+    code.textContent=vis(compilePiece(p,isERE()));
+    li.append(code);
+    for(const [action,label,title,disabled] of [['up','↑','Subir',i===0],['down','↓','Bajar',i===blocks.length-1],['remove','×','Quitar',false]]){
+      const b=document.createElement('button');
+      b.textContent=label;b.title=title;b.setAttribute('aria-label',title+' bloque '+(i+1));b.disabled=disabled;
+      b.onclick=()=>{
+        if(action==='remove') blocks.splice(i,1);
+        else {const j=i+(action==='up'?-1:1);[blocks[i],blocks[j]]=[blocks[j],blocks[i]];}
+        showBlocks();refresh();
+      };
+      li.append(b);
+    }
+    $('#sequence').append(li);
+  });
+}
+document.querySelectorAll('input[name=m]').forEach(r=>r.addEventListener('change',showBlocks));
+$('[data-view=blocks]').addEventListener('click',showBlocks);
+$('#add').onclick=()=>{
+  const kind=$('#kind').value,first=$('#literal').value,second=$('#other').value;
+  const low=$('#low').valueAsNumber,high=$('#high').valueAsNumber;
+  const [min,max]=({one:[1,1],plus:[1,Infinity],star:[0,Infinity],opt:[0,1],exact:[low,low],range:[low,high]})[$('#repeat').value];
+  try{
+    if((['alt','literal'].includes(kind)&&!first)||(kind==='alt'&&!second)) throw Error('Escribe el texto de cada opción antes de añadir la pieza.');
+    checkCount(min,max);blocks.push({kind,first,second,min,max});$('#blockError').textContent='';showBlocks();refresh();
+  }catch(error){$('#blockError').textContent=error.message;}
+};
+$('#btn-ajustes').onclick=()=>{
+  const panel=$('#panel-ajustes');panel.hidden=!panel.hidden;$('#btn-ajustes').setAttribute('aria-expanded',String(!panel.hidden));
+};
+$('#tema').onchange=()=>document.body.dataset.theme=$('#tema').value;
+
+refresh();
 </script>
 </body>
 </html>
+
